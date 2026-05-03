@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "name": "basketball",
+    "image": "video_sample/1_basketball.jpg",
+    "video": "video_sample/1_basketball_video.mp4",
+    "prompt": "Generate a 10-second realistic video from this image. The person bounces the basketball repeatedly on the wooden gym floor. Use a static camera and keep the full body visible. The basketball should move clearly between the hand and the floor. Add realistic synchronized audio: a clear bouncing impact sound each time the ball hits the floor, no music, no speech. The first frame is given."
+  },
+  {
+    "id": 2,
+    "name": "mug",
+    "image": "video_sample/2_mug.jpg",
+    "video": "video_sample/2_mug_video.mp4",
+    "prompt": "Generate a realistic 10-second video based on this image. In the video, a person slowly lowers a white ceramic cup and places it on a wooden table. Keep the camera still, ensuring the hand, cup, and tabletop are clearly visible. Add realistic, synchronized sound effects: a crisp ceramic clinking sound as the cup touches the table, with no background music or narration. The person should take a sip and then put the cup down. There shouldn't be any tilting of the cup onto the table. (Please make some adjustments.)"
+  },
+  {
+    "id": 3,
+    "name": "hammer",
+    "image": "video_sample/3_hammer.jpg",
+    "video": "video_sample/3_hammer_video.mp4",
+    "prompt": "Generate a 8-second realistic video from this image. The person slowly swings the hammer down and hits the wooden block two times. Keep the camera static. Make the hammer, hand, and wooden block clearly visible throughout the motion. Add realistic synchronized audio: a sharp wooden impact sound exactly when the hammer hits the block, no music, no speech."
+  },
+  {
+    "id": 4,
+    "name": "drawer",
+    "image": "video_sample/4_drawer.jpg",
+    "video": "video_sample/4_drawer_video.mp4",
+    "prompt": "Generate a 6-second realistic video from this image. The person pushes the wooden drawer closed with one hand. Keep the camera static and make the full body, hand, drawer, and cabinet clearly visible throughout the motion. Add realistic synchronized audio: a soft sliding wooden drawer sound during the motion and one clear closing thud exactly when the drawer fully shuts. No music, no speech."
+  },
+  {
+    "id": 5,
+    "name": "chair",
+    "image": "video_sample/5_chair.jpg",
+    "video": "video_sample/5_chair_video.mp4",
+    "prompt": "Generate a 7-second realistic video from this image. At the beginning, the person is not yet touching the lightweight wooden chair. The person first reaches forward and grasps the chair with both hands, then lifts it from the floor, walks from right to left across the room while carrying it for a noticeable distance, and finally places the chair back down on the wooden floor. Keep the camera static. Keep the full body, chair, hands, and floor contact area clearly visible throughout the motion. Make sure the person starts near the right side of the frame and moves into the open space on the left side. Add realistic synchronized audio: a small wooden chair lift sound when the chair leaves the floor, subtle footsteps while the person walks, and one clear wooden chair placement sound exactly when the chair touches the floor again. No music, no speech.Ensure the entire process is smooth and taken in one continuous shot."
+  },
+  {
+    "id": 6,
+    "name": "broom",
+    "image": "video_sample/6_broom.jpg",
+    "video": "video_sample/6_broom_video.mp4",
+    "prompt": "Generate a 7-second realistic video from this image. The person holds a broom in the right hand and a dustpan in the left hand. At the beginning, the person is in a ready position. The person then makes slow and clear sweeping motions on the wooden floor while holding the dustpan low and slightly forward, as if cleaning the floor. Keep the camera completely static. Keep the full body, broom, dustpan, both hands, and the floor contact area clearly visible throughout the motion. Avoid occlusion: the broom and dustpan should remain visible at all times. The motion should be slow, deliberate, and easy to track. Add realistic synchronized audio: soft broom brushing sounds on the floor and very subtle footsteps if the person shifts position slightly. No music, no speech."
+  }
+]

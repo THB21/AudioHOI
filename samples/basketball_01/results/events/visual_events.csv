@@ -1,0 +1,16 @@
+event,visual_event,visual_frame,visual_time,ball_center_y,prominence
+visual bounce 1,ball lowest point,10,0.375000,601.546,144.635
+visual bounce 2,ball lowest point,23,0.916667,600.868,141.956
+visual bounce 3,ball lowest point,36,1.458333,619.694,150.212
+visual bounce 4,ball lowest point,50,2.041667,624.880,144.338
+visual bounce 5,ball lowest point,63,2.583333,622.173,128.409
+visual bounce 6,ball lowest point,76,3.125000,617.725,136.073
+visual bounce 7,ball lowest point,88,3.625000,604.176,123.596
+visual bounce 8,ball lowest point,100,4.125000,611.858,120.012
+visual bounce 9,ball lowest point,112,4.625000,626.350,134.692
+visual bounce 10,ball lowest point,125,5.166667,625.456,130.370
+visual bounce 11,ball lowest point,137,5.666667,613.016,114.926
+visual bounce 12,ball lowest point,148,6.125000,628.922,141.852
+visual bounce 13,ball lowest point,161,6.666667,599.012,127.041
+visual bounce 14,ball lowest point,174,7.208333,600.048,123.473
+visual bounce 15,ball lowest point,187,7.750000,607.027,132.513

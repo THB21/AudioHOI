@@ -1,0 +1,16 @@
+Contact-phase calibration: strong palm-depth only at exact contact frames, wider floor support in a local window.
+floor_window_radius_frames: 3
+floor_window_sigma: 1.350
+num_frames: 192
+num_contact_frames: 15
+num_floor_window_frames: 105
+mean_abs_delta_z_m: 0.233515
+max_abs_delta_z_m: 0.461935
+baseline_z_second_diff_mean: 0.001215
+aligned_z_second_diff_mean: 0.028314
+contact_frames_head: 10, 23, 36, 50, 63, 76, 88, 100, 112, 125, 137, 148
+baseline_contact_depth_gap_mean_m: 0.369905
+aligned_contact_depth_gap_mean_m: 0.144859
+baseline_contact_bottom_gap_px: 0.051267
+aligned_contact_bottom_gap_px: 8.071095
+optimization_cost: 19.035728

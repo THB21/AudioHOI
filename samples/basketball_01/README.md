@@ -1,4 +1,4 @@
-# Basketball sample baseline
+# Basketball sample shared-camera workflow
 
 Folder contract:
 
@@ -16,7 +16,7 @@ Prepare sample and frames:
 conda run -n audiohoi python -m scripts.manual_init.prepare_basketball_sample
 ```
 
-If `ffmpeg` is available, the script also creates `audio.wav`. Otherwise run this inside `samples/basketball_01` after installing ffmpeg:
+If `ffmpeg` is available, the script also creates `audio.wav`. Otherwise run:
 
 ```bash
 ffmpeg -i video.mp4 -vn -ac 1 -ar 16000 audio.wav
@@ -31,48 +31,43 @@ conda run -n audiohoi python -m scripts.manual_init.run_sam2_basketball
 Run CoTracker point tracking:
 
 ```bash
-conda run -n audiohoi python -m scripts.shared.run_cotracker_basketball
+conda run -n audiohoi python -m scripts.shared.tracking.run_cotracker_basketball
 ```
 
 Run audio peak detection and audio-visual alignment:
 
 ```bash
-conda run -n audiohoi python -m scripts.shared.align_basketball_events
+conda run -n audiohoi python -m scripts.shared.events.align_basketball_events
 ```
 
-Run the 3D lifting baseline:
+Run the shared-camera ball baseline:
 
 ```bash
-conda run -n audiohoi python -m scripts.shared.run_basketball_3d_lifting
+conda run -n audiohoi python -m scripts.shared.sharedcam.run_basketball_pose6d_sharedcam
 ```
 
-Render the lifted 3D scene:
+Render the shared-camera baseline with human:
 
 ```bash
-conda run -n audiohoi python -m scripts.shared.render_lifted_scene --view world --out lifted_scene_world.mp4
-conda run -n audiohoi python -m scripts.shared.render_lifted_scene --view camera --out lifted_scene_camera.mp4
+conda run -n bodyrender python scripts/shared/sharedcam/render_pose6d_sharedcam_direct.py   --sample-dir samples/basketball_01   --ball-csv samples/basketball_01/results/pose6d_sharedcam/ball_pose6d_sharedcam_trajectory.csv   --render-tag pose6d_sharedcam_direct   --with-human
 ```
 
-This current branch focuses on:
+Run the contact-phase calibration branch:
 
-- explicit `u/v/r -> X/Y/Z` lifting
-- reprojection comparison
-- true XYZ-based scene rendering
+```bash
+conda run -n bodyrender python scripts/shared/human_ball/contact/run_human_ball_contact_phase_calibration.py
+```
 
-Current outputs:
+Render the contact-phase branch with human:
 
-- `results/segmentation/masks/%05d_mask.png`: SAM2 basketball masks.
-- `results/tracking/cotracker_points.csv`: CoTracker center/left/right/top/bottom tracks.
-- `results/tracking/ball_trajectory.csv`: main basketball trajectory from SAM2 mask circle fitting.
-- `results/events/visual_events.csv`: visual bounce/contact candidates.
-- `results/events/audio_events.csv`: impact candidates from audio onset peaks.
-- `results/events/audio_visual_alignment.csv`: nearest-neighbor audio/visual event alignment table.
-- `results/lifting/ball_3d_lifted_trajectory.csv`: lifted XYZ trajectory.
-- `results/lifting/ball_3d_lifted_plot.png`: static 3D lifted trajectory plot.
-- `results/lifting/ball_3d_lifted_components.png`: raw-vs-fit XYZ diagnostic plot.
-- `results/lifting/ball_3d_reprojection_comparison.png`: observed vs reprojected 2D comparison.
-- `results/renders/lifted_scene_world*.mp4`: world-view 3D render.
-- `results/renders/lifted_scene_camera*.mp4`: camera-view 3D render.
+```bash
+conda run -n bodyrender python scripts/shared/sharedcam/render_pose6d_sharedcam_direct.py   --sample-dir samples/basketball_01   --ball-csv samples/basketball_01/results/pose6d_sharedcam_contactphase/ball_pose6d_sharedcam_contactphase_trajectory.csv   --render-tag pose6d_sharedcam_contactphase_direct   --with-human
+```
+
+Current focus:
+
+- `pose6d_sharedcam`: shared-camera basketball baseline
+- `pose6d_sharedcam_contactphase`: contact-aware refinement on top of the shared-camera baseline
 
 Folder details for `results/` are documented in:
 

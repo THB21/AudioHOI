@@ -1,89 +1,63 @@
 # Shared Scripts
 
-This folder contains the shared post-segmentation steps used by both:
+This shared pipeline is currently organized around the shared-camera basketball branch
+and its contact-aware refinement.
 
-- `samples/basketball_01`
-- `samples_known_object/*`
-
-## Current scripts
-
-### `run_cotracker_basketball.py`
-
-Shared tracking step.
-
-Inputs:
-
-- `results/segmentation/masks/`
-- `frames/`
-
-Outputs:
-
-- `results/tracking/ball_trajectory.csv`
-- `results/tracking/cotracker_center_trajectory.csv`
-- `results/tracking/cotracker_points.csv`
-
-Notes:
-
-- The current main `ball_trajectory.csv` is derived from SAM2 mask circle fitting.
-- CoTracker outputs are kept as auxiliary tracking signals.
-
-### `align_basketball_events.py`
-
-Shared event extraction and audio-visual alignment step.
-
-Inputs:
-
-- `results/tracking/ball_trajectory.csv`
-- `audio.wav`
-
-Outputs:
-
-- `results/events/audio_events.csv`
-- `results/events/visual_events.csv`
-- `results/events/audio_visual_alignment.csv`
-
-### `run_basketball_3d_lifting.py`
-
-Minimal monocular 3D lifting baseline for the basketball sample.
-
-Inputs:
-
-- `results/tracking/ball_trajectory.csv`
-- `results/events/visual_events.csv`
-
-Outputs:
-
-- `results/lifting/ball_3d_lifted_trajectory.csv`
-- `results/lifting/ball_3d_reprojection_comparison.csv`
-- `results/lifting/ball_3d_reprojection_comparison.png`
-
-### `evaluate_reprojection.py`
-
-Evaluation helper for checking whether the lifted 3D trajectory projects back to the observed 2D track.
-
-### `render_lifted_scene.py`
-
-True XYZ-based lifted-scene visualization.
-
-Inputs:
-
-- `results/lifting/ball_3d_lifted_trajectory.csv`
-
-Views:
-
-- `world`
-- `camera`
-
-Outputs:
-
-- `results/renders/lifted_scene_world*.mp4`
-- `results/renders/lifted_scene_camera*.mp4`
-
-## Notes
-
-- Old pseudo-3D render experiments are no longer part of the active shared pipeline.
-- The active basketball 3D path is:
+## Active layout
 
 ```text
-mask -> ball_trajectory.csv -> visual/audio events -> 3D lifting -> lifted scene render
+scripts/shared/
+├── tracking/
+│   └── run_cotracker_basketball.py
+├── events/
+│   └── align_basketball_events.py
+├── sharedcam/
+│   ├── run_basketball_pose6d_sharedcam.py
+│   └── render_pose6d_sharedcam_direct.py
+└── human_ball/
+    ├── build_human_ball_shared_scene.py
+    ├── render_human_ball_fullbody_scene.py
+    └── contact/
+        └── run_human_ball_contact_phase_calibration.py
 ```
+
+## Main line
+
+### `sharedcam/run_basketball_pose6d_sharedcam.py`
+
+Shared-camera ball baseline in the GVHMR full-image camera frame.
+
+Outputs:
+
+- `results/pose6d_sharedcam/ball_pose6d_sharedcam_trajectory.csv`
+- `results/pose6d_sharedcam/ball_pose6d_sharedcam_reprojection_comparison.csv`
+
+### `sharedcam/render_pose6d_sharedcam_direct.py`
+
+Direct renderer for the shared-camera branch.
+
+Outputs live under:
+
+- `results/renders/pose6d_sharedcam_direct/`
+- `results/renders/pose6d_sharedcam_contactphase_direct/`
+
+## Contact-aware branch
+
+### `human_ball/contact/run_human_ball_contact_phase_calibration.py`
+
+Contact-phase calibration on top of the shared-camera baseline.
+
+Outputs:
+
+- `results/pose6d_sharedcam_contactphase/ball_pose6d_sharedcam_contactphase_trajectory.csv`
+- `results/pose6d_sharedcam_contactphase/ball_pose6d_sharedcam_contactphase_summary.txt`
+
+## Support scripts
+
+### `tracking/run_cotracker_basketball.py`
+
+Tracking support for `results/tracking/ball_trajectory.csv`.
+
+### `events/align_basketball_events.py`
+
+Audio-visual event extraction used by the contact-aware branch.

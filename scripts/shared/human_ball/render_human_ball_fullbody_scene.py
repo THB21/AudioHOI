@@ -73,35 +73,42 @@ def read_human_result(path: Path) -> dict[str, np.ndarray]:
     }
 
 
+def read_stitched_params(path: Path) -> dict[str, np.ndarray]:
+    with path.open("rb") as f:
+        return pickle.load(f)
+
+
 def build_body_outputs(
     body_models_root: Path,
     human_params: dict[str, np.ndarray],
     vertex_stride: int,
+    stitched_params: dict[str, np.ndarray] | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    use_flat_hands = stitched_params is None
     model = smplx.create(
         str(body_models_root),
         model_type="smplx",
         gender="neutral",
         ext="npz",
         use_pca=False,
-        flat_hand_mean=True,
+        flat_hand_mean=use_flat_hands,
         num_betas=10,
         batch_size=human_params["transl"].shape[0],
     )
 
-    body_pose = torch.from_numpy(human_params["body_pose"])
-    betas = torch.from_numpy(human_params["betas"])
-    global_orient = torch.from_numpy(human_params["global_orient"])
-    transl = torch.from_numpy(human_params["transl"])
+    fwd_kwargs: dict = dict(
+        body_pose=torch.from_numpy(human_params["body_pose"]),
+        betas=torch.from_numpy(human_params["betas"]),
+        global_orient=torch.from_numpy(human_params["global_orient"]),
+        transl=torch.from_numpy(human_params["transl"]),
+        return_verts=True,
+    )
+    if stitched_params is not None:
+        fwd_kwargs["left_hand_pose"] = torch.from_numpy(stitched_params["left_hand_pose"])
+        fwd_kwargs["right_hand_pose"] = torch.from_numpy(stitched_params["right_hand_pose"])
 
     with torch.inference_mode():
-        output = model(
-            body_pose=body_pose,
-            betas=betas,
-            global_orient=global_orient,
-            transl=transl,
-            return_verts=True,
-        )
+        output = model(**fwd_kwargs)
 
     joints = output.joints.detach().cpu().numpy().astype(np.float32)
     vertices = output.vertices.detach().cpu().numpy().astype(np.float32)
@@ -532,7 +539,7 @@ def render_overlay(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sample-dir", type=Path, default=Path("samples/basketball_01"))
-    parser.add_argument("--body-model-root", type=Path, default=Path("third-party/GVHMR/inputs/checkpoints/body_models"))
+    parser.add_argument("--body-model-root", type=Path, default=Path("scripts/third-party/GVHMR/inputs/checkpoints/body_models"))
     parser.add_argument("--fps", type=float, default=24.0)
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=720)
@@ -540,6 +547,11 @@ def main() -> None:
     parser.add_argument("--out", type=str, default="human_ball_fullbody_scene.mp4")
     parser.add_argument("--view", type=str, choices=("world", "overlay"), default="world")
     parser.add_argument("--ball-branch", type=str, choices=("pose6d", "pose6d_sharedcam"), default="pose6d")
+    parser.add_argument(
+        "--no-hand-stitch",
+        action="store_true",
+        help="Ignore stitched hand params and render with flat hands.",
+    )
     args = parser.parse_args()
 
     sample_dir = args.sample_dir
@@ -557,7 +569,18 @@ def main() -> None:
     if len(ball_rows) != human_params["transl"].shape[0]:
         raise RuntimeError("Ball/human frame count mismatch")
 
-    joints, sampled_vertices, _ = build_body_outputs(args.body_model_root, human_params, args.vertex_stride)
+    stitched_params = None
+    if not args.no_hand_stitch:
+        stitched_pkl = results_dir / "hands" / "stitched_smplx_params.pkl"
+        if stitched_pkl.exists():
+            stitched_params = read_stitched_params(stitched_pkl)
+            print(f"Using stitched hand params ({stitched_pkl})")
+        else:
+            print("No stitched hand params found — rendering with flat hands.")
+
+    joints, sampled_vertices, _ = build_body_outputs(
+        args.body_model_root, human_params, args.vertex_stride, stitched_params
+    )
     write_joint_csv(joint_dir / "human_ball_body_joints.csv", ball_rows, joints)
 
     if args.view == "world":

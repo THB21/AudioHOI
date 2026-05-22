@@ -30,6 +30,9 @@ BALL_BGR = (32, 122, 219)
 BODY_POINT_BGR = (194, 228, 244)
 BODY_LINE_BGR = (104, 78, 214)
 BALL_RADIUS_M = 0.12
+LEFT_PALM_BGR = (70, 180, 70)
+RIGHT_PALM_BGR = (70, 200, 230)
+ACTIVE_PALM_BGR = (30, 30, 240)
 
 # Readable body skeleton over the first 22 SMPL-X body joints.
 BODY_EDGES = [
@@ -134,6 +137,44 @@ def project_ball(ball: dict[str, float], K: np.ndarray) -> tuple[tuple[int, int]
     radius = int(round(K[0, 0] * ball["r"] / max(ball["z"], 1e-6)))
     return center, max(3, radius)
 
+
+def build_palm_centers(joints_cam: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    left_ids = [20, 25, 28, 31, 34]
+    right_ids = [21, 40, 43, 46, 49]
+    left_palm = joints_cam[left_ids].mean(axis=0)
+    right_palm = joints_cam[right_ids].mean(axis=0)
+    return left_palm, right_palm
+
+
+def choose_active_palm(joints_cam: np.ndarray, ball_xyz: np.ndarray) -> tuple[np.ndarray, np.ndarray, str]:
+    left_palm, right_palm = build_palm_centers(joints_cam)
+    left_dist = float(np.linalg.norm(left_palm - ball_xyz))
+    right_dist = float(np.linalg.norm(right_palm - ball_xyz))
+    if left_dist <= right_dist:
+        return left_palm, right_palm, "left"
+    return left_palm, right_palm, "right"
+
+
+def draw_palm_markers_overlay(frame: np.ndarray, joints_cam: np.ndarray, ball_xyz: np.ndarray, K: np.ndarray) -> str | None:
+    left_palm, right_palm, active_name = choose_active_palm(joints_cam, ball_xyz)
+    palm_points = np.stack([left_palm, right_palm], axis=0)
+    palms_uv, palms_valid = project_points(palm_points, K)
+
+    if palms_valid[0]:
+        pt = tuple(np.round(palms_uv[0]).astype(int))
+        cv2.circle(frame, pt, 7, LEFT_PALM_BGR, -1, lineType=cv2.LINE_AA)
+        cv2.circle(frame, pt, 9, (20, 20, 20), 1, lineType=cv2.LINE_AA)
+    if palms_valid[1]:
+        pt = tuple(np.round(palms_uv[1]).astype(int))
+        cv2.circle(frame, pt, 7, RIGHT_PALM_BGR, -1, lineType=cv2.LINE_AA)
+        cv2.circle(frame, pt, 9, (20, 20, 20), 1, lineType=cv2.LINE_AA)
+
+    active_idx = 0 if active_name == "left" else 1
+    if palms_valid[active_idx]:
+        pt = tuple(np.round(palms_uv[active_idx]).astype(int))
+        cv2.circle(frame, pt, 12, ACTIVE_PALM_BGR, 2, lineType=cv2.LINE_AA)
+        return active_name
+    return None
 
 
 def draw_body_skeleton_overlay(frame: np.ndarray, joints_cam: np.ndarray, K: np.ndarray) -> None:
@@ -255,6 +296,9 @@ def render_overlay_with_human(
                 cv2.circle(frame, (x, y), 1, BODY_POINT_BGR, -1, lineType=cv2.LINE_AA)
         draw_body_skeleton_overlay(frame, joints[idx], K)
 
+        ball_xyz = np.asarray([ball["x"], ball["y"], ball["z"]], dtype=np.float32)
+        active_palm_name = draw_palm_markers_overlay(frame, joints[idx], ball_xyz, K)
+
         proj = project_ball(ball, K)
         if proj is not None:
             center, radius = proj
@@ -265,12 +309,11 @@ def render_overlay_with_human(
 
         lw = joints[idx, 20]
         rw = joints[idx, 21]
-        ball_xyz = np.asarray([ball["x"], ball["y"], ball["z"]], dtype=np.float32)
         left_dist = float(np.linalg.norm(lw - ball_xyz))
         right_dist = float(np.linalg.norm(rw - ball_xyz))
         cv2.putText(
             frame,
-            f"frame {ball['frame']:03d}  t={ball['time']:.2f}s  L={left_dist:.3f}m  R={right_dist:.3f}m",
+            f"frame {ball['frame']:03d}  t={ball['time']:.2f}s  L={left_dist:.3f}m  R={right_dist:.3f}m  active={active_palm_name or 'n/a'}",
             (24, h - 24),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.72,
@@ -346,6 +389,13 @@ def render_camera3d(
                 seg = body_j[[a, b]]
                 ax.plot(seg[:, 0], seg[:, 2], seg[:, 1], color="#6b54d2", linewidth=2.6, alpha=0.95)
             ax.scatter(body_j[:, 0], body_j[:, 2], body_j[:, 1], s=18, color="#e4dbff", edgecolors="#6b54d2", linewidths=0.4, depthshade=False)
+            left_palm_cam, right_palm_cam, active_name = choose_active_palm(joints[idx], ball_xyz_cam[idx])
+            left_palm = cam_to_worldlike(left_palm_cam[None, :])[0]
+            right_palm = cam_to_worldlike(right_palm_cam[None, :])[0]
+            ax.scatter([left_palm[0]], [left_palm[2]], [left_palm[1]], s=80, color="#46b446", edgecolors="#1f1f1f", linewidths=0.8, depthshade=False)
+            ax.scatter([right_palm[0]], [right_palm[2]], [right_palm[1]], s=80, color="#46c8e6", edgecolors="#1f1f1f", linewidths=0.8, depthshade=False)
+            active_palm = left_palm if active_name == "left" else right_palm
+            ax.scatter([active_palm[0]], [active_palm[2]], [active_palm[1]], s=180, facecolors="none", edgecolors="#ee2b2b", linewidths=2.0, depthshade=False)
             pelvis_traj = cam_to_worldlike(joints[:, 0, :])
             pelvis = pelvis_traj[idx]
             ax.plot(

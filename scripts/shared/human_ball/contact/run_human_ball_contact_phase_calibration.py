@@ -5,14 +5,13 @@ This branch refines only the ball depth trajectory while keeping the observed
 2D ball center fixed. It separates contact constraints into two phases:
 
 1. Exact contact-center frames:
-   - strong palm-depth equality
+   - strong palm-depth equality used to estimate a global Z shift
    - strong floor consistency
 2. Nearby support window:
    - weaker floor consistency
    - smooth temporal transition back to the baseline
 
-This is intended to avoid the "rough" trajectory created by applying the hand
-depth constraint too broadly.
+This is intended to use palm depth at contact as a global depth-alignment reference while keeping the trajectory smooth.
 """
 
 from __future__ import annotations
@@ -127,14 +126,15 @@ def build_palm_centers(joints: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return left_palm, right_palm
 
 
-def choose_active_hand_depth(joints: np.ndarray, ball_xyz: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def choose_active_hand_relation(joints: np.ndarray, ball_xyz: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     left, right = build_palm_centers(joints)
     left_dist = np.linalg.norm(left - ball_xyz, axis=1)
     right_dist = np.linalg.norm(right - ball_xyz, axis=1)
     use_left = left_dist <= right_dist
+    hand_y = np.where(use_left, left[:, 1], right[:, 1])
     hand_z = np.where(use_left, left[:, 2], right[:, 2])
     hand_name = np.where(use_left, "left", "right")
-    return hand_z, hand_name
+    return hand_y, hand_z, hand_name
 
 
 def build_window_weights(contact_indices: np.ndarray, num_frames: int, radius: int, sigma: float) -> np.ndarray:
@@ -154,7 +154,7 @@ def build_window_weights(contact_indices: np.ndarray, num_frames: int, radius: i
 
 def z_objective(
     z: np.ndarray,
-    z_init: np.ndarray,
+    z_ref: np.ndarray,
     u_obs: np.ndarray,
     v_obs: np.ndarray,
     r_obs: np.ndarray,
@@ -171,6 +171,8 @@ def z_objective(
     w_temp: float,
 ) -> np.ndarray:
     z = np.maximum(z, 0.20)
+    z = z.copy()
+    z[contact_mask] = hand_z[contact_mask]
     ball_xyz = reconstruct_xyz_from_uvz(u_obs, v_obs, z, K)
     r_proj, bottom_v = project_ball(ball_xyz, K, BALL_RADIUS_M)
 
@@ -185,9 +187,11 @@ def z_objective(
 
     if np.any(contact_mask):
         residuals.append(w_floor_contact * ((bottom_v[contact_mask] - floor_v[contact_mask]) / 20.0))
-        residuals.append(w_hand_contact * (z[contact_mask] - hand_z[contact_mask]))
 
-    residuals.append(w_z_anchor * (z - z_init))
+    anchor_delta = z - z_ref
+    anchor_delta = anchor_delta.copy()
+    anchor_delta[contact_mask] = 0.0
+    residuals.append(w_z_anchor * anchor_delta)
 
     if len(z) >= 3:
         second = z[2:] - 2.0 * z[1:-1] + z[:-2]
@@ -204,7 +208,7 @@ def write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) 
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Phase-aware local contact calibration for shared-camera basketball.")
+    parser = argparse.ArgumentParser(description="Phase-aware contact calibration with global palm-Z alignment.")
     parser.add_argument("--sample-dir", type=Path, default=Path("samples/basketball_01"))
     parser.add_argument("--body-model-root", type=Path, default=Path("third-party/GVHMR/inputs/checkpoints/body_models"))
     parser.add_argument("--out-subdir", type=str, default="pose6d_sharedcam_contactphase")
@@ -240,18 +244,24 @@ def main() -> None:
     contact_indices = np.where(contact_mask)[0]
 
     xyz_init = np.asarray([[r["tx"], r["ty"], r["tz"]] for r in ball_rows], dtype=np.float64)
-    hand_z, hand_name = choose_active_hand_depth(joints, xyz_init)
+    hand_y, hand_z, hand_name = choose_active_hand_relation(joints, xyz_init)
     floor_window_w = build_window_weights(contact_indices, len(ball_rows), args.floor_window_radius, args.floor_window_sigma)
+
+    if np.any(contact_mask):
+        global_z_shift = float(np.median(hand_z[contact_mask] - z_init[contact_mask]))
+    else:
+        global_z_shift = 0.0
+    z_ref = z_init + global_z_shift
 
     result = least_squares(
         z_objective,
-        x0=z_init.copy(),
+        x0=z_ref.copy(),
         method="trf",
         loss="soft_l1",
         f_scale=1.0,
         max_nfev=400,
         args=(
-            z_init,
+            z_ref,
             u_obs,
             v_obs,
             r_obs,
@@ -270,6 +280,7 @@ def main() -> None:
     )
 
     z_opt = np.maximum(result.x.astype(np.float64), 0.20)
+    z_opt[contact_mask] = hand_z[contact_mask]
     xyz_opt = reconstruct_xyz_from_uvz(u_obs, v_obs, z_opt, K)
     r_proj, bottom_proj = project_ball(xyz_opt, K, BALL_RADIUS_M)
     residual_px = np.zeros(len(ball_rows), dtype=np.float64)
@@ -302,8 +313,10 @@ def main() -> None:
                 "contact_frame": row["contact_frame"],
                 "audio_contact_frame": row["audio_contact_frame"],
                 "active_hand": hand_name[idx],
+                "active_hand_y": f"{hand_y[idx]:.6f}",
                 "active_hand_z": f"{hand_z[idx]:.6f}",
                 "floor_window_weight": f"{floor_window_w[idx]:.6f}",
+                "global_z_ref": f"{z_ref[idx]:.6f}",
                 "contact_depth_gap": f"{(xyz_opt[idx,2] - hand_z[idx]):.6f}",
             }
         )
@@ -331,7 +344,7 @@ def main() -> None:
             "frame","time","tx","ty","tz","qw","qx","qy","qz","radius_m","coord_frame",
             "u_obs","v_obs","radius_obs_px","u_proj","v_proj","radius_proj_px","bottom_proj_v",
             "floor_v","residual_px","contact_frame","audio_contact_frame",
-            "active_hand","active_hand_z","floor_window_weight","contact_depth_gap",
+            "active_hand","active_hand_y","active_hand_z","floor_window_weight","global_z_ref","contact_depth_gap",
         ],
     )
     write_csv(
@@ -348,9 +361,10 @@ def main() -> None:
     second_opt = z_opt[2:] - 2.0 * z_opt[1:-1] + z_opt[:-2]
 
     summary_lines = [
-        "Contact-phase calibration: strong palm-depth only at exact contact frames, wider floor support in a local window.",
+        "Contact-phase calibration: palm depth at exact contact frames is enforced as a hard Z constraint, with local floor support in a window.",
         f"floor_window_radius_frames: {args.floor_window_radius}",
         f"floor_window_sigma: {args.floor_window_sigma:.3f}",
+        f"global_z_shift_from_contacts_m: {global_z_shift:.6f}",
         f"num_frames: {len(ball_rows)}",
         f"num_contact_frames: {len(contact_indices)}",
         f"num_floor_window_frames: {int(np.count_nonzero(floor_window_w > 1e-6))}",

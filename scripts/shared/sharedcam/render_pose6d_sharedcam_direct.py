@@ -33,6 +33,8 @@ BALL_RADIUS_M = 0.12
 LEFT_PALM_BGR = (70, 180, 70)
 RIGHT_PALM_BGR = (70, 200, 230)
 ACTIVE_PALM_BGR = (30, 30, 240)
+FLOOR_LINE_BGR = (40, 180, 40)
+FEET_LINE_BGR = (220, 120, 40)
 
 # Readable body skeleton over the first 22 SMPL-X body joints.
 BODY_EDGES = [
@@ -66,6 +68,9 @@ def read_ball_pose(path: Path) -> list[dict[str, float]]:
                     "z": float(row["tz"]),
                     "r": float(row["radius_m"]),
                     "contact_frame": int(row.get("contact_frame", 0) or 0),
+                    "floor_v": float(row.get("floor_v", 0.0) or 0.0),
+                    "bottom_proj_v": float(row.get("bottom_proj_v", 0.0) or 0.0),
+                    "active_hand": row.get("active_hand", ""),
                 }
             )
     if not rows:
@@ -146,8 +151,12 @@ def build_palm_centers(joints_cam: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return left_palm, right_palm
 
 
-def choose_active_palm(joints_cam: np.ndarray, ball_xyz: np.ndarray) -> tuple[np.ndarray, np.ndarray, str]:
+def choose_active_palm(joints_cam: np.ndarray, ball_xyz: np.ndarray, active_hand: str | None = None) -> tuple[np.ndarray, np.ndarray, str]:
     left_palm, right_palm = build_palm_centers(joints_cam)
+    if active_hand == "left":
+        return left_palm, right_palm, "left"
+    if active_hand == "right":
+        return left_palm, right_palm, "right"
     left_dist = float(np.linalg.norm(left_palm - ball_xyz))
     right_dist = float(np.linalg.norm(right_palm - ball_xyz))
     if left_dist <= right_dist:
@@ -155,8 +164,8 @@ def choose_active_palm(joints_cam: np.ndarray, ball_xyz: np.ndarray) -> tuple[np
     return left_palm, right_palm, "right"
 
 
-def draw_palm_markers_overlay(frame: np.ndarray, joints_cam: np.ndarray, ball_xyz: np.ndarray, K: np.ndarray) -> str | None:
-    left_palm, right_palm, active_name = choose_active_palm(joints_cam, ball_xyz)
+def draw_palm_markers_overlay(frame: np.ndarray, joints_cam: np.ndarray, ball_xyz: np.ndarray, K: np.ndarray, active_hand: str | None = None) -> str | None:
+    left_palm, right_palm, active_name = choose_active_palm(joints_cam, ball_xyz, active_hand)
     palm_points = np.stack([left_palm, right_palm], axis=0)
     palms_uv, palms_valid = project_points(palm_points, K)
 
@@ -188,6 +197,45 @@ def draw_body_skeleton_overlay(frame: np.ndarray, joints_cam: np.ndarray, K: np.
     for uv in joints_uv[valid]:
         pt = tuple(np.round(uv).astype(int))
         cv2.circle(frame, pt, 3, BODY_POINT_BGR, -1, lineType=cv2.LINE_AA)
+
+def compute_feet_support_v(joints_cam: np.ndarray, K: np.ndarray) -> tuple[float | None, tuple[float | None, float | None]]:
+    support_ids = [7, 8, 10, 11]
+    pts = joints_cam[support_ids]
+    uv, valid = project_points(pts, K)
+    if not np.any(valid):
+        return None, (None, None)
+    left_vals = []
+    right_vals = []
+    if valid[0]:
+        left_vals.append(float(uv[0, 1]))
+    if valid[2]:
+        left_vals.append(float(uv[2, 1]))
+    if valid[1]:
+        right_vals.append(float(uv[1, 1]))
+    if valid[3]:
+        right_vals.append(float(uv[3, 1]))
+    left_v = max(left_vals) if left_vals else None
+    right_v = max(right_vals) if right_vals else None
+    vals = [v for v in [left_v, right_v] if v is not None]
+    support_v = max(vals) if vals else None
+    return support_v, (left_v, right_v)
+
+
+def draw_support_lines_overlay(frame: np.ndarray, ball: dict[str, float], joints_cam: np.ndarray, K: np.ndarray) -> tuple[float | None, tuple[float | None, float | None]]:
+    h, w = frame.shape[:2]
+    floor_v = float(ball.get("floor_v", 0.0) or 0.0)
+    if floor_v > 1e-6:
+        y = int(round(floor_v))
+        if 0 <= y < h:
+            cv2.line(frame, (0, y), (w - 1, y), FLOOR_LINE_BGR, 2, cv2.LINE_AA)
+            cv2.putText(frame, 'ball floor_v', (18, max(20, y - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, FLOOR_LINE_BGR, 1, cv2.LINE_AA)
+    feet_support_v, (left_v, right_v) = compute_feet_support_v(joints_cam, K)
+    if feet_support_v is not None:
+        y = int(round(feet_support_v))
+        if 0 <= y < h:
+            cv2.line(frame, (0, y), (w - 1, y), FEET_LINE_BGR, 2, cv2.LINE_AA)
+            cv2.putText(frame, 'feet support_v', (18, min(h - 12, y + 18)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, FEET_LINE_BGR, 1, cv2.LINE_AA)
+    return feet_support_v, (left_v, right_v)
 
 
 def draw_ball_sprite(frame: np.ndarray, center: tuple[int, int], radius: int) -> None:
@@ -295,9 +343,10 @@ def render_overlay_with_human(
             if 0 <= x < w and 0 <= y < h:
                 cv2.circle(frame, (x, y), 1, BODY_POINT_BGR, -1, lineType=cv2.LINE_AA)
         draw_body_skeleton_overlay(frame, joints[idx], K)
+        feet_support_v, (left_foot_v, right_foot_v) = draw_support_lines_overlay(frame, ball, joints[idx], K)
 
         ball_xyz = np.asarray([ball["x"], ball["y"], ball["z"]], dtype=np.float32)
-        active_palm_name = draw_palm_markers_overlay(frame, joints[idx], ball_xyz, K)
+        active_palm_name = draw_palm_markers_overlay(frame, joints[idx], ball_xyz, K, str(ball.get("active_hand", "") or ""))
 
         proj = project_ball(ball, K)
         if proj is not None:
@@ -311,9 +360,12 @@ def render_overlay_with_human(
         rw = joints[idx, 21]
         left_dist = float(np.linalg.norm(lw - ball_xyz))
         right_dist = float(np.linalg.norm(rw - ball_xyz))
+        floor_v = float(ball.get("floor_v", 0.0) or 0.0)
+        floor_gap = (feet_support_v - floor_v) if (feet_support_v is not None and floor_v > 1e-6) else None
+        floor_gap_txt = f"  feet-floor={floor_gap:+.1f}px" if floor_gap is not None else ""
         cv2.putText(
             frame,
-            f"frame {ball['frame']:03d}  t={ball['time']:.2f}s  L={left_dist:.3f}m  R={right_dist:.3f}m  active={active_palm_name or 'n/a'}",
+            f"frame {ball['frame']:03d}  t={ball['time']:.2f}s  L={left_dist:.3f}m  R={right_dist:.3f}m  active={active_palm_name or 'n/a'}{floor_gap_txt}",
             (24, h - 24),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.72,
@@ -389,7 +441,7 @@ def render_camera3d(
                 seg = body_j[[a, b]]
                 ax.plot(seg[:, 0], seg[:, 2], seg[:, 1], color="#6b54d2", linewidth=2.6, alpha=0.95)
             ax.scatter(body_j[:, 0], body_j[:, 2], body_j[:, 1], s=18, color="#e4dbff", edgecolors="#6b54d2", linewidths=0.4, depthshade=False)
-            left_palm_cam, right_palm_cam, active_name = choose_active_palm(joints[idx], ball_xyz_cam[idx])
+            left_palm_cam, right_palm_cam, active_name = choose_active_palm(joints[idx], ball_xyz_cam[idx], str(ball.get("active_hand", "") or ""))
             left_palm = cam_to_worldlike(left_palm_cam[None, :])[0]
             right_palm = cam_to_worldlike(right_palm_cam[None, :])[0]
             ax.scatter([left_palm[0]], [left_palm[2]], [left_palm[1]], s=80, color="#46b446", edgecolors="#1f1f1f", linewidths=0.8, depthshade=False)
@@ -419,6 +471,86 @@ def render_camera3d(
 
         y_worldlike = -ball["y"]
         fig.text(0.05, 0.05, f"frame {ball['frame']:03d}   t={ball['time']:.2f}s   y_worldlike={y_worldlike:.3f}m", fontsize=10, color="#555555")
+        canvas = figure_to_bgr(fig)
+        plt.close(fig)
+        writer.write(canvas)
+        if not preview_written:
+            cv2.imwrite(str(png_path), canvas)
+            preview_written = True
+
+    writer.release()
+    return png_path, mp4_path
+
+
+def render_side_yz(
+    ball_rows: list[dict[str, float]],
+    joints: np.ndarray | None,
+    sampled_vertices: np.ndarray | None,
+    out_dir: Path,
+    fps: float,
+    width: int,
+    height: int,
+    with_human: bool,
+) -> tuple[Path, Path]:
+    mp4_path = out_dir / "side_yz.mp4"
+    png_path = out_dir / "side_yz_preview.png"
+    writer = cv2.VideoWriter(str(mp4_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
+    if not writer.isOpened():
+        raise RuntimeError(f"Could not open VideoWriter for {mp4_path}")
+
+    ball_xyz_cam = np.asarray([[r["x"], r["y"], r["z"]] for r in ball_rows], dtype=np.float32)
+    ball_xyz = cam_to_worldlike(ball_xyz_cam)
+    all_pts = [ball_xyz]
+    if with_human and sampled_vertices is not None:
+        all_pts.append(cam_to_worldlike(sampled_vertices.reshape(-1, 3)))
+    all_pts = np.concatenate(all_pts, axis=0)
+
+    y_vals = all_pts[:, 1]
+    z_vals = all_pts[:, 2]
+    margin_y = max(0.10, 0.20 * float(y_vals.max() - y_vals.min()))
+    margin_z = max(0.10, 0.20 * float(z_vals.max() - z_vals.min()))
+
+    preview_written = False
+    for idx, ball in enumerate(ball_rows):
+        fig = plt.figure(figsize=(width / 100.0, height / 100.0), dpi=100, facecolor="#f7f8fb")
+        ax = fig.add_subplot(111)
+        ax.set_facecolor("#f7f8fb")
+        ax.set_xlim(float(z_vals.min() - margin_z), float(z_vals.max() + margin_z))
+        ax.set_ylim(float(y_vals.min() - margin_y), float(y_vals.max() + margin_y))
+        ax.set_xlabel("Z_cam (depth, m)")
+        ax.set_ylabel("Y_worldlike (up, m)")
+        ax.set_title("Shared-camera Y-Z side view")
+        ax.grid(True, alpha=0.18)
+
+        ax.plot(ball_xyz[:, 2], ball_xyz[:, 1], color="#d1d7e1", linewidth=1.2, alpha=0.55)
+        ax.plot(ball_xyz[: idx + 1, 2], ball_xyz[: idx + 1, 1], color="#4c72b0", linewidth=2.4, alpha=0.95)
+        ball_now = ball_xyz[idx]
+        ax.scatter([ball_now[2]], [ball_now[1]], s=180, color="#db7a20", edgecolors="#1f1f1f", linewidths=1.0, zorder=5)
+
+        if with_human and sampled_vertices is not None and joints is not None:
+            verts = cam_to_worldlike(sampled_vertices[idx])
+            ax.scatter(verts[:, 2], verts[:, 1], s=5.0, color="#9c89f2", alpha=0.22, linewidths=0)
+            body_j = cam_to_worldlike(joints[idx, :22, :])
+            for a, b in BODY_EDGES:
+                seg = body_j[[a, b]]
+                ax.plot(seg[:, 2], seg[:, 1], color="#6b54d2", linewidth=2.6, alpha=0.95)
+            ax.scatter(body_j[:, 2], body_j[:, 1], s=18, color="#e4dbff", edgecolors="#6b54d2", linewidths=0.4, zorder=4)
+            left_palm_cam, right_palm_cam, active_name = choose_active_palm(joints[idx], ball_xyz_cam[idx], str(ball.get("active_hand", "") or ""))
+            left_palm = cam_to_worldlike(left_palm_cam[None, :])[0]
+            right_palm = cam_to_worldlike(right_palm_cam[None, :])[0]
+            ax.scatter([left_palm[2]], [left_palm[1]], s=80, color="#46b446", edgecolors="#1f1f1f", linewidths=0.8, zorder=6)
+            ax.scatter([right_palm[2]], [right_palm[1]], s=80, color="#46c8e6", edgecolors="#1f1f1f", linewidths=0.8, zorder=6)
+            active_palm = left_palm if active_name == "left" else right_palm
+            ax.scatter([active_palm[2]], [active_palm[1]], s=180, facecolors="none", edgecolors="#ee2b2b", linewidths=2.0, zorder=7)
+
+        y_worldlike = -ball["y"]
+        fig.text(
+            0.05,
+            0.05,
+            f"frame {ball['frame']:03d}   t={ball['time']:.2f}s   Y={y_worldlike:.3f}m   Z={ball['z']:.3f}m",
+            fontsize=10,
+            color="#555555",
+        )
         canvas = figure_to_bgr(fig)
         plt.close(fig)
         writer.write(canvas)
@@ -470,11 +602,14 @@ def main() -> None:
     # Ball-only outputs always get written.
     ball_overlay_png, ball_overlay_mp4 = render_overlay_ball_only(sample_dir, ball_rows, human["K_fullimg"][0], ball_out, args.fps)
     ball_cam3d_png, ball_cam3d_mp4 = render_camera3d(ball_rows, None, None, ball_out, args.fps, args.width, args.height, with_human=False)
+    ball_side_png, ball_side_mp4 = render_side_yz(ball_rows, None, None, ball_out, args.fps, args.width, args.height, with_human=False)
     print(f"ball_csv: {ball_csv}")
     print(f"ball_overlay_preview: {ball_overlay_png}")
     print(f"ball_overlay_mp4: {ball_overlay_mp4}")
     print(f"ball_camera3d_preview: {ball_cam3d_png}")
     print(f"ball_camera3d_mp4: {ball_cam3d_mp4}")
+    print(f"ball_side_yz_preview: {ball_side_png}")
+    print(f"ball_side_yz_mp4: {ball_side_mp4}")
 
     if args.with_human:
         joints, sampled_vertices = build_body_outputs(args.body_model_root, human, args.vertex_stride)
@@ -497,10 +632,22 @@ def main() -> None:
             args.height,
             with_human=True,
         )
+        human_side_png, human_side_mp4 = render_side_yz(
+            ball_rows,
+            joints,
+            sampled_vertices,
+            human_out,
+            args.fps,
+            args.width,
+            args.height,
+            with_human=True,
+        )
         print(f"human_overlay_preview: {human_overlay_png}")
         print(f"human_overlay_mp4: {human_overlay_mp4}")
         print(f"human_camera3d_preview: {human_cam3d_png}")
         print(f"human_camera3d_mp4: {human_cam3d_mp4}")
+        print(f"human_side_yz_preview: {human_side_png}")
+        print(f"human_side_yz_mp4: {human_side_mp4}")
 
 
 if __name__ == "__main__":

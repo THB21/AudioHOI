@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Archived experiment branches/results
+scripts/shared/human_ball/contact/archive_experiments/
+samples/basketball_01/results/archive_experiments/
+samples/basketball_01/results/renders/archive_experiments/

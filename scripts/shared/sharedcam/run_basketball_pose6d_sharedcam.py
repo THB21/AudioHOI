@@ -17,6 +17,11 @@ import cv2
 import matplotlib
 import numpy as np
 from scipy.optimize import least_squares
+from support_geometry import (
+    estimate_support_geometry_from_contacts,
+    read_contact_frames,
+    write_support_geometry_json,
+)
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -82,6 +87,62 @@ def read_tracking(path: Path) -> list[dict[str, float]]:
             )
     if not rows:
         raise RuntimeError(f"No valid tracking rows in {path}")
+    return rows
+
+
+
+def read_radius_estimates(path: Path) -> dict[int, float]:
+    """Load per-frame radius estimates from SAM 3D Objects."""
+    radius_by_frame = {}
+    if not path.exists():
+        return radius_by_frame
+    with path.open() as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            frame = int(row["frame"])
+            radius_str = row.get("estimated_radius_m", "")
+            if radius_str:
+                try:
+                    radius_by_frame[frame] = float(radius_str)
+                except ValueError:
+                    pass
+    return radius_by_frame
+
+
+def read_object_observations(path: Path, radius_estimates: dict[int, float] | None = None) -> list[dict[str, float]]:
+    rows: list[dict[str, float]] = []
+    with path.open() as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            cx = row.get("center_x", "")
+            cy = row.get("center_y", "")
+            radius = row.get("enclosing_radius_px", "")
+            if not cx or not cy or not radius:
+                continue
+            bbox_w = float(row.get("bbox_w_px", 0.0) or 0.0)
+            bbox_h = float(row.get("bbox_h_px", 0.0) or 0.0)
+            frame = int(row["frame"])
+            rows.append(
+                {
+                    "frame": float(frame),
+                    "time": float(row["time"]),
+                    "u": float(cx),
+                    "v": float(cy),
+                    "r": float(radius),
+                    "mask_area": float(row.get("mask_area_px", 0.0) or 0.0),
+                    "mask_left": float(row.get("bbox_x1", 0.0) or 0.0),
+                    "mask_right": float(row.get("bbox_x2", 0.0) or 0.0),
+                    "mask_top": float(row.get("bbox_y1", 0.0) or 0.0),
+                    "mask_bottom": float(row.get("bbox_y2", 0.0) or 0.0),
+                    "mask_width": bbox_w,
+                    "mask_height": bbox_h,
+                    "mask_size": 0.5 * (bbox_w + bbox_h),
+                    "observation_conf": float(row.get("observation_conf", 0.0) or 0.0),
+                    "radius_est_m": radius_estimates.get(frame) if radius_estimates else None,
+                }
+            )
+    if not rows:
+        raise RuntimeError(f"No valid object observation rows in {path}")
     return rows
 
 
@@ -162,15 +223,22 @@ def load_observations(tracking_path: Path, masks_dir: Path) -> list[dict[str, fl
     return rows
 
 
-def read_contact_frames(path: Path) -> list[int]:
-    frames: list[int] = []
-    with path.open() as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            frames.append(int(row["visual_frame"]))
-    if not frames:
-        raise RuntimeError(f"No contact frames in {path}")
-    return frames
+
+def load_observations_from_object_layer(path: Path, masks_dir: Path) -> list[dict[str, float]]:
+    obs_rows = read_object_observations(path)
+    silhouettes = read_mask_silhouettes(masks_dir)
+    out: list[dict[str, float]] = []
+    for row in obs_rows:
+        frame = int(row["frame"])
+        if frame not in silhouettes:
+            continue
+        merged = dict(row)
+        merged.update(silhouettes[frame])
+        out.append(merged)
+    if not out:
+        raise RuntimeError("No valid rows from object observation layer")
+    return out
+
 
 
 def read_alignment_frames(path: Path) -> list[int]:
@@ -205,7 +273,9 @@ def build_init_translations(obs_rows: list[dict[str, float]], camera: CameraMode
     for row in obs_rows:
         z = camera.fx * shape.radius_m / max(row["r"], 1e-6)
         x = (row["u"] - camera.cx) * z / camera.fx
-        y = (row["v"] - camera.cy) * z / camera.fy
+        r_px = camera.fx * shape.radius_m / max(z, 1e-6)
+        v_center_from_floor = camera.floor_v - r_px
+        y = (v_center_from_floor - camera.cy) * z / camera.fy
         translations.append(np.array([x, y, z], dtype=np.float64))
     return np.stack(translations, axis=0)
 
@@ -372,6 +442,18 @@ def main() -> None:
     parser.add_argument("--contact-weight", type=float, default=10.0)
     parser.add_argument("--center-weight", type=float, default=0.04)
     parser.add_argument("--size-weight", type=float, default=0.02)
+    parser.add_argument(
+        "--object-observation-csv",
+        type=Path,
+        default=None,
+        help="Optional generic object observation table. If present, sharedcam uses it instead of the old basketball-only tracking csv.",
+    )
+    parser.add_argument(
+        "--radius-estimates-csv",
+        type=Path,
+        default=None,
+        help="Optional per-frame radius estimates from SAM 3D Objects. If provided, uses estimated radius instead of fixed --ball-radius-m.",
+    )
     args = parser.parse_args()
 
     sample_dir = args.sample_dir
@@ -379,7 +461,20 @@ def main() -> None:
     out_dir = results_dir / "pose6d_sharedcam"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    obs_rows = load_observations(results_dir / "tracking" / "ball_trajectory.csv", results_dir / "segmentation" / "masks")
+    object_obs_csv = args.object_observation_csv or (results_dir / "object_observations" / "object_observations.csv")
+    radius_est_csv = args.radius_estimates_csv or (results_dir / "object_observations" / "radius_estimates.csv")
+    
+    # Load radius estimates if available
+    radius_estimates = read_radius_estimates(radius_est_csv)
+    if radius_estimates:
+        print(f"Loaded {len(radius_estimates)} radius estimates from {radius_est_csv}")
+        mean_radius = np.mean(list(radius_estimates.values()))
+        print(f"  Mean estimated radius: {mean_radius:.6f} m (vs. default {args.ball_radius_m:.6f} m)")
+    
+    if object_obs_csv.exists():
+        obs_rows = load_observations_from_object_layer(object_obs_csv, results_dir / "segmentation" / "masks")
+    else:
+        obs_rows = load_observations(results_dir / "tracking" / "ball_trajectory.csv", results_dir / "segmentation" / "masks")
     contact_frames = read_contact_frames(results_dir / "events" / "visual_events.csv")
     audio_frames = read_alignment_frames(results_dir / "events" / "audio_visual_alignment.csv")
 
@@ -393,7 +488,8 @@ def main() -> None:
         raise RuntimeError("No overlapping basketball contact frames for shared-camera baseline")
 
     camera = read_gvhmr_camera(results_dir / "gvhmr" / "result.pkl")
-    camera.floor_v = float(np.median([obs_bottoms[idx] for idx in sorted(contact_indices)]))
+    support = estimate_support_geometry_from_contacts(frames, obs_bottoms, contact_frames)
+    camera.floor_v = support.floor_v
     shape = SphereShape(args.ball_radius_m)
 
     init_t = build_init_translations(obs_rows, camera, shape)
@@ -529,6 +625,7 @@ def main() -> None:
     fig.savefig(out_dir / "ball_pose6d_sharedcam_reprojection_comparison.png")
     plt.close(fig)
 
+    write_support_geometry_json(out_dir / "support_geometry.json", support)
     plot_outputs(out_dir, times, init_t, opt_t, np.array(residual_px, dtype=np.float64))
 
     print(f"sharedcam_csv: {out_dir / 'ball_pose6d_sharedcam_trajectory.csv'}")
@@ -541,6 +638,7 @@ def main() -> None:
     print(f"K_fullimg_fx: {camera.fx:.3f}")
     print(f"K_fullimg_cx: {camera.cx:.3f}")
     print(f"floor_v: {camera.floor_v:.3f}")
+    print(f"support_type: {support.support_type}  source: {support.source}  confidence: {support.confidence:.3f}")
     print(f"optimizer_cost: {float(result.cost):.6f}")
 
 

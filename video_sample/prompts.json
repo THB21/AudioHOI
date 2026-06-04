@@ -40,5 +40,13 @@
     "image": "video_sample/6_broom.jpg",
     "video": "video_sample/6_broom_video.mp4",
     "prompt": "Generate a 7-second realistic video from this image. The person holds a broom in the right hand and a dustpan in the left hand. At the beginning, the person is in a ready position. The person then makes slow and clear sweeping motions on the wooden floor while holding the dustpan low and slightly forward, as if cleaning the floor. Keep the camera completely static. Keep the full body, broom, dustpan, both hands, and the floor contact area clearly visible throughout the motion. Avoid occlusion: the broom and dustpan should remain visible at all times. The motion should be slow, deliberate, and easy to track. Add realistic synchronized audio: soft broom brushing sounds on the floor and very subtle footsteps if the person shifts position slightly. No music, no speech."
+  },
+  {
+    "id": 10,
+    "name": "football",
+    "image": "video_sample/10_football.jpg",
+    "video": "video_sample/10_football_video.mp4",
+    "prompt": "Generate an 8-second realistic video from this image. The soccer player starts with the ball on the grass near one foot. The player first kicks the ball upward with one foot, then keeps the ball close and performs a short controlled juggling sequence using the feet. The ball should move naturally according to the player’s foot contact and gravity, without floating or changing direction by itself. Keep the camera static in a wide shot, with the full body and the soccer ball visible for most of the sequence.Add realistic synchronized audio: a clear foot-ball kick sound at the first kick, followed by light foot-ball contact sounds during the juggling touches. The contact sounds should occur only when the ball visibly touches the foot. No music, no speech."
   }
+
 ]

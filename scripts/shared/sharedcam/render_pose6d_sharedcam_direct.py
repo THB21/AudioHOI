@@ -13,6 +13,8 @@ from __future__ import annotations
 import argparse
 import csv
 import pickle
+import shutil
+import subprocess
 from pathlib import Path
 
 import cv2
@@ -30,9 +32,9 @@ BALL_BGR = (32, 122, 219)
 BODY_POINT_BGR = (194, 228, 244)
 BODY_LINE_BGR = (104, 78, 214)
 BALL_RADIUS_M = 0.12
-LEFT_PALM_BGR = (70, 180, 70)
-RIGHT_PALM_BGR = (70, 200, 230)
-ACTIVE_PALM_BGR = (30, 30, 240)
+LEFT_CONTACT_BGR = (70, 180, 70)
+RIGHT_CONTACT_BGR = (70, 200, 230)
+ACTIVE_CONTACT_BGR = (30, 30, 240)
 FLOOR_LINE_BGR = (40, 180, 40)
 FEET_LINE_BGR = (220, 120, 40)
 
@@ -45,6 +47,82 @@ BODY_EDGES = [
     (12, 14), (14, 17), (17, 19), (19, 21),
     (12, 15),
 ]
+
+
+def pick_h264_encoder(preferred: str = "auto") -> str:
+    if preferred != "auto":
+        return preferred
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        raise RuntimeError("ffmpeg not found in PATH; cannot write h264 output")
+    try:
+        result = subprocess.run(
+            [ffmpeg, "-encoders"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError("Failed to query ffmpeg encoders for h264 output") from exc
+    encoders_text = result.stdout
+    if "libx264" in encoders_text:
+        return "libx264"
+    if "libopenh264" in encoders_text:
+        return "libopenh264"
+    raise RuntimeError("No supported h264 encoder found (tried libx264, libopenh264)")
+
+
+def make_video_writer(
+    mp4_path: Path,
+    fps: float,
+    size: tuple[int, int],
+    video_codec: str,
+) -> tuple[cv2.VideoWriter, Path]:
+    if video_codec == "mp4v":
+        writer_path = mp4_path
+    else:
+        writer_path = mp4_path.with_name(f"{mp4_path.stem}.tmp_mp4v.mp4")
+    writer = cv2.VideoWriter(str(writer_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, size)
+    if not writer.isOpened():
+        raise RuntimeError(f"Could not open VideoWriter for {writer_path}")
+    return writer, writer_path
+
+
+def finalize_video_file(
+    writer_path: Path,
+    mp4_path: Path,
+    video_codec: str,
+    h264_encoder: str,
+) -> Path:
+    if video_codec == "mp4v":
+        return mp4_path
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        raise RuntimeError("ffmpeg not found in PATH; cannot finalize h264 output")
+    tmp_h264_path = mp4_path.with_name(f"{mp4_path.stem}.tmp_h264.mp4")
+    cmd = [
+        ffmpeg,
+        "-y",
+        "-i",
+        str(writer_path),
+        "-c:v",
+        h264_encoder,
+        "-pix_fmt",
+        "yuv420p",
+        str(tmp_h264_path),
+    ]
+    try:
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as exc:
+        stderr = exc.stderr.strip() if exc.stderr else "unknown ffmpeg error"
+        raise RuntimeError(f"ffmpeg h264 transcode failed for {mp4_path}: {stderr}") from exc
+    if mp4_path.exists():
+        mp4_path.unlink()
+    tmp_h264_path.replace(mp4_path)
+    if writer_path.exists():
+        writer_path.unlink()
+    return mp4_path
+
 
 
 def figure_to_bgr(fig: plt.Figure) -> np.ndarray:
@@ -71,6 +149,9 @@ def read_ball_pose(path: Path) -> list[dict[str, float]]:
                     "floor_v": float(row.get("floor_v", 0.0) or 0.0),
                     "bottom_proj_v": float(row.get("bottom_proj_v", 0.0) or 0.0),
                     "active_hand": row.get("active_hand", ""),
+                    "active_foot": row.get("active_foot", ""),
+                    "anchor_contact_event": int(row.get("anchor_contact_event", 0) or 0),
+                    "anchor_contact_state": int(row.get("anchor_contact_state", 0) or 0),
                 }
             )
     if not rows:
@@ -151,37 +232,58 @@ def build_palm_centers(joints_cam: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return left_palm, right_palm
 
 
-def choose_active_palm(joints_cam: np.ndarray, ball_xyz: np.ndarray, active_hand: str | None = None) -> tuple[np.ndarray, np.ndarray, str]:
-    left_palm, right_palm = build_palm_centers(joints_cam)
-    if active_hand == "left":
-        return left_palm, right_palm, "left"
-    if active_hand == "right":
-        return left_palm, right_palm, "right"
-    left_dist = float(np.linalg.norm(left_palm - ball_xyz))
-    right_dist = float(np.linalg.norm(right_palm - ball_xyz))
+def build_foot_centers(joints_cam: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    return joints_cam[10], joints_cam[11]
+
+
+def infer_contact_part(ball: dict[str, float]) -> tuple[str, str | None]:
+    active_foot = str(ball.get("active_foot", "") or "").strip().lower()
+    if active_foot in {"left", "right"}:
+        return "foot", active_foot
+    active_hand = str(ball.get("active_hand", "") or "").strip().lower()
+    if active_hand in {"left", "right"}:
+        return "hand", active_hand
+    if "active_foot" in ball:
+        return "foot", None
+    if "active_hand" in ball:
+        return "hand", None
+    return "hand", None
+
+
+def choose_active_contact_proxy(joints_cam: np.ndarray, ball_xyz: np.ndarray, contact_part: str, active_side: str | None = None) -> tuple[np.ndarray, np.ndarray, str]:
+    if contact_part == "foot":
+        left_proxy, right_proxy = build_foot_centers(joints_cam)
+    else:
+        left_proxy, right_proxy = build_palm_centers(joints_cam)
+    if active_side == "left":
+        return left_proxy, right_proxy, "left"
+    if active_side == "right":
+        return left_proxy, right_proxy, "right"
+    left_dist = float(np.linalg.norm(left_proxy - ball_xyz))
+    right_dist = float(np.linalg.norm(right_proxy - ball_xyz))
     if left_dist <= right_dist:
-        return left_palm, right_palm, "left"
-    return left_palm, right_palm, "right"
+        return left_proxy, right_proxy, "left"
+    return left_proxy, right_proxy, "right"
 
 
-def draw_palm_markers_overlay(frame: np.ndarray, joints_cam: np.ndarray, ball_xyz: np.ndarray, K: np.ndarray, active_hand: str | None = None) -> str | None:
-    left_palm, right_palm, active_name = choose_active_palm(joints_cam, ball_xyz, active_hand)
-    palm_points = np.stack([left_palm, right_palm], axis=0)
-    palms_uv, palms_valid = project_points(palm_points, K)
+def draw_contact_markers_overlay(frame: np.ndarray, joints_cam: np.ndarray, ball_xyz: np.ndarray, K: np.ndarray, contact_part: str, active_side: str | None = None) -> str | None:
+    left_proxy, right_proxy, active_name = choose_active_contact_proxy(joints_cam, ball_xyz, contact_part, active_side)
+    proxy_points = np.stack([left_proxy, right_proxy], axis=0)
+    proxy_uv, proxy_valid = project_points(proxy_points, K)
 
-    if palms_valid[0]:
-        pt = tuple(np.round(palms_uv[0]).astype(int))
-        cv2.circle(frame, pt, 7, LEFT_PALM_BGR, -1, lineType=cv2.LINE_AA)
+    if proxy_valid[0]:
+        pt = tuple(np.round(proxy_uv[0]).astype(int))
+        cv2.circle(frame, pt, 7, LEFT_CONTACT_BGR, -1, lineType=cv2.LINE_AA)
         cv2.circle(frame, pt, 9, (20, 20, 20), 1, lineType=cv2.LINE_AA)
-    if palms_valid[1]:
-        pt = tuple(np.round(palms_uv[1]).astype(int))
-        cv2.circle(frame, pt, 7, RIGHT_PALM_BGR, -1, lineType=cv2.LINE_AA)
+    if proxy_valid[1]:
+        pt = tuple(np.round(proxy_uv[1]).astype(int))
+        cv2.circle(frame, pt, 7, RIGHT_CONTACT_BGR, -1, lineType=cv2.LINE_AA)
         cv2.circle(frame, pt, 9, (20, 20, 20), 1, lineType=cv2.LINE_AA)
 
     active_idx = 0 if active_name == "left" else 1
-    if palms_valid[active_idx]:
-        pt = tuple(np.round(palms_uv[active_idx]).astype(int))
-        cv2.circle(frame, pt, 12, ACTIVE_PALM_BGR, 2, lineType=cv2.LINE_AA)
+    if proxy_valid[active_idx]:
+        pt = tuple(np.round(proxy_uv[active_idx]).astype(int))
+        cv2.circle(frame, pt, 12, ACTIVE_CONTACT_BGR, 2, lineType=cv2.LINE_AA)
         return active_name
     return None
 
@@ -259,6 +361,8 @@ def render_overlay_ball_only(
     K: np.ndarray,
     out_dir: Path,
     fps: float,
+    video_codec: str,
+    h264_encoder: str,
 ) -> tuple[Path, Path]:
     frames_dir = sample_dir / "frames"
     first = cv2.imread(str(frames_dir / "00001.png"))
@@ -268,9 +372,7 @@ def render_overlay_ball_only(
 
     mp4_path = out_dir / "overlay.mp4"
     png_path = out_dir / "overlay_preview.png"
-    writer = cv2.VideoWriter(str(mp4_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-    if not writer.isOpened():
-        raise RuntimeError(f"Could not open VideoWriter for {mp4_path}")
+    writer, writer_path = make_video_writer(mp4_path, fps, (w, h), video_codec)
 
     traj: list[tuple[int, int]] = []
     preview_written = False
@@ -289,7 +391,7 @@ def render_overlay_ball_only(
         draw_ball_sprite(frame, center, radius)
         cv2.putText(
             frame,
-            f"frame {ball['frame']:03d}  t={ball['time']:.2f}s  y_cam={ball['y']:.3f}",
+            f"frame {ball['frame']:03d}  t={ball['time']:.2f}s  x={ball['x']:.3f}  y={ball['y']:.3f}  z={ball['z']:.3f}",
             (24, 38),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.78,
@@ -303,6 +405,7 @@ def render_overlay_ball_only(
             preview_written = True
 
     writer.release()
+    mp4_path = finalize_video_file(writer_path, mp4_path, video_codec, h264_encoder)
     return png_path, mp4_path
 
 
@@ -314,6 +417,8 @@ def render_overlay_with_human(
     K_fullimg: np.ndarray,
     out_dir: Path,
     fps: float,
+    video_codec: str,
+    h264_encoder: str,
 ) -> tuple[Path, Path]:
     frames_dir = sample_dir / "frames"
     first = cv2.imread(str(frames_dir / "00001.png"))
@@ -323,9 +428,7 @@ def render_overlay_with_human(
 
     mp4_path = out_dir / "overlay.mp4"
     png_path = out_dir / "overlay_preview.png"
-    writer = cv2.VideoWriter(str(mp4_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-    if not writer.isOpened():
-        raise RuntimeError(f"Could not open VideoWriter for {mp4_path}")
+    writer, writer_path = make_video_writer(mp4_path, fps, (w, h), video_codec)
 
     preview_written = False
     traj: list[tuple[int, int]] = []
@@ -346,7 +449,8 @@ def render_overlay_with_human(
         feet_support_v, (left_foot_v, right_foot_v) = draw_support_lines_overlay(frame, ball, joints[idx], K)
 
         ball_xyz = np.asarray([ball["x"], ball["y"], ball["z"]], dtype=np.float32)
-        active_palm_name = draw_palm_markers_overlay(frame, joints[idx], ball_xyz, K, str(ball.get("active_hand", "") or ""))
+        contact_part, active_side = infer_contact_part(ball)
+        active_proxy_name = draw_contact_markers_overlay(frame, joints[idx], ball_xyz, K, contact_part, active_side)
 
         proj = project_ball(ball, K)
         if proj is not None:
@@ -356,16 +460,26 @@ def render_overlay_with_human(
                 cv2.polylines(frame, [np.asarray(traj, dtype=np.int32)], False, (93, 126, 188), 2, cv2.LINE_AA)
             draw_ball_sprite(frame, center, radius)
 
-        lw = joints[idx, 20]
-        rw = joints[idx, 21]
-        left_dist = float(np.linalg.norm(lw - ball_xyz))
-        right_dist = float(np.linalg.norm(rw - ball_xyz))
+        contact_part, active_side = infer_contact_part(ball)
+        left_proxy, right_proxy, _ = choose_active_contact_proxy(joints[idx], ball_xyz, contact_part, active_side)
+        left_dist = float(np.linalg.norm(left_proxy - ball_xyz))
+        right_dist = float(np.linalg.norm(right_proxy - ball_xyz))
         floor_v = float(ball.get("floor_v", 0.0) or 0.0)
         floor_gap = (feet_support_v - floor_v) if (feet_support_v is not None and floor_v > 1e-6) else None
         floor_gap_txt = f"  feet-floor={floor_gap:+.1f}px" if floor_gap is not None else ""
         cv2.putText(
             frame,
-            f"frame {ball['frame']:03d}  t={ball['time']:.2f}s  L={left_dist:.3f}m  R={right_dist:.3f}m  active={active_palm_name or 'n/a'}{floor_gap_txt}",
+            f"frame {ball['frame']:03d}  t={ball['time']:.2f}s  x={ball['x']:.3f}  y={ball['y']:.3f}  z={ball['z']:.3f}",
+            (24, 38),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.78,
+            (22, 22, 22),
+            2,
+            cv2.LINE_AA,
+        )
+        cv2.putText(
+            frame,
+            f"frame {ball['frame']:03d}  t={ball['time']:.2f}s  part={contact_part}  L={left_dist:.3f}m  R={right_dist:.3f}m  active={active_proxy_name or 'n/a'}{floor_gap_txt}",
             (24, h - 24),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.72,
@@ -380,6 +494,7 @@ def render_overlay_with_human(
             preview_written = True
 
     writer.release()
+    mp4_path = finalize_video_file(writer_path, mp4_path, video_codec, h264_encoder)
     return png_path, mp4_path
 
 
@@ -392,12 +507,12 @@ def render_camera3d(
     width: int,
     height: int,
     with_human: bool,
+    video_codec: str,
+    h264_encoder: str,
 ) -> tuple[Path, Path]:
     mp4_path = out_dir / "camera3d.mp4"
     png_path = out_dir / "camera3d_preview.png"
-    writer = cv2.VideoWriter(str(mp4_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
-    if not writer.isOpened():
-        raise RuntimeError(f"Could not open VideoWriter for {mp4_path}")
+    writer, writer_path = make_video_writer(mp4_path, fps, (width, height), video_codec)
 
     ball_xyz_cam = np.asarray([[r["x"], r["y"], r["z"]] for r in ball_rows], dtype=np.float32)
     ball_xyz = cam_to_worldlike(ball_xyz_cam)
@@ -441,13 +556,14 @@ def render_camera3d(
                 seg = body_j[[a, b]]
                 ax.plot(seg[:, 0], seg[:, 2], seg[:, 1], color="#6b54d2", linewidth=2.6, alpha=0.95)
             ax.scatter(body_j[:, 0], body_j[:, 2], body_j[:, 1], s=18, color="#e4dbff", edgecolors="#6b54d2", linewidths=0.4, depthshade=False)
-            left_palm_cam, right_palm_cam, active_name = choose_active_palm(joints[idx], ball_xyz_cam[idx], str(ball.get("active_hand", "") or ""))
-            left_palm = cam_to_worldlike(left_palm_cam[None, :])[0]
-            right_palm = cam_to_worldlike(right_palm_cam[None, :])[0]
-            ax.scatter([left_palm[0]], [left_palm[2]], [left_palm[1]], s=80, color="#46b446", edgecolors="#1f1f1f", linewidths=0.8, depthshade=False)
-            ax.scatter([right_palm[0]], [right_palm[2]], [right_palm[1]], s=80, color="#46c8e6", edgecolors="#1f1f1f", linewidths=0.8, depthshade=False)
-            active_palm = left_palm if active_name == "left" else right_palm
-            ax.scatter([active_palm[0]], [active_palm[2]], [active_palm[1]], s=180, facecolors="none", edgecolors="#ee2b2b", linewidths=2.0, depthshade=False)
+            contact_part, active_side = infer_contact_part(ball)
+            left_proxy_cam, right_proxy_cam, active_name = choose_active_contact_proxy(joints[idx], ball_xyz_cam[idx], contact_part, active_side)
+            left_proxy = cam_to_worldlike(left_proxy_cam[None, :])[0]
+            right_proxy = cam_to_worldlike(right_proxy_cam[None, :])[0]
+            ax.scatter([left_proxy[0]], [left_proxy[2]], [left_proxy[1]], s=80, color="#46b446", edgecolors="#1f1f1f", linewidths=0.8, depthshade=False)
+            ax.scatter([right_proxy[0]], [right_proxy[2]], [right_proxy[1]], s=80, color="#46c8e6", edgecolors="#1f1f1f", linewidths=0.8, depthshade=False)
+            active_proxy = left_proxy if active_name == "left" else right_proxy
+            ax.scatter([active_proxy[0]], [active_proxy[2]], [active_proxy[1]], s=180, facecolors="none", edgecolors="#ee2b2b", linewidths=2.0, depthshade=False)
             pelvis_traj = cam_to_worldlike(joints[:, 0, :])
             pelvis = pelvis_traj[idx]
             ax.plot(
@@ -479,6 +595,7 @@ def render_camera3d(
             preview_written = True
 
     writer.release()
+    mp4_path = finalize_video_file(writer_path, mp4_path, video_codec, h264_encoder)
     return png_path, mp4_path
 
 
@@ -491,12 +608,12 @@ def render_side_yz(
     width: int,
     height: int,
     with_human: bool,
+    video_codec: str,
+    h264_encoder: str,
 ) -> tuple[Path, Path]:
     mp4_path = out_dir / "side_yz.mp4"
     png_path = out_dir / "side_yz_preview.png"
-    writer = cv2.VideoWriter(str(mp4_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
-    if not writer.isOpened():
-        raise RuntimeError(f"Could not open VideoWriter for {mp4_path}")
+    writer, writer_path = make_video_writer(mp4_path, fps, (width, height), video_codec)
 
     ball_xyz_cam = np.asarray([[r["x"], r["y"], r["z"]] for r in ball_rows], dtype=np.float32)
     ball_xyz = cam_to_worldlike(ball_xyz_cam)
@@ -535,13 +652,14 @@ def render_side_yz(
                 seg = body_j[[a, b]]
                 ax.plot(seg[:, 2], seg[:, 1], color="#6b54d2", linewidth=2.6, alpha=0.95)
             ax.scatter(body_j[:, 2], body_j[:, 1], s=18, color="#e4dbff", edgecolors="#6b54d2", linewidths=0.4, zorder=4)
-            left_palm_cam, right_palm_cam, active_name = choose_active_palm(joints[idx], ball_xyz_cam[idx], str(ball.get("active_hand", "") or ""))
-            left_palm = cam_to_worldlike(left_palm_cam[None, :])[0]
-            right_palm = cam_to_worldlike(right_palm_cam[None, :])[0]
-            ax.scatter([left_palm[2]], [left_palm[1]], s=80, color="#46b446", edgecolors="#1f1f1f", linewidths=0.8, zorder=6)
-            ax.scatter([right_palm[2]], [right_palm[1]], s=80, color="#46c8e6", edgecolors="#1f1f1f", linewidths=0.8, zorder=6)
-            active_palm = left_palm if active_name == "left" else right_palm
-            ax.scatter([active_palm[2]], [active_palm[1]], s=180, facecolors="none", edgecolors="#ee2b2b", linewidths=2.0, zorder=7)
+            contact_part, active_side = infer_contact_part(ball)
+            left_proxy_cam, right_proxy_cam, active_name = choose_active_contact_proxy(joints[idx], ball_xyz_cam[idx], contact_part, active_side)
+            left_proxy = cam_to_worldlike(left_proxy_cam[None, :])[0]
+            right_proxy = cam_to_worldlike(right_proxy_cam[None, :])[0]
+            ax.scatter([left_proxy[2]], [left_proxy[1]], s=80, color="#46b446", edgecolors="#1f1f1f", linewidths=0.8, zorder=6)
+            ax.scatter([right_proxy[2]], [right_proxy[1]], s=80, color="#46c8e6", edgecolors="#1f1f1f", linewidths=0.8, zorder=6)
+            active_proxy = left_proxy if active_name == "left" else right_proxy
+            ax.scatter([active_proxy[2]], [active_proxy[1]], s=180, facecolors="none", edgecolors="#ee2b2b", linewidths=2.0, zorder=7)
 
         y_worldlike = -ball["y"]
         fig.text(
@@ -559,6 +677,7 @@ def render_side_yz(
             preview_written = True
 
     writer.release()
+    mp4_path = finalize_video_file(writer_path, mp4_path, video_codec, h264_encoder)
     return png_path, mp4_path
 
 
@@ -583,7 +702,19 @@ def main() -> None:
     parser.add_argument("--height", type=int, default=720)
     parser.add_argument("--vertex-stride", type=int, default=12)
     parser.add_argument("--with-human", action="store_true")
+    parser.add_argument(
+        "--video-codec",
+        choices=["h264", "mp4v"],
+        default="h264",
+        help="Final output codec. h264 writes mp4v first, then transcodes with ffmpeg.",
+    )
+    parser.add_argument(
+        "--h264-encoder",
+        default="auto",
+        help="ffmpeg encoder for h264 output: auto, libx264, or libopenh264.",
+    )
     args = parser.parse_args()
+    h264_encoder = pick_h264_encoder(args.h264_encoder) if args.video_codec == "h264" else ""
 
     sample_dir = args.sample_dir
     results_dir = sample_dir / "results"
@@ -600,9 +731,15 @@ def main() -> None:
         raise RuntimeError("Ball/human frame count mismatch")
 
     # Ball-only outputs always get written.
-    ball_overlay_png, ball_overlay_mp4 = render_overlay_ball_only(sample_dir, ball_rows, human["K_fullimg"][0], ball_out, args.fps)
-    ball_cam3d_png, ball_cam3d_mp4 = render_camera3d(ball_rows, None, None, ball_out, args.fps, args.width, args.height, with_human=False)
-    ball_side_png, ball_side_mp4 = render_side_yz(ball_rows, None, None, ball_out, args.fps, args.width, args.height, with_human=False)
+    ball_overlay_png, ball_overlay_mp4 = render_overlay_ball_only(
+        sample_dir, ball_rows, human["K_fullimg"][0], ball_out, args.fps, args.video_codec, h264_encoder
+    )
+    ball_cam3d_png, ball_cam3d_mp4 = render_camera3d(
+        ball_rows, None, None, ball_out, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder
+    )
+    ball_side_png, ball_side_mp4 = render_side_yz(
+        ball_rows, None, None, ball_out, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder
+    )
     print(f"ball_csv: {ball_csv}")
     print(f"ball_overlay_preview: {ball_overlay_png}")
     print(f"ball_overlay_mp4: {ball_overlay_mp4}")
@@ -621,6 +758,8 @@ def main() -> None:
             human["K_fullimg"],
             human_out,
             args.fps,
+            args.video_codec,
+            h264_encoder,
         )
         human_cam3d_png, human_cam3d_mp4 = render_camera3d(
             ball_rows,
@@ -631,6 +770,8 @@ def main() -> None:
             args.width,
             args.height,
             with_human=True,
+            video_codec=args.video_codec,
+            h264_encoder=h264_encoder,
         )
         human_side_png, human_side_mp4 = render_side_yz(
             ball_rows,
@@ -641,6 +782,8 @@ def main() -> None:
             args.width,
             args.height,
             with_human=True,
+            video_codec=args.video_codec,
+            h264_encoder=h264_encoder,
         )
         print(f"human_overlay_preview: {human_overlay_png}")
         print(f"human_overlay_mp4: {human_overlay_mp4}")

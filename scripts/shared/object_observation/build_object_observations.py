@@ -94,6 +94,95 @@ def mask_features(mask_path: Path) -> dict[str, float | int]:
     }
 
 
+def empty_mug_body_features() -> dict[str, float | str | int]:
+    return {
+        "body_available": 0,
+        "body_center_x": math.nan,
+        "body_center_y": math.nan,
+        "body_bbox_x1": math.nan,
+        "body_bbox_y1": math.nan,
+        "body_bbox_x2": math.nan,
+        "body_bbox_y2": math.nan,
+        "body_bbox_w_px": math.nan,
+        "body_bbox_h_px": math.nan,
+        "handle_side": "",
+        "handle_extra_left_px": math.nan,
+        "handle_extra_right_px": math.nan,
+    }
+
+
+def mug_body_features(mask_path: Path) -> dict[str, float | str | int]:
+    mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
+    if mask is None:
+        raise RuntimeError(f"Could not read mask {mask_path}")
+    binary = mask > 0
+    ys, xs = np.where(binary)
+    if len(xs) == 0:
+        return empty_mug_body_features()
+
+    y1 = int(ys.min())
+    y2 = int(ys.max())
+    x1 = int(xs.min())
+    x2 = int(xs.max())
+    height = y2 - y1 + 1
+    if height < 5:
+        return empty_mug_body_features()
+
+    top = y1 + int(round(0.20 * height))
+    bottom = y1 + int(round(0.80 * height))
+    row_lefts: list[int] = []
+    row_rights: list[int] = []
+    for y in range(top, min(bottom + 1, binary.shape[0])):
+        cols = np.where(binary[y])[0]
+        if len(cols) == 0:
+            continue
+        row_lefts.append(int(cols.min()))
+        row_rights.append(int(cols.max()))
+
+    if not row_lefts or not row_rights:
+        return empty_mug_body_features()
+
+    body_x1 = int(round(float(np.median(np.asarray(row_lefts, dtype=np.float32)))))
+    body_x2 = int(round(float(np.median(np.asarray(row_rights, dtype=np.float32)))))
+    body_x1 = max(body_x1, x1)
+    body_x2 = min(body_x2, x2)
+    if body_x2 <= body_x1:
+        body_x1, body_x2 = x1, x2
+
+    body_mask = binary.copy()
+    body_mask[:, :body_x1] = False
+    body_mask[:, body_x2 + 1 :] = False
+    body_ys, body_xs = np.where(body_mask)
+    if len(body_xs) == 0:
+        return empty_mug_body_features()
+
+    body_center_x = float(np.mean(body_xs))
+    body_center_y = float(np.mean(body_ys))
+    left_extra = float(max(0, body_x1 - x1))
+    right_extra = float(max(0, x2 - body_x2))
+    if right_extra > left_extra + 2.0:
+        handle_side = "right"
+    elif left_extra > right_extra + 2.0:
+        handle_side = "left"
+    else:
+        handle_side = "unknown"
+
+    return {
+        "body_available": 1,
+        "body_center_x": body_center_x,
+        "body_center_y": body_center_y,
+        "body_bbox_x1": float(body_x1),
+        "body_bbox_y1": float(y1),
+        "body_bbox_x2": float(body_x2),
+        "body_bbox_y2": float(y2),
+        "body_bbox_w_px": float(body_x2 - body_x1 + 1),
+        "body_bbox_h_px": float(height),
+        "handle_side": handle_side,
+        "handle_extra_left_px": left_extra,
+        "handle_extra_right_px": right_extra,
+    }
+
+
 def parse_float(row: dict[str, str], key: str) -> float:
     value = row.get(key, "")
     if value is None or value == "":
@@ -118,6 +207,7 @@ def build_rows(
     points_by_frame: dict[int, dict[str, str]],
 ) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
+    is_mug = object_name.lower() == "mug"
     for frame in frames:
         center_row = center_by_frame.get(frame, {})
         points_row = points_by_frame.get(frame, {})
@@ -139,13 +229,19 @@ def build_rows(
             "aspect_ratio": math.nan,
             "circularity": 0.0,
         }
+        mug_feats = mug_body_features(mask_path) if is_mug and mask_path.exists() else empty_mug_body_features()
 
         track_center_x = parse_float(center_row, "ball_center_x")
         track_center_y = parse_float(center_row, "ball_center_y")
         center_source = center_row.get("source", "")
         tracking_available = 0 if math.isnan(track_center_x) or math.isnan(track_center_y) else 1
 
-        if tracking_available:
+        mug_body_available = int(mug_feats["body_available"]) == 1
+        if is_mug and mug_body_available:
+            fused_center_x = float(mug_feats["body_center_x"])
+            fused_center_y = float(mug_feats["body_center_y"])
+            fused_source = "mug_body_mask"
+        elif tracking_available:
             fused_center_x = track_center_x
             fused_center_y = track_center_y
             fused_source = center_source or "tracking"
@@ -195,6 +291,18 @@ def build_rows(
             "minor_axis_px": f"{float(feats['minor_axis_px']):.3f}" if not math.isnan(float(feats["minor_axis_px"])) else "",
             "aspect_ratio": f"{float(feats['aspect_ratio']):.6f}" if not math.isnan(float(feats["aspect_ratio"])) else "",
             "circularity": f"{float(feats['circularity']):.6f}",
+            "body_available": int(mug_feats["body_available"]),
+            "body_center_x": f"{float(mug_feats['body_center_x']):.3f}" if not math.isnan(float(mug_feats["body_center_x"])) else "",
+            "body_center_y": f"{float(mug_feats['body_center_y']):.3f}" if not math.isnan(float(mug_feats["body_center_y"])) else "",
+            "body_bbox_x1": f"{float(mug_feats['body_bbox_x1']):.3f}" if not math.isnan(float(mug_feats["body_bbox_x1"])) else "",
+            "body_bbox_y1": f"{float(mug_feats['body_bbox_y1']):.3f}" if not math.isnan(float(mug_feats["body_bbox_y1"])) else "",
+            "body_bbox_x2": f"{float(mug_feats['body_bbox_x2']):.3f}" if not math.isnan(float(mug_feats["body_bbox_x2"])) else "",
+            "body_bbox_y2": f"{float(mug_feats['body_bbox_y2']):.3f}" if not math.isnan(float(mug_feats["body_bbox_y2"])) else "",
+            "body_bbox_w_px": f"{float(mug_feats['body_bbox_w_px']):.3f}" if not math.isnan(float(mug_feats["body_bbox_w_px"])) else "",
+            "body_bbox_h_px": f"{float(mug_feats['body_bbox_h_px']):.3f}" if not math.isnan(float(mug_feats["body_bbox_h_px"])) else "",
+            "handle_side": str(mug_feats["handle_side"]),
+            "handle_extra_left_px": f"{float(mug_feats['handle_extra_left_px']):.3f}" if not math.isnan(float(mug_feats["handle_extra_left_px"])) else "",
+            "handle_extra_right_px": f"{float(mug_feats['handle_extra_right_px']):.3f}" if not math.isnan(float(mug_feats["handle_extra_right_px"])) else "",
             "track_geometry_conf": f"{track_geometry_conf:.6f}",
             "mask_conf": f"{mask_conf:.6f}",
             "observation_conf": f"{observation_conf:.6f}",

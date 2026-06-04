@@ -1,15 +1,10 @@
-Anchor interpolation z refinement.
-Hand events provide exact z anchors; all between-anchor shape comes from global reference plus second-difference smoothness.
-delta_stat: median
-w_ref: 0.700000
-w_temp: 5.000000
-global_z_shift_from_hand_events_m: -0.444221
-support_type: floor
-support_floor_v: 658.417000
-support_source: ball_contact_events
-support_confidence: 0.428931
+Generic anchor interpolation z refinement for human-ball contact.
+default_part: hand
+outside_window_mode: global_ref
+w_phys_xz: 1.250000
+w_phys_y: 1.500000
+gravity_mps2: 9.810000
+global_z_shift_from_human_events_m: -0.443243
 num_frames: 192
-num_hand_event_frames: 16
-mean_abs_delta_z_m: 0.441994
-baseline_hand_event_depth_gap_mean_m: 0.439959
-aligned_hand_event_depth_gap_mean_m: 0.000000
+num_human_event_frames: 24
+num_floor_event_frames: 11

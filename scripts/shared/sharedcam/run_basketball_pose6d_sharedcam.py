@@ -241,6 +241,19 @@ def load_observations_from_object_layer(path: Path, masks_dir: Path) -> list[dic
 
 
 
+def read_contact_frames_from_candidates(path: Path, contact_type: str = "floor_contact_event") -> list[int]:
+    frames: list[int] = []
+    if not path.exists():
+        return frames
+    with path.open() as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row.get("contact_type") != contact_type:
+                continue
+            frames.append(int(float(row["frame"])))
+    return frames
+
+
 def read_alignment_frames(path: Path) -> list[int]:
     if not path.exists():
         return []
@@ -315,24 +328,24 @@ def fit_segment_lines(init_t: np.ndarray, segments: list[dict[str, np.ndarray | 
 
 
 def unpack_state(flat_state: np.ndarray, num_frames: int, segments: list[dict[str, np.ndarray | int]]) -> tuple[np.ndarray, np.ndarray]:
-    xy = flat_state[: 2 * num_frames].reshape(num_frames, 2)
-    ab = flat_state[2 * num_frames :].reshape(len(segments), 2)
-    z = np.zeros(num_frames, dtype=np.float64)
+    xy = flat_state[: num_frames * 2].reshape(num_frames, 2)
+    ab = flat_state[num_frames * 2 :].reshape(len(segments), 2)
+    t = np.zeros((num_frames, 3), dtype=np.float64)
+    t[:, :2] = xy
     for seg_idx, seg in enumerate(segments):
         indices = seg["indices"]
         tau = seg["tau"]
         a, b = ab[seg_idx]
-        z[indices] = a * tau + b
-    t = np.column_stack([xy[:, 0], xy[:, 1], z])
+        t[indices, 2] = a * tau + b
     return t, ab
 
 
 def pose_residuals(
     flat_state: np.ndarray,
     obs_rows: list[dict[str, float]],
-    segments: list[dict[str, np.ndarray | int]],
     camera: CameraModel,
     shape: SphereShape,
+    segments: list[dict[str, np.ndarray | int]],
     contact_indices: set[int],
     weak_contact_indices: set[int],
     mask_weight: float,
@@ -362,7 +375,6 @@ def pose_residuals(
         residuals.append(size_weight * (pred["diameter_px"] - row["mask_size"]))
         residuals.append(size_weight * ((pred["area_px"] - row["mask_area"]) / 1000.0))
 
-        # Shared-camera contact: keep the projected ball bottom close to the contact floor line.
         if idx in contact_indices:
             residuals.append(contact_weight * ((pred["bottom_v"] - camera.floor_v) / 20.0))
         elif idx in weak_contact_indices:
@@ -371,22 +383,27 @@ def pose_residuals(
         residuals.append(0.30 * max(0.0, 0.35 - t[idx, 2]))
 
     for idx in range(1, len(t) - 1):
-        accel = t[idx + 1] - 2.0 * t[idx] + t[idx - 1]
-        residuals.extend((temp_weight * accel).tolist())
-        residuals.append(z_temp_weight * accel[2])
+        accel_xy = t[idx + 1, :2] - 2.0 * t[idx, :2] + t[idx - 1, :2]
+        residuals.extend((temp_weight * accel_xy).tolist())
+
+    for seg in segments:
+        indices = seg["indices"]
+        if len(indices) >= 3:
+            zvals = t[indices, 2]
+            accel_z = zvals[2:] - 2.0 * zvals[1:-1] + zvals[:-2]
+            residuals.extend((z_temp_weight * accel_z).tolist())
 
     for seg_idx in range(len(segments) - 1):
-        end_idx = int(segments[seg_idx]["end"])
-        next_start_idx = int(segments[seg_idx + 1]["start"])
+        cur_seg = segments[seg_idx]
+        next_seg = segments[seg_idx + 1]
+        end_idx = int(cur_seg["end"])
+        next_start_idx = int(next_seg["start"])
         residuals.append(z_boundary_weight * (t[next_start_idx, 2] - t[end_idx, 2]))
         residuals.append(z_slope_weight * (ab[seg_idx + 1, 0] - ab[seg_idx, 0]))
 
-    for a, _b in ab:
-        residuals.append(0.12 * a)
-
     if len(t) >= 2:
-        residuals.extend((0.15 * (t[1] - t[0])).tolist())
-        residuals.extend((0.15 * (t[-1] - t[-2])).tolist())
+        residuals.extend((0.15 * (t[1, :2] - t[0, :2])).tolist())
+        residuals.extend((0.15 * (t[-1, :2] - t[-2, :2])).tolist())
 
     return np.array(residuals, dtype=np.float64)
 
@@ -437,8 +454,8 @@ def main() -> None:
     parser.add_argument("--mask-weight", type=float, default=0.018)
     parser.add_argument("--temp-weight", type=float, default=0.08)
     parser.add_argument("--z-temp-weight", type=float, default=0.22)
-    parser.add_argument("--z-boundary-weight", type=float, default=3.5)
-    parser.add_argument("--z-slope-weight", type=float, default=0.35)
+    parser.add_argument("--z-boundary-weight", type=float, default=0.10)
+    parser.add_argument("--z-slope-weight", type=float, default=0.05)
     parser.add_argument("--contact-weight", type=float, default=10.0)
     parser.add_argument("--center-weight", type=float, default=0.04)
     parser.add_argument("--size-weight", type=float, default=0.02)
@@ -475,7 +492,10 @@ def main() -> None:
         obs_rows = load_observations_from_object_layer(object_obs_csv, results_dir / "segmentation" / "masks")
     else:
         obs_rows = load_observations(results_dir / "tracking" / "ball_trajectory.csv", results_dir / "segmentation" / "masks")
-    contact_frames = read_contact_frames(results_dir / "events" / "visual_events.csv")
+    contact_candidate_csv = results_dir / "contact_candidates" / "contact_candidates_labeled.csv"
+    contact_frames = read_contact_frames_from_candidates(contact_candidate_csv, contact_type="floor_contact_event")
+    if not contact_frames:
+        contact_frames = read_contact_frames(results_dir / "events" / "visual_events.csv")
     audio_frames = read_alignment_frames(results_dir / "events" / "audio_visual_alignment.csv")
 
     frames = np.array([int(r["frame"]) for r in obs_rows], dtype=np.int32)
@@ -495,7 +515,7 @@ def main() -> None:
     init_t = build_init_translations(obs_rows, camera, shape)
     segments = build_segments(len(obs_rows), contact_indices, times)
     init_ab = fit_segment_lines(init_t, segments)
-    init_state = np.concatenate([init_t[:, :2].reshape(-1), init_ab.reshape(-1)])
+    init_state = np.concatenate([init_t[:, :2].reshape(-1), init_ab.reshape(-1)], axis=0)
 
     result = least_squares(
         pose_residuals,
@@ -506,9 +526,9 @@ def main() -> None:
         max_nfev=250,
         args=(
             obs_rows,
-            segments,
             camera,
             shape,
+            segments,
             contact_indices,
             audio_contact_indices,
             args.mask_weight,
@@ -524,6 +544,7 @@ def main() -> None:
 
     opt_t, _opt_ab = unpack_state(result.x, len(obs_rows), segments)
     opt_t[:, 2] = np.maximum(opt_t[:, 2], 0.35)
+    depth_outlier_mask = np.zeros(len(obs_rows), dtype=bool)
 
     out_rows: list[dict[str, object]] = []
     reproj_rows: list[dict[str, object]] = []
@@ -558,6 +579,7 @@ def main() -> None:
                 "residual_px": f"{err_px:.6f}",
                 "contact_frame": int(idx in contact_indices),
                 "audio_contact_frame": int(idx in audio_contact_indices),
+                "depth_outlier_corrected": int(depth_outlier_mask[idx]),
             }
         )
         reproj_rows.append(
@@ -599,6 +621,7 @@ def main() -> None:
             "residual_px",
             "contact_frame",
             "audio_contact_frame",
+            "depth_outlier_corrected",
         ],
     )
     write_csv(
@@ -628,6 +651,7 @@ def main() -> None:
     write_support_geometry_json(out_dir / "support_geometry.json", support)
     plot_outputs(out_dir, times, init_t, opt_t, np.array(residual_px, dtype=np.float64))
 
+    num_depth_outlier_corrected = int(depth_outlier_mask.sum())
     print(f"sharedcam_csv: {out_dir / 'ball_pose6d_sharedcam_trajectory.csv'}")
     print(f"reproj_csv: {out_dir / 'ball_pose6d_sharedcam_reprojection_comparison.csv'}")
     print(f"plot_png: {out_dir / 'ball_pose6d_sharedcam_plot.png'}")
@@ -640,6 +664,7 @@ def main() -> None:
     print(f"floor_v: {camera.floor_v:.3f}")
     print(f"support_type: {support.support_type}  source: {support.source}  confidence: {support.confidence:.3f}")
     print(f"optimizer_cost: {float(result.cost):.6f}")
+    print(f"depth_outlier_corrected_frames: {num_depth_outlier_corrected}")
 
 
 if __name__ == "__main__":

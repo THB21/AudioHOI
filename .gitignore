@@ -220,3 +220,6 @@ __marimo__/
 scripts/shared/human_ball/contact/archive_experiments/
 samples/basketball_01/results/archive_experiments/
 samples/basketball_01/results/renders/archive_experiments/
+
+# Local-only runners
+scripts/run_gvhmr_local.py

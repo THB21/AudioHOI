@@ -137,6 +137,10 @@ def read_object_observations(path: Path, radius_estimates: dict[int, float] | No
                     "mask_width": bbox_w,
                     "mask_height": bbox_h,
                     "mask_size": 0.5 * (bbox_w + bbox_h),
+                    "lowest_visible_x": float(row.get("lowest_visible_x", 0.0) or 0.0) if row.get("lowest_visible_x", "") != "" else np.nan,
+                    "lowest_visible_y": float(row.get("lowest_visible_y", 0.0) or 0.0) if row.get("lowest_visible_y", "") != "" else np.nan,
+                    "lowest_visible_x1": float(row.get("lowest_visible_x1", 0.0) or 0.0) if row.get("lowest_visible_x1", "") != "" else np.nan,
+                    "lowest_visible_x2": float(row.get("lowest_visible_x2", 0.0) or 0.0) if row.get("lowest_visible_x2", "") != "" else np.nan,
                     "observation_conf": float(row.get("observation_conf", 0.0) or 0.0),
                     "radius_est_m": radius_estimates.get(frame) if radius_estimates else None,
                 }
@@ -500,7 +504,10 @@ def main() -> None:
 
     frames = np.array([int(r["frame"]) for r in obs_rows], dtype=np.int32)
     times = np.array([r["time"] for r in obs_rows], dtype=np.float64)
-    obs_bottoms = np.array([r["v"] + r["r"] for r in obs_rows], dtype=np.float64)
+    obs_bottoms = np.array([
+        (r["lowest_visible_y"] if np.isfinite(r.get("lowest_visible_y", np.nan)) else (r["v"] + r["r"]))
+        for r in obs_rows
+    ], dtype=np.float64)
     frame_to_idx = {frame: idx for idx, frame in enumerate(frames.tolist())}
     contact_indices = {frame_to_idx[f] for f in contact_frames if f in frame_to_idx}
     audio_contact_indices = {frame_to_idx[f] for f in audio_frames if f in frame_to_idx}

@@ -44,6 +44,10 @@ def mask_features(mask_path: Path) -> dict[str, float | int]:
             "bbox_y2": math.nan,
             "bbox_w_px": math.nan,
             "bbox_h_px": math.nan,
+            "lowest_visible_x": math.nan,
+            "lowest_visible_y": math.nan,
+            "lowest_visible_x1": math.nan,
+            "lowest_visible_x2": math.nan,
             "enclosing_radius_px": math.nan,
             "major_axis_px": math.nan,
             "minor_axis_px": math.nan,
@@ -63,6 +67,7 @@ def mask_features(mask_path: Path) -> dict[str, float | int]:
 
     x, y, w, h = cv2.boundingRect(contour)
     (_circle_center, enclosing_radius) = cv2.minEnclosingCircle(contour)
+    ys, xs = np.where(binary > 0)
 
     if len(contour) >= 5:
         (_ellipse_center, axes, _angle) = cv2.fitEllipse(contour)
@@ -75,6 +80,12 @@ def mask_features(mask_path: Path) -> dict[str, float | int]:
     aspect_ratio = float(w / max(h, 1))
     circularity = float(4.0 * math.pi * area / max(perimeter * perimeter, 1e-8))
 
+    lowest_y = int(ys.max())
+    lowest_xs = xs[ys == lowest_y]
+    lowest_x1 = float(lowest_xs.min())
+    lowest_x2 = float(lowest_xs.max())
+    lowest_x = 0.5 * (lowest_x1 + lowest_x2)
+
     return {
         "mask_available": 1,
         "mask_center_x": cx,
@@ -86,6 +97,10 @@ def mask_features(mask_path: Path) -> dict[str, float | int]:
         "bbox_y2": float(y + h),
         "bbox_w_px": float(w),
         "bbox_h_px": float(h),
+        "lowest_visible_x": lowest_x,
+        "lowest_visible_y": float(lowest_y),
+        "lowest_visible_x1": lowest_x1,
+        "lowest_visible_x2": lowest_x2,
         "enclosing_radius_px": float(enclosing_radius),
         "major_axis_px": major_axis,
         "minor_axis_px": minor_axis,
@@ -223,6 +238,10 @@ def build_rows(
             "bbox_y2": math.nan,
             "bbox_w_px": math.nan,
             "bbox_h_px": math.nan,
+            "lowest_visible_x": math.nan,
+            "lowest_visible_y": math.nan,
+            "lowest_visible_x1": math.nan,
+            "lowest_visible_x2": math.nan,
             "enclosing_radius_px": math.nan,
             "major_axis_px": math.nan,
             "minor_axis_px": math.nan,
@@ -286,6 +305,10 @@ def build_rows(
             "bbox_y2": f"{float(feats['bbox_y2']):.3f}" if not math.isnan(float(feats["bbox_y2"])) else "",
             "bbox_w_px": f"{float(feats['bbox_w_px']):.3f}" if not math.isnan(float(feats["bbox_w_px"])) else "",
             "bbox_h_px": f"{float(feats['bbox_h_px']):.3f}" if not math.isnan(float(feats["bbox_h_px"])) else "",
+            "lowest_visible_x": f"{float(feats['lowest_visible_x']):.3f}" if not math.isnan(float(feats["lowest_visible_x"])) else "",
+            "lowest_visible_y": f"{float(feats['lowest_visible_y']):.3f}" if not math.isnan(float(feats["lowest_visible_y"])) else "",
+            "lowest_visible_x1": f"{float(feats['lowest_visible_x1']):.3f}" if not math.isnan(float(feats["lowest_visible_x1"])) else "",
+            "lowest_visible_x2": f"{float(feats['lowest_visible_x2']):.3f}" if not math.isnan(float(feats["lowest_visible_x2"])) else "",
             "enclosing_radius_px": f"{float(feats['enclosing_radius_px']):.3f}" if not math.isnan(float(feats["enclosing_radius_px"])) else "",
             "major_axis_px": f"{float(feats['major_axis_px']):.3f}" if not math.isnan(float(feats["major_axis_px"])) else "",
             "minor_axis_px": f"{float(feats['minor_axis_px']):.3f}" if not math.isnan(float(feats["minor_axis_px"])) else "",

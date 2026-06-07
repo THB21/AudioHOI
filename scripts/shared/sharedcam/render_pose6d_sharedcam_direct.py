@@ -134,9 +134,20 @@ def figure_to_bgr(fig: plt.Figure) -> np.ndarray:
 
 def read_ball_pose(path: Path) -> list[dict[str, float]]:
     rows: list[dict[str, float]] = []
+    detected_human_part = "hand"
     with path.open() as f:
         reader = csv.DictReader(f)
         for row in reader:
+            radius_m_raw = row.get("radius_m", "")
+            radius_m = float(radius_m_raw) if radius_m_raw not in ("", None) else BALL_RADIUS_M
+            contact_part_raw = str(row.get("contact_part", "") or "").strip().lower()
+            active_part_raw = str(row.get("active_part", "") or "").strip().lower()
+            if contact_part_raw in {"hand", "foot"}:
+                detected_human_part = contact_part_raw
+            elif active_part_raw.endswith("_hand"):
+                detected_human_part = "hand"
+            elif active_part_raw.endswith("_foot"):
+                detected_human_part = "foot"
             rows.append(
                 {
                     "frame": int(row["frame"]),
@@ -144,10 +155,14 @@ def read_ball_pose(path: Path) -> list[dict[str, float]]:
                     "x": float(row["tx"]),
                     "y": float(row["ty"]),
                     "z": float(row["tz"]),
-                    "r": float(row["radius_m"]),
+                    "r": radius_m,
                     "contact_frame": int(row.get("contact_frame", 0) or 0),
                     "floor_v": float(row.get("floor_v", 0.0) or 0.0),
                     "bottom_proj_v": float(row.get("bottom_proj_v", 0.0) or 0.0),
+                    "contact_part": row.get("contact_part", ""),
+                    "contact_side": row.get("contact_side", ""),
+                    "contact_label": row.get("contact_label", ""),
+                    "active_part": row.get("active_part", ""),
                     "active_hand": row.get("active_hand", ""),
                     "active_foot": row.get("active_foot", ""),
                     "anchor_contact_event": int(row.get("anchor_contact_event", 0) or 0),
@@ -156,6 +171,8 @@ def read_ball_pose(path: Path) -> list[dict[str, float]]:
             )
     if not rows:
         raise RuntimeError(f"No ball rows found in {path}")
+    for row in rows:
+        row["default_human_part"] = detected_human_part
     return rows
 
 
@@ -236,21 +253,29 @@ def build_foot_centers(joints_cam: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return joints_cam[10], joints_cam[11]
 
 
-def infer_contact_part(ball: dict[str, float]) -> tuple[str, str | None]:
+def infer_contact_part(ball: dict[str, float], default_human_part: str = "hand") -> tuple[str, str | None]:
+    contact_part = str(ball.get("contact_part", "") or "").strip().lower()
+    contact_side = str(ball.get("contact_side", "") or "").strip().lower()
+    active_part = str(ball.get("active_part", "") or "").strip().lower()
+
+    if contact_part in {"hand", "foot"}:
+        side = contact_side if contact_side in {"left", "right"} else None
+        return contact_part, side
+    if active_part.endswith("_hand"):
+        return "hand", None if contact_part == "floor" else (active_part.split("_", 1)[0] if active_part.split("_", 1)[0] in {"left", "right"} else None)
+    if active_part.endswith("_foot"):
+        return "foot", None if contact_part == "floor" else (active_part.split("_", 1)[0] if active_part.split("_", 1)[0] in {"left", "right"} else None)
+
     active_foot = str(ball.get("active_foot", "") or "").strip().lower()
     if active_foot in {"left", "right"}:
-        return "foot", active_foot
+        return "foot", None if contact_part == "floor" else active_foot
     active_hand = str(ball.get("active_hand", "") or "").strip().lower()
     if active_hand in {"left", "right"}:
-        return "hand", active_hand
-    if "active_foot" in ball:
-        return "foot", None
-    if "active_hand" in ball:
-        return "hand", None
-    return "hand", None
+        return "hand", None if contact_part == "floor" else active_hand
+    return default_human_part, None
 
 
-def choose_active_contact_proxy(joints_cam: np.ndarray, ball_xyz: np.ndarray, contact_part: str, active_side: str | None = None) -> tuple[np.ndarray, np.ndarray, str]:
+def choose_active_contact_proxy(joints_cam: np.ndarray, ball_xyz: np.ndarray, contact_part: str, active_side: str | None = None) -> tuple[np.ndarray, np.ndarray, str | None]:
     if contact_part == "foot":
         left_proxy, right_proxy = build_foot_centers(joints_cam)
     else:
@@ -259,11 +284,7 @@ def choose_active_contact_proxy(joints_cam: np.ndarray, ball_xyz: np.ndarray, co
         return left_proxy, right_proxy, "left"
     if active_side == "right":
         return left_proxy, right_proxy, "right"
-    left_dist = float(np.linalg.norm(left_proxy - ball_xyz))
-    right_dist = float(np.linalg.norm(right_proxy - ball_xyz))
-    if left_dist <= right_dist:
-        return left_proxy, right_proxy, "left"
-    return left_proxy, right_proxy, "right"
+    return left_proxy, right_proxy, None
 
 
 def draw_contact_markers_overlay(frame: np.ndarray, joints_cam: np.ndarray, ball_xyz: np.ndarray, K: np.ndarray, contact_part: str, active_side: str | None = None) -> str | None:
@@ -280,7 +301,12 @@ def draw_contact_markers_overlay(frame: np.ndarray, joints_cam: np.ndarray, ball
         cv2.circle(frame, pt, 7, RIGHT_CONTACT_BGR, -1, lineType=cv2.LINE_AA)
         cv2.circle(frame, pt, 9, (20, 20, 20), 1, lineType=cv2.LINE_AA)
 
-    active_idx = 0 if active_name == "left" else 1
+    if active_name == "left":
+        active_idx = 0
+    elif active_name == "right":
+        active_idx = 1
+    else:
+        return None
     if proxy_valid[active_idx]:
         pt = tuple(np.round(proxy_uv[active_idx]).astype(int))
         cv2.circle(frame, pt, 12, ACTIVE_CONTACT_BGR, 2, lineType=cv2.LINE_AA)
@@ -449,7 +475,7 @@ def render_overlay_with_human(
         feet_support_v, (left_foot_v, right_foot_v) = draw_support_lines_overlay(frame, ball, joints[idx], K)
 
         ball_xyz = np.asarray([ball["x"], ball["y"], ball["z"]], dtype=np.float32)
-        contact_part, active_side = infer_contact_part(ball)
+        contact_part, active_side = infer_contact_part(ball, str(ball.get("default_human_part", "hand")))
         active_proxy_name = draw_contact_markers_overlay(frame, joints[idx], ball_xyz, K, contact_part, active_side)
 
         proj = project_ball(ball, K)
@@ -460,7 +486,7 @@ def render_overlay_with_human(
                 cv2.polylines(frame, [np.asarray(traj, dtype=np.int32)], False, (93, 126, 188), 2, cv2.LINE_AA)
             draw_ball_sprite(frame, center, radius)
 
-        contact_part, active_side = infer_contact_part(ball)
+        contact_part, active_side = infer_contact_part(ball, str(ball.get("default_human_part", "hand")))
         left_proxy, right_proxy, _ = choose_active_contact_proxy(joints[idx], ball_xyz, contact_part, active_side)
         left_dist = float(np.linalg.norm(left_proxy - ball_xyz))
         right_dist = float(np.linalg.norm(right_proxy - ball_xyz))
@@ -556,7 +582,7 @@ def render_camera3d(
                 seg = body_j[[a, b]]
                 ax.plot(seg[:, 0], seg[:, 2], seg[:, 1], color="#6b54d2", linewidth=2.6, alpha=0.95)
             ax.scatter(body_j[:, 0], body_j[:, 2], body_j[:, 1], s=18, color="#e4dbff", edgecolors="#6b54d2", linewidths=0.4, depthshade=False)
-            contact_part, active_side = infer_contact_part(ball)
+            contact_part, active_side = infer_contact_part(ball, str(ball.get("default_human_part", "hand")))
             left_proxy_cam, right_proxy_cam, active_name = choose_active_contact_proxy(joints[idx], ball_xyz_cam[idx], contact_part, active_side)
             left_proxy = cam_to_worldlike(left_proxy_cam[None, :])[0]
             right_proxy = cam_to_worldlike(right_proxy_cam[None, :])[0]
@@ -652,7 +678,7 @@ def render_side_yz(
                 seg = body_j[[a, b]]
                 ax.plot(seg[:, 2], seg[:, 1], color="#6b54d2", linewidth=2.6, alpha=0.95)
             ax.scatter(body_j[:, 2], body_j[:, 1], s=18, color="#e4dbff", edgecolors="#6b54d2", linewidths=0.4, zorder=4)
-            contact_part, active_side = infer_contact_part(ball)
+            contact_part, active_side = infer_contact_part(ball, str(ball.get("default_human_part", "hand")))
             left_proxy_cam, right_proxy_cam, active_name = choose_active_contact_proxy(joints[idx], ball_xyz_cam[idx], contact_part, active_side)
             left_proxy = cam_to_worldlike(left_proxy_cam[None, :])[0]
             right_proxy = cam_to_worldlike(right_proxy_cam[None, :])[0]

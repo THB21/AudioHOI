@@ -1,6 +1,6 @@
 Generic anchor interpolation z refinement for human-ball contact.
 default_part: hand
-outside_window_mode: global_ref
+outside_window_mode: boundary_constant
 w_phys_xz: 1.250000
 w_phys_y: 1.500000
 gravity_mps2: 9.810000

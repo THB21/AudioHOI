@@ -30,10 +30,10 @@ def read_ball_pose(path: Path) -> list[dict[str, float | int | str]]:
         for row in reader:
             rows.append({
                 "frame": int(row["frame"]), "time": float(row["time"]), "tx": float(row["tx"]), "ty": float(row["ty"]), "tz": float(row["tz"]),
-                "qw": float(row["qw"]), "qx": float(row["qx"]), "qy": float(row["qy"]), "qz": float(row["qz"]), "radius_m": float(row["radius_m"]),
-                "coord_frame": row["coord_frame"], "u_obs": float(row["u_obs"]), "v_obs": float(row["v_obs"]), "radius_obs_px": float(row["radius_obs_px"]),
-                "u_proj": float(row["u_proj"]), "v_proj": float(row["v_proj"]), "radius_proj_px": float(row["radius_proj_px"]), "bottom_proj_v": float(row["bottom_proj_v"]),
-                "floor_v": float(row["floor_v"]), "residual_px": float(row["residual_px"]), "contact_frame": int(row.get("contact_frame", 0) or 0),
+                "qw": float(row.get("qw", 1.0) or 1.0), "qx": float(row.get("qx", 0.0) or 0.0), "qy": float(row.get("qy", 0.0) or 0.0), "qz": float(row.get("qz", 0.0) or 0.0), "radius_m": float(row.get("radius_m", 0.12) or 0.12),
+                "coord_frame": row.get("coord_frame", "gvhmr_incam"), "u_obs": float(row["u_obs"]), "v_obs": float(row["v_obs"]), "radius_obs_px": float(row.get("radius_obs_px", 0.0) or 0.0),
+                "u_proj": float(row.get("u_proj", row["u_obs"]) or row["u_obs"]), "v_proj": float(row.get("v_proj", row["v_obs"]) or row["v_obs"]), "radius_proj_px": float(row.get("radius_proj_px", 0.0) or 0.0), "bottom_proj_v": float(row.get("bottom_proj_v", 0.0) or 0.0),
+                "floor_v": float(row.get("floor_v", 0.0) or 0.0), "residual_px": float(row.get("residual_px", 0.0) or 0.0), "contact_frame": int(row.get("contact_frame", 0) or 0),
                 "audio_contact_frame": int(row.get("audio_contact_frame", 0) or 0),
             })
     if not rows:
@@ -199,6 +199,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--contact-state-csv", type=Path, default=None)
     parser.add_argument("--contact-event-csv", type=Path, default=None)
     parser.add_argument("--object-observation-csv", type=Path, default=None)
+    parser.add_argument("--ball-pose-csv", type=Path, default=None)
     parser.add_argument("--support-geometry-json", type=Path, default=None)
     parser.add_argument("--default-part", type=str, choices=["hand", "foot"], default=None)
     parser.add_argument("--outside-window-mode", type=str, choices=["global_ref", "boundary_constant"], default="global_ref")
@@ -219,8 +220,9 @@ def main(argv: list[str] | None = None) -> None:
     event_csv = args.contact_event_csv or (results_dir / "contact_candidates" / "contact_candidates_labeled.csv")
     object_obs_csv = args.object_observation_csv or (results_dir / "object_observations" / "object_observations.csv")
     support_json = args.support_geometry_json or (results_dir / "pose6d_sharedcam" / "support_geometry.json")
+    ball_pose_csv = args.ball_pose_csv or (results_dir / "pose6d_sharedcam" / "ball_pose6d_sharedcam_trajectory.csv")
 
-    ball_rows = read_ball_pose(results_dir / "pose6d_sharedcam" / "ball_pose6d_sharedcam_trajectory.csv")
+    ball_rows = read_ball_pose(ball_pose_csv)
     if object_obs_csv.exists():
         object_obs = read_object_observations(object_obs_csv)
         for row in ball_rows:

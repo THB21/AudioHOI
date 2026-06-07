@@ -41,6 +41,50 @@ def read_ball_track(path: Path) -> list[dict[str, float | int | str]]:
     return rows
 
 
+
+
+def read_object_observations(path: Path) -> dict[int, dict[str, float]]:
+    rows: dict[int, dict[str, float]] = {}
+    if not path.exists():
+        return rows
+    with path.open() as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            frame = int(row["frame"])
+            rows[frame] = {
+                "center_x": float(row.get("center_x", "") or "nan"),
+                "center_y": float(row.get("center_y", "") or "nan"),
+                "lowest_visible_x": float(row.get("lowest_visible_x", "") or "nan"),
+                "lowest_visible_y": float(row.get("lowest_visible_y", "") or "nan"),
+                "enclosing_radius_px": float(row.get("enclosing_radius_px", "") or "nan"),
+            }
+    return rows
+
+
+def apply_object_observation_overrides(ball_rows: list[dict[str, float | int | str]], object_obs: dict[int, dict[str, float]]) -> list[dict[str, float | int | str]]:
+    if not object_obs:
+        return ball_rows
+    out: list[dict[str, float | int | str]] = []
+    for row in ball_rows:
+        frame = int(row["frame"])
+        obs = object_obs.get(frame)
+        new_row = dict(row)
+        if obs is not None:
+            cx = obs.get("center_x", float("nan"))
+            cy = obs.get("center_y", float("nan"))
+            if np.isfinite(cx):
+                new_row["ball_center_x"] = float(cx)
+            if np.isfinite(cy):
+                new_row["ball_center_y"] = float(cy)
+            lowest_y = obs.get("lowest_visible_y", float("nan"))
+            if np.isfinite(lowest_y):
+                new_row["lowest_visible_y"] = float(lowest_y)
+            radius = obs.get("enclosing_radius_px", float("nan"))
+            if np.isfinite(radius):
+                new_row["radius"] = float(radius)
+        out.append(new_row)
+    return out
+
 def read_audio_events(path: Path) -> list[dict[str, float | int | str]]:
     rows: list[dict[str, float | int | str]] = []
     if not path.exists():
@@ -401,8 +445,8 @@ def detect_anchor_contact(*, left_contact_uv: np.ndarray, right_contact_uv: np.n
     }
 
 
-def detect_floor_contact(*, ball_v: np.ndarray, ball_r: np.ndarray, support_v: np.ndarray, gap_thresh_px: float, score_sigma_px: float, local_radius: int, state_gap_thresh_px: float, state_score_thresh: float, gap_bridge: int) -> dict[str, np.ndarray]:
-    ball_bottom_v = ball_v + ball_r
+def detect_floor_contact(*, ball_v: np.ndarray, ball_r: np.ndarray, support_v: np.ndarray, gap_thresh_px: float, score_sigma_px: float, local_radius: int, state_gap_thresh_px: float, state_score_thresh: float, gap_bridge: int, lowest_visible_y: np.ndarray | None = None) -> dict[str, np.ndarray]:
+    ball_bottom_v = np.asarray(lowest_visible_y, dtype=np.float64) if lowest_visible_y is not None else (ball_v + ball_r)
     floor_gap = np.abs(ball_bottom_v - support_v)
     floor_gap = np.where(np.isnan(floor_gap), np.inf, floor_gap)
     floor_score = gaussian_score(floor_gap, score_sigma_px)
@@ -835,6 +879,8 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     ball_rows = read_ball_track(results_dir / "tracking" / "ball_trajectory.csv")
+    object_obs = read_object_observations(results_dir / "object_observations" / "object_observations.csv")
+    ball_rows = apply_object_observation_overrides(ball_rows, object_obs)
     human = read_human_result(results_dir / "gvhmr" / "result.pkl")
     joints = build_body_joints(args.body_model_root, human)
 
@@ -848,7 +894,9 @@ def main() -> None:
 
     ball_v = np.asarray([float(r["ball_center_y"]) for r in ball_rows], dtype=np.float64)
     ball_r = np.asarray([float(r["radius"]) for r in ball_rows], dtype=np.float64)
-    floor_v_scalar = estimate_floor_v_from_ball(ball_v, ball_r, args.floor_local_radius)
+    lowest_visible_y = np.asarray([float(r.get("lowest_visible_y", np.nan)) for r in ball_rows], dtype=np.float64)
+    floor_base_y = lowest_visible_y if np.isfinite(lowest_visible_y).any() else (ball_v + ball_r)
+    floor_v_scalar = estimate_floor_v_from_ball(floor_base_y - ball_r, ball_r, args.floor_local_radius)
     support_v = np.full(len(ball_rows), floor_v_scalar, dtype=np.float64)
 
     if args.contact_anchor == "hand":
@@ -918,6 +966,7 @@ def main() -> None:
         state_gap_thresh_px=args.floor_state_gap_thresh_px,
         state_score_thresh=args.floor_state_score_thresh,
         gap_bridge=args.floor_gap_bridge,
+        lowest_visible_y=lowest_visible_y,
     )
 
     left_dist = np.asarray(anchor_det["left_dist"], dtype=np.float64)

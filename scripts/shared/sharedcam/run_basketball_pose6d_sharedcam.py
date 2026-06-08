@@ -267,6 +267,25 @@ def read_alignment_frames(path: Path) -> list[int]:
     return frames
 
 
+def read_object_depth(path: Path) -> dict[int, float]:
+    """Per-frame metric object depth (aligned) from run_depth_anything_v3."""
+    depth: dict[int, float] = {}
+    if not path.exists():
+        return depth
+    with path.open() as f:
+        for row in csv.DictReader(f):
+            val = row.get("object_z_aligned_m", "")
+            if not val:
+                continue
+            try:
+                z = float(val)
+            except ValueError:
+                continue
+            if np.isfinite(z):
+                depth[int(row["frame"])] = z
+    return depth
+
+
 def read_gvhmr_camera(path: Path) -> CameraModel:
     with path.open("rb") as f:
         data = pickle.load(f)
@@ -281,14 +300,27 @@ def read_gvhmr_camera(path: Path) -> CameraModel:
     )
 
 
-def build_init_translations(obs_rows: list[dict[str, float]], camera: CameraModel, shape: SphereShape) -> np.ndarray:
+def build_init_translations(
+    obs_rows: list[dict[str, float]],
+    camera: CameraModel,
+    shape: SphereShape,
+    depth_obs: np.ndarray | None = None,
+) -> np.ndarray:
+    """Initial 3D translations. Depth comes from the sphere size cue (Z = f*R/r)
+    unless per-frame metric depth (`depth_obs`) is supplied, in which case that
+    object-agnostic depth seeds Z and X,Y are back-projected from the center."""
     translations = []
-    for row in obs_rows:
-        z = camera.fx * shape.radius_m / max(row["r"], 1e-6)
-        x = (row["u"] - camera.cx) * z / camera.fx
-        r_px = camera.fx * shape.radius_m / max(z, 1e-6)
-        v_center_from_floor = camera.floor_v - r_px
-        y = (v_center_from_floor - camera.cy) * z / camera.fy
+    for idx, row in enumerate(obs_rows):
+        if depth_obs is not None and np.isfinite(depth_obs[idx]):
+            z = max(float(depth_obs[idx]), 1e-6)
+            x = (row["u"] - camera.cx) * z / camera.fx
+            y = (row["v"] - camera.cy) * z / camera.fy
+        else:
+            z = camera.fx * shape.radius_m / max(row["r"], 1e-6)
+            x = (row["u"] - camera.cx) * z / camera.fx
+            r_px = camera.fx * shape.radius_m / max(z, 1e-6)
+            v_center_from_floor = camera.floor_v - r_px
+            y = (v_center_from_floor - camera.cy) * z / camera.fy
         translations.append(np.array([x, y, z], dtype=np.float64))
     return np.stack(translations, axis=0)
 
@@ -356,6 +388,8 @@ def pose_residuals(
     contact_weight: float,
     center_weight: float,
     size_weight: float,
+    depth_obs: np.ndarray | None = None,
+    depth_weight: float = 0.0,
 ) -> np.ndarray:
     t, ab = unpack_state(flat_state, len(obs_rows), segments)
     residuals: list[float] = []
@@ -363,17 +397,27 @@ def pose_residuals(
     for idx, row in enumerate(obs_rows):
         pred = shape.project(t[idx], camera)
 
-        pred_contour = circle_contour_points(pred, num_points=24)
-        obs_contour = row["contour_points"]
-        residuals.extend((mask_weight * contour_chamfer_residuals(pred_contour, obs_contour, scale=12.0)).tolist())
+        # Mask-chamfer and size residuals assume a sphere of known radius; they are
+        # disabled (weight 0) in the depthv3 path and skipped entirely so rows without
+        # silhouette/mask fields (object-agnostic inputs) don't KeyError. The center
+        # reprojection below is shape-independent and always active.
+        if mask_weight > 0.0:
+            pred_contour = circle_contour_points(pred, num_points=24)
+            obs_contour = row["contour_points"]
+            residuals.extend((mask_weight * contour_chamfer_residuals(pred_contour, obs_contour, scale=12.0)).tolist())
 
         residuals.append(center_weight * (pred["u"] - row["u"]))
         residuals.append(center_weight * (pred["v"] - row["v"]))
 
-        residuals.append(size_weight * (pred["diameter_px"] - row["mask_width"]))
-        residuals.append(size_weight * (pred["diameter_px"] - row["mask_height"]))
-        residuals.append(size_weight * (pred["diameter_px"] - row["mask_size"]))
-        residuals.append(size_weight * ((pred["area_px"] - row["mask_area"]) / 1000.0))
+        if size_weight > 0.0:
+            residuals.append(size_weight * (pred["diameter_px"] - row["mask_width"]))
+            residuals.append(size_weight * (pred["diameter_px"] - row["mask_height"]))
+            residuals.append(size_weight * (pred["diameter_px"] - row["mask_size"]))
+            residuals.append(size_weight * ((pred["area_px"] - row["mask_area"]) / 1000.0))
+
+        # Per-frame metric depth observation (Depth Anything 3, aligned to GVHMR).
+        if depth_weight > 0.0 and depth_obs is not None and np.isfinite(depth_obs[idx]):
+            residuals.append(depth_weight * (t[idx, 2] - float(depth_obs[idx])))
 
         if idx in contact_indices:
             residuals.append(contact_weight * ((pred["bottom_v"] - camera.floor_v) / 20.0))
@@ -460,6 +504,17 @@ def main() -> None:
     parser.add_argument("--center-weight", type=float, default=0.04)
     parser.add_argument("--size-weight", type=float, default=0.02)
     parser.add_argument(
+        "--depth-source",
+        choices=["sphere", "depthv3"],
+        default="sphere",
+        help="sphere: legacy Z=f*R/r size cue (known sphere). depthv3: per-frame metric "
+        "depth from Depth Anything 3 (object-agnostic), disabling the sphere size/mask terms.",
+    )
+    parser.add_argument("--depth-csv", type=Path, default=None,
+                        help="object_depth.csv from run_depth_anything_v3 (default results/depth/object_depth.csv)")
+    parser.add_argument("--depth-weight", type=float, default=1.0,
+                        help="Weight on the DA3 metric-depth residual (depthv3 mode).")
+    parser.add_argument(
         "--object-observation-csv",
         type=Path,
         default=None,
@@ -475,7 +530,8 @@ def main() -> None:
 
     sample_dir = args.sample_dir
     results_dir = sample_dir / "results"
-    out_dir = results_dir / "pose6d_sharedcam"
+    # Keep the sphere baseline and the DA3 metric-depth result in separate dirs.
+    out_dir = results_dir / ("pose6d_sharedcam_depthv3" if args.depth_source == "depthv3" else "pose6d_sharedcam")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     object_obs_csv = args.object_observation_csv or (results_dir / "object_observations" / "object_observations.csv")
@@ -488,10 +544,22 @@ def main() -> None:
         mean_radius = np.mean(list(radius_estimates.values()))
         print(f"  Mean estimated radius: {mean_radius:.6f} m (vs. default {args.ball_radius_m:.6f} m)")
     
+    masks_dir = results_dir / "segmentation" / "masks"
+    have_masks = masks_dir.exists() and any(masks_dir.glob("*_mask.png"))
     if object_obs_csv.exists():
-        obs_rows = load_observations_from_object_layer(object_obs_csv, results_dir / "segmentation" / "masks")
+        if have_masks:
+            obs_rows = load_observations_from_object_layer(object_obs_csv, masks_dir)
+        else:
+            # Object-agnostic path (e.g. box-tracked objects with no masks): the
+            # silhouette-dependent residuals are off in depthv3 mode anyway.
+            if args.depth_source != "depthv3":
+                raise RuntimeError(
+                    f"No masks in {masks_dir}; sphere depth needs silhouettes. "
+                    "Use --depth-source depthv3 for mask-free objects."
+                )
+            obs_rows = read_object_observations(object_obs_csv, read_radius_estimates(radius_est_csv))
     else:
-        obs_rows = load_observations(results_dir / "tracking" / "ball_trajectory.csv", results_dir / "segmentation" / "masks")
+        obs_rows = load_observations(results_dir / "tracking" / "ball_trajectory.csv", masks_dir)
     contact_candidate_csv = results_dir / "contact_candidates" / "contact_candidates_labeled.csv"
     contact_frames = read_contact_frames_from_candidates(contact_candidate_csv, contact_type="floor_contact_event")
     if not contact_frames:
@@ -512,7 +580,31 @@ def main() -> None:
     camera.floor_v = support.floor_v
     shape = SphereShape(args.ball_radius_m)
 
-    init_t = build_init_translations(obs_rows, camera, shape)
+    # Depth source: sphere size cue (default) or per-frame DA3 metric depth.
+    depth_obs = None
+    mask_weight = args.mask_weight
+    size_weight = args.size_weight
+    depth_weight = 0.0
+    if args.depth_source == "depthv3":
+        depth_csv = args.depth_csv or (results_dir / "depth" / "object_depth.csv")
+        depth_by_frame = read_object_depth(depth_csv)
+        if not depth_by_frame:
+            raise RuntimeError(
+                f"--depth-source depthv3 but no usable depth in {depth_csv}. "
+                "Run scripts.shared.depth.run_depth_anything_v3 first."
+            )
+        depth_obs = np.array([depth_by_frame.get(int(r["frame"]), np.nan) for r in obs_rows], dtype=np.float64)
+        n_have = int(np.isfinite(depth_obs).sum())
+        # Disable sphere-specific terms; rely on DA3 depth + center + smoothness + contact.
+        mask_weight = 0.0
+        size_weight = 0.0
+        depth_weight = args.depth_weight
+        print(f"depth_source: depthv3  ({n_have}/{len(obs_rows)} frames with metric depth, "
+              f"depth_weight={depth_weight})")
+    else:
+        print("depth_source: sphere (Z = f*R/r)")
+
+    init_t = build_init_translations(obs_rows, camera, shape, depth_obs=depth_obs)
     segments = build_segments(len(obs_rows), contact_indices, times)
     init_ab = fit_segment_lines(init_t, segments)
     init_state = np.concatenate([init_t[:, :2].reshape(-1), init_ab.reshape(-1)], axis=0)
@@ -531,14 +623,16 @@ def main() -> None:
             segments,
             contact_indices,
             audio_contact_indices,
-            args.mask_weight,
+            mask_weight,
             args.temp_weight,
             args.z_temp_weight,
             args.z_boundary_weight,
             args.z_slope_weight,
             args.contact_weight,
             args.center_weight,
-            args.size_weight,
+            size_weight,
+            depth_obs,
+            depth_weight,
         ),
     )
 

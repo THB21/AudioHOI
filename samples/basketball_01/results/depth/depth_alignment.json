@@ -1,0 +1,18 @@
+{
+  "mode": "per_frame_affine_smoothed",
+  "median_slope": 0.09493266690262114,
+  "n_frames_fit": 192,
+  "n_frames": 192,
+  "smoothing_sigma_frames": 2.0,
+  "global_affine_diagnostic": {
+    "a": 0.0494074351112259,
+    "b": 3.8113266886399115,
+    "fit_residual_m": 0.14078794495056576
+  },
+  "model_id": "depth-anything/DA3METRIC-LARGE",
+  "num_body_joints": 22,
+  "frame_size": [
+    720,
+    1280
+  ]
+}

@@ -199,6 +199,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--contact-state-csv", type=Path, default=None)
     parser.add_argument("--contact-event-csv", type=Path, default=None)
     parser.add_argument("--object-observation-csv", type=Path, default=None)
+    parser.add_argument("--ball-trajectory-csv", type=Path, default=None,
+                        help="Input ball trajectory (default sphere baseline; pass the "
+                             "pose6d_sharedcam_depthv3 trajectory to refine DA3 depth).")
     parser.add_argument("--support-geometry-json", type=Path, default=None)
     parser.add_argument("--default-part", type=str, choices=["hand", "foot"], default=None)
     parser.add_argument("--outside-window-mode", type=str, choices=["global_ref", "boundary_constant"], default="global_ref")
@@ -220,7 +223,8 @@ def main(argv: list[str] | None = None) -> None:
     object_obs_csv = args.object_observation_csv or (results_dir / "object_observations" / "object_observations.csv")
     support_json = args.support_geometry_json or (results_dir / "pose6d_sharedcam" / "support_geometry.json")
 
-    ball_rows = read_ball_pose(results_dir / "pose6d_sharedcam" / "ball_pose6d_sharedcam_trajectory.csv")
+    ball_csv = args.ball_trajectory_csv or (results_dir / "pose6d_sharedcam" / "ball_pose6d_sharedcam_trajectory.csv")
+    ball_rows = read_ball_pose(ball_csv)
     if object_obs_csv.exists():
         object_obs = read_object_observations(object_obs_csv)
         for row in ball_rows:

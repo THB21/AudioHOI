@@ -1,0 +1,7 @@
+Generic SAM2-based object observation layer.
+object_name: football
+num_frames: 242
+mask_available_frames: 242
+tracking_available_frames: 242
+mean_observation_conf: 0.897628
+mean_circularity: 0.872033

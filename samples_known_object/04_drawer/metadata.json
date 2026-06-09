@@ -1,0 +1,8 @@
+{
+  "id": 4,
+  "name": "drawer",
+  "image": "video_sample/4_drawer.jpg",
+  "video": "video_sample/4_drawer_video.mp4",
+  "prompt": "Generate a 6-second realistic video from this image. The person pushes the wooden drawer closed with one hand. Keep the camera static and make the full body, hand, drawer, and cabinet clearly visible throughout the motion. Add realistic synchronized audio: a soft sliding wooden drawer sound during the motion and one clear closing thud exactly when the drawer fully shuts. No music, no speech.",
+  "detection_text": "drawer."
+}

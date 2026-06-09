@@ -1,0 +1,8 @@
+{
+  "id": 2,
+  "name": "mug",
+  "image": "video_sample/2_mug.jpg",
+  "video": "video_sample/2_mug_video.mp4",
+  "prompt": "Generate a 10-second realistic video from this image. The person lifts the white ceramic mug slightly, brings it to the mouth, takes one natural sip, then lowers the mug and places it onto the wooden table. Keep the camera static and keep the full body, mug, hand, face, and tabletop clearly visible throughout the motion. The mug should remain in the person\u2019s hand until it is placed on the table. Add realistic synchronized audio: a subtle sipping sound when the person drinks, followed by one clear ceramic mug contact sound when the mug touches the wooden table, with light indoor room ambience. No music, no speech.",
+  "detection_text": "mug."
+}

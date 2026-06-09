@@ -1,0 +1,7 @@
+Generic SAM2-based object observation layer.
+object_name: mug
+num_frames: 240
+mask_available_frames: 240
+tracking_available_frames: 0
+mean_observation_conf: 0.800743
+mean_circularity: 0.800743

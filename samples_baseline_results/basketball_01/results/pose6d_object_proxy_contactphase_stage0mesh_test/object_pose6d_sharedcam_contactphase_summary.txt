@@ -1,0 +1,13 @@
+Experimental radius-free object-contact anchor interpolation.
+default_part: hand
+outside_window_mode: boundary_constant
+w_phys_xz: 1.250000
+w_phys_y: 1.500000
+gravity_mps2: 9.810000
+global_z_shift_from_human_events_m: 1.201428
+delta_contact_mode: object_proxy_offset
+interp_start_frame: 4
+interp_end_frame: 192
+num_frames: 192
+num_human_event_frames: 28
+num_floor_event_frames: 0

@@ -1,63 +1,28 @@
 # Shared Scripts
 
-This shared pipeline is currently organized around the shared-camera basketball branch
-and its contact-aware refinement.
+This folder now keeps only shared utilities that are still used outside the radius-free pipeline.
 
-## Active layout
+The current radius-free object pipeline is organized under:
 
 ```text
-scripts/shared/
-├── tracking/
-│   └── run_cotracker_basketball.py
-├── events/
-│   └── align_basketball_events.py
-├── sharedcam/
-│   ├── run_basketball_pose6d_sharedcam.py
-│   └── render_pose6d_sharedcam_direct.py
-└── human_ball/
-    ├── build_human_ball_shared_scene.py
-    ├── render_human_ball_fullbody_scene.py
-    └── contact/
-        └── run_human_ball_contact_phase_calibration.py
+scripts/shared/radius_free_proxy/
+  stage0_preprocess/
+  stage1_observation/
+  stage2_contact_candidates/
+  stage3_da3_init_optimization/
+  stage4_anchor_refinement/
+  stage5_render/
 ```
 
-## Main line
+Audio event detection for the radius-free line lives at:
 
-### `sharedcam/run_basketball_pose6d_sharedcam.py`
+```text
+scripts/shared/radius_free_proxy/stage0_preprocess/align_audio_events.py
+```
 
-Shared-camera ball baseline in the GVHMR full-image camera frame.
+Human/body and hand utilities live under:
 
-Outputs:
-
-- `results/pose6d_sharedcam/ball_pose6d_sharedcam_trajectory.csv`
-- `results/pose6d_sharedcam/ball_pose6d_sharedcam_reprojection_comparison.csv`
-
-### `sharedcam/render_pose6d_sharedcam_direct.py`
-
-Direct renderer for the shared-camera branch.
-
-Outputs live under:
-
-- `results/renders/pose6d_sharedcam_direct/`
-- `results/renders/pose6d_sharedcam_contactphase_direct/`
-
-## Contact-aware branch
-
-### `human_ball/contact/run_human_ball_contact_phase_calibration.py`
-
-Contact-phase calibration on top of the shared-camera baseline.
-
-Outputs:
-
-- `results/pose6d_sharedcam_contactphase/ball_pose6d_sharedcam_contactphase_trajectory.csv`
-- `results/pose6d_sharedcam_contactphase/ball_pose6d_sharedcam_contactphase_summary.txt`
-
-## Support scripts
-
-### `tracking/run_cotracker_basketball.py`
-
-Tracking support for `results/tracking/ball_trajectory.csv`.
-
-### `events/align_basketball_events.py`
-
-Audio-visual event extraction used by the contact-aware branch.
+```text
+scripts/shared/human/
+scripts/shared/human_ball/
+```

@@ -1,0 +1,8 @@
+{
+  "id": 6,
+  "name": "broom",
+  "image": "video_sample/6_broom.jpg",
+  "video": "video_sample/6_broom_video.mp4",
+  "prompt": "Generate a 7-second realistic video from this image. The person holds a broom in the right hand and a dustpan in the left hand. At the beginning, the person is in a ready position. The person then makes slow and clear sweeping motions on the wooden floor while holding the dustpan low and slightly forward, as if cleaning the floor. Keep the camera completely static. Keep the full body, broom, dustpan, both hands, and the floor contact area clearly visible throughout the motion. Avoid occlusion: the broom and dustpan should remain visible at all times. The motion should be slow, deliberate, and easy to track. Add realistic synchronized audio: soft broom brushing sounds on the floor and very subtle footsteps if the person shifts position slightly. No music, no speech.",
+  "detection_text": "broom."
+}

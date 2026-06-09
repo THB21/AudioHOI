@@ -1,0 +1,16 @@
+event,audio_time,audio_frame,visual_event,visual_frame,difference_frames
+bounce 1,0.432000,10,ball lowest point,10,0
+bounce 2,0.976000,23,ball lowest point,23,0
+bounce 3,1.504000,36,ball lowest point,36,0
+bounce 4,2.112000,51,ball lowest point,50,-1
+bounce 5,2.656000,64,ball lowest point,63,-1
+bounce 6,3.184000,76,ball lowest point,76,0
+bounce 7,3.680000,88,ball lowest point,88,0
+bounce 8,4.160000,100,ball lowest point,100,0
+bounce 9,4.704000,113,ball lowest point,112,-1
+bounce 10,5.248000,126,ball lowest point,125,-1
+bounce 11,5.728000,137,ball lowest point,137,0
+bounce 12,6.208000,149,ball lowest point,148,-1
+bounce 13,6.704000,161,ball lowest point,161,0
+bounce 14,7.248000,174,ball lowest point,174,0
+bounce 15,7.808000,187,ball lowest point,187,0

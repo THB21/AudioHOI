@@ -1,0 +1,22 @@
+{
+  "description": "DA3METRIC-LARGE mug process-res 252",
+  "source_depth_dir": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/da3_metric_raw_252/exports/mini_npz",
+  "num_frames": 240,
+  "storage_mode": "unpacked",
+  "supported_exts": [
+    ".npy",
+    ".npz",
+    ".png",
+    ".tiff",
+    ".tif"
+  ],
+  "source_npz": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/da3_metric_raw_252/exports/mini_npz/results.npz",
+  "depth_shape": [
+    240,
+    140,
+    252
+  ],
+  "keys": [
+    "depth"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": 5,
+  "name": "chair",
+  "image": "video_sample/5_chair.jpg",
+  "video": "video_sample/5_chair_video.mp4",
+  "prompt": "Generate a 7-second realistic video from this image. At the beginning, the person is not yet touching the lightweight wooden chair. The person first reaches forward and grasps the chair with both hands, then lifts it from the floor, walks from right to left across the room while carrying it for a noticeable distance, and finally places the chair back down on the wooden floor. Keep the camera static. Keep the full body, chair, hands, and floor contact area clearly visible throughout the motion. Make sure the person starts near the right side of the frame and moves into the open space on the left side. Add realistic synchronized audio: a small wooden chair lift sound when the chair leaves the floor, subtle footsteps while the person walks, and one clear wooden chair placement sound exactly when the chair touches the floor again. No music, no speech.Ensure the entire process is smooth and taken in one continuous shot.",
+  "detection_text": "chair."
+}

@@ -1,0 +1,10 @@
+Generic anchor interpolation z refinement for human-ball contact.
+default_part: hand
+outside_window_mode: boundary_constant
+w_phys_xz: 1.250000
+w_phys_y: 1.500000
+gravity_mps2: 9.810000
+global_z_shift_from_human_events_m: -0.443243
+num_frames: 192
+num_human_event_frames: 24
+num_floor_event_frames: 11

@@ -1,9 +1,0 @@
-audio_frame,audio_time,window_start_frame,window_end_frame,audio_score,anchor_frame,anchor_target,anchor_probe,anchor_evidence,floor_frame,floor_evidence,label,selected_frame,selected_target
-42,1.76,30,54,0.7999999999999999,41,right_foot,toe,0.7164014579043465,32,1.0687311279108112,floor_contact_event,32,floor
-71,2.944,59,77,0.7628099777674086,,,,,71,0.35,floor_contact_event,71,floor
-84,3.488,78,91,0.5891646719355115,86,left_foot,inner_edge,0.8299672378116048,82,0.35,anchor_contact_event,86,left_foot
-99,4.128,92,108,0.4856999990172878,104,left_foot,inner_edge,0.7646356493918013,100,0.35000115618734756,anchor_contact_event,104,left_foot
-117,4.864,109,125,0.44811221652427147,122,left_foot,inner_edge,0.889296987347535,117,0.35000001473006603,anchor_contact_event,122,left_foot
-133,5.536,126,137,0.6348832922001633,129,left_foot,inner_edge,0.6430735567865624,133,0.350000000138508,anchor_contact_event,129,left_foot
-141,5.888,138,152,0.5188322910945478,,,,,141,0.35,floor_contact_event,141,floor
-164,6.816,153,176,0.42996337746184066,174,right_foot,inner_edge,0.8638351190760438,173,1.0746847336047296,floor_contact_event,173,floor

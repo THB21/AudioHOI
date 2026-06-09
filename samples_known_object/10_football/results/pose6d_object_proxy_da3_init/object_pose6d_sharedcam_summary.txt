@@ -1,0 +1,10 @@
+Radius-free object pose optimization.
+segment_mode: one_segment_full_sequence
+candidate_cuts_segment: 0
+num_frames: 242
+center_weight: 0.050000
+depth_weight: 0.300000
+support_weight: 10.000000
+contact_weight: 3.000000
+vel_weight: 0.000000
+z_acc_weight: 0.500000

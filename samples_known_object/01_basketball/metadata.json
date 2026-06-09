@@ -1,0 +1,8 @@
+{
+  "id": 1,
+  "name": "basketball",
+  "image": "video_sample/1_basketball.jpg",
+  "video": "video_sample/1_basketball_video.mp4",
+  "prompt": "Generate a 10-second realistic video from this image. The person bounces the basketball repeatedly on the wooden gym floor. Use a static camera and keep the full body visible. The basketball should move clearly between the hand and the floor. Add realistic synchronized audio: a clear bouncing impact sound each time the ball hits the floor, no music, no speech. The first frame is given.",
+  "detection_text": "basketball."
+}

@@ -1,0 +1,7 @@
+Generic SAM2-based object observation layer.
+object_name: basketball
+num_frames: 192
+mask_available_frames: 192
+tracking_available_frames: 192
+mean_observation_conf: 0.864554
+mean_circularity: 0.859331

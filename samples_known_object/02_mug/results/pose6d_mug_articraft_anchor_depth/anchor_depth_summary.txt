@@ -1,0 +1,13 @@
+pose_input_csv: samples_known_object/02_mug/proxy/mug_body_only_cylinder_pose_table_static_sequence.csv
+phase_csv: samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv
+phase_col: m17_phase_rad
+grasp_state_csv: samples_known_object/02_mug/results/mug_grasp_anchor_state/mug_grasp_anchor_state.csv
+contact_state_csv: samples_known_object/02_mug/results/contact_candidates_object_proxy/contact_state_frames.csv
+output_pose_csv: samples_known_object/02_mug/proxy/mug_body_only_cylinder_pose_anchor_depth_sequence.csv
+diagnostics_csv: samples_known_object/02_mug/results/pose6d_mug_articraft_anchor_depth/anchor_depth_diagnostics.csv
+num_frames: 240
+num_anchor_frames: 240
+table_static_start_frame: 167
+z_init_range: [3.5640054742519847, 4.46929538317411]
+z_final_range: [3.742852759460738, 4.031572545880513]
+policy: continuous hand-mug candidate frames use GVHMR hand depth; stable object-local grasp point is transformed by mug body pose plus Articraft handle phase; post-table-support frames are depth-frozen.

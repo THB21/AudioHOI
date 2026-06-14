@@ -1,0 +1,233 @@
+[
+  {
+    "frame": 1,
+    "label": "pickup_contact_start",
+    "note": "hand contacts mug; use for fixed human-object contact side",
+    "full_image": "samples_known_object/02_mug/keyframes_pose_fit/full/001_pickup_contact_start.png",
+    "crop_image": "samples_known_object/02_mug/keyframes_pose_fit/crops/001_pickup_contact_start_crop.png",
+    "crop_xyxy": [
+      521,
+      230,
+      766,
+      456
+    ],
+    "body_bbox_xyxy": [
+      629.0,
+      322.0,
+      663.0,
+      363.0
+    ],
+    "object_bbox_xyxy": [
+      623.0,
+      322.0,
+      664.0,
+      364.0
+    ],
+    "handle_visible": "1",
+    "handle_side": "left",
+    "handle_conf": "0.317597",
+    "handle_center_xy": [
+      "626.568",
+      "344.054"
+    ],
+    "contact_region_side": "left"
+  },
+  {
+    "frame": 34,
+    "label": "side_motion_handle_occluded",
+    "note": "early side-on rotation; handle should collapse toward line",
+    "full_image": "samples_known_object/02_mug/keyframes_pose_fit/full/034_side_motion_handle_occluded.png",
+    "crop_image": "samples_known_object/02_mug/keyframes_pose_fit/crops/034_side_motion_handle_occluded_crop.png",
+    "crop_xyxy": [
+      471,
+      114,
+      692,
+      362
+    ],
+    "body_bbox_xyxy": [
+      564.0,
+      215.0,
+      599.0,
+      260.0
+    ],
+    "object_bbox_xyxy": [
+      563.0,
+      215.0,
+      600.0,
+      261.0
+    ],
+    "handle_visible": "0",
+    "handle_side": "right",
+    "handle_conf": "0.000000",
+    "handle_center_xy": [
+      "",
+      ""
+    ],
+    "contact_region_side": "right"
+  },
+  {
+    "frame": 67,
+    "label": "drinking_mid",
+    "note": "cup near mouth; body pose constrains rotation while handle partly occluded",
+    "full_image": "samples_known_object/02_mug/keyframes_pose_fit/full/067_drinking_mid.png",
+    "crop_image": "samples_known_object/02_mug/keyframes_pose_fit/crops/067_drinking_mid_crop.png",
+    "crop_xyxy": [
+      338,
+      0,
+      631,
+      246
+    ],
+    "body_bbox_xyxy": [
+      463.0,
+      83.0,
+      506.0,
+      133.0
+    ],
+    "object_bbox_xyxy": [
+      460.0,
+      83.0,
+      509.0,
+      134.0
+    ],
+    "handle_visible": "0",
+    "handle_side": "right",
+    "handle_conf": "0.000000",
+    "handle_center_xy": [
+      "",
+      ""
+    ],
+    "contact_region_side": "right"
+  },
+  {
+    "frame": 131,
+    "label": "annotated_contact_region",
+    "note": "existing object-side contact mask frame",
+    "full_image": "samples_known_object/02_mug/keyframes_pose_fit/full/131_annotated_contact_region.png",
+    "crop_image": "samples_known_object/02_mug/keyframes_pose_fit/crops/131_annotated_contact_region_crop.png",
+    "crop_xyxy": [
+      517,
+      239,
+      769,
+      492
+    ],
+    "body_bbox_xyxy": [
+      626.0,
+      342.0,
+      661.0,
+      388.0
+    ],
+    "object_bbox_xyxy": [
+      622.0,
+      342.0,
+      664.0,
+      389.0
+    ],
+    "handle_visible": "0",
+    "handle_side": "left",
+    "handle_conf": "0.000000",
+    "handle_center_xy": [
+      "",
+      ""
+    ],
+    "contact_region_side": "left"
+  },
+  {
+    "frame": 155,
+    "label": "putdown_visible_handle",
+    "note": "mug side/handle visible; fit C-shaped handle and body together",
+    "full_image": "samples_known_object/02_mug/keyframes_pose_fit/full/155_putdown_visible_handle.png",
+    "crop_image": "samples_known_object/02_mug/keyframes_pose_fit/crops/155_putdown_visible_handle_crop.png",
+    "crop_xyxy": [
+      518,
+      243,
+      763,
+      491
+    ],
+    "body_bbox_xyxy": [
+      623.0,
+      344.0,
+      659.0,
+      389.0
+    ],
+    "object_bbox_xyxy": [
+      620.0,
+      344.0,
+      661.0,
+      390.0
+    ],
+    "handle_visible": "1",
+    "handle_side": "left",
+    "handle_conf": "0.056675",
+    "handle_center_xy": [
+      "621.200",
+      "373.400"
+    ],
+    "contact_region_side": "left"
+  },
+  {
+    "frame": 198,
+    "label": "table_stable_handle",
+    "note": "late stable visible handle; fit body/handle rigid pose",
+    "full_image": "samples_known_object/02_mug/keyframes_pose_fit/full/198_table_stable_handle.png",
+    "crop_image": "samples_known_object/02_mug/keyframes_pose_fit/crops/198_table_stable_handle_crop.png",
+    "crop_xyxy": [
+      507,
+      246,
+      771,
+      489
+    ],
+    "body_bbox_xyxy": [
+      622.0,
+      345.0,
+      659.0,
+      389.0
+    ],
+    "object_bbox_xyxy": [
+      617.0,
+      345.0,
+      661.0,
+      390.0
+    ],
+    "handle_visible": "1",
+    "handle_side": "left",
+    "handle_conf": "0.197531",
+    "handle_center_xy": [
+      "620.031",
+      "370.375"
+    ],
+    "contact_region_side": "left"
+  },
+  {
+    "frame": 239,
+    "label": "final_static_handle",
+    "note": "final stable frame; check no jitter after putdown",
+    "full_image": "samples_known_object/02_mug/keyframes_pose_fit/full/239_final_static_handle.png",
+    "crop_image": "samples_known_object/02_mug/keyframes_pose_fit/crops/239_final_static_handle_crop.png",
+    "crop_xyxy": [
+      493,
+      246,
+      781,
+      489
+    ],
+    "body_bbox_xyxy": [
+      619.0,
+      345.0,
+      659.0,
+      389.0
+    ],
+    "object_bbox_xyxy": [
+      613.0,
+      345.0,
+      661.0,
+      390.0
+    ],
+    "handle_visible": "1",
+    "handle_side": "left",
+    "handle_conf": "0.331375",
+    "handle_center_xy": [
+      "616.319",
+      "368.277"
+    ],
+    "contact_region_side": "left"
+  }
+]

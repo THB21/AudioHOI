@@ -1,0 +1,8 @@
+{
+  "render": "samples_known_object/02_mug/results/renders/M12_articraft_rigid_mesh_vlm/overlay_visible.mp4",
+  "phase_csv": "samples_known_object/02_mug/results/renders/M12_articraft_rigid_mesh_vlm/handle_phase_visible.csv",
+  "mesh_root": "samples_known_object/02_mug/articraft/materialized_mug_mesh",
+  "num_anchors": 51,
+  "visibility_source": "vlm",
+  "note": "Articraft body/rim/bottom/handle share one mug axial phase; handle has no independent transform."
+}

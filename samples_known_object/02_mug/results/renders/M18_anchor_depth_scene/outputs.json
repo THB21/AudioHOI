@@ -1,0 +1,29 @@
+{
+  "pose_csv": "samples_known_object/02_mug/proxy/mug_body_only_cylinder_pose_anchor_depth_sequence.csv",
+  "phase_csv": "samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv",
+  "phase_col": "m17_phase_rad",
+  "mesh_root": "samples_known_object/02_mug/articraft/materialized_mug_mesh",
+  "mesh_parts": [
+    "body_shell",
+    "rim_ring",
+    "bottom_disk",
+    "handle_loop"
+  ],
+  "num_frames": 240,
+  "object_only": {
+    "camera3d": "samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/object_only/camera3d.mp4",
+    "camera3d_preview": "samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/object_only/camera3d_preview.png",
+    "overlay": "samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/object_only/overlay.mp4",
+    "overlay_preview": "samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/object_only/overlay_preview.png",
+    "side_yz": "samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/object_only/side_yz.mp4",
+    "side_yz_preview": "samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/object_only/side_yz_preview.png"
+  },
+  "with_human": {
+    "camera3d": "samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/with_human/camera3d.mp4",
+    "camera3d_preview": "samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/with_human/camera3d_preview.png",
+    "overlay": "samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/with_human/overlay.mp4",
+    "overlay_preview": "samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/with_human/overlay_preview.png",
+    "side_yz": "samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/with_human/side_yz.mp4",
+    "side_yz_preview": "samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/with_human/side_yz_preview.png"
+  }
+}

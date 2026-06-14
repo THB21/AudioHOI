@@ -1,0 +1,106 @@
+<robot name="mug_contact_proxy">
+  <link name="body">
+    <visual name="body_shell">
+      <geometry>
+        <mesh filename="assets/meshes/body_shell.obj" />
+        </geometry>
+      <material name="warm_white_ceramic">
+        <color rgba="0.92 0.9 0.84 1" />
+        </material>
+      </visual>
+    <collision name="body_shell">
+      <geometry>
+        <mesh filename="assets/meshes/body_shell.obj" />
+        </geometry>
+      </collision>
+    </link>
+  <link name="bottom">
+    <visual name="bottom_disk">
+      <geometry>
+        <mesh filename="assets/meshes/bottom_disk.obj" />
+        </geometry>
+      <material name="unglazed_bottom">
+        <color rgba="0.74 0.7 0.62 1" />
+        </material>
+      </visual>
+    <collision name="bottom_disk">
+      <geometry>
+        <mesh filename="assets/meshes/bottom_disk.obj" />
+        </geometry>
+      </collision>
+    </link>
+  <link name="rim">
+    <visual name="rim_lip">
+      <geometry>
+        <mesh filename="assets/meshes/rim_lip.obj" />
+        </geometry>
+      <material name="slightly_lighter_rim">
+        <color rgba="0.98 0.97 0.93 1" />
+        </material>
+      </visual>
+    <collision name="rim_lip">
+      <geometry>
+        <mesh filename="assets/meshes/rim_lip.obj" />
+        </geometry>
+      </collision>
+    </link>
+  <link name="handle">
+    <visual name="upper_mount">
+      <origin xyz="0.0605 0 0.071" rpy="0 0 0" />
+      <geometry>
+        <box size="0.045 0.014 0.01" />
+        </geometry>
+      <material name="warm_white_ceramic">
+        <color rgba="0.92 0.9 0.84 1" />
+        </material>
+      </visual>
+    <visual name="lower_mount">
+      <origin xyz="0.0605 0 0.035" rpy="0 0 0" />
+      <geometry>
+        <box size="0.045 0.014 0.01" />
+        </geometry>
+      <material name="warm_white_ceramic">
+        <color rgba="0.92 0.9 0.84 1" />
+        </material>
+      </visual>
+    <visual name="outer_grip">
+      <origin xyz="0.083 0 0.053" rpy="0 0 0" />
+      <geometry>
+        <box size="0.012 0.014 0.046" />
+        </geometry>
+      <material name="warm_white_ceramic">
+        <color rgba="0.92 0.9 0.84 1" />
+        </material>
+      </visual>
+    <collision name="upper_mount">
+      <origin xyz="0.0605 0 0.071" rpy="0 0 0" />
+      <geometry>
+        <box size="0.045 0.014 0.01" />
+        </geometry>
+      </collision>
+    <collision name="lower_mount">
+      <origin xyz="0.0605 0 0.035" rpy="0 0 0" />
+      <geometry>
+        <box size="0.045 0.014 0.01" />
+        </geometry>
+      </collision>
+    <collision name="outer_grip">
+      <origin xyz="0.083 0 0.053" rpy="0 0 0" />
+      <geometry>
+        <box size="0.012 0.014 0.046" />
+        </geometry>
+      </collision>
+    </link>
+  <joint name="body_to_bottom" type="fixed">
+    <parent link="body" />
+    <child link="bottom" />
+    </joint>
+  <joint name="body_to_rim" type="fixed">
+    <parent link="body" />
+    <child link="rim" />
+    </joint>
+  <joint name="body_to_handle" type="fixed">
+    <parent link="body" />
+    <child link="handle" />
+    </joint>
+  </robot>

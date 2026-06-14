@@ -21,9 +21,6 @@ import torch
 from contact_part_utils import (
     build_contact_identity,
     choose_active_contact_relation,
-    event_frames_by_type,
-    human_event_frames_generic,
-    infer_default_part,
     normalize_contact_label,
     resolve_human_state_key,
 )
@@ -139,6 +136,89 @@ def write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) 
         writer.writerows(rows)
 
 
+def is_floor_like_event(row: dict[str, str]) -> bool:
+    ctype = str(row.get("contact_type", "") or "")
+    target = str(row.get("target", "") or "")
+    return ctype in {"floor_contact_event", "plane_support_contact_event"} or target in {"floor", "unknown_plane"}
+
+
+def human_event_window_bounds(
+    event_rows: list[dict[str, str]],
+    frame_to_idx: dict[int, int],
+) -> tuple[int | None, int | None]:
+    if not frame_to_idx:
+        return None, None
+    min_frame = min(frame_to_idx)
+    max_frame = max(frame_to_idx)
+    starts: list[int] = []
+    ends: list[int] = []
+    for row in event_rows:
+        if is_floor_like_event(row):
+            continue
+        if not str(row.get("contact_type", "") or "").endswith("_contact_event"):
+            continue
+        frame = int(row["frame"])
+        start = int(row.get("window_start", frame) or frame)
+        end = int(row.get("window_end", frame) or frame)
+        start = min(max(start, min_frame), max_frame)
+        end = min(max(end, min_frame), max_frame)
+        if start in frame_to_idx:
+            starts.append(frame_to_idx[start])
+        if end in frame_to_idx:
+            ends.append(frame_to_idx[end])
+    if not starts or not ends:
+        return None, None
+    return min(starts), max(ends)
+
+
+def infer_row_default_part(row: dict[str, str], fallback: str = "hand") -> str:
+    for key in ("contact_part", "anchor_type"):
+        value = str(row.get(key, "") or "").strip()
+        if value in {"hand", "foot"}:
+            return value
+    target = str(row.get("target", "") or "").strip()
+    if target.endswith("_hand"):
+        return "hand"
+    if target.endswith("_foot"):
+        return "foot"
+    return fallback
+
+
+def build_state_contact_label(
+    row: dict[str, str],
+    floor_state_on: bool,
+    human_state_on: bool,
+    fallback_part: str,
+) -> str:
+    if floor_state_on and not human_state_on:
+        return "floor"
+    row_default_part = infer_row_default_part(row, fallback=fallback_part)
+    return normalize_contact_label(row, default_part=row_default_part, fallback_side="right")
+
+
+def build_anchor_segment_reference(
+    z_init: np.ndarray,
+    anchor_mask: np.ndarray,
+    anchor_values: np.ndarray,
+) -> np.ndarray:
+    anchor_idx = np.flatnonzero(anchor_mask)
+    if len(anchor_idx) == 0:
+        raise RuntimeError("No anchors available for segmented reference")
+    z_ref = np.asarray(z_init, dtype=np.float64).copy()
+    first = int(anchor_idx[0])
+    last = int(anchor_idx[-1])
+    z_ref[: first + 1] = float(anchor_values[first])
+    for left, right in zip(anchor_idx[:-1], anchor_idx[1:]):
+        left = int(left)
+        right = int(right)
+        if right <= left:
+            continue
+        alpha = np.linspace(0.0, 1.0, right - left + 1, dtype=np.float64)
+        z_ref[left : right + 1] = (1.0 - alpha) * float(anchor_values[left]) + alpha * float(anchor_values[right])
+    z_ref[last:] = float(anchor_values[last])
+    return np.maximum(z_ref, 0.20)
+
+
 def solve_anchor_interpolation(
     z_ref: np.ndarray,
     anchor_mask: np.ndarray,
@@ -210,6 +290,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--support-geometry-json", type=Path, default=None)
     parser.add_argument("--default-part", type=str, choices=["hand", "foot"], default=None)
     parser.add_argument("--outside-window-mode", type=str, choices=["global_ref", "boundary_constant"], default="boundary_constant")
+    parser.add_argument("--z-ref-mode", type=str, choices=["global_shift", "anchor_segment"], default="anchor_segment")
     parser.add_argument("--delta-stat", type=str, choices=["median", "mean"], default="median")
     parser.add_argument("--w-ref", type=float, default=0.7)
     parser.add_argument("--w-temp", type=float, default=5.0)
@@ -252,10 +333,24 @@ def main(argv: list[str] | None = None) -> None:
     K = K[: len(pose_rows)]
     state_rows = [state_by_frame[int(r["frame"])] for r in pose_rows]
     object_frames = [int(r["frame"]) for r in pose_rows]
+    frame_to_idx = {frame: idx for idx, frame in enumerate(object_frames)}
 
-    default_part = args.default_part or infer_default_part([*state_rows, *event_rows], fallback="hand")
-    human_event_frames = human_event_frames_generic(event_rows)
-    floor_event_frames = event_frames_by_type(event_rows, {"floor_contact_event"})
+    explicit_parts = [
+        infer_row_default_part(row, fallback="")
+        for row in [*event_rows, *state_rows]
+    ]
+    explicit_parts = [part for part in explicit_parts if part in {"hand", "foot"}]
+    fallback_part = args.default_part or (explicit_parts[0] if explicit_parts else "hand")
+    human_event_frames = {
+        int(row["frame"])
+        for row in event_rows
+        if not is_floor_like_event(row) and str(row.get("contact_type", "") or "").endswith("_contact_event")
+    }
+    floor_event_frames = {
+        int(row["frame"])
+        for row in event_rows
+        if is_floor_like_event(row)
+    }
 
     u_obs = np.asarray([r["u_obs"] for r in pose_rows], dtype=np.float64)
     v_obs = np.asarray([r["v_obs"] for r in pose_rows], dtype=np.float64)
@@ -264,15 +359,27 @@ def main(argv: list[str] | None = None) -> None:
 
     human_event_mask = np.asarray([f in human_event_frames for f in object_frames], dtype=bool)
     floor_event_mask = np.asarray([f in floor_event_frames for f in object_frames], dtype=bool)
-    floor_state_mask = np.asarray([int(r["floor_contact_state"]) == 1 for r in state_rows], dtype=bool)
+    floor_state_mask = np.asarray(
+        [
+            int(r.get("floor_contact_state", 0) or 0) == 1
+            or int(r.get("plane_support_state", 0) or 0) == 1
+            for r in state_rows
+        ],
+        dtype=bool,
+    )
     state_key = resolve_human_state_key(state_rows[0])
     if state_key is None:
         raise RuntimeError("No generic human contact state field found")
     human_state_mask = np.asarray([int(r[state_key]) == 1 for r in state_rows], dtype=bool)
     flight_mask = ~(human_state_mask | floor_state_mask)
 
-    contact_labels = [normalize_contact_label(r, default_part=default_part, fallback_side="right") for r in state_rows]
-    part_y, part_z, part_name = choose_active_contact_relation(joints, contact_labels, fallback_label=f"right_{default_part}")
+    contact_labels = [
+        build_state_contact_label(row, bool(floor_state_mask[idx]), bool(human_state_mask[idx]), fallback_part)
+        for idx, row in enumerate(state_rows)
+    ]
+    non_floor_labels = [label for label in contact_labels if label != "floor"]
+    fallback_label = non_floor_labels[0] if non_floor_labels else f"right_{fallback_part}"
+    part_y, part_z, part_name = choose_active_contact_relation(joints, contact_labels, fallback_label=fallback_label)
     if not np.any(human_event_mask):
         raise RuntimeError("No human contact events found; cannot compute global Delta-Z")
 
@@ -283,7 +390,9 @@ def main(argv: list[str] | None = None) -> None:
     anchor_values = part_z - contact_offset
     deltas = anchor_values[human_event_mask] - z_init[human_event_mask]
     global_z_shift = float(np.median(deltas) if args.delta_stat == "median" else np.mean(deltas))
-    z_ref = np.maximum(z_init + global_z_shift, 0.20)
+    z_ref_global = np.maximum(z_init + global_z_shift, 0.20)
+    z_ref_segment = build_anchor_segment_reference(z_init, human_event_mask, anchor_values)
+    z_ref = z_ref_segment if args.z_ref_mode == "anchor_segment" else z_ref_global
 
     z_final = solve_anchor_interpolation(
         z_ref=z_ref,
@@ -320,7 +429,7 @@ def main(argv: list[str] | None = None) -> None:
             active_label=str(part_name[idx]),
             event_on=bool(human_event_mask[idx]),
             floor_event_on=bool(floor_event_mask[idx]),
-            default_part=default_part,
+            default_part=fallback_part,
         )
         meta = proxy_offsets.get(int(row["frame"]), {})
         out_rows.append(
@@ -367,6 +476,8 @@ def main(argv: list[str] | None = None) -> None:
                 "contact_depth_offset_m": f"{contact_offset[idx]:.6f}",
                 "z_contact_final": f"{z_contact_final[idx]:.6f}",
                 "global_z_ref": f"{z_ref[idx]:.6f}",
+                "z_ref_global_shift": f"{z_ref_global[idx]:.6f}",
+                "z_ref_anchor_segment": f"{z_ref_segment[idx]:.6f}",
                 "contact_depth_gap": f"{(z_contact_final[idx] - part_z[idx]):.6f}",
             }
         )
@@ -395,14 +506,16 @@ def main(argv: list[str] | None = None) -> None:
             "floor_v","support_type","support_source","support_confidence","residual_px","contact_frame","audio_contact_frame",
             "human_contact_event","floor_contact_event","human_contact_state","floor_contact_state",
             "contact_part","contact_side","contact_label","active_part","active_part_y","active_part_z",
-            "u_ref_obs","v_ref_obs","contact_u","contact_v","contact_depth_offset_m","z_contact_final","global_z_ref","contact_depth_gap",
+            "u_ref_obs","v_ref_obs","contact_u","contact_v","contact_depth_offset_m","z_contact_final","global_z_ref","z_ref_global_shift","z_ref_anchor_segment","contact_depth_gap",
         ],
     )
     write_csv(reproj_csv, reproj_rows, ["frame","u_obs","v_obs","u_reproj","v_reproj","error_u","error_v","error_px"])
     with summary_txt.open("w") as f:
         f.write("Experimental radius-free object-contact anchor interpolation.\n")
-        f.write(f"default_part: {default_part}\n")
+        f.write(f"default_part: {fallback_part}\n")
+        f.write("contact_part_mode: auto_inferred_from_state_event\n")
         f.write(f"outside_window_mode: {args.outside_window_mode}\n")
+        f.write(f"z_ref_mode: {args.z_ref_mode}\n")
         f.write(f"w_phys_xz: {args.w_phys_xz:.6f}\n")
         f.write(f"w_phys_y: {args.w_phys_y:.6f}\n")
         f.write(f"gravity_mps2: {args.gravity_mps2:.6f}\n")

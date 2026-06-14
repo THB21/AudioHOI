@@ -1,0 +1,12 @@
+{
+  "frame": 131,
+  "source": "hand_object_surface_contact_region",
+  "side": "left",
+  "bbox_xyxy": [
+    616,
+    353,
+    630,
+    377
+  ],
+  "note": "2D contact-region preview derived from observed hand-contact side. This region is not necessarily the visual handle; drinking frames may contact the body/rim while the handle is occluded."
+}

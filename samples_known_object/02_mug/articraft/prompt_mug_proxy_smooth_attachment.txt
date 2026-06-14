@@ -1,0 +1,22 @@
+Edit the current mug model to fix the ugly mechanical-looking handle/body interface.
+
+Observed defect:
+- The handle attachment pads currently look like ribbed pipe fittings or threaded connectors.
+- This is wrong for a ceramic mug.
+
+Required fix:
+- Remove the ribbed/ringed/mechanical connector appearance at both handle attachment points.
+- Replace the current attachment pads with smooth, plain ceramic fused pads.
+- The handle should transition into the cup body with a short smooth oval/elliptical fillet-like pad.
+- The pad should be visually simple: no grooves, no rings, no repeated sectional ridges, no stacked cylinders, no screw/thread look.
+- Keep a slight physical penetration/overlap into the cup body so the handle is connected, but make the visible interface smooth and flush.
+
+Keep:
+- exactly semantic parts: body, handle, rim, bottom
+- handle remains a separate semantic part named handle
+- smooth C-shaped side handle with open hole
+- cylindrical cup body, flat bottom, rounded rim
+
+Validation target:
+- In the viewer, the mug should look like a normal ceramic mug proxy.
+- The handle/body interface should look fused, not like a pipe connector.

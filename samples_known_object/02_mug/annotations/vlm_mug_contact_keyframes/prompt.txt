@@ -1,0 +1,27 @@
+You are inspecting a crop from a video of a person holding a mug.
+
+Goal: identify the *hand-mug contact region* on a clear confirmed grasp keyframe.
+Do NOT infer a new contact point from rim drinking or from unrelated body/rim pixels.
+
+Definitions:
+- object side means which semantic part of the mug is being touched by the hand.
+- handle means the C-shaped side loop attached to the mug.
+- rim means the top lip used for drinking; mouth-rim contact is not a hand-handle grasp.
+- If the hand/fingers are hidden, occluded, or not clearly on the handle, say contact_visible=false.
+- Ignore any debug overlays, colored circles, text, skeletons, or rendered proxy if present. Judge real image content only.
+
+Return ONLY compact JSON with these keys:
+{
+  "contact_visible": true/false,
+  "hand_side": "left_hand" | "right_hand" | "unknown",
+  "contact_fingers": ["thumb" | "index" | "middle" | "ring" | "pinky" | "palm" | "unknown"],
+  "primary_contact_finger": "thumb" | "index" | "middle" | "ring" | "pinky" | "palm" | "unknown",
+  "object_part": "handle" | "body" | "rim" | "bottom" | "unknown",
+  "object_region": "upper_handle" | "middle_handle" | "lower_handle" | "handle_inner" | "handle_outer" | "body_side" | "rim_front" | "rim_side" | "unknown",
+  "handle_grasp_type": "pinch_handle" | "hook_handle" | "palm_support" | "body_grasp" | "not_handle_grasp" | "unknown",
+  "contact_point_2d": [u, v] | null,
+  "visible_evidence": "short visual evidence",
+  "use_as_stable_grasp_keyframe": true/false,
+  "confidence": 0.0-1.0,
+  "reason": "one short sentence"
+}

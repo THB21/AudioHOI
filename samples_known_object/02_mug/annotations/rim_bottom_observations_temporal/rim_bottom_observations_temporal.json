@@ -1,0 +1,1472 @@
+{
+  "60": {
+    "bbox_xyxy": [
+      461.04928571428576,
+      96.85314285714287,
+      510.0207142857143,
+      143.19600000000003
+    ],
+    "top_center_xy": [
+      479.0,
+      106.0
+    ],
+    "bottom_center_xy": [
+      495.0,
+      136.0
+    ],
+    "roll_prior_rad": 0.4899573262537283,
+    "source": "propagated_between_manual_36_64",
+    "manual": {
+      "label": "propagated_between_manual_36_64",
+      "body_axis": [
+        [
+          479.16357142857146,
+          105.68171428571429
+        ],
+        [
+          495.1064285714286,
+          135.85314285714287
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          479.16357142857146,
+          105.68171428571429
+        ],
+        "rx": 18.114285714285714,
+        "ry": 8.82857142857143,
+        "angle_deg": -31.285714285714285
+      },
+      "bottom_ellipse": {
+        "center": [
+          495.1064285714286,
+          135.85314285714287
+        ],
+        "rx": 14.914285714285715,
+        "ry": 7.342857142857143,
+        "angle_deg": -30.17142857142856
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "propagated_between_manual_36_64",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "61": {
+    "bbox_xyxy": [
+      459.8049642857143,
+      94.97760714285714,
+      509.3585357142857,
+      141.20975
+    ],
+    "top_center_xy": [
+      478.0,
+      104.0
+    ],
+    "bottom_center_xy": [
+      495.0,
+      134.0
+    ],
+    "roll_prior_rad": 0.515549007458979,
+    "source": "propagated_between_manual_36_64",
+    "manual": {
+      "label": "propagated_between_manual_36_64",
+      "body_axis": [
+        [
+          477.96567857142855,
+          104.04903571428571
+        ],
+        [
+          494.57282142857144,
+          133.72760714285715
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          477.96567857142855,
+          104.04903571428571
+        ],
+        "rx": 18.160714285714285,
+        "ry": 9.071428571428573,
+        "angle_deg": -32.589285714285715
+      },
+      "bottom_ellipse": {
+        "center": [
+          494.57282142857144,
+          133.72760714285715
+        ],
+        "rx": 14.785714285714285,
+        "ry": 7.482142857142858,
+        "angle_deg": -31.42857142857142
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "propagated_between_manual_36_64",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "62": {
+    "bbox_xyxy": [
+      459.14164285714287,
+      93.96607142857142,
+      509.27735714285717,
+      140.0875
+    ],
+    "top_center_xy": [
+      477.0,
+      103.0
+    ],
+    "bottom_center_xy": [
+      495.0,
+      132.0
+    ],
+    "roll_prior_rad": 0.5554937352655436,
+    "source": "propagated_between_manual_36_64",
+    "manual": {
+      "label": "propagated_between_manual_36_64",
+      "body_axis": [
+        [
+          477.3487857142857,
+          103.28035714285714
+        ],
+        [
+          494.6202142857143,
+          132.46607142857144
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          477.3487857142857,
+          103.28035714285714
+        ],
+        "rx": 18.20714285714286,
+        "ry": 9.314285714285715,
+        "angle_deg": -33.892857142857146
+      },
+      "bottom_ellipse": {
+        "center": [
+          494.6202142857143,
+          132.46607142857144
+        ],
+        "rx": 14.657142857142857,
+        "ry": 7.621428571428572,
+        "angle_deg": -32.685714285714276
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "propagated_between_manual_36_64",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "63": {
+    "bbox_xyxy": [
+      458.3503214285714,
+      93.00353571428572,
+      509.0681785714286,
+      139.01425
+    ],
+    "top_center_xy": [
+      477.0,
+      103.0
+    ],
+    "bottom_center_xy": [
+      495.0,
+      131.0
+    ],
+    "roll_prior_rad": 0.5713374798336268,
+    "source": "propagated_between_manual_36_64",
+    "manual": {
+      "label": "propagated_between_manual_36_64",
+      "body_axis": [
+        [
+          476.60389285714285,
+          102.56067857142858
+        ],
+        [
+          494.53960714285716,
+          131.2535357142857
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          476.60389285714285,
+          102.56067857142858
+        ],
+        "rx": 18.25357142857143,
+        "ry": 9.557142857142859,
+        "angle_deg": -35.19642857142857
+      },
+      "bottom_ellipse": {
+        "center": [
+          494.53960714285716,
+          131.2535357142857
+        ],
+        "rx": 14.528571428571428,
+        "ry": 7.760714285714286,
+        "angle_deg": -33.942857142857136
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "propagated_between_manual_36_64",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "64": {
+    "bbox_xyxy": [
+      457.7,
+      91.9,
+      509.0,
+      137.8
+    ],
+    "top_center_xy": [
+      476.0,
+      102.0
+    ],
+    "bottom_center_xy": [
+      495.0,
+      130.0
+    ],
+    "roll_prior_rad": 0.5961991412974801,
+    "source": "user_manual_precise_annotation",
+    "manual": {
+      "label": "drinking_pre_mid_user_manual_rim_bottom",
+      "body_axis": [
+        [
+          476.0,
+          101.7
+        ],
+        [
+          494.6,
+          129.9
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          476.0,
+          101.7
+        ],
+        "rx": 18.3,
+        "ry": 9.8,
+        "angle_deg": -36.5,
+        "stroke_bbox_xyxy": [
+          458,
+          87,
+          492,
+          110
+        ],
+        "visible_arc_centerline_points": [
+          [
+            458,
+            108
+          ],
+          [
+            464,
+            102
+          ],
+          [
+            469,
+            96
+          ],
+          [
+            475,
+            92
+          ],
+          [
+            481,
+            89
+          ],
+          [
+            486,
+            89
+          ],
+          [
+            492,
+            90
+          ]
+        ],
+        "axis_points": {
+          "major_pos": [
+            491,
+            91
+          ],
+          "major_neg": [
+            461,
+            113
+          ],
+          "minor_pos": [
+            482,
+            110
+          ],
+          "minor_neg": [
+            470,
+            94
+          ]
+        }
+      },
+      "bottom_ellipse": {
+        "center": [
+          494.6,
+          129.9
+        ],
+        "rx": 14.4,
+        "ry": 7.9,
+        "angle_deg": -35.2,
+        "stroke_bbox_xyxy": [
+          481,
+          118,
+          509,
+          142
+        ],
+        "axis_points": {
+          "major_pos": [
+            506,
+            122
+          ],
+          "major_neg": [
+            483,
+            138
+          ],
+          "minor_pos": [
+            499,
+            136
+          ],
+          "minor_neg": [
+            490,
+            123
+          ]
+        }
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "user_manual_precise_annotation"
+    },
+    "manual_points_available": {
+      "rim_arc": 7,
+      "rim_major": 2,
+      "rim_minor": 2,
+      "bottom_major": 2,
+      "bottom_minor": 2
+    }
+  },
+  "65": {
+    "bbox_xyxy": [
+      457.12899999999996,
+      90.46300000000001,
+      508.429,
+      136.36300000000003
+    ],
+    "top_center_xy": [
+      475.0,
+      100.0
+    ],
+    "bottom_center_xy": [
+      494.0,
+      128.0
+    ],
+    "roll_prior_rad": 0.5961991412974801,
+    "source": "motion_gated_hold_manual_64_before_67",
+    "manual": {
+      "label": "motion_gated_hold_manual_64_before_67",
+      "body_axis": [
+        [
+          475.429,
+          100.263
+        ],
+        [
+          494.029,
+          128.46300000000002
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          475.429,
+          100.263
+        ],
+        "rx": 18.3,
+        "ry": 9.8,
+        "angle_deg": -36.5,
+        "stroke_bbox_xyxy": [
+          458,
+          87,
+          492,
+          110
+        ],
+        "visible_arc_centerline_points": [
+          [
+            457.429,
+            106.563
+          ],
+          [
+            463.429,
+            100.563
+          ],
+          [
+            468.429,
+            94.563
+          ],
+          [
+            474.429,
+            90.563
+          ],
+          [
+            480.429,
+            87.563
+          ],
+          [
+            485.429,
+            87.563
+          ],
+          [
+            491.429,
+            88.563
+          ]
+        ],
+        "axis_points": {
+          "major_pos": [
+            490.429,
+            89.563
+          ],
+          "major_neg": [
+            460.429,
+            111.563
+          ],
+          "minor_pos": [
+            481.429,
+            108.563
+          ],
+          "minor_neg": [
+            469.429,
+            92.563
+          ]
+        }
+      },
+      "bottom_ellipse": {
+        "center": [
+          494.029,
+          128.46300000000002
+        ],
+        "rx": 14.4,
+        "ry": 7.9,
+        "angle_deg": -35.2,
+        "stroke_bbox_xyxy": [
+          481,
+          118,
+          509,
+          142
+        ],
+        "axis_points": {
+          "major_pos": [
+            505.429,
+            120.563
+          ],
+          "major_neg": [
+            482.429,
+            136.563
+          ],
+          "minor_pos": [
+            498.429,
+            134.563
+          ],
+          "minor_neg": [
+            489.429,
+            121.563
+          ]
+        }
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_64_before_67",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": 7,
+      "rim_major": 2,
+      "rim_minor": 2,
+      "bottom_major": 2,
+      "bottom_minor": 2
+    }
+  },
+  "66": {
+    "bbox_xyxy": [
+      457.21099999999996,
+      88.143,
+      508.51099999999997,
+      134.043
+    ],
+    "top_center_xy": [
+      476.0,
+      98.0
+    ],
+    "bottom_center_xy": [
+      494.0,
+      126.0
+    ],
+    "roll_prior_rad": 0.5713374798336268,
+    "source": "motion_gated_hold_manual_64_before_67",
+    "manual": {
+      "label": "motion_gated_hold_manual_64_before_67",
+      "body_axis": [
+        [
+          475.51099999999997,
+          97.943
+        ],
+        [
+          494.111,
+          126.143
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          475.51099999999997,
+          97.943
+        ],
+        "rx": 18.3,
+        "ry": 9.8,
+        "angle_deg": -36.5,
+        "stroke_bbox_xyxy": [
+          458,
+          87,
+          492,
+          110
+        ],
+        "visible_arc_centerline_points": [
+          [
+            457.51099999999997,
+            104.243
+          ],
+          [
+            463.51099999999997,
+            98.243
+          ],
+          [
+            468.51099999999997,
+            92.243
+          ],
+          [
+            474.51099999999997,
+            88.243
+          ],
+          [
+            480.51099999999997,
+            85.243
+          ],
+          [
+            485.51099999999997,
+            85.243
+          ],
+          [
+            491.51099999999997,
+            86.243
+          ]
+        ],
+        "axis_points": {
+          "major_pos": [
+            490.51099999999997,
+            87.243
+          ],
+          "major_neg": [
+            460.51099999999997,
+            109.243
+          ],
+          "minor_pos": [
+            481.51099999999997,
+            106.243
+          ],
+          "minor_neg": [
+            469.51099999999997,
+            90.243
+          ]
+        }
+      },
+      "bottom_ellipse": {
+        "center": [
+          494.111,
+          126.143
+        ],
+        "rx": 14.4,
+        "ry": 7.9,
+        "angle_deg": -35.2,
+        "stroke_bbox_xyxy": [
+          481,
+          118,
+          509,
+          142
+        ],
+        "axis_points": {
+          "major_pos": [
+            505.51099999999997,
+            118.243
+          ],
+          "major_neg": [
+            482.51099999999997,
+            134.243
+          ],
+          "minor_pos": [
+            498.51099999999997,
+            132.243
+          ],
+          "minor_neg": [
+            489.51099999999997,
+            119.243
+          ]
+        }
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_64_before_67",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": 7,
+      "rim_major": 2,
+      "rim_minor": 2,
+      "bottom_major": 2,
+      "bottom_minor": 2
+    }
+  },
+  "67": {
+    "bbox_xyxy": [
+      464,
+      86,
+      504,
+      132
+    ],
+    "top_center_xy": [
+      484.0,
+      91.0
+    ],
+    "bottom_center_xy": [
+      484.0,
+      128.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "manual_rim_bottom_ellipse",
+    "manual": {
+      "label": "drinking_mid_bottom_visible_manual",
+      "body_axis": [
+        [
+          484,
+          90
+        ],
+        [
+          484,
+          129
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          484,
+          91
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          484,
+          128
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden"
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "68": {
+    "bbox_xyxy": [
+      463.859,
+      83.879,
+      503.859,
+      129.87900000000002
+    ],
+    "top_center_xy": [
+      484.0,
+      89.0
+    ],
+    "bottom_center_xy": [
+      484.0,
+      126.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          483.859,
+          88.879
+        ],
+        [
+          483.859,
+          125.879
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          483.859,
+          88.879
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          483.859,
+          125.879
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "69": {
+    "bbox_xyxy": [
+      464.183,
+      82.093,
+      504.183,
+      128.09300000000002
+    ],
+    "top_center_xy": [
+      484.0,
+      87.0
+    ],
+    "bottom_center_xy": [
+      484.0,
+      124.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          484.183,
+          87.093
+        ],
+        [
+          484.183,
+          124.093
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          484.183,
+          87.093
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          484.183,
+          124.093
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "70": {
+    "bbox_xyxy": [
+      464.19599999999997,
+      80.611,
+      504.19599999999997,
+      126.611
+    ],
+    "top_center_xy": [
+      484.0,
+      86.0
+    ],
+    "bottom_center_xy": [
+      484.0,
+      123.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          484.19599999999997,
+          85.611
+        ],
+        [
+          484.19599999999997,
+          122.611
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          484.19599999999997,
+          85.611
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          484.19599999999997,
+          122.611
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "71": {
+    "bbox_xyxy": [
+      463.84499999999997,
+      79.148,
+      503.84499999999997,
+      125.148
+    ],
+    "top_center_xy": [
+      484.0,
+      84.0
+    ],
+    "bottom_center_xy": [
+      484.0,
+      121.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          483.84499999999997,
+          84.148
+        ],
+        [
+          483.84499999999997,
+          121.148
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          483.84499999999997,
+          84.148
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          483.84499999999997,
+          121.148
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "72": {
+    "bbox_xyxy": [
+      463.601,
+      77.951,
+      503.601,
+      123.951
+    ],
+    "top_center_xy": [
+      484.0,
+      83.0
+    ],
+    "bottom_center_xy": [
+      484.0,
+      120.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          483.601,
+          82.951
+        ],
+        [
+          483.601,
+          119.951
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          483.601,
+          82.951
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          483.601,
+          119.951
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "73": {
+    "bbox_xyxy": [
+      463.24,
+      76.68599999999999,
+      503.24,
+      122.68599999999999
+    ],
+    "top_center_xy": [
+      483.0,
+      82.0
+    ],
+    "bottom_center_xy": [
+      483.0,
+      119.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          483.24,
+          81.68599999999999
+        ],
+        [
+          483.24,
+          118.68599999999999
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          483.24,
+          81.68599999999999
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          483.24,
+          118.68599999999999
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "74": {
+    "bbox_xyxy": [
+      463.111,
+      75.742,
+      503.111,
+      121.742
+    ],
+    "top_center_xy": [
+      483.0,
+      81.0
+    ],
+    "bottom_center_xy": [
+      483.0,
+      118.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          483.111,
+          80.742
+        ],
+        [
+          483.111,
+          117.742
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          483.111,
+          80.742
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          483.111,
+          117.742
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "75": {
+    "bbox_xyxy": [
+      462.467,
+      75.106,
+      502.467,
+      121.106
+    ],
+    "top_center_xy": [
+      482.0,
+      80.0
+    ],
+    "bottom_center_xy": [
+      482.0,
+      117.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          482.467,
+          80.106
+        ],
+        [
+          482.467,
+          117.106
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          482.467,
+          80.106
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          482.467,
+          117.106
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "76": {
+    "bbox_xyxy": [
+      462.56399999999996,
+      74.227,
+      502.56399999999996,
+      120.227
+    ],
+    "top_center_xy": [
+      483.0,
+      79.0
+    ],
+    "bottom_center_xy": [
+      483.0,
+      116.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          482.56399999999996,
+          79.227
+        ],
+        [
+          482.56399999999996,
+          116.227
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          482.56399999999996,
+          79.227
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          482.56399999999996,
+          116.227
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "77": {
+    "bbox_xyxy": [
+      462.058,
+      73.475,
+      502.058,
+      119.475
+    ],
+    "top_center_xy": [
+      482.0,
+      78.0
+    ],
+    "bottom_center_xy": [
+      482.0,
+      115.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          482.058,
+          78.475
+        ],
+        [
+          482.058,
+          115.475
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          482.058,
+          78.475
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          482.058,
+          115.475
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "78": {
+    "bbox_xyxy": [
+      461.989,
+      73.014,
+      501.989,
+      119.014
+    ],
+    "top_center_xy": [
+      482.0,
+      78.0
+    ],
+    "bottom_center_xy": [
+      482.0,
+      115.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          481.989,
+          78.014
+        ],
+        [
+          481.989,
+          115.014
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          481.989,
+          78.014
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          481.989,
+          115.014
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "79": {
+    "bbox_xyxy": [
+      462.483,
+      72.704,
+      502.483,
+      118.704
+    ],
+    "top_center_xy": [
+      482.0,
+      78.0
+    ],
+    "bottom_center_xy": [
+      482.0,
+      115.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          482.483,
+          77.704
+        ],
+        [
+          482.483,
+          114.704
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          482.483,
+          77.704
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          482.483,
+          114.704
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  },
+  "80": {
+    "bbox_xyxy": [
+      462.541,
+      72.527,
+      502.541,
+      118.527
+    ],
+    "top_center_xy": [
+      483.0,
+      78.0
+    ],
+    "bottom_center_xy": [
+      483.0,
+      115.0
+    ],
+    "roll_prior_rad": 0.0,
+    "source": "motion_gated_hold_manual_67_before_90",
+    "manual": {
+      "label": "motion_gated_hold_manual_67_before_90",
+      "body_axis": [
+        [
+          482.541,
+          77.527
+        ],
+        [
+          482.541,
+          114.527
+        ]
+      ],
+      "rim_ellipse": {
+        "center": [
+          482.541,
+          77.527
+        ],
+        "rx": 20,
+        "ry": 5,
+        "angle_deg": -10
+      },
+      "bottom_ellipse": {
+        "center": [
+          482.541,
+          114.527
+        ],
+        "rx": 15,
+        "ry": 4,
+        "angle_deg": -10
+      },
+      "handle_visibility_policy": "hidden",
+      "source": "motion_gated_hold_manual_67_before_90",
+      "propagated_from_manual": true
+    },
+    "manual_points_available": {
+      "rim_arc": null,
+      "rim_major": null,
+      "rim_minor": null,
+      "bottom_major": null,
+      "bottom_minor": null
+    }
+  }
+}

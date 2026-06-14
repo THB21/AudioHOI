@@ -1,0 +1,31 @@
+Edit the current mug model to fix the handle/body attachment.
+
+Current defect:
+- The handle has visible wedge-like attachment pieces outside the cup.
+- This still looks like an added connector instead of a mug handle grown into the cup.
+
+Required geometry change:
+- Remove all separate attachment pads, wedge pieces, connector pieces, fillets, and external transition blocks.
+- Make the handle a single smooth C-shaped tube.
+- Extend the two endpoints of the C-shaped tube directly into the cylindrical cup body.
+- The C-loop endpoints should penetrate the cup side wall by a small amount, so the tube visibly disappears into the body.
+- The visible connection should be just the tube entering the cup wall, not a separate interface object.
+- The upper and lower endpoint centers should be inside the body wall enough to pass connectivity checks.
+
+Do not add:
+- no pad geometry
+- no wedge geometry
+- no rectangular connector
+- no ribbed rings
+- no mechanical joint
+- no extra transition parts
+
+Keep:
+- exactly semantic parts: body, handle, rim, bottom
+- handle remains a separate semantic part named handle
+- smooth open C-shaped side handle
+- cylindrical cup body, flat bottom, rounded rim
+
+Validation target:
+- In the viewer, the C-shaped handle should look embedded into the mug body at two points.
+- The model should compile cleanly.

@@ -1,0 +1,6 @@
+Generic phase-aware human-ball contact calibration.
+default_part: hand
+global_z_shift_from_human_events_m: -0.443243
+num_frames: 192
+num_human_event_frames: 24
+num_floor_event_frames: 11

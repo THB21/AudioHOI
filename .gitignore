@@ -223,3 +223,7 @@ samples/basketball_01/results/renders/archive_experiments/
 
 # Local-only runners
 scripts/run_gvhmr_local.py
+
+# Large model weights and third-party deps (not committed)
+models/
+third-party/

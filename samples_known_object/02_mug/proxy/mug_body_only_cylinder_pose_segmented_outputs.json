@@ -1,0 +1,39 @@
+{
+  "pose_sequence": "samples_known_object/02_mug/proxy/mug_body_only_cylinder_pose_segmented_sequence.csv",
+  "fit": "samples_known_object/02_mug/proxy/mug_body_only_cylinder_pose_segmented_fit.json",
+  "render": "samples_known_object/02_mug/results/renders/M5_body_only_cylinder_pose_segmented/overlay.mp4",
+  "segments": [
+    {
+      "success": true,
+      "cost": 2455.9135062549685,
+      "nfev": 34,
+      "message": "Both `ftol` and `xtol` termination conditions are satisfied.",
+      "segment": "1-60",
+      "num_frames": 60
+    },
+    {
+      "success": true,
+      "cost": 2257.780702874339,
+      "nfev": 48,
+      "message": "Both `ftol` and `xtol` termination conditions are satisfied.",
+      "segment": "60-100",
+      "num_frames": 41
+    },
+    {
+      "success": true,
+      "cost": 9172.074317355724,
+      "nfev": 22,
+      "message": "`ftol` termination condition is satisfied.",
+      "segment": "100-160",
+      "num_frames": 61
+    },
+    {
+      "success": true,
+      "cost": 1047.6355038094207,
+      "nfev": 26,
+      "message": "`xtol` termination condition is satisfied.",
+      "segment": "160-240",
+      "num_frames": 81
+    }
+  ]
+}

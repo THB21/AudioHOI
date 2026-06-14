@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import pickle
 import shutil
 import subprocess
@@ -214,6 +215,45 @@ def parse_obs_float(row: dict[str, str] | None, key: str, default: float = np.na
         return default
 
 
+
+
+def read_object_proxy(sample_dir: Path) -> dict[str, object]:
+    proxy_path = sample_dir / "proxy" / "mug_proxy.json"
+    if not proxy_path.exists():
+        return {}
+    try:
+        return json.loads(proxy_path.read_text())
+    except Exception:
+        return {}
+
+
+def proxy_part(proxy: dict[str, object] | None, name: str) -> dict[str, object]:
+    if not isinstance(proxy, dict):
+        return {}
+    parts = proxy.get("parts")
+    if not isinstance(parts, dict):
+        return {}
+    part = parts.get(name)
+    return part if isinstance(part, dict) else {}
+
+
+def proxy_contact_side(proxy: dict[str, object] | None, obs: dict[str, str] | None) -> str:
+    if isinstance(proxy, dict):
+        cr = proxy.get("contact_region")
+        if isinstance(cr, dict):
+            side = str(cr.get("side", "") or "").strip().lower()
+            if side in {"left", "right"}:
+                return side
+    side = str((obs or {}).get("handle_side", "") or "").strip().lower()
+    return side if side in {"left", "right"} else "right"
+
+
+def proxy_float(part: dict[str, object], key: str, default: float) -> float:
+    try:
+        return float(part.get(key, default))
+    except Exception:
+        return default
+
 def infer_object_kind(sample_dir: Path, object_obs: dict[int, dict[str, str]]) -> str:
     for row in object_obs.values():
         name = str(row.get("object_name", "") or "").strip().lower()
@@ -229,7 +269,7 @@ def infer_object_kind(sample_dir: Path, object_obs: dict[int, dict[str, str]]) -
     return ""
 
 
-def draw_mug_sprite(frame: np.ndarray, center: tuple[int, int], radius: int, obs: dict[str, str] | None) -> None:
+def draw_mug_sprite(frame: np.ndarray, center: tuple[int, int], radius: int, obs: dict[str, str] | None, object_proxy: dict[str, object] | None = None) -> None:
     overlay = frame.copy()
     cx, cy = center
     body_x1 = parse_obs_float(obs, "body_bbox_x1")
@@ -239,76 +279,139 @@ def draw_mug_sprite(frame: np.ndarray, center: tuple[int, int], radius: int, obs
     if all(np.isfinite(v) for v in [body_x1, body_y1, body_x2, body_y2]):
         x1, y1, x2, y2 = [int(round(v)) for v in [body_x1, body_y1, body_x2, body_y2]]
     else:
-        w = max(10, int(radius * 1.6))
-        h = max(14, int(radius * 2.1))
+        body = proxy_part(object_proxy, "body")
+        body_h_norm = proxy_float(body, "height", 1.0)
+        body_r_norm = proxy_float(body, "radius", 0.40)
+        h = max(18, int(radius * 2.35 * body_h_norm))
+        w = max(14, int(h * body_r_norm * 1.85))
         x1, y1, x2, y2 = cx - w // 2, cy - h // 2, cx + w // 2, cy + h // 2
+    x1, x2 = sorted((x1, x2))
+    y1, y2 = sorted((y1, y2))
+    bw = max(8, x2 - x1)
+    bh = max(12, y2 - y1)
     mug_fill = (214, 232, 238)
     mug_edge = (48, 72, 86)
-    cv2.ellipse(overlay, ((x1 + x2) // 2, (y1 + y2) // 2), (max(4, (x2 - x1) // 2), max(6, (y2 - y1) // 2)), 0, 0, 360, mug_fill, -1, cv2.LINE_AA)
-    cv2.ellipse(overlay, ((x1 + x2) // 2, y1 + max(2, (y2 - y1) // 8)), (max(4, (x2 - x1) // 2), max(2, (y2 - y1) // 7)), 0, 0, 360, (238, 247, 249), 2, cv2.LINE_AA)
-    cv2.ellipse(overlay, ((x1 + x2) // 2, (y1 + y2) // 2), (max(4, (x2 - x1) // 2), max(6, (y2 - y1) // 2)), 0, 0, 360, mug_edge, 2, cv2.LINE_AA)
+    rim_fill = (238, 247, 249)
+    shadow = (92, 117, 124)
 
-    side = str((obs or {}).get("handle_side", "") or "").strip().lower()
-    visible = str((obs or {}).get("handle_visible", "") or "") == "1"
-    hx1 = parse_obs_float(obs, "handle_bbox_x1")
-    hy1 = parse_obs_float(obs, "handle_bbox_y1")
-    hx2 = parse_obs_float(obs, "handle_bbox_x2")
-    hy2 = parse_obs_float(obs, "handle_bbox_y2")
-    handle_color = (92, 155, 224) if visible else (150, 170, 190)
-    if visible and all(np.isfinite(v) for v in [hx1, hy1, hx2, hy2]):
-        rx1, ry1, rx2, ry2 = [int(round(v)) for v in [hx1, hy1, hx2, hy2]]
-        center_h = ((rx1 + rx2) // 2, (ry1 + ry2) // 2)
-        axes_h = (max(5, (rx2 - rx1 + 8) // 2), max(8, (ry2 - ry1 + 8) // 2))
-    elif side in {"left", "right"}:
-        sign = -1 if side == "left" else 1
-        center_h = (x1 - 7 if sign < 0 else x2 + 7, (y1 + y2) // 2)
-        axes_h = (max(6, (x2 - x1) // 4), max(10, (y2 - y1) // 3))
-    else:
-        center_h = None
-        axes_h = None
-    if center_h is not None and axes_h is not None:
-        cv2.ellipse(overlay, center_h, axes_h, 0, 0, 360, handle_color, 3, cv2.LINE_AA)
-        cv2.ellipse(overlay, center_h, (max(2, axes_h[0] - 4), max(3, axes_h[1] - 5)), 0, 0, 360, (245, 248, 250), 2, cv2.LINE_AA)
+    # Articraft-backed mug body: cylindrical side walls plus distinct rim/bottom.
+    body_poly = np.asarray([
+        [x1 + bw // 10, y1 + bh // 12],
+        [x2 - bw // 10, y1 + bh // 12],
+        [x2 - bw // 7, y2 - bh // 12],
+        [x1 + bw // 7, y2 - bh // 12],
+    ], dtype=np.int32)
+    cv2.fillConvexPoly(overlay, body_poly, mug_fill, cv2.LINE_AA)
+    cv2.polylines(overlay, [body_poly], True, mug_edge, 2, cv2.LINE_AA)
+    rim_center = ((x1 + x2) // 2, y1 + max(3, bh // 10))
+    rim_axes = (max(5, bw // 2), max(3, bh // 10))
+    cv2.ellipse(overlay, rim_center, rim_axes, 0, 0, 360, rim_fill, -1, cv2.LINE_AA)
+    cv2.ellipse(overlay, rim_center, rim_axes, 0, 0, 360, mug_edge, 2, cv2.LINE_AA)
+    inner_axes = (max(3, int(rim_axes[0] * 0.72)), max(2, int(rim_axes[1] * 0.55)))
+    cv2.ellipse(overlay, rim_center, inner_axes, 0, 0, 360, shadow, 1, cv2.LINE_AA)
+    bottom_center = ((x1 + x2) // 2, y2 - max(3, bh // 12))
+    cv2.ellipse(overlay, bottom_center, (max(4, bw // 3), max(2, bh // 16)), 0, 0, 360, mug_edge, 1, cv2.LINE_AA)
 
+    side = proxy_contact_side(object_proxy, obs)
+    sign = -1 if side == "left" else 1
+    handle_color = (92, 155, 224)
+    hx_outer = x1 - max(9, bw // 3) if sign < 0 else x2 + max(9, bw // 3)
+    hx_inner = x1 + max(2, bw // 18) if sign < 0 else x2 - max(2, bw // 18)
+    hy_top = y1 + int(0.34 * bh)
+    hy_bot = y1 + int(0.70 * bh)
+    hy_mid = (hy_top + hy_bot) // 2
+    handle_pts = np.asarray([[hx_inner, hy_top], [hx_outer, hy_top], [hx_outer, hy_mid], [hx_outer, hy_bot], [hx_inner, hy_bot]], dtype=np.int32)
+    cv2.polylines(overlay, [handle_pts], False, handle_color, max(3, bw // 10), cv2.LINE_AA)
+    cv2.polylines(overlay, [handle_pts], False, mug_edge, 1, cv2.LINE_AA)
+    cv2.circle(overlay, (hx_inner, hy_top), max(2, bw // 20), mug_edge, -1, cv2.LINE_AA)
+    cv2.circle(overlay, (hx_inner, hy_bot), max(2, bw // 20), mug_edge, -1, cv2.LINE_AA)
+
+    pad_x = max(20, bw // 2)
     mask = np.zeros(frame.shape[:2], dtype=np.uint8)
-    cv2.rectangle(mask, (max(0, min(x1, x2) - 18), max(0, min(y1, y2) - 18)), (min(frame.shape[1] - 1, max(x1, x2) + 18), min(frame.shape[0] - 1, max(y1, y2) + 18)), 255, -1)
-    mask_f = (mask.astype(np.float32) / 255.0)[:, :, None] * 0.82
+    cv2.rectangle(
+        mask,
+        (max(0, min(x1, hx_outer) - pad_x // 4), max(0, y1 - 18)),
+        (min(frame.shape[1] - 1, max(x2, hx_outer) + pad_x // 4), min(frame.shape[0] - 1, y2 + 18)),
+        255,
+        -1,
+    )
+    mask_f = (mask.astype(np.float32) / 255.0)[:, :, None] * 0.86
     frame[:] = (frame.astype(np.float32) * (1.0 - mask_f) + overlay.astype(np.float32) * mask_f).astype(np.uint8)
 
 
-def draw_object_sprite(frame: np.ndarray, ball: dict[str, float], K: np.ndarray, object_kind: str, obs: dict[str, str] | None) -> None:
+def draw_object_sprite(frame: np.ndarray, ball: dict[str, float], K: np.ndarray, object_kind: str, obs: dict[str, str] | None, object_proxy: dict[str, object] | None = None) -> None:
     proj = project_ball(ball, K)
     if proj is None:
         return
     center, radius = proj
     if object_kind == "mug":
-        draw_mug_sprite(frame, center, radius, obs)
+        draw_mug_sprite(frame, center, radius, obs, object_proxy)
     else:
-        draw_ball_sprite(frame, center, radius)
+        draw_object_sprite(frame, ball, K, object_kind, object_obs.get(int(ball["frame"])), object_proxy)
 
 
-def draw_mug_3d(ax, obj_cam: np.ndarray, obs: dict[str, str] | None, scale: float = 1.0) -> None:
+def draw_box_wire_3d(ax, center: tuple[float, float, float], size: tuple[float, float, float], color: str, linewidth: float = 2.0, alpha: float = 0.95) -> None:
+    cx, cz, cy = center
+    sx, sz, sy = size[0] / 2.0, size[1] / 2.0, size[2] / 2.0
+    corners = np.asarray([
+        [cx - sx, cz - sz, cy - sy], [cx + sx, cz - sz, cy - sy], [cx + sx, cz + sz, cy - sy], [cx - sx, cz + sz, cy - sy],
+        [cx - sx, cz - sz, cy + sy], [cx + sx, cz - sz, cy + sy], [cx + sx, cz + sz, cy + sy], [cx - sx, cz + sz, cy + sy],
+    ])
+    edges = [(0,1),(1,2),(2,3),(3,0),(4,5),(5,6),(6,7),(7,4),(0,4),(1,5),(2,6),(3,7)]
+    for a, b in edges:
+        seg = corners[[a, b]]
+        ax.plot(seg[:, 0], seg[:, 1], seg[:, 2], color=color, linewidth=linewidth, alpha=alpha)
+
+
+def draw_mug_3d(ax, obj_cam: np.ndarray, obs: dict[str, str] | None, scale: float = 1.0, object_proxy: dict[str, object] | None = None) -> None:
     obj = cam_to_worldlike(obj_cam[None, :])[0]
     x, z, y = float(obj[0]), float(obj[2]), float(obj[1])
-    body_r = 0.045 * scale
-    body_h = 0.115 * scale
-    theta = np.linspace(0, 2 * np.pi, 32)
-    # Simple upright body as two ellipses plus vertical sides.
-    for yy, alpha in [(y - body_h / 2, 0.55), (y + body_h / 2, 0.95)]:
-        ax.plot(x + body_r * np.cos(theta), np.full_like(theta, z), yy + 0.32 * body_r * np.sin(theta), color="#2f5d68", linewidth=1.4, alpha=alpha)
+    body = proxy_part(object_proxy, "body")
+    rim = proxy_part(object_proxy, "rim")
+    bottom = proxy_part(object_proxy, "bottom")
+    handle = proxy_part(object_proxy, "handle")
+    total_height = 0.115 * scale
+    if isinstance(object_proxy, dict):
+        units = object_proxy.get("units")
+        if isinstance(units, dict):
+            total_height = max(0.04, float(units.get("total_height_m", 0.102))) * scale
+    body_r = proxy_float(body, "radius", 0.392157) * total_height
+    body_h = proxy_float(body, "height", 0.931373) * total_height
+    rim_r = proxy_float(rim, "radius", 0.431373) * total_height
+    bottom_r = proxy_float(bottom, "radius", body_r / max(total_height, 1e-6)) * total_height
+    theta = np.linspace(0, 2 * np.pi, 48)
+    # Articraft-style hollow cylindrical mug: body wall, rim, bottom.
+    for yy, rr, color, lw, alpha in [
+        (y - body_h / 2, bottom_r, "#314d55", 1.5, 0.72),
+        (y + body_h / 2, rim_r, "#253d45", 2.2, 0.96),
+    ]:
+        ax.plot(x + rr * np.cos(theta), np.full_like(theta, z), yy + 0.35 * rr * np.sin(theta), color=color, linewidth=lw, alpha=alpha)
     for sx in [-1, 1]:
-        ax.plot([x + sx * body_r, x + sx * body_r], [z, z], [y - body_h / 2, y + body_h / 2], color="#2f5d68", linewidth=1.6, alpha=0.9)
-    ax.scatter([x], [z], [y], s=120, color="#d6e8ee", edgecolors="#25353a", linewidths=1.0, depthshade=False)
+        ax.plot([x + sx * body_r, x + sx * body_r], [z, z], [y - body_h / 2, y + body_h / 2], color="#314d55", linewidth=2.0, alpha=0.9)
+    ax.scatter([x], [z], [y], s=135, color="#d6e8ee", edgecolors="#25353a", linewidths=1.0, depthshade=False)
 
-    side = str((obs or {}).get("handle_side", "") or "").strip().lower()
-    visible = str((obs or {}).get("handle_visible", "") or "") == "1"
-    if side in {"left", "right"}:
-        sign = -1.0 if side == "left" else 1.0
+    side = proxy_contact_side(object_proxy, obs)
+    sign = -1.0 if side == "left" else 1.0
+    elements = handle.get("elements") if isinstance(handle, dict) else None
+    if isinstance(elements, dict):
+        for name, payload in elements.items():
+            if not isinstance(payload, dict):
+                continue
+            c = payload.get("center_m", [0.0, 0.0, 0.0])
+            size = payload.get("size_m", [0.01, 0.01, 0.01])
+            try:
+                cx_m, _cy_m, cz_m = [float(v) * scale for v in c]
+                sx_m, sy_m, sz_m = [float(v) * scale for v in size]
+            except Exception:
+                continue
+            # payload center_m is local metric [x, y, z_up] after mirroring; render axes are X, Zdepth, Yup.
+            draw_box_wire_3d(ax, (x + cx_m, z, y + cz_m), (sx_m, 0.018 * scale, sz_m), "#1f77b4", linewidth=2.4 if name == "outer_grip" else 2.0, alpha=0.96)
+    else:
         phi = np.linspace(-np.pi * 0.70, np.pi * 0.70, 28)
         hx = x + sign * (body_r + 0.020 * scale + 0.018 * scale * np.cos(phi))
         hz = np.full_like(phi, z)
         hy = y + 0.030 * scale * np.sin(phi)
-        ax.plot(hx, hz, hy, color="#1f77b4" if visible else "#9aa7b2", linewidth=3.0 if visible else 2.0, alpha=0.95 if visible else 0.55)
+        ax.plot(hx, hz, hy, color="#1f77b4", linewidth=3.0, alpha=0.95)
 
 def read_human_result(path: Path) -> dict[str, np.ndarray]:
     with path.open("rb") as f:
@@ -550,6 +653,7 @@ def render_overlay_ball_only(
     fps: float,
     video_codec: str,
     h264_encoder: str,
+    object_proxy: dict[str, object] | None = None,
 ) -> tuple[Path, Path]:
     frames_dir = sample_dir / "frames"
     first = cv2.imread(str(frames_dir / "00001.png"))
@@ -608,6 +712,7 @@ def render_overlay_with_human(
     fps: float,
     video_codec: str,
     h264_encoder: str,
+    object_proxy: dict[str, object] | None = None,
 ) -> tuple[Path, Path]:
     frames_dir = sample_dir / "frames"
     first = cv2.imread(str(frames_dir / "00001.png"))
@@ -657,7 +762,7 @@ def render_overlay_with_human(
             traj.append(center)
             if len(traj) >= 2:
                 cv2.polylines(frame, [np.asarray(traj, dtype=np.int32)], False, (93, 126, 188), 2, cv2.LINE_AA)
-            draw_object_sprite(frame, ball, K, object_kind, object_obs.get(int(ball["frame"])))
+            draw_object_sprite(frame, ball, K, object_kind, object_obs.get(int(ball["frame"])), object_proxy)
 
         contact_part, active_side = infer_contact_part(ball, str(ball.get("default_human_part", "hand")))
         left_proxy, right_proxy, _ = choose_active_contact_proxy(joints[idx], ball_xyz, contact_part, active_side)
@@ -714,6 +819,7 @@ def render_camera3d(
     with_human: bool,
     video_codec: str,
     h264_encoder: str,
+    object_proxy: dict[str, object] | None = None,
 ) -> tuple[Path, Path]:
     mp4_path = out_dir / "camera3d.mp4"
     png_path = out_dir / "camera3d_preview.png"
@@ -752,7 +858,7 @@ def render_camera3d(
         ax.plot(ball_xyz[: idx + 1, 0], ball_xyz[: idx + 1, 2], ball_xyz[: idx + 1, 1], color="#4c72b0", linewidth=2.4, alpha=0.95)
         ball_now = ball_xyz[idx]
         if object_kind == "mug":
-            draw_mug_3d(ax, ball_xyz_cam[idx], object_obs.get(int(ball["frame"])))
+            draw_mug_3d(ax, ball_xyz_cam[idx], object_obs.get(int(ball["frame"])), object_proxy=object_proxy)
         else:
             ax.scatter([ball_now[0]], [ball_now[2]], [ball_now[1]], s=180, color="#db7a20", edgecolors="#1f1f1f", linewidths=1.0, depthshade=False)
 
@@ -822,6 +928,7 @@ def render_side_yz(
     with_human: bool,
     video_codec: str,
     h264_encoder: str,
+    object_proxy: dict[str, object] | None = None,
 ) -> tuple[Path, Path]:
     mp4_path = out_dir / "side_yz.mp4"
     png_path = out_dir / "side_yz_preview.png"
@@ -950,19 +1057,20 @@ def main() -> None:
     ball_rows = read_ball_pose(ball_csv)
     object_obs = read_object_observations(results_dir / "object_observations" / "object_observations.csv")
     object_kind = infer_object_kind(sample_dir, object_obs)
+    object_proxy = read_object_proxy(sample_dir)
     human = read_human_result(results_dir / "gvhmr" / "result.pkl")
     if len(ball_rows) != human["transl"].shape[0]:
         raise RuntimeError("Ball/human frame count mismatch")
 
     # Ball-only outputs always get written.
     ball_overlay_png, ball_overlay_mp4 = render_overlay_ball_only(
-        sample_dir, ball_rows, human["K_fullimg"][0], ball_out, object_kind, object_obs, args.fps, args.video_codec, h264_encoder
+        sample_dir, ball_rows, human["K_fullimg"][0], ball_out, object_kind, object_obs, args.fps, args.video_codec, h264_encoder, object_proxy
     )
     ball_cam3d_png, ball_cam3d_mp4 = render_camera3d(
-        ball_rows, None, None, ball_out, object_kind, object_obs, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder
+        ball_rows, None, None, ball_out, object_kind, object_obs, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder, object_proxy=object_proxy
     )
     ball_side_png, ball_side_mp4 = render_side_yz(
-        ball_rows, None, None, ball_out, object_kind, object_obs, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder
+        ball_rows, None, None, ball_out, object_kind, object_obs, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder, object_proxy=object_proxy
     )
     print(f"ball_csv: {ball_csv}")
     print(f"ball_overlay_preview: {ball_overlay_png}")
@@ -986,6 +1094,7 @@ def main() -> None:
             args.fps,
             args.video_codec,
             h264_encoder,
+            object_proxy,
         )
         human_cam3d_png, human_cam3d_mp4 = render_camera3d(
             ball_rows,
@@ -1000,6 +1109,7 @@ def main() -> None:
             with_human=True,
             video_codec=args.video_codec,
             h264_encoder=h264_encoder,
+            object_proxy=object_proxy,
         )
         human_side_png, human_side_mp4 = render_side_yz(
             ball_rows,
@@ -1014,6 +1124,7 @@ def main() -> None:
             with_human=True,
             video_codec=args.video_codec,
             h264_encoder=h264_encoder,
+            object_proxy=object_proxy,
         )
         print(f"human_overlay_preview: {human_overlay_png}")
         print(f"human_overlay_mp4: {human_overlay_mp4}")

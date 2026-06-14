@@ -1,0 +1,46 @@
+{
+  "keyframe": "keyframes/001_hand_holding.png",
+  "contact_mask": "annotations/001_contact_region_mask.png",
+  "contact_mask_json": "annotations/001_contact_region_mask.json",
+  "object": "mug",
+  "human_side": {
+    "part": "left_hand",
+    "level": "hand_proxy",
+    "source": "gvhmr_contact_proxy_interval",
+    "confidence": 0.9
+  },
+  "object_side": {
+    "part": "handle",
+    "fallback_part": "left_body_side",
+    "side": "left",
+    "source": "painted_contact_region_mask",
+    "mask_frame": 131,
+    "mask_bbox_xyxy": [
+      616,
+      353,
+      630,
+      377
+    ],
+    "confidence": 0.85
+  },
+  "proxy": {
+    "path": "proxy/mug_proxy.json",
+    "articraft_record": "rec_edit-the-current-mug-model-to-fix-the-handle-bod_20260609_140343_925699_db515086",
+    "semantic_region": {
+      "type": "handle",
+      "part_name": "handle",
+      "side": "left",
+      "source": "articraft_handle_part_mirrored_to_observed_contact_side",
+      "confidence": 1.0
+    }
+  },
+  "stage1_usage": {
+    "ref_proxy": "cup_body_center",
+    "contact_point_source": "keyframe mask normalized in body bbox, propagated by mug body tracking",
+    "not_used": [
+      "per_frame_visible_handle_as_contact_truth",
+      "nearest_hand_mesh_point_as_object_contact_region"
+    ]
+  },
+  "used_for_stage2": true
+}

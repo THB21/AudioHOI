@@ -253,7 +253,39 @@ def main() -> None:
     anchor_event_mode = args.anchor_event_mode
     if anchor_event_mode == 'auto':
         anchor_event_mode = infer_anchor_event_mode(sample_dir)
-    if contact_part_policy == 'feet':
+    use_proxy_contact_region = anchor_event_mode == 'continuous_state' and any(
+        str(r.get('contact_proxy_name', '')).startswith('handle:') for r in object_rows
+    )
+    if use_proxy_contact_region:
+        contact_uv = np.asarray([[parse_float(r, 'contact_u'), parse_float(r, 'contact_v')] for r in object_rows], dtype=np.float64)
+        contact_valid = np.all(np.isfinite(contact_uv), axis=1)
+        left_dist = np.linalg.norm(left_hand_uv - contact_uv, axis=1)
+        right_dist = np.linalg.norm(right_hand_uv - contact_uv, axis=1)
+        left_dist[~(left_hand_valid & contact_valid)] = np.inf
+        right_dist[~(right_hand_valid & contact_valid)] = np.inf
+        use_left = left_dist <= right_dist
+        min_gap_proxy = np.where(use_left, left_dist, right_dist)
+        score_proxy = np.exp(-0.5 * (min_gap_proxy / 30.0) ** 2)
+        score_proxy[~np.isfinite(min_gap_proxy)] = 0.0
+        state_proxy = (min_gap_proxy <= 48.0) & (score_proxy >= 0.25)
+        state_proxy = bridge_short_gaps(state_proxy, 3)
+        candidate_proxy = state_proxy | ((min_gap_proxy <= 62.0) & (score_proxy >= 0.12))
+        active_contact = np.where(use_left, 'left', 'right').astype(object)
+        active_label_proxy = np.where(use_left, 'left_hand', 'right_hand').astype(object)
+        active_part_proxy = np.where(use_left, 'hand', 'hand').astype(object)
+        anchor_det = {
+            'score': score_proxy,
+            'candidate': candidate_proxy,
+            'state': state_proxy,
+            'min_contact_gap': min_gap_proxy,
+            'active_label': active_label_proxy.tolist(),
+            'active_part': active_part_proxy.tolist(),
+            'active_contact': active_contact.tolist(),
+            'active_object_point_id': [str(r.get('contact_proxy_name', 'canonical_contact_region')) for r in object_rows],
+            'active_object_u': contact_uv[:, 0],
+            'active_object_v': contact_uv[:, 1],
+        }
+    elif contact_part_policy == 'feet':
         anchor_det = detect_object_anchor_contact_from_feet(
             frames=frames, left_foot_uv=left_foot_uv, right_foot_uv=right_foot_uv,
             left_valid=left_foot_valid, right_valid=right_foot_valid,

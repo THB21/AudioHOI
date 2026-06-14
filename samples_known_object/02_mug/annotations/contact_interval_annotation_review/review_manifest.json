@@ -1,0 +1,1447 @@
+{
+  "sample_dir": "samples_known_object/02_mug",
+  "step": 10,
+  "frames": [
+    {
+      "frame": 1,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_001.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          646.282,
+          324.0
+        ],
+        "rx": 15.64,
+        "ry": 3.128,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          646.282,
+          361.0
+        ],
+        "rx": 15.64,
+        "ry": 3.5,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        626.568,
+        344.054
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.617583"
+    },
+    {
+      "frame": 10,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_010.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          648.495,
+          346.0
+        ],
+        "rx": 16.1,
+        "ry": 3.2200000000000006,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          648.495,
+          386.0
+        ],
+        "rx": 16.1,
+        "ry": 3.5420000000000003,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        628.5,
+        368.738
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.627012"
+    },
+    {
+      "frame": 20,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_020.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          644.288,
+          335.0
+        ],
+        "rx": 16.1,
+        "ry": 3.2200000000000006,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          644.288,
+          375.0
+        ],
+        "rx": 16.1,
+        "ry": 3.5420000000000003,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        625.45,
+        359.5
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.703819"
+    },
+    {
+      "frame": 30,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_030.png",
+      "annotation_source": "INFERRED_FROM_USER_MANUAL_RIM_BOTTOM_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          596.3499999999999,
+          260.39
+        ],
+        "rx": 18.3,
+        "ry": 9.8,
+        "angle_deg": -36.5,
+        "stroke_bbox_xyxy": [
+          458,
+          87,
+          492,
+          110
+        ],
+        "visible_arc_centerline_points": [
+          [
+            578.3499999999999,
+            266.69
+          ],
+          [
+            584.3499999999999,
+            260.69
+          ],
+          [
+            589.3499999999999,
+            254.69
+          ],
+          [
+            595.3499999999999,
+            250.69
+          ],
+          [
+            601.3499999999999,
+            247.69
+          ],
+          [
+            606.3499999999999,
+            247.69
+          ],
+          [
+            612.3499999999999,
+            248.69
+          ]
+        ],
+        "axis_points": {
+          "major_pos": [
+            611.3499999999999,
+            249.69
+          ],
+          "major_neg": [
+            581.3499999999999,
+            271.69
+          ],
+          "minor_pos": [
+            602.3499999999999,
+            268.69
+          ],
+          "minor_neg": [
+            590.3499999999999,
+            252.69
+          ]
+        }
+      },
+      "bottom_ellipse": {
+        "center": [
+          614.95,
+          288.59000000000003
+        ],
+        "rx": 14.4,
+        "ry": 7.9,
+        "angle_deg": -35.2,
+        "stroke_bbox_xyxy": [
+          481,
+          118,
+          509,
+          142
+        ],
+        "axis_points": {
+          "major_pos": [
+            626.3499999999999,
+            280.69
+          ],
+          "major_neg": [
+            603.3499999999999,
+            296.69
+          ],
+          "minor_pos": [
+            619.3499999999999,
+            294.69
+          ],
+          "minor_neg": [
+            610.3499999999999,
+            281.69
+          ]
+        }
+      },
+      "handle_center_xy": [
+        null,
+        null
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.929233"
+    },
+    {
+      "frame": 40,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_040.png",
+      "annotation_source": "INFERRED_FROM_USER_MANUAL_RIM_BOTTOM_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          536.219,
+          174.821
+        ],
+        "rx": 18.3,
+        "ry": 9.8,
+        "angle_deg": -36.5,
+        "stroke_bbox_xyxy": [
+          458,
+          87,
+          492,
+          110
+        ],
+        "visible_arc_centerline_points": [
+          [
+            518.219,
+            181.12099999999998
+          ],
+          [
+            524.219,
+            175.12099999999998
+          ],
+          [
+            529.219,
+            169.12099999999998
+          ],
+          [
+            535.219,
+            165.12099999999998
+          ],
+          [
+            541.219,
+            162.12099999999998
+          ],
+          [
+            546.219,
+            162.12099999999998
+          ],
+          [
+            552.219,
+            163.12099999999998
+          ]
+        ],
+        "axis_points": {
+          "major_pos": [
+            551.219,
+            164.12099999999998
+          ],
+          "major_neg": [
+            521.219,
+            186.12099999999998
+          ],
+          "minor_pos": [
+            542.219,
+            183.12099999999998
+          ],
+          "minor_neg": [
+            530.219,
+            167.12099999999998
+          ]
+        }
+      },
+      "bottom_ellipse": {
+        "center": [
+          554.819,
+          203.02100000000002
+        ],
+        "rx": 14.4,
+        "ry": 7.9,
+        "angle_deg": -35.2,
+        "stroke_bbox_xyxy": [
+          481,
+          118,
+          509,
+          142
+        ],
+        "axis_points": {
+          "major_pos": [
+            566.219,
+            195.12099999999998
+          ],
+          "major_neg": [
+            543.219,
+            211.12099999999998
+          ],
+          "minor_pos": [
+            559.219,
+            209.12099999999998
+          ],
+          "minor_neg": [
+            550.219,
+            196.12099999999998
+          ]
+        }
+      },
+      "handle_center_xy": [
+        null,
+        null
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.750024"
+    },
+    {
+      "frame": 50,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_050.png",
+      "annotation_source": "INFERRED_FROM_USER_MANUAL_RIM_BOTTOM_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          493.10699999999997,
+          126.60999999999999
+        ],
+        "rx": 18.3,
+        "ry": 9.8,
+        "angle_deg": -36.5,
+        "stroke_bbox_xyxy": [
+          458,
+          87,
+          492,
+          110
+        ],
+        "visible_arc_centerline_points": [
+          [
+            475.10699999999997,
+            132.90999999999997
+          ],
+          [
+            481.10699999999997,
+            126.90999999999998
+          ],
+          [
+            486.10699999999997,
+            120.90999999999998
+          ],
+          [
+            492.10699999999997,
+            116.90999999999998
+          ],
+          [
+            498.10699999999997,
+            113.90999999999998
+          ],
+          [
+            503.10699999999997,
+            113.90999999999998
+          ],
+          [
+            509.10699999999997,
+            114.90999999999998
+          ]
+        ],
+        "axis_points": {
+          "major_pos": [
+            508.10699999999997,
+            115.90999999999998
+          ],
+          "major_neg": [
+            478.10699999999997,
+            137.90999999999997
+          ],
+          "minor_pos": [
+            499.10699999999997,
+            134.90999999999997
+          ],
+          "minor_neg": [
+            487.10699999999997,
+            118.90999999999998
+          ]
+        }
+      },
+      "bottom_ellipse": {
+        "center": [
+          511.707,
+          154.81
+        ],
+        "rx": 14.4,
+        "ry": 7.9,
+        "angle_deg": -35.2,
+        "stroke_bbox_xyxy": [
+          481,
+          118,
+          509,
+          142
+        ],
+        "axis_points": {
+          "major_pos": [
+            523.107,
+            146.90999999999997
+          ],
+          "major_neg": [
+            500.10699999999997,
+            162.90999999999997
+          ],
+          "minor_pos": [
+            516.107,
+            160.90999999999997
+          ],
+          "minor_neg": [
+            507.10699999999997,
+            147.90999999999997
+          ]
+        }
+      },
+      "handle_center_xy": [
+        null,
+        null
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.447016"
+    },
+    {
+      "frame": 60,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_060.png",
+      "annotation_source": "INFERRED_FROM_USER_MANUAL_RIM_BOTTOM_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          477.928,
+          106.643
+        ],
+        "rx": 18.3,
+        "ry": 9.8,
+        "angle_deg": -36.5,
+        "stroke_bbox_xyxy": [
+          458,
+          87,
+          492,
+          110
+        ],
+        "visible_arc_centerline_points": [
+          [
+            459.928,
+            112.943
+          ],
+          [
+            465.928,
+            106.943
+          ],
+          [
+            470.928,
+            100.943
+          ],
+          [
+            476.928,
+            96.943
+          ],
+          [
+            482.928,
+            93.943
+          ],
+          [
+            487.928,
+            93.943
+          ],
+          [
+            493.928,
+            94.943
+          ]
+        ],
+        "axis_points": {
+          "major_pos": [
+            492.928,
+            95.943
+          ],
+          "major_neg": [
+            462.928,
+            117.943
+          ],
+          "minor_pos": [
+            483.928,
+            114.943
+          ],
+          "minor_neg": [
+            471.928,
+            98.943
+          ]
+        }
+      },
+      "bottom_ellipse": {
+        "center": [
+          496.528,
+          134.84300000000002
+        ],
+        "rx": 14.4,
+        "ry": 7.9,
+        "angle_deg": -35.2,
+        "stroke_bbox_xyxy": [
+          481,
+          118,
+          509,
+          142
+        ],
+        "axis_points": {
+          "major_pos": [
+            507.928,
+            126.943
+          ],
+          "major_neg": [
+            484.928,
+            142.94299999999998
+          ],
+          "minor_pos": [
+            500.928,
+            140.94299999999998
+          ],
+          "minor_neg": [
+            491.928,
+            127.943
+          ]
+        }
+      },
+      "handle_center_xy": [
+        null,
+        null
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.289724"
+    },
+    {
+      "frame": 64,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_064.png",
+      "annotation_source": "user_manual_precise_annotation",
+      "is_manual": true,
+      "rim_ellipse": {
+        "center": [
+          476.0,
+          101.7
+        ],
+        "rx": 18.3,
+        "ry": 9.8,
+        "angle_deg": -36.5,
+        "stroke_bbox_xyxy": [
+          458,
+          87,
+          492,
+          110
+        ],
+        "visible_arc_centerline_points": [
+          [
+            458,
+            108
+          ],
+          [
+            464,
+            102
+          ],
+          [
+            469,
+            96
+          ],
+          [
+            475,
+            92
+          ],
+          [
+            481,
+            89
+          ],
+          [
+            486,
+            89
+          ],
+          [
+            492,
+            90
+          ]
+        ],
+        "axis_points": {
+          "major_pos": [
+            491,
+            91
+          ],
+          "major_neg": [
+            461,
+            113
+          ],
+          "minor_pos": [
+            482,
+            110
+          ],
+          "minor_neg": [
+            470,
+            94
+          ]
+        }
+      },
+      "bottom_ellipse": {
+        "center": [
+          494.6,
+          129.9
+        ],
+        "rx": 14.4,
+        "ry": 7.9,
+        "angle_deg": -35.2,
+        "stroke_bbox_xyxy": [
+          481,
+          118,
+          509,
+          142
+        ],
+        "axis_points": {
+          "major_pos": [
+            506,
+            122
+          ],
+          "major_neg": [
+            483,
+            138
+          ],
+          "minor_pos": [
+            499,
+            136
+          ],
+          "minor_neg": [
+            490,
+            123
+          ]
+        }
+      },
+      "handle_center_xy": [
+        462.867,
+        106.644
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.298151"
+    },
+    {
+      "frame": 86,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_086.png",
+      "annotation_source": "INFERRED_FROM_USER_MANUAL_RIM_BOTTOM_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          479.41623076923076,
+          86.50492307692308
+        ],
+        "rx": 16.607692307692307,
+        "ry": 7.007692307692308,
+        "angle_deg": -18.73076923076923,
+        "axis_points": {
+          "major_neg": [
+            464.1623846153846,
+            92.2203076923077
+          ],
+          "major_pos": [
+            495.0085384615385,
+            81.2203076923077
+          ],
+          "minor_neg": [
+            477.39315384615384,
+            79.98953846153847
+          ],
+          "minor_pos": [
+            481.77776923076925,
+            93.45107692307693
+          ]
+        },
+        "visible_arc_centerline_points": [
+          [
+            461.1623846153846,
+            90.60492307692309
+          ],
+          [
+            467.1623846153846,
+            87.14338461538462
+          ],
+          [
+            473.0085384615385,
+            81.98953846153847
+          ],
+          [
+            479.0085384615385,
+            80.528
+          ],
+          [
+            485.0085384615385,
+            79.2203076923077
+          ],
+          [
+            490.8546923076923,
+            79.2203076923077
+          ],
+          [
+            496.8546923076923,
+            79.37415384615386
+          ]
+        ]
+      },
+      "bottom_ellipse": {
+        "center": [
+          493.447,
+          119.10492307692307
+        ],
+        "rx": 12.115384615384613,
+        "ry": 5.361538461538462,
+        "angle_deg": -22.761538461538475,
+        "axis_points": {
+          "major_neg": [
+            481.9316153846154,
+            123.98953846153847
+          ],
+          "major_pos": [
+            504.0854615384615,
+            114.75876923076923
+          ],
+          "minor_neg": [
+            491.47007692307693,
+            114.06646153846154
+          ],
+          "minor_pos": [
+            495.39315384615384,
+            123.68184615384615
+          ]
+        }
+      },
+      "handle_center_xy": [
+        507.86,
+        110.744
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.323619"
+    },
+    {
+      "frame": 90,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_090.png",
+      "annotation_source": "user_manual_precise_annotation",
+      "is_manual": true,
+      "rim_ellipse": {
+        "center": [
+          484.3,
+          98.3
+        ],
+        "rx": 16.3,
+        "ry": 6.5,
+        "angle_deg": -15.5,
+        "stroke_bbox_xyxy": [
+          466,
+          90,
+          502,
+          104
+        ],
+        "visible_arc_centerline_points": [
+          [
+            466,
+            102
+          ],
+          [
+            472,
+            99
+          ],
+          [
+            478,
+            94
+          ],
+          [
+            484,
+            93
+          ],
+          [
+            490,
+            92
+          ],
+          [
+            496,
+            92
+          ],
+          [
+            502,
+            92
+          ]
+        ],
+        "axis_points": {
+          "major_pos": [
+            500,
+            94
+          ],
+          "major_neg": [
+            469,
+            103
+          ],
+          "minor_pos": [
+            486,
+            105
+          ],
+          "minor_neg": [
+            483,
+            92
+          ]
+        }
+      },
+      "bottom_ellipse": {
+        "center": [
+          497.5,
+          131.7
+        ],
+        "rx": 11.7,
+        "ry": 4.9,
+        "angle_deg": -20.5,
+        "stroke_bbox_xyxy": [
+          485,
+          124,
+          510,
+          139
+        ],
+        "axis_points": {
+          "major_pos": [
+            508,
+            128
+          ],
+          "major_neg": [
+            486,
+            136
+          ],
+          "minor_pos": [
+            499,
+            136
+          ],
+          "minor_neg": [
+            496,
+            127
+          ]
+        }
+      },
+      "handle_center_xy": [
+        null,
+        null
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.373305"
+    },
+    {
+      "frame": 100,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_100.png",
+      "annotation_source": "manual_rim_bottom_ellipse",
+      "is_manual": true,
+      "rim_ellipse": {
+        "center": [
+          532,
+          155
+        ],
+        "rx": 16,
+        "ry": 4,
+        "angle_deg": 3
+      },
+      "bottom_ellipse": {
+        "center": [
+          532,
+          197
+        ],
+        "rx": 17,
+        "ry": 4,
+        "angle_deg": 3
+      },
+      "handle_center_xy": [
+        null,
+        null
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.557136"
+    },
+    {
+      "frame": 110,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_110.png",
+      "annotation_source": "INFERRED_FROM_USER_MANUAL_RIM_BOTTOM_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          595.865,
+          265.17199999999997
+        ],
+        "rx": 16.3,
+        "ry": 6.5,
+        "angle_deg": -15.5,
+        "stroke_bbox_xyxy": [
+          466,
+          90,
+          502,
+          104
+        ],
+        "visible_arc_centerline_points": [
+          [
+            577.565,
+            268.87199999999996
+          ],
+          [
+            583.565,
+            265.87199999999996
+          ],
+          [
+            589.565,
+            260.87199999999996
+          ],
+          [
+            595.565,
+            259.87199999999996
+          ],
+          [
+            601.565,
+            258.87199999999996
+          ],
+          [
+            607.565,
+            258.87199999999996
+          ],
+          [
+            613.565,
+            258.87199999999996
+          ]
+        ],
+        "axis_points": {
+          "major_pos": [
+            611.565,
+            260.87199999999996
+          ],
+          "major_neg": [
+            580.565,
+            269.87199999999996
+          ],
+          "minor_pos": [
+            597.565,
+            271.87199999999996
+          ],
+          "minor_neg": [
+            594.565,
+            258.87199999999996
+          ]
+        }
+      },
+      "bottom_ellipse": {
+        "center": [
+          609.065,
+          298.572
+        ],
+        "rx": 11.7,
+        "ry": 4.9,
+        "angle_deg": -20.5,
+        "stroke_bbox_xyxy": [
+          485,
+          124,
+          510,
+          139
+        ],
+        "axis_points": {
+          "major_pos": [
+            619.565,
+            294.87199999999996
+          ],
+          "major_neg": [
+            597.565,
+            302.87199999999996
+          ],
+          "minor_pos": [
+            610.565,
+            302.87199999999996
+          ],
+          "minor_neg": [
+            607.565,
+            293.87199999999996
+          ]
+        }
+      },
+      "handle_center_xy": [
+        null,
+        null
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.986995"
+    },
+    {
+      "frame": 120,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_120.png",
+      "annotation_source": "INFERRED_FROM_USER_MANUAL_RIM_BOTTOM_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          631.1120000000001,
+          328.263
+        ],
+        "rx": 16.3,
+        "ry": 6.5,
+        "angle_deg": -15.5,
+        "stroke_bbox_xyxy": [
+          466,
+          90,
+          502,
+          104
+        ],
+        "visible_arc_centerline_points": [
+          [
+            612.812,
+            331.96299999999997
+          ],
+          [
+            618.812,
+            328.96299999999997
+          ],
+          [
+            624.812,
+            323.96299999999997
+          ],
+          [
+            630.812,
+            322.96299999999997
+          ],
+          [
+            636.812,
+            321.96299999999997
+          ],
+          [
+            642.812,
+            321.96299999999997
+          ],
+          [
+            648.812,
+            321.96299999999997
+          ]
+        ],
+        "axis_points": {
+          "major_pos": [
+            646.812,
+            323.96299999999997
+          ],
+          "major_neg": [
+            615.812,
+            332.96299999999997
+          ],
+          "minor_pos": [
+            632.812,
+            334.96299999999997
+          ],
+          "minor_neg": [
+            629.812,
+            321.96299999999997
+          ]
+        }
+      },
+      "bottom_ellipse": {
+        "center": [
+          644.312,
+          361.663
+        ],
+        "rx": 11.7,
+        "ry": 4.9,
+        "angle_deg": -20.5,
+        "stroke_bbox_xyxy": [
+          485,
+          124,
+          510,
+          139
+        ],
+        "axis_points": {
+          "major_pos": [
+            654.812,
+            357.96299999999997
+          ],
+          "major_neg": [
+            632.812,
+            365.96299999999997
+          ],
+          "minor_pos": [
+            645.812,
+            365.96299999999997
+          ],
+          "minor_neg": [
+            642.812,
+            356.96299999999997
+          ]
+        }
+      },
+      "handle_center_xy": [
+        null,
+        null
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.696037"
+    },
+    {
+      "frame": 130,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_130.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          644.12,
+          343.0
+        ],
+        "rx": 16.1,
+        "ry": 3.2200000000000006,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          644.12,
+          385.0
+        ],
+        "rx": 16.1,
+        "ry": 3.5420000000000003,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        625.458,
+        367.5
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.644333"
+    },
+    {
+      "frame": 140,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_140.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          642.528,
+          346.0
+        ],
+        "rx": 16.1,
+        "ry": 3.2200000000000006,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          642.528,
+          387.0
+        ],
+        "rx": 16.1,
+        "ry": 3.5420000000000003,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        null,
+        null
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.598586"
+    },
+    {
+      "frame": 150,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_150.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          642.293,
+          346.0
+        ],
+        "rx": 16.1,
+        "ry": 3.2200000000000006,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          642.293,
+          387.0
+        ],
+        "rx": 16.1,
+        "ry": 3.5420000000000003,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        623.636,
+        367.409
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.633812"
+    },
+    {
+      "frame": 160,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_160.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          641.635,
+          346.0
+        ],
+        "rx": 16.1,
+        "ry": 3.2200000000000006,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          641.635,
+          387.0
+        ],
+        "rx": 16.1,
+        "ry": 3.5420000000000003,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        null,
+        null
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.622101"
+    },
+    {
+      "frame": 170,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_170.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          641.247,
+          347.0
+        ],
+        "rx": 17.48,
+        "ry": 3.4960000000000004,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          641.247,
+          387.0
+        ],
+        "rx": 17.48,
+        "ry": 3.8456,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        620.0,
+        371.148
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.491677"
+    },
+    {
+      "frame": 180,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_180.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          640.864,
+          347.0
+        ],
+        "rx": 17.02,
+        "ry": 3.404,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          640.864,
+          387.0
+        ],
+        "rx": 17.02,
+        "ry": 3.7443999999999997,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        619.757,
+        370.486
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.507894"
+    },
+    {
+      "frame": 190,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_190.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          640.6,
+          346.0
+        ],
+        "rx": 17.48,
+        "ry": 3.4960000000000004,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          640.6,
+          387.0
+        ],
+        "rx": 17.48,
+        "ry": 3.8456,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        619.0,
+        370.577
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.639978"
+    },
+    {
+      "frame": 200,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_200.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          640.579,
+          346.0
+        ],
+        "rx": 17.48,
+        "ry": 3.4960000000000004,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          640.579,
+          387.0
+        ],
+        "rx": 17.48,
+        "ry": 3.8456,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        619.278,
+        371.056
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.640010"
+    },
+    {
+      "frame": 210,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_210.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          640.466,
+          347.0
+        ],
+        "rx": 17.48,
+        "ry": 3.4960000000000004,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          640.466,
+          387.0
+        ],
+        "rx": 17.48,
+        "ry": 3.8456,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        619.167,
+        370.542
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.536715"
+    },
+    {
+      "frame": 220,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_220.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          640.52,
+          347.0
+        ],
+        "rx": 17.48,
+        "ry": 3.4960000000000004,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          640.52,
+          387.0
+        ],
+        "rx": 17.48,
+        "ry": 3.8456,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        618.857,
+        369.714
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.542415"
+    },
+    {
+      "frame": 230,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_230.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          639.886,
+          347.0
+        ],
+        "rx": 18.400000000000002,
+        "ry": 3.6800000000000006,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          639.886,
+          387.0
+        ],
+        "rx": 18.400000000000002,
+        "ry": 4.048000000000001,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        616.824,
+        368.559
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.555069"
+    },
+    {
+      "frame": 240,
+      "image": "samples_known_object/02_mug/annotations/contact_interval_annotation_review/frame_240.png",
+      "annotation_source": "DRAFT_FROM_BODY_BBOX_FOR_REVIEW_ONLY",
+      "is_manual": false,
+      "rim_ellipse": {
+        "center": [
+          639.868,
+          347.0
+        ],
+        "rx": 18.400000000000002,
+        "ry": 3.6800000000000006,
+        "angle_deg": 0.0
+      },
+      "bottom_ellipse": {
+        "center": [
+          639.868,
+          387.0
+        ],
+        "rx": 18.400000000000002,
+        "ry": 4.048000000000001,
+        "angle_deg": 0.0
+      },
+      "handle_center_xy": [
+        616.326,
+        368.37
+      ],
+      "contact_target": "left_hand",
+      "contact_score": "0.606029"
+    }
+  ],
+  "note": "Review-only draft annotations. These are not consumed by pose fitting until copied into mug_rim_bottom_manual.json."
+}

@@ -53,6 +53,7 @@ scripts/shared/radius_free_proxy/stage0_preprocess/prepare_sample_inputs.py
 scripts/shared/radius_free_proxy/stage0_preprocess/prepare_known_object_samples.py
 scripts/shared/radius_free_proxy/stage0_preprocess/run_sam2_segmentation.py
 scripts/shared/radius_free_proxy/stage0_preprocess/run_cotracker_object_mesh.py
+scripts/shared/radius_free_proxy/stage0_preprocess/prepare_articraft_mug_proxy.py
 scripts/shared/radius_free_proxy/stage0_preprocess/register_da3_scene_depth.py
 scripts/shared/radius_free_proxy/stage0_preprocess/extract_da3_depth_priors.py
 scripts/shared/radius_free_proxy/stage0_preprocess/align_audio_events.py
@@ -63,6 +64,7 @@ scripts/shared/radius_free_proxy/stage0_preprocess/align_audio_events.py
 - `prepare_sample_inputs.py`：复制/整理 video，抽帧，抽 `audio.wav`，可生成 audio events。
 - `run_sam2_segmentation.py`：统一 SAM2 video helper。支持 GroundingDINO 自动 first-frame box，也支持手动 box/points。
 - `run_cotracker_object_mesh.py`：基于 mask/track 点生成 object mesh/boundary tracks。
+- `prepare_articraft_mug_proxy.py`：可选 mug-only Articraft handoff，导出 keyframes、Articraft prompts，以及 pipeline 自己读取的 `proxy/mug_proxy.json`。
 - GVHMR 不在此目录中实现，但结果 `results/gvhmr/result.pkl` 是后续人体 proxy 的输入。
 - `register_da3_scene_depth.py`：注册 DA3 scene depth。
 - `extract_da3_depth_priors.py`：从 DA3 depth map 按 object proxy 采样 depth prior。
@@ -82,6 +84,84 @@ scripts/shared/radius_free_proxy/stage0_preprocess/align_audio_events.py
 ```text
 <sample>/results/events/audio_events.csv
 ```
+
+
+### 可选 Stage0.5：Articraft Mug Proxy
+
+Articraft 在这里只作为 mug-like object 的 canonical geometry proxy 生成器，不做逐帧 tracking。
+
+目标流程是：
+
+```text
+mug keyframe / clean mug image
+↓
+Articraft text-only 或 image-conditioned 生成 mug
+↓
+semantic parts: body / handle / rim / bottom
+↓
+pipeline-owned proxy/mug_proxy.json
+↓
+Stage1 只追 body center，Stage2 把 hand anchor 到 handle/side region
+```
+
+当前 radius-free pipeline 不直接依赖 Articraft 内部 asset 格式。Stage2 只读我们自己的中间格式：
+
+```text
+<sample>/proxy/mug_proxy.json
+```
+
+对 `samples_known_object/02_mug`，先生成 handoff 文件：
+
+```bash
+python scripts/shared/radius_free_proxy/stage0_preprocess/prepare_articraft_mug_proxy.py \
+  --sample-dir samples_known_object/02_mug \
+  --copy-keyframes
+```
+
+输出：
+
+```text
+<sample>/keyframes/
+<sample>/articraft/prompt_mug_proxy_text_only.txt
+<sample>/articraft/prompt_mug_proxy_image_conditioned.txt
+<sample>/proxy/mug_proxy.json
+<sample>/annotations/
+```
+
+clean mug image 可以从手握 mug 的 keyframe 做 inpainting/remove hand 得到。Articraft 生成的复杂 asset 最后也要抽象回 `mug_proxy.json`；第一版可以人工填 normalized cylinder-with-handle proxy。
+
+当前 mug handoff 还会输出：
+
+```text
+<sample>/annotations/001_contact_region_mask.png
+<sample>/annotations/001_contact_region_preview.png
+<sample>/annotations/001_contact_region_mask.json
+<sample>/articraft/generated_record/mug_proxy_record.json
+<sample>/results/stage1_mug_body_trajectory.csv
+<sample>/results/stage2_mug_contact_test.csv
+```
+
+第一版 contact-region mask 是从 `object_observations.csv` 里的 human hand/contact side 推出来的，不依赖视觉上识别 mug handle。对当前 mug 样本来说，就是把左侧 handle/contact region 标出来。等 Articraft 真正生成带独立 `handle` part 的 mug asset 后，可以用那个 handle part 替换现在的侧边近似框；但 Stage2 的接口仍然只读同一个 proxy/contact-region 表达。
+
+当前可用的 Articraft/Codex record 是最终的 embedded C-loop 版本：
+
+```text
+record_id: rec_edit-the-current-mug-model-to-fix-the-handle-bod_20260609_140343_925699_db515086
+model: gpt-5.5 via --provider codex-cli
+source images:
+  samples_known_object/02_mug/keyframes/zoom/mug_zoom_reference_montage.png
+  samples_known_object/02_mug/keyframes/zoom/001_mug_clean_zoom_handle.png
+```
+
+中间试过的 pad / connector 版本没有作为最终 proxy 使用。当前版本要求 handle 是一个 single C-shaped tube，两个端点直接嵌进 body wall，避免外接接口件。
+
+生成的 model 包含 `body`、`handle`、`rim`、`bottom` 四个 semantic parts。复制回来的 canonical 输出在：
+
+```text
+samples_known_object/02_mug/articraft/generated_record/rec_create-a-simple-3d-mug-proxy-for-contact-reasoni_20260609_124656_628392_db105e6a/
+```
+
+现在 `mug_proxy.json` 已经是 Articraft-backed：里面保存了生成模型的 metric 尺寸，把 Articraft 的 `handle` 作为 3D contact part，并把 canonical 右侧 handle mirror 到视频里观测到的左侧 contact region。
 
 Stage2 会把实际使用的 audio 表复制到：
 
@@ -115,7 +195,7 @@ scripts/shared/radius_free_proxy/stage1_observation/object_proxy_observation_uti
 - `ref_u/ref_v`：object 3D ref point 的 2D proxy。
 - `support_u/support_v`：object support/bottom proxy。
 - `support_v_raw`：未平滑的 object bottom proxy，Stage2 floor peak 使用这个字段。
-- `contact_u/contact_v`：靠近人体 active part 的 object contact proxy。
+- `contact_u/contact_v`：object-side contact region proxy。对 mug/Articraft 线，它来自 `mug_proxy.json` 的 `contact_region` 加稳定 body bbox，不再逐帧追 visible handle 或人体最近 mesh 点。
 - `object_ref_depth_m`：DA3 在 ref proxy 处采样的深度。
 - `contact_proxy_depth_m`：DA3 在 contact proxy 处采样的深度。
 - `contact_depth_offset_m = contact_proxy_depth_m - object_ref_depth_m`。
@@ -126,6 +206,20 @@ scripts/shared/radius_free_proxy/stage1_observation/object_proxy_observation_uti
 ### Radius-free 关键点
 
 这里不估球半径，也不用半径推 z。深度来自 DA3 + mask/proxy 上的采样点。
+
+### Mug / Articraft contact 点位
+
+对 mug-like continuous grasp，Stage1 只把 `ref_u/ref_v` 作为 cup body center 的稳定观测；`contact_u/contact_v` 是固定 object-side region：
+
+```text
+keyframe contact mask / observed side
++ mug_proxy.json contact_region(handle, left/right)
++ current frame body bbox
+=> handle:left/right:canonical_contact_region
+```
+
+这一步不再用每帧 noisy proxy 或 bbox side 直接算 contact 点，也不让手的位置决定 handle 在哪里。`mug_proxy.json` 固定 semantic region 是 handle；object-side contact 部位来自 selected hand-holding keyframe 的 painted contact mask（当前为 `annotations/001_contact_region_mask.json`）。Stage1 把这个 mask contact 点转成 body-bbox normalized offset，然后随 mug body center/bbox 传播到全视频；每帧 `handle_visible` 只可作为诊断/可视检查，不作为 contact 真值。手只在 Stage2 里和这条 object-side contact trajectory 做距离判断。
+
 
 ## 3. Stage2 Contact Candidates
 

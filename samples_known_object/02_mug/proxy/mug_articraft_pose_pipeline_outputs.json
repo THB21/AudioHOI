@@ -1,0 +1,11 @@
+{
+  "contact_intervals": "samples_known_object/02_mug/proxy/contact_intervals.json",
+  "contact_region_assignment": "samples_known_object/02_mug/proxy/contact_region_assignment.json",
+  "keyframe_pose_fit": "samples_known_object/02_mug/proxy/keyframe_pose_fit.json",
+  "hand_object_attachment": "samples_known_object/02_mug/proxy/hand_object_attachment.json",
+  "hand_attachment_propagation": "samples_known_object/02_mug/proxy/hand_attachment_propagation.json",
+  "renders": [
+    "samples_known_object/02_mug/results/renders/M1_keyframe_pose_fit/overlay.mp4",
+    "samples_known_object/02_mug/results/renders/M2_object_track_keyframe_yaw_propagation/overlay.mp4"
+  ]
+}

@@ -1,0 +1,21 @@
+Edit the existing mug model so it matches the supplied zoomed mug reference more closely.
+
+Main problem to fix:
+- The handle must visibly and physically attach to the cup body.
+- Do not leave any visible gap between handle and mug body.
+- The upper and lower handle attachment pads must penetrate or overlap slightly into the side wall, like a fused ceramic mug handle.
+
+Reference-image requirements:
+- Keep the cup body proportions close to the reference image: simple vertical cylindrical cup, flat bottom, rounded top rim.
+- Keep the handle on the side shown in the reference and make it a C-shaped side loop.
+- The handle should be rounded and smooth, not rectangular bars.
+- The handle should have a clear open hole, but both ends must be anchored to the body.
+
+Semantic requirements:
+- Keep exactly these semantic parts: body, handle, rim, bottom.
+- The handle must remain a separate semantic part named handle for contact-region reasoning.
+- It is acceptable and preferred to add explicit scoped overlap allowances between body and handle pads, because a real ceramic handle is fused into the body.
+
+Validation target:
+- The compiler/viewer should show a single visually connected mug with no floating handle.
+- The handle/body connection should be obvious in camera view.

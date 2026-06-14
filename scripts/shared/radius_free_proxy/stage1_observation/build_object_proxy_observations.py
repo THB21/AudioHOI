@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import sys
 from pathlib import Path
@@ -170,6 +171,148 @@ def select_support_proxy_bottom_percentile(mesh: dict[str, np.ndarray], q: float
     return support_u, support_v, conf, 'bottom_percentile_95'
 
 
+def load_object_proxy(sample_dir: Path) -> dict[str, object]:
+    proxy_path = sample_dir / 'proxy' / 'mug_proxy.json'
+    if not proxy_path.exists():
+        return {}
+    try:
+        return json.loads(proxy_path.read_text())
+    except Exception:
+        return {}
+
+
+def _finite_bbox(row: dict[str, str], keys: tuple[str, str, str, str]) -> tuple[float, float, float, float] | None:
+    vals = [parse_scalar(row.get(k, '')) for k in keys]
+    if all(np.isfinite(v) for v in vals) and vals[2] > vals[0] and vals[3] > vals[1]:
+        return float(vals[0]), float(vals[1]), float(vals[2]), float(vals[3])
+    return None
+
+
+def build_articraft_contact_region_track(
+    sample_dir: Path,
+    object_rows: list[dict[str, str]],
+    object_proxy: dict[str, object],
+    mesh_tracks: dict[int, dict[str, np.ndarray]],
+) -> dict[int, tuple[float, float, float, str, str]]:
+    contact_region = object_proxy.get('contact_region') if isinstance(object_proxy, dict) else None
+    if not isinstance(contact_region, dict) or str(contact_region.get('type', '')).lower() not in {'handle', 'handle_or_side', 'handle_or_body_side', 'object_surface_contact_region', 'surface_contact_region'}:
+        return {}
+
+    ann_path = sample_dir / 'annotations' / '001_contact_region_mask.json'
+    if not ann_path.exists():
+        return {}
+    try:
+        ann = json.loads(ann_path.read_text())
+        ann_frame = int(ann.get('frame'))
+        bbox = ann.get('bbox_xyxy') or []
+        if len(bbox) != 4:
+            return {}
+        x1, y1, x2, y2 = [float(v) for v in bbox]
+        key_pt = np.asarray([0.5 * (x1 + x2), 0.5 * (y1 + y2), 1.0], dtype=np.float64)
+    except Exception:
+        return {}
+
+    key_mesh = mesh_tracks.get(ann_frame)
+    if key_mesh is None:
+        return {}
+    key_ids = np.asarray(key_mesh.get('point_ids', []), dtype=object)
+    key_xy = np.asarray(key_mesh.get('xy', []), dtype=np.float64)
+    key_visible = np.asarray(key_mesh.get('visible', np.ones(len(key_xy), dtype=bool)), dtype=bool)
+    if len(key_xy) < 6:
+        return {}
+    key_by_id = {str(pid): (key_xy[i], bool(key_visible[i])) for i, pid in enumerate(key_ids)}
+
+    out: dict[int, tuple[float, float, float, str, str]] = {}
+    for row in object_rows:
+        frame = int(row['frame'])
+        mesh = mesh_tracks.get(frame)
+        if mesh is None:
+            continue
+        ids = np.asarray(mesh.get('point_ids', []), dtype=object)
+        xy = np.asarray(mesh.get('xy', []), dtype=np.float64)
+        visible = np.asarray(mesh.get('visible', np.ones(len(xy), dtype=bool)), dtype=bool)
+        src_pts = []
+        dst_pts = []
+        for i, pid in enumerate(ids):
+            item = key_by_id.get(str(pid))
+            if item is None or not visible[i] or not item[1]:
+                continue
+            src_pts.append([item[0][0], item[0][1], 1.0])
+            dst_pts.append([xy[i, 0], xy[i, 1]])
+        if len(src_pts) < 6:
+            continue
+        src = np.asarray(src_pts, dtype=np.float64)
+        dst = np.asarray(dst_pts, dtype=np.float64)
+        try:
+            affine, *_ = np.linalg.lstsq(src, dst, rcond=None)  # 3x2, maps keyframe -> current frame.
+            uv = key_pt @ affine
+        except Exception:
+            continue
+        if not np.all(np.isfinite(uv)):
+            continue
+        # Side label is only descriptive; the point itself comes from rigid/affine
+        # propagation of the painted keyframe contact point through object tracks.
+        ref_u = parse_scalar(row.get('body_center_x', row.get('center_x', '')), math.nan)
+        if not np.isfinite(ref_u):
+            bbox_body = _finite_bbox(row, ('body_bbox_x1', 'body_bbox_y1', 'body_bbox_x2', 'body_bbox_y2'))
+            if bbox_body is not None:
+                ref_u = 0.5 * (bbox_body[0] + bbox_body[2])
+        side = 'left' if np.isfinite(ref_u) and uv[0] < ref_u else 'right'
+        src_name = 'articraft_surface_contact_region_keyframe_affine'
+        if frame == ann_frame:
+            src_name = 'articraft_surface_contact_region_keyframe_mask'
+        out[frame] = (float(uv[0]), float(uv[1]), 1.0, src_name, f'contact_region:{side}:rigid_keyframe_surface_region')
+    return out
+
+
+def select_contact_proxy_from_articraft_region(
+    row: dict[str, str],
+    mesh: dict[str, np.ndarray],
+    object_proxy: dict[str, object],
+    active_uv: np.ndarray | None,
+) -> tuple[float, float, float, str, str] | None:
+    contact_region = object_proxy.get('contact_region') if isinstance(object_proxy, dict) else None
+    if not isinstance(contact_region, dict):
+        return None
+    if str(contact_region.get('type', '')).lower() not in {'handle', 'handle_or_side', 'handle_or_body_side', 'object_surface_contact_region', 'surface_contact_region'}:
+        return None
+    proxy_side = str(contact_region.get('side', '') or '').strip().lower()
+    row_side = str(row.get('contact_region_side', '') or row.get('hand_contact_side', '') or '').strip().lower()
+    # Contact region is the hand-object surface region. It is not necessarily the
+    # visual handle: during drinking the contact can be on the cup body/rim while
+    # the handle is hidden. Use contact_region_side/hand_contact_side only; do not
+    # let visual handle side drive the contact anchor.
+    side = row_side if row_side in {'left', 'right'} else proxy_side
+    if side not in {'left', 'right'}:
+        return None
+
+    handle_bbox = _finite_bbox(row, ('handle_bbox_x1', 'handle_bbox_y1', 'handle_bbox_x2', 'handle_bbox_y2'))
+    body_bbox = _finite_bbox(row, ('body_bbox_x1', 'body_bbox_y1', 'body_bbox_x2', 'body_bbox_y2'))
+    if body_bbox is None:
+        body_bbox = _finite_bbox(row, ('bbox_x1', 'bbox_y1', 'bbox_x2', 'bbox_y2'))
+
+    if body_bbox is not None:
+        x1, y1, x2, y2 = body_bbox
+        w = max(1.0, x2 - x1)
+        h = max(1.0, y2 - y1)
+        sign = -1.0 if side == 'left' else 1.0
+        # Mug/Articraft path: the object-side contact region is fixed by the
+        # keyframe annotation + canonical mug proxy. Do not chase per-frame
+        # visible handle pixels, because the handle is tiny/occluded and makes
+        # the contact point jump. Use the stable cup body bbox as the 2D carrier
+        # and place the region on the annotated side of the body/handle.
+        target_u = (x1 if side == 'left' else x2) + sign * 0.30 * w
+        target_v = (y1 + y2) * 0.5 - 0.04 * h
+        target_source = 'articraft_surface_contact_region_from_body_bbox'
+    elif active_uv is not None and np.all(np.isfinite(active_uv)):
+        target_u, target_v = float(active_uv[0]), float(active_uv[1])
+        target_source = 'articraft_surface_contact_region_active_part_fallback'
+    else:
+        return None
+
+    return float(target_u), float(target_v), 1.0, target_source, f"contact_region:{side}:canonical_surface_region"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description='Build radius-free object proxy observations.')
     parser.add_argument('--sample-dir', type=Path, required=True)
@@ -196,6 +339,8 @@ def main() -> None:
     frame_to_depth = read_index(depth_index_csv) if depth_index_csv.exists() else {}
     video_hw = get_video_hw(sample_dir / 'video.mp4') if frame_to_depth else None
     audio_rows = read_rows(audio_csv) if audio_csv.exists() else []
+    object_proxy = load_object_proxy(sample_dir)
+    contact_region_track = build_articraft_contact_region_track(sample_dir, object_rows, object_proxy, mesh_tracks)
 
     human = read_human_result(results_dir / 'gvhmr' / 'result.pkl')
     joints = build_body_joints(args.body_model_root, human)
@@ -213,7 +358,13 @@ def main() -> None:
         label, active_uv, active_z, active_conf = select_active_body_proxy_from_mesh(mesh, part_centers, idx, K)
         ref_u, ref_v, ref_conf, ref_source = select_stable_ref_proxy(row)
         support_u, support_v, support_conf, support_source = select_support_proxy_bottom_percentile(mesh)
-        contact_u, contact_v, contact_proxy_conf, contact_source, contact_proxy_name = select_contact_proxy_from_human_point(mesh, active_uv)
+        region_contact = contact_region_track.get(frame)
+        if region_contact is None:
+            region_contact = select_contact_proxy_from_articraft_region(row, mesh, object_proxy, active_uv)
+        if region_contact is not None:
+            contact_u, contact_v, contact_proxy_conf, contact_source, contact_proxy_name = region_contact
+        else:
+            contact_u, contact_v, contact_proxy_conf, contact_source, contact_proxy_name = select_contact_proxy_from_human_point(mesh, active_uv)
         if not all(np.isfinite(v) for v in [ref_u, ref_v, support_u, support_v, contact_u, contact_v]):
             continue
         raw_depth, smooth_depth = da3.get(frame, (math.nan, math.nan))

@@ -1,0 +1,66 @@
+{
+  "prompt": "Inspect this mug-hand crop. Ignore overlays/text if any. Use tracker_candidate_hand_side from context as hand_side unless clearly impossible. Label only the visible hand-mug grasp in this confirmed keyframe. Do not treat mouth/rim drinking as hand-handle grasp. Return ONLY one-line valid JSON:\n{\"contact_visible\":true/false,\"hand_side\":\"left_hand|right_hand|unknown\",\"contact_fingers\":[\"thumb|index|middle|ring|pinky|palm|unknown\"],\"primary_contact_finger\":\"thumb|index|middle|ring|pinky|palm|unknown\",\"object_part\":\"handle|body|rim|bottom|unknown\",\"object_region\":\"upper_handle|middle_handle|lower_handle|handle_inner|handle_outer|body_side|rim_front|rim_side|unknown\",\"handle_grasp_type\":\"pinch_handle|hook_handle|palm_support|body_grasp|not_handle_grasp|unknown\",\"use_as_stable_grasp_keyframe\":true/false,\"confidence\":0.0-1.0,\"reason\":\"short\"}\n",
+  "frames": [
+    {
+      "frame": 121,
+      "time": "5.000000",
+      "crop_path": "samples_known_object/02_mug/annotations/vlm_mug_contact_keyframes_frame121/crops/00121_contact_crop.png",
+      "crop_bbox_xyxy": [
+        514,
+        232,
+        749,
+        467
+      ],
+      "state": {
+        "frame": "121",
+        "time": "5.000000",
+        "object_contact_event": "hand_handle_grasp",
+        "hand_mug_contact_state": "direct_hand_grasp_point",
+        "nearest_articraft_part": "handle_loop",
+        "semantic_contact_part": "handle_loop",
+        "active_label": "left_hand",
+        "vlm_visibility": "visible",
+        "vlm_hand_contact_part": "handle",
+        "vlm_handle_contact": "True",
+        "use_this_point_for_hand_attachment": "1",
+        "use_previous_grasp_for_hand_attachment": "0",
+        "rim_drinking_contact": "0",
+        "frame_mode": "direct_grasp_anchor",
+        "stable_grasp_local_x": "-0.085350",
+        "stable_grasp_local_y": "-0.027652",
+        "stable_grasp_local_z": "0.002595",
+        "stable_grasp_conf": "0.658625",
+        "stable_grasp_source_frame": "121",
+        "current_candidate_local_x": "-0.085350",
+        "current_candidate_local_y": "-0.027652",
+        "current_candidate_local_z": "0.002595",
+        "hand_to_object_contact_px": "1.023",
+        "hand_contact_3d_gap_m": "0.104614",
+        "hand_object_z_gap_m": "-0.104612",
+        "hand_depth_alignment_needed": "0",
+        "reason": "confirmed hand_handle_grasp updates stable object-local anchor"
+      },
+      "vlm": {
+        "contact_visible": true,
+        "hand_side": "left_hand",
+        "contact_fingers": [
+          "thumb",
+          "index",
+          "middle",
+          "ring",
+          "pinky",
+          "palm",
+          "unknown"
+        ],
+        "primary_contact_finger": "thumb",
+        "object_part": "handle",
+        "object_region": "upper_handle",
+        "handle_grasp_type": "pinch_handle",
+        "use_as_stable_grasp_keyframe": true,
+        "confidence": 0.95,
+        "reason": "thumb and fingers clearly pinching handle",
+        "raw_text": "{\"contact_visible\":true,\"hand_side\":\"left_hand\",\"contact_fingers\":[\"thumb\",\"index\",\"middle\",\"ring\",\"pinky\",\"palm\",\"unknown\"],\"primary_contact_finger\":\"thumb\",\"object_part\":\"handle\",\"object_region\":\"upper_handle\",\"handle_grasp_type\":\"pinch_handle\",\"use_as_stable_grasp_keyframe\":true,\"confidence\":0.95,\"reason\":\"thumb and fingers clearly pinching handle\"}"
+      }
+    }
+  ]
+}

@@ -55,6 +55,7 @@ scripts/shared/radius_free_proxy/stage0_preprocess/prepare_sample_inputs.py
 scripts/shared/radius_free_proxy/stage0_preprocess/prepare_known_object_samples.py
 scripts/shared/radius_free_proxy/stage0_preprocess/run_sam2_segmentation.py
 scripts/shared/radius_free_proxy/stage0_preprocess/run_cotracker_object_mesh.py
+scripts/shared/radius_free_proxy/stage0_preprocess/prepare_articraft_mug_proxy.py
 scripts/shared/radius_free_proxy/stage0_preprocess/register_da3_scene_depth.py
 scripts/shared/radius_free_proxy/stage0_preprocess/extract_da3_depth_priors.py
 scripts/shared/radius_free_proxy/stage0_preprocess/align_audio_events.py
@@ -65,6 +66,7 @@ Responsibilities:
 - `prepare_sample_inputs.py`: copy/normalize video, extract frames, extract `audio.wav`, optionally build audio events.
 - `run_sam2_segmentation.py`: unified SAM2 video helper. It supports automatic GroundingDINO first-frame boxes and manual box/point prompts.
 - `run_cotracker_object_mesh.py`: creates object mesh/boundary tracks from masks and tracked points.
+- `prepare_articraft_mug_proxy.py`: optional mug-only Articraft handoff. It exports keyframes, Articraft prompts, and the pipeline-owned `proxy/mug_proxy.json`.
 - GVHMR is consumed as `results/gvhmr/result.pkl` for body-part proxies.
 - `register_da3_scene_depth.py`: registers DA3 scene depth maps.
 - `extract_da3_depth_priors.py`: samples DA3 depth from object proxy locations.
@@ -82,6 +84,84 @@ Outputs:
 <sample>/results/da3/scene_depth/
 <sample>/results/da3/priors/
 ```
+
+
+### Optional Stage0.5: Articraft Mug Proxy
+
+Articraft is used only as a canonical geometry proxy generator for mug-like objects. It is not used for frame-by-frame tracking.
+
+The intended flow is:
+
+```text
+key mug frame / clean mug image
+↓
+Articraft text-only or image-conditioned mug generation
+↓
+semantic parts: body / handle / rim / bottom
+↓
+pipeline-owned proxy/mug_proxy.json
+↓
+Stage1 tracks body center, Stage2 anchors hand to handle/side region
+```
+
+The radius-free pipeline must not depend directly on Articraft's internal asset format. Stage2 reads only:
+
+```text
+<sample>/proxy/mug_proxy.json
+```
+
+For `samples_known_object/02_mug`, prepare the handoff files with:
+
+```bash
+python scripts/shared/radius_free_proxy/stage0_preprocess/prepare_articraft_mug_proxy.py \
+  --sample-dir samples_known_object/02_mug \
+  --copy-keyframes
+```
+
+This creates:
+
+```text
+<sample>/keyframes/
+<sample>/articraft/prompt_mug_proxy_text_only.txt
+<sample>/articraft/prompt_mug_proxy_image_conditioned.txt
+<sample>/proxy/mug_proxy.json
+<sample>/annotations/
+```
+
+The clean mug image can be created by inpainting/removing the hand from a selected keyframe. The generated Articraft asset should be abstracted back into `mug_proxy.json`; the first version can be manually filled as a normalized cylinder-with-handle proxy.
+
+Current mug handoff outputs also include:
+
+```text
+<sample>/annotations/001_contact_region_mask.png
+<sample>/annotations/001_contact_region_preview.png
+<sample>/annotations/001_contact_region_mask.json
+<sample>/articraft/generated_record/mug_proxy_record.json
+<sample>/results/stage1_mug_body_trajectory.csv
+<sample>/results/stage2_mug_contact_test.csv
+```
+
+The first contact-region mask is intentionally derived from the human hand/contact side stored in `object_observations.csv`. It does not try to visually recognize the mug handle. For the current mug sample, this means the proxy marks the left-side handle/contact region. Once Articraft produces a real mug asset with a separate `handle` part, that generated handle can replace the approximate side box, while the downstream Stage2 interface remains the same.
+
+Current usable Articraft/Codex record is the final embedded C-loop version:
+
+```text
+record_id: rec_edit-the-current-mug-model-to-fix-the-handle-bod_20260609_140343_925699_db515086
+model: gpt-5.5 via --provider codex-cli
+source images:
+  samples_known_object/02_mug/keyframes/zoom/mug_zoom_reference_montage.png
+  samples_known_object/02_mug/keyframes/zoom/001_mug_clean_zoom_handle.png
+```
+
+Intermediate pad/connector versions are not used as the final proxy. The current record keeps the handle as a single C-shaped tube whose endpoints embed directly into the body wall.
+
+The generated model has semantic parts `body`, `handle`, `rim`, and `bottom`. Its copied canonical outputs live under:
+
+```text
+samples_known_object/02_mug/articraft/generated_record/rec_create-a-simple-3d-mug-proxy-for-contact-reasoni_20260609_124656_628392_db105e6a/
+```
+
+`mug_proxy.json` is now Articraft-backed: it stores metric dimensions from the generated model, marks the Articraft `handle` as the 3D contact part, and mirrors the canonical right-side handle to the observed left-side contact region in the video.
 
 Stage2 copies the audio table it uses to:
 
@@ -111,7 +191,7 @@ Important object proxy fields:
 - `ref_u/ref_v`: 2D object reference proxy.
 - `support_u/support_v`: smoothed support/bottom proxy.
 - `support_v_raw`: raw bottom proxy; Stage2 floor peak uses this field.
-- `contact_u/contact_v`: object contact proxy near the active human part.
+- `contact_u/contact_v`: object-side contact region proxy. For the mug/Articraft path, this comes from `mug_proxy.json` `contact_region` plus the stable body bbox; it no longer follows per-frame visible handle pixels or nearest mesh points to the human part.
 - `object_ref_depth_m`: DA3 depth at the reference proxy.
 - `contact_proxy_depth_m`: DA3 depth at the contact proxy.
 - `contact_depth_offset_m = contact_proxy_depth_m - object_ref_depth_m`.
@@ -120,6 +200,20 @@ Important object proxy fields:
 - `audio_score`: audio support copied from audio events.
 
 Radius-free means there is no radius estimation and no radius-based z reconstruction.
+
+### Mug / Articraft Contact Point
+
+For mug-like continuous grasp, Stage1 uses `ref_u/ref_v` only as the stable cup body center observation. `contact_u/contact_v` is a fixed object-side region:
+
+```text
+keyframe contact mask / observed side
++ mug_proxy.json contact_region(handle, left/right)
++ current frame body bbox
+=> handle:left/right:canonical_contact_region
+```
+
+This no longer computes the contact point directly from per-frame noisy proxies or bbox side, and the hand no longer decides where the handle is. `mug_proxy.json` fixes the semantic region as the handle. The object-side contact region comes from the painted contact mask on a selected hand-holding keyframe (currently `annotations/001_contact_region_mask.json`). Stage1 converts that mask contact point into a body-bbox-normalized offset and propagates it through the video using the mug body center/bbox. Per-frame `handle_visible` can be used for diagnostics/visual checks, but not as contact ground truth. The hand is compared against this object-side contact trajectory in Stage2.
+
 
 ## 3. Stage2 Contact Candidates
 
@@ -140,6 +234,21 @@ Outputs:
 <sample>/results/contact_candidates_object_proxy/contact_candidates_labeled.csv
 <sample>/results/contact_candidates_object_proxy/contact_intervals.csv
 ```
+
+
+### Mug Continuous Contact Mode
+
+When `anchor_event_mode=continuous_state` and Stage1 emits `contact_proxy_name=handle:*:canonical_contact_region`, Stage2 skips the hand-to-object-boundary detector. It directly computes:
+
+```text
+d_left  = distance(left_hand_uv,  contact_u/contact_v)
+d_right = distance(right_hand_uv, contact_u/contact_v)
+active hand = smaller distance
+anchor_score = Gaussian(distance, sigma=30px)
+anchor_state = distance <= 48px and score >= 0.25
+```
+
+So mug grasp produces continuous `anchor_contact_event` frames rather than one peak per interval.
 
 ### Contact Part Policy
 

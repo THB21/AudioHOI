@@ -48,8 +48,8 @@ M45 是在主 pipeline/M17 结果基础上的局部物理修正版，目标是�
 
 | 路径 | 用途 |
 |---|---|
-| `results/mug_m18_handle_phase_M43_smooth_entry_no_hide/corrected_handle_phase_m43_smooth_entry_no_hide.csv` | 从 M17 phase baseline 生成的 no-hide、smooth-entry handle phase。 |
-| `results/mug_m18_pose_M45_table_static_release/mug_m18_pose_m45_table_static_release.csv` | M18/M45 pose：自动检测 rotation jump 后 Slerp + 自动检测 table-static 后 freeze。 |
+| `results/final_result/handle_phase.csv` | 从 M17 phase baseline 生成的 no-hide、smooth-entry handle phase。 |
+| `results/final_result/object_pose.csv` | M18/M45 pose：自动检测 rotation jump 后 Slerp + 自动检测 table-static 后 freeze。 |
 | `results/renders/final_result/` | 当前最终六视频结果。 |
 | `scripts/known_object/mug/run_mug_m18_physical_nohide_pipeline.py` | 复现 M43 phase + M45 pose，并可选重新渲染六视频的唯一干净入口。 |
 

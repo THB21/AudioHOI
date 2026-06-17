@@ -143,8 +143,8 @@ def build_nohide_phase(args: argparse.Namespace) -> tuple[Path, Path]:
             out_deg[i] = out_deg[i + 1] + math.copysign(args.max_phase_step_deg, delta)
 
     phase_rad = np.deg2rad(out_deg)
-    out_csv = args.out_phase_csv or sample / "results" / "mug_m18_handle_phase_M43_smooth_entry_no_hide" / "corrected_handle_phase_m43_smooth_entry_no_hide.csv"
-    summary = out_csv.with_name("m43_smooth_entry_no_hide_summary.txt")
+    out_csv = args.out_phase_csv or sample / "results" / "final_result" / "handle_phase.csv"
+    summary = out_csv.with_name("handle_phase_summary.txt")
 
     fields = list(rows[0].keys())
     for key in ["m43_phase_rad", "m43_phase_deg", "m43_source", "m17_phase_rad", "m17_phase_deg"]:
@@ -353,8 +353,8 @@ def build_physical_pose(args: argparse.Namespace) -> tuple[Path, Path]:
                     row[key] = ref[key]
             row["m45_pose_source"] = "table_static_release"
 
-    out_csv = args.out_pose_csv or sample / "results" / "mug_m18_pose_M45_table_static_release" / "mug_m18_pose_m45_table_static_release.csv"
-    summary = out_csv.with_name("m45_physical_nohide_pose_summary.txt")
+    out_csv = args.out_pose_csv or sample / "results" / "final_result" / "object_pose.csv"
+    summary = out_csv.with_name("object_pose_summary.txt")
     write_rows(out_csv, tmp_rows, fields)
     with summary.open("w") as f:
         f.write("policy: M18 2D pose + auto rotation-jump Slerp + auto table-static freeze\n")

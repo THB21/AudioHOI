@@ -1,6 +1,6 @@
 {
-  "pose_csv": "samples_known_object/02_mug/results/mug_m18_pose_M45_table_static_release/mug_m18_pose_m45_table_static_release.csv",
-  "phase_csv": "samples_known_object/02_mug/results/mug_m18_handle_phase_M43_smooth_entry_no_hide/corrected_handle_phase_m43_smooth_entry_no_hide.csv",
+  "pose_csv": "samples_known_object/02_mug/results/final_result/object_pose.csv",
+  "phase_csv": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
   "phase_col": "m17_phase_rad",
   "mesh_root": "samples_known_object/02_mug/articraft/materialized_mug_mesh",
   "num_frames": 240,

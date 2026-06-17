@@ -19,9 +19,9 @@
 >   `samples_known_object/02_mug/results/mug_m18_opening_2d_video_correction/mug_m18_opening_2d_video_pose.csv`
 > - current M45 pose with automatically detected rotation-jump smoothing and
 >   automatically detected table-static release:
->   `samples_known_object/02_mug/results/mug_m18_pose_M45_table_static_release/mug_m18_pose_m45_table_static_release.csv`
+>   `samples_known_object/02_mug/results/final_result/object_pose.csv`
 > - current no-hide physical handle phase with smoother drinking-entry schedule:
->   `samples_known_object/02_mug/results/mug_m18_handle_phase_M43_smooth_entry_no_hide/corrected_handle_phase_m43_smooth_entry_no_hide.csv`
+>   `samples_known_object/02_mug/results/final_result/handle_phase.csv`
 > - single clean reproducible optimization entrypoint:
 >   `scripts/known_object/mug/run_mug_m18_physical_nohide_pipeline.py`
 > - render output:

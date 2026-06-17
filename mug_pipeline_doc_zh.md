@@ -4,6 +4,85 @@
 
 ---
 
+## 当前本地清理状态（2026-06-17）
+
+本地目前保留两类结果：
+
+1. **主 pipeline 必需输入/基线/CSV 输出**：这些不能删，因为后续阶段会读取，或用于复现 M45。
+2. **最终 M45 六视频结果**：这是当前清理后的最终可视化结果。
+
+已清理掉的是未追踪的探索性中间渲染目录，例如早期 HaMeR/模拟抓握/palmgate/若干 M18-M39 debug render。它们不是本文主 pipeline 的输入。如果需要再次查看，可以由对应脚本重新生成。
+
+### 必须保留的主 pipeline 输入
+
+| 路径 | 用途 |
+|---|---|
+| `proxy/mug_body_only_cylinder_pose_table_static_sequence.csv` | Stage 1-3 的基础杯体 6D pose 输入。 |
+| `results/renders/M12_articraft_rigid_mesh_vlm/handle_phase_all.csv` | Stage 1 的把手相位弱先验。 |
+| `results/mug_articraft_contact_points/mug_articraft_contact_points.csv` | Stage 1/3 的接触事件与 mug-local 接触点。 |
+| `results/mug_grasp_anchor_state/mug_grasp_anchor_state.csv` | Stage 3 的稳定抓握锚点输入。 |
+| `results/contact_candidates_object_proxy/contact_state_frames.csv` | Stage 3 的接触/桌面状态与深度偏移输入。 |
+| `results/gvhmr/result.pkl` | Stage 3 和最终 render 的人体 3D 关节/相机内参输入。 |
+| `annotations/vlm_handle_visibility_full/qwen_handle_visibility.csv` | Stage 1/2 的把手可见性输入。 |
+| `articraft/materialized_mug_mesh/` | Stage 1/4 使用的 Articraft mug mesh。 |
+
+### 主 pipeline 标准输出
+
+| 路径 | 来源 | 用途 |
+|---|---|---|
+| `results/pipe/handle_phase.csv` | Stage 1 | VLM 过滤 + 接触约束优化后的初始 handle phase。 |
+| `results/pipe/corrected_phase.csv` | Stage 2 | 遮挡段远侧物理修正后的 phase。 |
+| `results/pipe/anchored_pose.csv` | Stage 3 | 用手部 3D 锚定后的 mug pose。 |
+| `results/renders/M17_phase_corrected/corrected_handle_phase.csv` | 历史 M17 baseline | 当前 M45 no-hide phase 的基线来源，必须保留。 |
+
+### 当前最终 M45 结果
+
+M45 是在主 pipeline/M17 结果基础上的局部物理修正版，目标是解决：
+
+- Euler rotation branch jump，目前由相邻帧旋转 geodesic outlier 自动检测，再对检测窗口做 Slerp；
+- drinking-entry handle 左右摆动；
+- table-static release 以后 pose/scale 仍抖动的问题，目前由 `contact_state_frames.csv` 中的 support confidence / support gap / acceleration 连续段自动检测；
+- 保持 `handle_loop` 为真实 mesh，不用 visibility 去隐藏 handle。
+
+注意：drinking-entry 的 handle phase 目前仍是 M45 的物理先验轨迹，不是完整自动优化。后续应将其升级为“数据项 + 物理平滑项”的全局 phase 求解，而不是继续手动指定关键帧。
+
+| 路径 | 用途 |
+|---|---|
+| `results/mug_m18_handle_phase_M43_smooth_entry_no_hide/corrected_handle_phase_m43_smooth_entry_no_hide.csv` | 从 M17 phase baseline 生成的 no-hide、smooth-entry handle phase。 |
+| `results/mug_m18_pose_M45_table_static_release/mug_m18_pose_m45_table_static_release.csv` | M18/M45 pose：自动检测 rotation jump 后 Slerp + 自动检测 table-static 后 freeze。 |
+| `results/renders/final_result/` | 当前最终六视频结果。 |
+| `scripts/known_object/mug/run_mug_m18_physical_nohide_pipeline.py` | 复现 M43 phase + M45 pose，并可选重新渲染六视频的唯一干净入口。 |
+
+重跑 M45 的 CSV：
+
+```bash
+PYTHONPATH=. python scripts/known_object/mug/run_mug_m18_physical_nohide_pipeline.py \
+    --sample-dir samples_known_object/02_mug
+```
+
+重跑 M45 六视频：
+
+```bash
+PYTHONPATH=. python scripts/known_object/mug/run_mug_m18_physical_nohide_pipeline.py \
+    --sample-dir samples_known_object/02_mug \
+    --render-full6
+```
+
+当前 `results/renders/` 中应保留：
+
+```text
+M12_articraft_rigid_mesh_vlm/
+M14_joint_contact_handle_phase/
+M15_original_phase_recovered/
+M17_phase_corrected/
+M18_anchor_depth_scene/
+final_result/
+```
+
+其中 `M12/M14/M15/M17/M18_anchor` 是已追踪的历史基线或主 pipeline 参照；`final_result` 是当前最终结果。
+
+---
+
 ## 总体流程
 
 Pipeline 从单目 RGB 视频中估计马克杯的 **3D 姿态**（位置 + 把手朝向），视频内容为人物拿起、持握、放下马克杯的过程。共四个顺序执行的阶段；只有最后阶段生成视频渲染，前三个阶段仅输出 CSV 文件。

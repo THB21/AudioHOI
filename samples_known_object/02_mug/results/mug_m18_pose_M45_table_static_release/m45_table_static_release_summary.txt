@@ -1,0 +1,11 @@
+policy: keep M44 up to static_frame, then freeze all mug pose params for table-static release
+input_pose_csv: /mnt/hdd/AudioHOI/samples_known_object/02_mug/results/mug_m18_pose_M44_rotation_smooth_entry/mug_m18_pose_m44_rotation_smooth_entry.csv
+static_frame: 160
+frozen_pose:
+x: 0.003857815
+y: 0.016227323
+z: 4.001687240
+yaw: 0.028944550
+pitch: 0.004692164
+roll: 0.000169432
+scale: 1.219385151

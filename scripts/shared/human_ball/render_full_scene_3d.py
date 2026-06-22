@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import sys
 from pathlib import Path
 
 import cv2
@@ -147,7 +148,15 @@ def ground_quad(y, cx, cz, size):
     return trimesh.Trimesh(vertices=verts, faces=faces, process=False)
 
 
-def render_overlay(renderer, verts, faces, ball_tri, ball_center, K, body_color, ball_color):
+def _contact_marker(point, flip):
+    m = trimesh.creation.uv_sphere(radius=0.05, count=[14, 14])
+    m.apply_translation(point)
+    m.vertices = m.vertices @ flip.T
+    return m
+
+
+def render_overlay(renderer, verts, faces, ball_tri, ball_center, K, body_color, ball_color,
+                   contact_point=None):
     scene = pyrender.Scene(ambient_light=np.array([0.3, 0.3, 0.3, 1.0]))
     scene.add(make_camera(K), pose=np.eye(4))
     body = trimesh.Trimesh(vertices=verts @ _CAM_FLIP.T, faces=faces, process=False)
@@ -156,13 +165,15 @@ def render_overlay(renderer, verts, faces, ball_tri, ball_center, K, body_color,
     bt.apply_translation(ball_center)
     bt.vertices = bt.vertices @ _CAM_FLIP.T
     scene.add(to_pyrender_mesh(bt, color=ball_color, roughness=0.45))
+    if contact_point is not None:
+        scene.add(to_pyrender_mesh(_contact_marker(contact_point, _CAM_FLIP), color=(1.0, 0.1, 0.1)))
     add_lights(scene)
     color, _ = renderer.render(scene, flags=pyrender.RenderFlags.RGBA | pyrender.RenderFlags.SKIP_CULL_FACES)
     return color[::-1]  # pyrender hands the image back bottom-up
 
 
 def render_world(renderer, verts, faces, ball_tri, ball_center, cam_pose, yfov,
-                 body_color, ball_color, ground, center, radius):
+                 body_color, ball_color, ground, center, radius, contact_point=None):
     scene = pyrender.Scene(ambient_light=np.array([0.5, 0.5, 0.53, 1.0]), bg_color=BG_COLOR)
     cam = pyrender.PerspectiveCamera(yfov=yfov, znear=0.05, zfar=100.0)
     scene.add(cam, pose=cam_pose)
@@ -176,6 +187,10 @@ def render_world(renderer, verts, faces, ball_tri, ball_center, cam_pose, yfov,
     bt.vertices = bt.vertices @ _CV_TO_WORLD.T
     bt.faces = bt.faces[:, ::-1]
     scene.add(to_pyrender_mesh(bt, color=ball_color, roughness=0.45))
+    if contact_point is not None:
+        m = _contact_marker(contact_point, _CV_TO_WORLD)
+        m.faces = m.faces[:, ::-1]
+        scene.add(to_pyrender_mesh(m, color=(1.0, 0.1, 0.1)))
     if ground is not None:
         scene.add(to_pyrender_mesh(ground, color=GROUND_COLOR, smooth=False, roughness=0.95))
     add_world_lights(scene, center, radius)
@@ -207,6 +222,13 @@ def main():
     ap.add_argument("--sample-dir", type=Path, default=Path("samples/basketball_01"))
     ap.add_argument("--body-model-root", type=Path,
                     default=Path("scripts/third-party/GVHMR/inputs/checkpoints/body_models"))
+    ap.add_argument("--contact-csv", type=Path, default=None,
+                    help="body_surface_contacts.csv — draws a red marker at the surface "
+                         "contact point (hand/finger or foot) on contact frames")
+    ap.add_argument("--object-pose-csv", type=Path, default=None,
+                    help="6DOF object pose (frame,tx,ty,tz,yaw,pitch,roll,scale) — places "
+                         "--object-mesh with full rotation (Articraft mug), matching the "
+                         "teammate convention; overrides translation-only placement")
     ap.add_argument("--object-trajectory", type=Path, default=None,
                     help="override the auto-picked trajectory csv")
     ap.add_argument("--object-mesh", type=Path, default=None,
@@ -274,6 +296,28 @@ def main():
             last = obj[fn]["t"]
         ball_centers.append(last.copy())
 
+    # Optional 6DOF object pose (Articraft mug): per-frame yaw/pitch/roll/scale around the
+    # canonical object-local mesh, using the teammate's exact transform convention.
+    obj_params = None
+    if args.object_pose_csv is not None and args.object_pose_csv.exists():
+        _stage1 = Path(__file__).resolve().parents[1] / "radius_free_proxy" / "stage1_observation"
+        sys.path.insert(0, str(_stage1))
+        import fit_mug_articraft_keyframe_pose as _base  # noqa: E402
+        pose_by_frame = {}
+        with args.object_pose_csv.open() as f:
+            for r in csv.DictReader(f):
+                pose_by_frame[int(r["frame"])] = np.array(
+                    [float(r["tx"]), float(r["ty"]), float(r["tz"]),
+                     float(r["yaw"]), float(r["pitch"]), float(r["roll"]), float(r["scale"])])
+        last_p = pose_by_frame[min(pose_by_frame)]
+        obj_params = []
+        for fn in frame_nums:
+            if fn in pose_by_frame:
+                last_p = pose_by_frame[fn]
+            obj_params.append(last_p.copy())
+        _transform6d = _base.transform
+        print(f"object: 6DOF Articraft mug pose ({len(pose_by_frame)} frames)")
+
     # Frame the orbit around everything the body+ball cover over the whole clip,
     # so the camera doesn't have to chase anything.
     floor_y_cv = float(np.percentile(verts_all[..., 1], 99.0))  # ~the feet (y points down here)
@@ -294,6 +338,16 @@ def main():
     def writer(name):
         return cv2.VideoWriter(str(out_dir / name), cv2.VideoWriter_fourcc(*"mp4v"), args.fps, (W, H))
 
+    # optional per-frame body-surface contact point (drawn as a red marker on contact frames)
+    contact_pts = {}
+    if args.contact_csv is not None and args.contact_csv.exists():
+        with args.contact_csv.open() as f:
+            for r in csv.DictReader(f):
+                if int(r.get("contact", 1)):
+                    contact_pts[int(r["frame"])] = np.array(
+                        [float(r["surface_x"]), float(r["surface_y"]), float(r["surface_z"])])
+        print(f"contact markers: {len(contact_pts)} contact frames")
+
     do_overlay = args.mode in ("both", "overlay")
     do_world = args.mode in ("both", "world")
     w_over = writer(f"{pfx}overlay.mp4") if do_overlay else None
@@ -302,9 +356,17 @@ def main():
     print(f"Rendering {len(frame_paths)} frames ({W}x{H}); mode={args.mode}")
     n = len(frame_paths)
     for i, (fp, bi, bc) in enumerate(zip(frame_paths, body_idx, ball_centers)):
+        # for 6DOF, pre-transform the object mesh to camera space and place at origin
+        if obj_params is not None:
+            obj_mesh = ball_tri.copy()
+            obj_mesh.vertices = _transform6d(obj_params[i], np.asarray(ball_tri.vertices))
+            obj_center = np.zeros(3)
+        else:
+            obj_mesh, obj_center = ball_tri, bc
+        cpt = contact_pts.get(frame_nums[i])
         if do_overlay:
             img = cv2.imread(str(fp))
-            rgba = render_overlay(renderer, verts_all[bi], faces, ball_tri, bc, K[bi], body_color, ball_color)
+            rgba = render_overlay(renderer, verts_all[bi], faces, obj_mesh, obj_center, K[bi], body_color, ball_color, contact_point=cpt)
             frame = composite(img, rgba, args.alpha)
             w_over.write(frame)
             if i == 0:
@@ -315,8 +377,8 @@ def main():
                 np.cos(elev) * np.sin(theta), np.sin(elev), np.cos(elev) * np.cos(theta)
             ])
             cam_pose = look_at(eye, center_w, up)
-            rgba = render_world(renderer, verts_all[bi], faces, ball_tri, bc, cam_pose, yfov,
-                                body_color, ball_color, ground, center_w, scene_radius)
+            rgba = render_world(renderer, verts_all[bi], faces, obj_mesh, obj_center, cam_pose, yfov,
+                                body_color, ball_color, ground, center_w, scene_radius, contact_point=cpt)
             frame = cv2.cvtColor(rgba[:, :, :3], cv2.COLOR_RGB2BGR)
             w_world.write(frame)
             if i == 0:

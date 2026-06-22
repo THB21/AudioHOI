@@ -178,6 +178,54 @@ def build_audio_support(frames: np.ndarray, audio_rows: list[dict[str, float | i
     return support
 
 
+def audio_fields_from_records(records_csv: Path, frames: np.ndarray, radius: int = 2) -> dict:
+    """Replace the legacy audio_semantics path with the new src/audio contact records.
+
+    Builds the same per-frame fields the solver consumes (support / gamma / w_audio_scale /
+    promote / event_type) from ``contact_records.csv`` — which is dual-modal (loud audio
+    contacts AND silent visual hand contacts), relevance-gated, and VLM/feature-classified.
+    """
+    rows = read_rows(records_csv)
+    n = len(frames)
+    idx = {int(f): i for i, f in enumerate(frames)}
+    support = np.zeros(n)
+    gamma = np.full(n, 0.8)
+    scale = np.ones(n)
+    promote = np.zeros(n, dtype=bool)
+    event_type = np.array(["" for _ in frames], dtype=object)
+    best = np.zeros(n)
+    for r in rows:
+        if not int(float(r.get("relevant", 1) or 0)):
+            continue
+        fr = int(float(r.get("refined_frame", r.get("frame", 0)) or 0))
+        if fr not in idx:
+            cand = [f for f in idx if abs(f - fr) <= radius]
+            if not cand:
+                continue
+            fr = min(cand, key=lambda f: abs(f - fr))
+        ev_i = idx[fr]
+        aud = float(r.get("audio_support", 0.0) or 0.0)
+        evid = r.get("evidence", r.get("source", ""))
+        sc = aud if evid == "audio" else max(aud, 0.5)   # silent visual contacts: moderate support
+        g = float(r.get("manip_gamma", 0.8) or 0.8)
+        w = float(r.get("manip_weight", 1.0) or 1.0)
+        for f in range(fr - radius, fr + radius + 1):
+            j = idx.get(f)
+            if j is None:
+                continue
+            wgt = max(0.0, 1.0 - 0.25 * abs(f - fr)) * sc
+            if wgt > support[j]:
+                support[j] = wgt
+            if wgt > best[j]:
+                best[j] = wgt
+                gamma[j] = g
+                scale[j] = w
+        promote[ev_i] = (r.get("contact_target") == "part") and bool(int(float(r.get("promote_anchor", 0) or 0)))
+        event_type[ev_i] = r.get("event_type", "")
+    return {"support": support, "gamma": gamma, "w_audio_scale": scale,
+            "promote": promote, "event_type": event_type}
+
+
 def solve_anchor_interpolation(
     z_ref: np.ndarray,
     anchor_mask: np.ndarray,
@@ -299,6 +347,9 @@ def main(argv: list[str] | None = None) -> None:
                              "per-event physics: per-frame gamma overrides --audio-accel-relax, and only "
                              "body-part contacts are promoted to anchors (floor bounces are not) (default on)")
     parser.add_argument("--no-audio-semantics", dest="audio_semantics", action="store_false")
+    parser.add_argument("--audio-records-csv", type=Path, default=None,
+                        help="REPLACE the legacy audio_semantics path with the new src/audio "
+                             "contact_records.csv (dual-modal, relevance-gated, VLM/feature-classified)")
     args = parser.parse_args(argv)
 
     sample_dir = args.sample_dir
@@ -385,8 +436,17 @@ def main(argv: list[str] | None = None) -> None:
     classified: list = []
     audio_promote_mask = None
 
-    # Audio semantics (Phase 2): classify each onset and apply per-event physics.
-    if args.audio_semantics and audio_rows:
+    # Audio semantics: prefer the NEW src/audio contact_records (replaces the legacy path);
+    # fall back to the old audio_semantics classifier when no records csv is given.
+    if args.audio_records_csv is not None and Path(args.audio_records_csv).exists():
+        sem = audio_fields_from_records(args.audio_records_csv, ball_frames_arr)
+        audio_support = sem["support"]
+        relax_field = sem["gamma"]
+        w_audio_scale = sem["w_audio_scale"]
+        event_type_field = sem["event_type"]
+        audio_promote_mask = sem["promote"]
+        print(f"audio source: src/audio contact_records ({args.audio_records_csv})")
+    elif args.audio_semantics and audio_rows:
         classified = audio_semantics.classify_audio_events(sample_dir / "audio.wav", audio_rows)
         if classified:
             sem = audio_semantics.build_semantic_fields(ball_frames_arr, classified)

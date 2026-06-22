@@ -1,0 +1,9 @@
+{
+  "pose_sequence": "samples_known_object/02_mug/proxy/mug_temporal_6d_pose_sequence.csv",
+  "pose_fit": "samples_known_object/02_mug/proxy/mug_temporal_6d_pose_fit.json",
+  "render": "samples_known_object/02_mug/results/renders/M4_temporal_6d_pose/overlay.mp4",
+  "success": false,
+  "cost": 535.7865329494982,
+  "nfev": 20,
+  "message": "The maximum number of function evaluations is exceeded."
+}

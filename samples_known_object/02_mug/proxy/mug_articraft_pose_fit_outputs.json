@@ -1,0 +1,5 @@
+{
+  "keyframe_pose_fit_optimized": "samples_known_object/02_mug/proxy/keyframe_pose_fit_optimized.json",
+  "render": "samples_known_object/02_mug/results/renders/M3_keyframe_optimized_pose/overlay.mp4",
+  "pose_sequence": "samples_known_object/02_mug/proxy/mug_optimized_pose_sequence.csv"
+}

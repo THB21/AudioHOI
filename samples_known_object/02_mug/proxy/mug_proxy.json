@@ -1,0 +1,134 @@
+{
+  "object_type": "mug",
+  "geometry_type": "cylinder_with_handle",
+  "ref_proxy": "body_center",
+  "scale_mode": "normalized",
+  "source": "articraft_fork_refined_previous_mesh_handle",
+  "articraft_role": "canonical_geometry_source",
+  "parts": {
+    "body": {
+      "type": "hollow_cylinder",
+      "radius": 0.392157,
+      "inner_radius": 0.333333,
+      "height": 0.941176,
+      "metric_radius_m": 0.04,
+      "metric_inner_radius_m": 0.034,
+      "metric_height_m": 0.096,
+      "local_center": [
+        0.0,
+        0.0,
+        -0.029412
+      ],
+      "source_part": "body",
+      "source_mesh": "body_shell.obj"
+    },
+    "handle": {
+      "type": "smooth_c_shaped_tube_handle",
+      "side": "left",
+      "canonical_side": "right",
+      "local_center": [
+        -0.745098,
+        0.0,
+        0.039216
+      ],
+      "metric_local_center_m": [
+        -0.076,
+        0.0,
+        0.004
+      ],
+      "visual_part": true,
+      "source_part": "handle",
+      "elements": {
+        "swept_loop": {
+          "center_m": [
+            -0.076,
+            0.0,
+            0.004
+          ],
+          "radius_x_m": 0.03,
+          "radius_z_m": 0.031,
+          "tube_radius_m": 0.0048,
+          "vertical_span_m": 0.0716
+        },
+        "attachment_zone": {
+          "body_side_x_m": -0.04,
+          "endpoint_x_m": -0.046,
+          "upper_z_m": 0.035,
+          "lower_z_m": -0.027
+        }
+      }
+    },
+    "rim": {
+      "type": "ring",
+      "radius": 0.392157,
+      "inner_radius": 0.333333,
+      "height": 0.058824,
+      "local_center": [
+        0.0,
+        0.0,
+        0.470588
+      ],
+      "source_part": "rim",
+      "source_mesh": "rim_lip.obj"
+    },
+    "bottom": {
+      "type": "disk",
+      "radius": 0.392157,
+      "height": 0.068627,
+      "local_center": [
+        0.0,
+        0.0,
+        -0.465686
+      ],
+      "support_region": true,
+      "source_part": "bottom",
+      "source_mesh": "bottom_disk.obj"
+    }
+  },
+  "visual_handle": {
+    "type": "rigid_handle_geometry",
+    "part_name": "handle",
+    "side": "left",
+    "source": "articraft_handle_part_mirrored_to_observed_contact_side",
+    "confidence": 1.0
+  },
+  "contact_region": {
+    "type": "object_surface_contact_region",
+    "part_name": "",
+    "allowed_parts": [
+      "handle",
+      "body",
+      "rim"
+    ],
+    "side": "left",
+    "source": "hand_object_contact_region_not_visual_handle",
+    "confidence": 1.0,
+    "note": "This is the object-side region touched by the hand. It is not necessarily the visual handle; drinking frames may contact the body/rim while the handle is occluded."
+  },
+  "stage_policy": {
+    "stage1_ref": "track body_center only",
+    "stage2_contact": "anchor hand to contact_region, not mug center"
+  },
+  "articraft_record": {
+    "record_id": "rec_edit-the-existing-mug-model-only-do-not-regenera_20260609_172355_501954_e329decc",
+    "parent_record_id": "rec_edit-the-current-mug-model-to-fix-the-handle-bod_20260609_140343_925699_db515086",
+    "model_py": "samples_known_object/02_mug/articraft/generated_record/rec_edit-the-existing-mug-model-only-do-not-regenera_20260609_172355_501954_e329decc/revisions/rev_000001/model.py",
+    "model_urdf": "samples_known_object/02_mug/articraft/generated_record/rec_edit-the-existing-mug-model-only-do-not-regenera_20260609_172355_501954_e329decc/model.urdf",
+    "semantic_parts": [
+      "body",
+      "handle",
+      "rim",
+      "bottom"
+    ],
+    "canonical_handle_side": "right",
+    "observed_contact_side": "left",
+    "mirror_to_observed_side": true,
+    "edit_policy": "forked previous good continuous mesh handle; only refined endpoint embedding into body wall",
+    "compile_status": "success_no_warnings"
+  },
+  "units": {
+    "articraft_metric": "meters",
+    "pipeline_scale": "normalized_by_articraft_total_height",
+    "total_height_m": 0.102
+  }
+}

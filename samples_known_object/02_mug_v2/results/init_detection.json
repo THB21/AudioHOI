@@ -1,0 +1,12 @@
+{
+  "text": "a white ceramic mug. a cup.",
+  "model_id": "IDEA-Research/grounding-dino-tiny",
+  "score": 0.5089013576507568,
+  "box": [
+    503.39947509765625,
+    508.1663513183594,
+    568.6671752929688,
+    580.7188720703125
+  ],
+  "label": "a white ceramic mug"
+}

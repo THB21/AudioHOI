@@ -1,0 +1,6 @@
+{
+  "pose_sequence": "samples_known_object/02_mug/proxy/mug_body_only_cylinder_pose_sequence.csv",
+  "fit": "samples_known_object/02_mug/proxy/mug_body_only_cylinder_pose_fit.json",
+  "render": "samples_known_object/02_mug/results/renders/M5_body_only_cylinder_pose/overlay.mp4",
+  "note": "Body-only debug: circular cylinder cup body, no handle/contact region."
+}

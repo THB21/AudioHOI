@@ -1,0 +1,34 @@
+{
+  "keyframe": 131,
+  "human_part": "left_hand",
+  "attachment_type": "palm_to_mug_diagnostic_only",
+  "T_palm_mug": [
+    [
+      -0.729304021930892,
+      -0.627041993111331,
+      -0.2737407212498622,
+      0.20418122484589585
+    ],
+    [
+      -0.20522120603791172,
+      0.5821541215868582,
+      -0.7867533510013024,
+      0.3267624721508431
+    ],
+    [
+      0.6526866784206417,
+      -0.517604982196272,
+      -0.5532496563196644,
+      -0.09074942581564782
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "confidence": 0.2,
+  "source": "diagnostic_only_gvhmr_palm_frame_unstable_for_direct_pose_propagation",
+  "policy": "do not directly propagate mug pose from GVHMR palm orientation; use object track translation plus keyframe yaw interpolation until a real hand-object optimizer is added"
+}

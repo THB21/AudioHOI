@@ -1,0 +1,38 @@
+{
+  "keyframe": 131,
+  "contact_mask": "annotations/001_contact_region_mask.png",
+  "contact_mask_json": "annotations/001_contact_region_mask.json",
+  "body_bbox_xyxy": [
+    626.0,
+    342.0,
+    661.0,
+    388.0
+  ],
+  "mask_bbox_xyxy": [
+    616,
+    353,
+    630,
+    377
+  ],
+  "body_local": {
+    "valid": true,
+    "u_norm": -1.1714285714285715,
+    "v_norm": 0.5,
+    "confidence": 1.0
+  },
+  "object_side": {
+    "type": "handle_or_side",
+    "part_name": "handle",
+    "side": "left",
+    "height_band": "middle",
+    "source": "keyframe_contact_mask_and_object_observation",
+    "confidence": 1.0
+  },
+  "human_side": {
+    "part": "left_hand",
+    "level": "hand_proxy",
+    "source": "contact_interval_state",
+    "confidence": 0.9
+  },
+  "policy": "object-side contact region is bound to mug local coordinates; do not update from per-frame handle detection"
+}

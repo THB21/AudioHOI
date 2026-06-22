@@ -1,0 +1,15 @@
+Generic anchor interpolation z refinement for human-ball contact.
+default_part: hand
+outside_window_mode: global_ref
+w_ref: 0.700000
+w_temp: 5.000000
+w_audio: 3.000000
+audio_accel_relax: 0.800000
+audio_events_csv: samples/basketball_01/results/events/audio_events.csv
+global_z_shift_from_human_events_m: -0.402405
+num_frames: 192
+num_human_event_frames: 24
+num_floor_event_frames: 11
+num_audio_events: 15
+num_audio_anchor_frames: 1
+audio_semantics: False

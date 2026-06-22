@@ -1,0 +1,18 @@
+{
+  "contact_intervals": [
+    {
+      "start_frame": 1,
+      "end_frame": 64,
+      "human_part": "left_hand",
+      "confidence": 0.6144713906249999,
+      "source": "contact_candidates_object_proxy_continuous_state"
+    },
+    {
+      "start_frame": 86,
+      "end_frame": 240,
+      "human_part": "left_hand",
+      "confidence": 0.589397064516129,
+      "source": "contact_candidates_object_proxy_continuous_state"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+<robot name="refined_mug_proxy">
+  <material name="warm_white_ceramic">
+    <color rgba="0.96 0.94 0.89 1" />
+    </material>
+  <link name="body">
+    <visual name="body_shell">
+      <geometry>
+        <mesh filename="assets/meshes/body_shell.obj" />
+        </geometry>
+      <material name="warm_white_ceramic">
+        <color rgba="0.96 0.94 0.89 1" />
+        </material>
+      </visual>
+    <collision name="body_shell">
+      <geometry>
+        <mesh filename="assets/meshes/body_shell.obj" />
+        </geometry>
+      </collision>
+    </link>
+  <link name="handle">
+    <visual name="handle_loop">
+      <geometry>
+        <mesh filename="assets/meshes/handle_loop.obj" />
+        </geometry>
+      <material name="warm_white_ceramic">
+        <color rgba="0.96 0.94 0.89 1" />
+        </material>
+      </visual>
+    <collision name="handle_loop">
+      <geometry>
+        <mesh filename="assets/meshes/handle_loop.obj" />
+        </geometry>
+      </collision>
+    </link>
+  <link name="rim">
+    <visual name="rim_ring">
+      <origin xyz="0 0 0.099" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="assets/meshes/rim_ring.obj" />
+        </geometry>
+      <material name="warm_white_ceramic">
+        <color rgba="0.96 0.94 0.89 1" />
+        </material>
+      </visual>
+    <collision name="rim_ring">
+      <origin xyz="0 0 0.099" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="assets/meshes/rim_ring.obj" />
+        </geometry>
+      </collision>
+    </link>
+  <link name="bottom">
+    <visual name="bottom_disk">
+      <origin xyz="0 0 0.0035" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="assets/meshes/bottom_disk.obj" />
+        </geometry>
+      <material name="warm_white_ceramic">
+        <color rgba="0.96 0.94 0.89 1" />
+        </material>
+      </visual>
+    <collision name="bottom_disk">
+      <origin xyz="0 0 0.0035" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="assets/meshes/bottom_disk.obj" />
+        </geometry>
+      </collision>
+    </link>
+  <joint name="body_to_handle" type="fixed">
+    <parent link="body" />
+    <child link="handle" />
+    </joint>
+  <joint name="body_to_rim" type="fixed">
+    <parent link="body" />
+    <child link="rim" />
+    </joint>
+  <joint name="body_to_bottom" type="fixed">
+    <parent link="body" />
+    <child link="bottom" />
+    </joint>
+  </robot>

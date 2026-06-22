@@ -1,0 +1,20 @@
+Create a simple 3D mug proxy from the clean mug reference image.
+
+This asset is for contact reasoning, not photorealistic reconstruction.
+
+Required semantic parts:
+- body
+- handle
+- rim
+- bottom
+
+Geometry requirements:
+- The body is a vertical cylindrical cup body matching the clean reference proportions.
+- The rim is a thin rounded ring.
+- The bottom is a flat circular base.
+- The handle is a separate semantic part named "handle".
+- The handle should be a smooth C-shaped side tube whose two endpoints enter/attach directly into the cup body.
+- Do not add external connector pads, wedge blocks, rectangular bars, ribbed joints, or mechanical-looking interfaces.
+- The handle must be consistent with the clean reference: when viewed from the side it should project like a narrow vertical curve/strip, not a large front-facing loop.
+
+Keep the geometry simple and robust. The downstream pipeline will convert this asset into proxy/mug_proxy.json and use the handle as the object-side contact region.

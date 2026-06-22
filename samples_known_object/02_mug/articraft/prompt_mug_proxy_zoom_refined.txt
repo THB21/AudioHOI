@@ -1,0 +1,21 @@
+Create a refined 3D mug proxy from the supplied zoomed reference montage.
+
+This is for contact reasoning, so preserve clean semantic parts and simple geometry, but do not make a crude block model.
+
+Required semantic parts:
+- body
+- handle
+- rim
+- bottom
+
+Geometry requirements:
+- The body is a vertical hollow cylindrical cup with smooth circular sides.
+- The rim is a thin rounded circular ring at the top.
+- The bottom is a flat circular base/disk.
+- The handle is a separate side part named handle.
+- The handle must be a smooth curved C-shaped loop attached to the cup side.
+- The handle should look like a real mug handle: rounded tube, two attachment pads, open inner hole.
+- Do not build the handle from rectangular bars or box primitives.
+- The handle should remain fixed relative to the mug body as a semantic contact region.
+
+Keep the object static and robust for downstream contact-region reasoning. Prefer a clean canonical mug with correctly named parts over decorative detail.

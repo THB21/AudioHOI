@@ -1,0 +1,16 @@
+Create a canonical 3D mug proxy for contact reasoning using the provided clean mug reference image.
+
+Requirements:
+- The mug is one rigid object.
+- Expose semantic parts named exactly: body, handle, rim, bottom.
+- The body is a simple vertical cylindrical cup body.
+- The handle is a smooth C-shaped side handle rigidly attached to the body.
+- The handle must be embedded/connected into the mug body at upper and lower attachment zones; do not leave gaps.
+- The handle is NOT an independently moving part and must not have its own joint motion.
+- The handle should be usable as the object-side contact region for a human hand.
+- The rim is a ring at the top of the cup.
+- The bottom is a flat disk/support region.
+- Prefer clean robust geometry and stable semantic parts over photorealistic detail.
+- Avoid decorative artifacts, blocky rectangular handles, disconnected handles, or changing the mug identity.
+
+The asset will later be aligned to video keyframes for 6D/weak-perspective pose fitting. Keep the geometry simple and metrically plausible.

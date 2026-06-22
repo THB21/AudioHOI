@@ -1,0 +1,15 @@
+Use the attached multi-keyframe mug reference images to create a clean mug reference image for Articraft.
+
+Task:
+Remove the hand/fingers/arm occlusion from the mug and reconstruct the complete same mug.
+
+Important constraints:
+- Keep the same mug identity, color, scale, cylindrical body, rim, bottom, and side handle.
+- Preserve the camera perspective and viewpoint of the selected hand-holding frame.
+- Do not invent a different mug.
+- Do not change the table, background, or global scene geometry if they are present.
+- The handle must be visible and attached naturally to the mug body.
+- Use the multiple keyframes only to infer the occluded handle/body shape; do not blend multiple mugs into one inconsistent shape.
+
+Preferred output:
+A single clean image of the mug with hand removed, suitable as Articraft image-conditioned input.

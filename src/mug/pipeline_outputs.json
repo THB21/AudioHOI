@@ -1,0 +1,11 @@
+{
+  "sample": "/mnt/hdd/AudioHOI/samples_known_object/02_mug",
+  "outputs": {
+    "M12": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M12_articraft_rigid_mesh_vlm/handle_phase_all.csv",
+    "M14": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M14_joint_contact_handle_phase/handle_phase_joint_contact.csv",
+    "M15_baseline": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+    "M17": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv",
+    "M18a_anchor": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/proxy/mug_body_only_cylinder_pose_anchor_depth_sequence.csv",
+    "M18r_render": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M18_anchor_depth_scene/outputs.json"
+  }
+}

@@ -1,0 +1,15 @@
+Edit the existing mug model only. Do not regenerate the mug from scratch.
+
+Keep the current continuous mesh-based C-shaped handle design based on `_c_shaped_handle_mesh`; do not replace it with boxes, segmented cylinders, or a blocky/mechanical handle.
+
+Goals:
+- Preserve the clean cylindrical mug body, torus rim, flat bottom, and continuous smooth C-shaped tube handle.
+- The mug remains one rigid object with semantic parts named exactly: body, handle, rim, bottom.
+- The handle remains a separate semantic part but fixed to the body by a fixed articulation.
+- Improve only the handle-to-body interface: make the upper and lower endpoints visibly embedded into the cup wall with no gap.
+- Preserve the natural C-shape and smooth tube appearance.
+- Avoid rectangular pads or mechanical-looking connectors.
+- If needed, slightly extend the handle mesh endpoints into the ceramic wall and add small smooth blended neck geometry, but keep it visually continuous with the handle tube.
+- Compile must pass with no warnings if possible. If overlap is intentional at the cup wall, justify it in tests.
+
+This asset is for contact reasoning: body, handle, rim, and bottom must remain semantically accessible; handle is the object-side hand contact region.

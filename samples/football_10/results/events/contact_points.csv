@@ -1,0 +1,9 @@
+frame,time,source,event_type,object_part,body_part,confidence,contact_u,contact_v,object_u,object_v,part_u,part_v
+53,1.733333,geometric,placement,surface,left_foot,0.800000,653.497,813.223,682.306,787.937,602.773,857.745
+88,2.900000,geometric,placement,surface,left_foot,0.762810,753.133,717.068,749.427,700.462,765.481,772.385
+105,3.466667,geometric,impact,surface,left_foot,0.589165,728.703,734.490,740.928,702.684,680.405,860.143
+124,4.100000,geometric,impact,surface,left_foot,0.485700,698.186,847.190,706.792,840.404,680.427,861.192
+146,4.833333,geometric,impact,surface,left_foot,0.448112,754.905,837.069,755.143,840.760,753.745,819.067
+166,5.500000,geometric,impact,surface,left_foot,0.634883,733.556,845.368,745.925,841.034,697.726,857.923
+177,5.866667,geometric,impact,surface,left_foot,0.518832,779.374,844.682,802.295,841.177,696.508,857.353
+204,6.766667,geometric,impact,surface,left_hand,0.429963,782.755,692.269,802.344,716.155,696.126,586.638

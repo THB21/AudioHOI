@@ -1,9 +1,13 @@
 # Sharedcam 与 Contactphase 数学公式说明
 
-这份说明总结了当前篮球 shared-camera 分支里使用的优化目标。
+这份说明总结了篮球 shared-camera 分支（球体基线）的优化目标。
 
 新链路：
 SAM2 masks + CoTracker -> generic object observations -> shared-camera baseline -> contactphase anchor interpolation。
+
+> **比本说明更新：** 深度现在可由 Depth Anything 3 提供（`--depth-source depthv3`），替代 §2.3 的尺寸项；
+> contact phase 改用 `run_human_ball_contact_phase_calibration_anchorinterp_generic.py`，**不含重力/弹道项**
+> （仅锚点 + 参考 + 平滑）。通用、与物体无关的能量函数见 `method_losses.md`。
 
 ## 1. 记号定义
 

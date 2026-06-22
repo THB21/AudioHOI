@@ -5,6 +5,7 @@ import argparse
 import csv
 import json
 import pickle
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -21,6 +22,10 @@ from contact_part_utils import (
     normalize_contact_label,
     resolve_human_state_key,
 )
+
+# audio event taxonomy (scripts/shared/events/audio_semantics.py)
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "events"))
+import audio_semantics  # noqa: E402
 
 
 def read_ball_pose(path: Path) -> list[dict[str, float | int | str]]:
@@ -118,32 +123,102 @@ def write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) 
         writer.writerows(rows)
 
 
+def read_audio_events(path: Path) -> list[dict[str, float | int]]:
+    """Read audio onset events (frame, time, score).
+
+    audio_events.csv comes in two flavours: some samples (football, the radius-free
+    branch) carry a normalized ``audio_score`` column; the basketball detector only
+    writes ``peak``/``prominence``. When ``audio_score`` is missing we derive it from
+    ``prominence`` normalized to its max so both paths yield a confidence in [0, 1].
+    """
+    rows: list[dict[str, float | int]] = []
+    if not path.exists():
+        return rows
+    with path.open() as f:
+        records = list(csv.DictReader(f))
+    if not records:
+        return rows
+    has_score = "audio_score" in records[0]
+    proms = [float(r.get("prominence", 0.0) or 0.0) for r in records]
+    prom_max = max(proms) if proms else 0.0
+    for r, prom in zip(records, proms):
+        frame = r.get("audio_frame", "")
+        if not frame:
+            continue
+        if has_score and (r.get("audio_score", "") not in ("", None)):
+            score = float(r["audio_score"])
+        else:
+            score = (prom / prom_max) if prom_max > 0.0 else 0.0
+        rows.append({
+            "audio_frame": int(float(frame)),
+            "audio_time": float(r.get("audio_time", 0.0) or 0.0),
+            "audio_score": float(np.clip(score, 0.0, 1.0)),
+        })
+    return rows
+
+
+def build_audio_support(frames: np.ndarray, audio_rows: list[dict[str, float | int]], radius: int = 2) -> np.ndarray:
+    """Per-frame audio confidence in [0, 1].
+
+    Each onset is spread over +-``radius`` frames with a triangular falloff and the
+    events are combined by max, so ``audio_support[t]`` is the strength of the nearest
+    impact. Frames with no nearby onset stay 0 (audio terms then become no-ops).
+    """
+    support = np.zeros(len(frames), dtype=np.float64)
+    frame_to_idx = {int(fr): i for i, fr in enumerate(np.asarray(frames).tolist())}
+    for row in audio_rows:
+        center = int(row["audio_frame"])
+        score = float(row["audio_score"])
+        for fr in range(center - radius, center + radius + 1):
+            idx = frame_to_idx.get(fr)
+            if idx is None:
+                continue
+            weight = max(0.0, 1.0 - 0.25 * abs(fr - center))
+            support[idx] = max(support[idx], score * weight)
+    return support
+
+
 def solve_anchor_interpolation(
     z_ref: np.ndarray,
     anchor_mask: np.ndarray,
     anchor_values: np.ndarray,
-    u_obs: np.ndarray,
-    v_obs: np.ndarray,
-    K: np.ndarray,
-    times: np.ndarray,
-    flight_mask: np.ndarray,
     w_ref: float,
     w_temp: float,
-    w_phys_xz: float,
-    w_phys_y: float,
-    gravity_mps2: float,
+    audio_support: np.ndarray | None = None,
+    audio_anchor_target: np.ndarray | None = None,
+    w_audio: float = 0.0,
+    audio_accel_relax: float | np.ndarray = 0.0,
+    w_audio_scale: np.ndarray | None = None,
 ) -> np.ndarray:
+    """Refine ball depth between contact anchors.
+
+    Data-driven only: contact frames are pinned to the contacting part's depth
+    (anchors), free frames stay near their prior depth, and the single prior is an
+    acceleration-smoothness regularizer so nothing jumps around frame to frame.
+    No gravity / ballistic assumption - that's object-specific and we want this to
+    hold for anything (swinging, sliding, placing, ...), not just thrown balls.
+
+    Audio (when ``audio_support`` is provided) adds two effects gated by the per-frame
+    onset confidence in [0, 1]:
+      * a soft contact pull (``w_audio``) toward ``audio_anchor_target`` on free
+        frames near an impact - the audio moment says the object touched, so depth is
+        nudged to the contacting part even where visual detection was weak;
+      * a local relaxation of the acceleration regularizer (``audio_accel_relax``) so a
+        real bounce/placement velocity kink is not smoothed away.
+    With all-zero ``audio_support`` both terms vanish and the solve is unchanged.
+    """
     free_idx = np.flatnonzero(~anchor_mask)
     anchor_idx = np.flatnonzero(anchor_mask)
     if len(anchor_idx) == 0:
         raise RuntimeError("No anchors available for anchor interpolation")
 
-    dt = np.diff(times)
-    dt_mean = float(np.mean(dt)) if len(dt) else (1.0 / 30.0)
-    g_dt2 = gravity_mps2 * (dt_mean ** 2)
-    flight_triplet = np.zeros(len(z_ref), dtype=bool)
-    if len(z_ref) >= 3:
-        flight_triplet[1:-1] = flight_mask[:-2] & flight_mask[1:-1] & flight_mask[2:]
+    n = len(z_ref)
+    if audio_support is None:
+        audio_support = np.zeros(n, dtype=np.float64)
+    # per-frame relaxation strength gamma_t (scalar broadcasts); set by the audio
+    # taxonomy (e.g. full kink for an impact, almost none for a sustained hold)
+    relax = np.broadcast_to(np.asarray(audio_accel_relax, dtype=np.float64), (n,))
+    pull_scale = np.ones(n) if w_audio_scale is None else np.asarray(w_audio_scale, dtype=np.float64)
 
     def unpack_z(free_values: np.ndarray) -> np.ndarray:
         z = np.asarray(z_ref, dtype=np.float64).copy()
@@ -153,29 +228,28 @@ def solve_anchor_interpolation(
 
     def residuals(free_values: np.ndarray) -> np.ndarray:
         z = unpack_z(free_values)
-        xyz = reconstruct_xyz_from_uvz(u_obs, v_obs, z, K)
-        x = xyz[:, 0]
-        y = xyz[:, 1]
-        residual_list = []
+        residual_list = [w_ref * (z[free_idx] - z_ref[free_idx])]
 
-        residual_list.append(w_ref * (z[free_idx] - z_ref[free_idx]))
+        # audio-weighted soft contact anchor: at impact moments pull free-frame depth
+        # toward the contacting part's depth, with confidence ~ audio onset strength
+        if w_audio > 0.0 and audio_anchor_target is not None:
+            a_free = audio_support[free_idx]
+            tgt = np.asarray(audio_anchor_target, dtype=np.float64)[free_idx]
+            valid = (a_free > 0.0) & np.isfinite(tgt)
+            if np.any(valid):
+                coef = w_audio * pull_scale[free_idx][valid] * a_free[valid]
+                residual_list.append(coef * (z[free_idx][valid] - tgt[valid]))
 
-        if len(z) >= 3:
+        # penalize depth acceleration (second difference) on free frames - this is
+        # the "no sudden unexpected moves" regularizer, not a physics prior. It is
+        # locally relaxed at audio impacts (by the per-frame, per-event-type gamma) so
+        # a real bounce/placement kink survives.
+        if n >= 3:
             second_z = z[2:] - 2.0 * z[1:-1] + z[:-2]
             smooth_mask = ~anchor_mask[1:-1]
             if np.any(smooth_mask):
-                residual_list.append(w_temp * second_z[smooth_mask])
-
-            if np.any(flight_triplet[1:-1]):
-                phys_mask = flight_triplet[1:-1]
-                second_x = x[2:] - 2.0 * x[1:-1] + x[:-2]
-                second_y = y[2:] - 2.0 * y[1:-1] + y[:-2]
-                second_z_phys = second_z
-                if w_phys_xz > 0.0:
-                    residual_list.append(w_phys_xz * second_x[phys_mask])
-                    residual_list.append(w_phys_xz * second_z_phys[phys_mask])
-                if w_phys_y > 0.0:
-                    residual_list.append(w_phys_y * (second_y[phys_mask] - g_dt2))
+                accel_w = np.clip(w_temp * (1.0 - relax[1:-1] * audio_support[1:-1]), 0.0, None)
+                residual_list.append((accel_w * second_z)[smooth_mask])
 
         return np.concatenate([np.ravel(r) for r in residual_list]).astype(np.float64)
 
@@ -206,11 +280,25 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--default-part", type=str, choices=["hand", "foot"], default=None)
     parser.add_argument("--outside-window-mode", type=str, choices=["global_ref", "boundary_constant"], default="global_ref")
     parser.add_argument("--delta-stat", type=str, choices=["median", "mean"], default="median")
-    parser.add_argument("--w-ref", type=float, default=0.7)
-    parser.add_argument("--w-temp", type=float, default=5.0)
-    parser.add_argument("--w-phys-xz", type=float, default=1.25)
-    parser.add_argument("--w-phys-y", type=float, default=1.5)
-    parser.add_argument("--gravity-mps2", type=float, default=9.81)
+    parser.add_argument("--w-ref", type=float, default=0.7, help="keep free frames near their prior depth")
+    parser.add_argument("--w-temp", type=float, default=5.0, help="smoothness regularizer (depth acceleration)")
+    parser.add_argument("--audio-events-csv", type=Path, default=None,
+                        help="audio onset events (default results/events/audio_events.csv); drives "
+                             "audio contact timing, soft contact pull, and acceleration relaxation")
+    parser.add_argument("--w-audio", type=float, default=3.0,
+                        help="weight of the soft audio-gated contact pull on free frames (0 disables)")
+    parser.add_argument("--audio-accel-relax", type=float, default=0.8,
+                        help="0..1: fraction by which to relax depth-acceleration smoothness at audio impacts")
+    parser.add_argument("--audio-new-anchors", dest="audio_new_anchors", action="store_true", default=True,
+                        help="promote strong audio onsets to hard contact anchors (default on)")
+    parser.add_argument("--no-audio-new-anchors", dest="audio_new_anchors", action="store_false")
+    parser.add_argument("--audio-anchor-thresh", type=float, default=0.5,
+                        help="audio_score threshold for promoting an onset frame to a contact anchor")
+    parser.add_argument("--audio-semantics", dest="audio_semantics", action="store_true", default=True,
+                        help="classify each onset (impact/bounce/placement/scrape/sustained) and apply "
+                             "per-event physics: per-frame gamma overrides --audio-accel-relax, and only "
+                             "body-part contacts are promoted to anchors (floor bounces are not) (default on)")
+    parser.add_argument("--no-audio-semantics", dest="audio_semantics", action="store_false")
     args = parser.parse_args(argv)
 
     sample_dir = args.sample_dir
@@ -265,7 +353,6 @@ def main(argv: list[str] | None = None) -> None:
 
     u_obs = np.asarray([r["u_obs"] for r in ball_rows], dtype=np.float64)
     v_obs = np.asarray([r["v_obs"] for r in ball_rows], dtype=np.float64)
-    times = np.asarray([r["time"] for r in ball_rows], dtype=np.float64)
     z_init = np.asarray([r["tz"] for r in ball_rows], dtype=np.float64)
 
     human_event_mask = np.asarray([f in human_event_frames for f in ball_frames], dtype=bool)
@@ -275,9 +362,8 @@ def main(argv: list[str] | None = None) -> None:
     if state_key is None:
         raise RuntimeError("No generic human contact state field found")
     human_state_mask = np.asarray([int(r[state_key]) == 1 for r in state_rows], dtype=bool)
-    flight_mask = ~(human_state_mask | floor_state_mask)
 
-    contact_labels = [normalize_contact_label(r, default_part=default_part, fallback_side="right") for r in state_rows]
+    contact_labels =[normalize_contact_label(r, default_part=default_part, fallback_side="right") for r in state_rows]
     part_y, part_z, part_name = choose_active_contact_relation(joints, contact_labels, fallback_label=f"right_{default_part}")
     if not np.any(human_event_mask):
         raise RuntimeError("No human contact events found; cannot compute global Delta-Z")
@@ -286,23 +372,59 @@ def main(argv: list[str] | None = None) -> None:
     global_z_shift = float(np.median(deltas) if args.delta_stat == "median" else np.mean(deltas))
     z_ref = np.maximum(z_init + global_z_shift, 0.20)
 
+    # Audio contact timing: per-frame onset confidence over the ball frames.
+    audio_csv = args.audio_events_csv or (results_dir / "events" / "audio_events.csv")
+    audio_rows = read_audio_events(audio_csv)
+    ball_frames_arr = np.asarray(ball_frames, dtype=np.int64)
+    audio_support = build_audio_support(ball_frames_arr, audio_rows)
+
+    # Defaults: scalar relaxation, uniform pull, threshold-based promotion (Phase 1).
+    relax_field: float | np.ndarray = args.audio_accel_relax
+    w_audio_scale = None
+    event_type_field = np.array(["" for _ in ball_frames], dtype=object)
+    classified: list = []
+    audio_promote_mask = None
+
+    # Audio semantics (Phase 2): classify each onset and apply per-event physics.
+    if args.audio_semantics and audio_rows:
+        classified = audio_semantics.classify_audio_events(sample_dir / "audio.wav", audio_rows)
+        if classified:
+            sem = audio_semantics.build_semantic_fields(ball_frames_arr, classified)
+            audio_support = sem["support"]
+            relax_field = sem["gamma"]              # per-event gamma overrides the scalar flag
+            w_audio_scale = sem["w_audio_scale"]
+            event_type_field = sem["event_type"]
+            audio_promote_mask = sem["promote"]     # already gated to body-part contacts
+            audio_semantics.write_semantics_csv(results_dir / "events" / "audio_semantics.csv", classified)
+
+    # Promote strong audio onsets (exact peak frame only) to hard contact anchors,
+    # pinned to the contacting part's depth like the visual anchors. With semantics on,
+    # only body-part contacts are promoted (floor bounces are left unpinned).
+    audio_anchor_mask = np.zeros(len(ball_frames), dtype=bool)
+    if args.audio_new_anchors and audio_rows:
+        if audio_promote_mask is not None:
+            promote = audio_promote_mask
+        else:
+            strong = {int(r["audio_frame"]) for r in audio_rows
+                      if float(r["audio_score"]) >= args.audio_anchor_thresh}
+            promote = np.asarray([f in strong for f in ball_frames], dtype=bool)
+        audio_anchor_mask = promote & np.isfinite(part_z) & ~human_event_mask
+    anchor_mask = human_event_mask | audio_anchor_mask
+
     z_final = solve_anchor_interpolation(
         z_ref=z_ref,
-        anchor_mask=human_event_mask,
+        anchor_mask=anchor_mask,
         anchor_values=part_z,
-        u_obs=u_obs,
-        v_obs=v_obs,
-        K=K,
-        times=times,
-        flight_mask=flight_mask,
         w_ref=args.w_ref,
         w_temp=args.w_temp,
-        w_phys_xz=args.w_phys_xz,
-        w_phys_y=args.w_phys_y,
-        gravity_mps2=args.gravity_mps2,
+        audio_support=audio_support,
+        audio_anchor_target=part_z,
+        w_audio=args.w_audio,
+        audio_accel_relax=relax_field,
+        w_audio_scale=w_audio_scale,
     )
     if args.outside_window_mode == "boundary_constant":
-        anchor_idx = np.flatnonzero(human_event_mask)
+        anchor_idx = np.flatnonzero(anchor_mask)
         interp_start = int(anchor_idx[0])
         interp_end = int(anchor_idx[-1])
         if interp_start > 0:
@@ -331,6 +453,8 @@ def main(argv: list[str] | None = None) -> None:
             "contact_part": contact_part, "contact_side": contact_side, "contact_label": contact_label,
             "active_part": str(part_name[idx]), "active_part_y": f"{part_y[idx]:.6f}", "active_part_z": f"{part_z[idx]:.6f}",
             "global_z_ref": f"{z_ref[idx]:.6f}", "contact_depth_gap": f"{(xyz_final[idx,2] - part_z[idx]):.6f}",
+            "audio_support": f"{audio_support[idx]:.6f}", "audio_anchor": int(audio_anchor_mask[idx]),
+            "audio_event_type": str(event_type_field[idx]) if event_type_field[idx] not in ("none", "") else "",
         })
         reproj_rows.append({
             "frame": row["frame"], "u_obs": f"{row['u_obs']:.3f}", "v_obs": f"{row['v_obs']:.3f}", "u_reproj": f"{row['u_obs']:.3f}", "v_reproj": f"{row['v_obs']:.3f}",
@@ -347,7 +471,7 @@ def main(argv: list[str] | None = None) -> None:
         "floor_v","support_type","support_source","support_confidence","residual_px","contact_frame","audio_contact_frame",
         "human_contact_event","floor_contact_event","human_contact_state","floor_contact_state",
         "contact_part","contact_side","contact_label","active_part","active_part_y","active_part_z",
-        "global_z_ref","contact_depth_gap",
+        "global_z_ref","contact_depth_gap","audio_support","audio_anchor","audio_event_type",
     ])
     write_csv(reproj_csv, reproj_rows, ["frame","u_obs","v_obs","u_reproj","v_reproj","error_u","error_v","error_px"])
 
@@ -355,13 +479,22 @@ def main(argv: list[str] | None = None) -> None:
         f.write("Generic anchor interpolation z refinement for human-ball contact.\n")
         f.write(f"default_part: {default_part}\n")
         f.write(f"outside_window_mode: {args.outside_window_mode}\n")
-        f.write(f"w_phys_xz: {args.w_phys_xz:.6f}\n")
-        f.write(f"w_phys_y: {args.w_phys_y:.6f}\n")
-        f.write(f"gravity_mps2: {args.gravity_mps2:.6f}\n")
+        f.write(f"w_ref: {args.w_ref:.6f}\n")
+        f.write(f"w_temp: {args.w_temp:.6f}\n")
+        f.write(f"w_audio: {args.w_audio:.6f}\n")
+        f.write(f"audio_accel_relax: {args.audio_accel_relax:.6f}\n")
+        f.write(f"audio_events_csv: {audio_csv}\n")
         f.write(f"global_z_shift_from_human_events_m: {global_z_shift:.6f}\n")
         f.write(f"num_frames: {len(ball_rows)}\n")
         f.write(f"num_human_event_frames: {int(np.count_nonzero(human_event_mask))}\n")
         f.write(f"num_floor_event_frames: {int(np.count_nonzero(floor_event_mask))}\n")
+        f.write(f"num_audio_events: {len(audio_rows)}\n")
+        f.write(f"num_audio_anchor_frames: {int(np.count_nonzero(audio_anchor_mask))}\n")
+        f.write(f"audio_semantics: {bool(args.audio_semantics and classified)}\n")
+        if classified:
+            from collections import Counter
+            counts = dict(Counter(e.event_type for e in classified))
+            f.write(f"audio_event_type_counts: {counts}\n")
 
     print(f"contactphase_csv: {out_csv}")
     print(f"contactphase_reproj_csv: {reproj_csv}")

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/scripts/third-party/GVHMR" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/scripts/third-party/depth-anything-3" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/scripts/third-party/hamer" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/scripts/third-party/hamer/third-party/ViTPose" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/scripts/third-party/sam-3d-objects" vcs="Git" />
+  </component>
+</project>

@@ -91,20 +91,100 @@ Full objective: $\;\displaystyle \min_{\{X_t,Y_t\},\{a_s,b_s\}} \sum_i \rho\!\bi
 
 A depth-only pass that fixes the 2D observation $(u_\text{obs},v_\text{obs})$ and refines
 $Z_t$. Contact frames are **anchors**: $Z_t$ is pinned to the depth of the contacting
-body part (hand/foot). Non-anchor (free) frames are solved for. $X_t,Y_t$ follow from
-back-projection at the current $Z_t$.
+body part (auto-selected, e.g. hand/foot). Non-anchor (free) frames are solved for, and
+$X_t,Y_t$ follow from back-projection at the current $Z_t$.
 
 Residuals (robust `soft_l1`):
 
 - Stay near the prior: $w_\text{ref}\,(Z_t - Z_t^\text{ref})$ on free frames
-- Temporal smoothness: $w_\text{temp}\,(Z_{t+1}-2Z_t+Z_{t-1})$ on non-anchor interiors
-- Ballistic prior during free-flight triplets (constant horizontal velocity, gravity on the vertical):
-  $$w_{xz}\,(X_{t+1}-2X_t+X_{t-1}),\quad w_{xz}\,(Z_{t+1}-2Z_t+Z_{t-1}),\quad w_{y}\,\big((Y_{t+1}-2Y_t+Y_{t-1}) - g\,\Delta t^2\big),$$
-  where the second difference of position approximates acceleration and $g\,\Delta t^2$ is the expected drop under gravity.
+- Smoothness regularizer: $w_\text{temp}\,(Z_{t+1}-2Z_t+Z_{t-1})$ on non-anchor interiors
 
-Defaults: $w_\text{ref}=0.7,\ w_\text{temp}=5.0,\ w_{xz}=1.25,\ w_{y}=1.5,\ g=9.81\,\mathrm{m/s^2}$.
+**Audio terms (implemented).** Each onset in `results/events/audio_events.csv` carries a
+confidence $s_t\in[0,1]$ (the `audio_score` column, or a `prominence`-normalized fallback),
+spread over $\pm2$ frames with a triangular falloff into a per-frame $\text{aud}_t$. It enters
+the depth solve in three ways:
 
-## 5. Rendering transforms (not a loss)
+- **New contact anchors (timing):** a strong onset frame ($s_t\ge\tau$, default $\tau=0.5$) is
+  promoted to a hard anchor pinned to the contacting part's depth, even where visual contact
+  detection missed it — audio gives the exact moment the object touches.
+- **Soft audio contact pull:** $w_\text{audio}\,\text{aud}_t\,(Z_t - Z_t^\text{part})$ on free
+  frames near an onset, nudging depth to the contacting part with confidence $\propto s_t$.
+- **Audio-gated acceleration relaxation:** the smoothness term is locally scaled by
+  $(1-\gamma\,\text{aud}_t)$ so a real bounce/placement velocity kink at the impact instant is
+  not smoothed away.
+
+Defaults: $w_\text{ref}=0.7,\ w_\text{temp}=5.0,\ w_\text{audio}=3.0,\ \gamma=0.8$. With no
+`audio_events.csv` present, $\text{aud}_t\equiv0$ and all three terms vanish — the solve is
+identical to the contacts-only version (verified byte-identical on basketball).
+
+**Audio semantics (implemented, `scripts/shared/events/audio_semantics.py`).** Rather than
+one global $\gamma$ and a blanket promotion rule, each onset is classified **zero-shot** from
+generic acoustic features (attack sharpness, decay time, spectral brightness, recomputed from
+`audio.wav` with `scipy` only) into `impact / bounce / placement / scrape / sustained`, and each
+type sets its own physics: the relaxation $\gamma_t$ (full for an impact, almost none for a
+sustained hold), the pull weight, and crucially a **contact target** (`part` vs `support`). Only
+body-part contacts are promoted to anchors, so a periodic floor **bounce** (a dribble) is no
+longer falsely pinned to the hand — it gets the kink relaxation but no body-part anchor. (On
+basketball this drops 15 spurious hand anchors to 0; on a football kick the impacts promote.)
+
+There is deliberately **no gravity / ballistic prior** here. That kind of physics
+assumption is object- and scenario-specific (a thrown ball, but not a swung hammer or a
+sliding drawer), so it's been removed. The only prior is the acceleration-smoothness
+regularizer of Section 6; everything else comes from the data (contacts, observations, audio).
+
+## 5. Generalized zero-shot interaction energy (target formulation)
+
+Sections 2–4 are the current object-side baseline. The direction we're consolidating
+toward is a single, object-agnostic energy that works **zero-shot on anything** — no
+per-object or per-category training, no baked-in physics. Every cue comes from a
+foundation model that is itself zero-shot, and every term is geometric/observational.
+The human (GVHMR + HaMeR) is fixed and metric; we optimise the object pose
+$\mathbf{T}_t=(\mathbf{R}_t,\mathbf{t}_t)$ against it.
+
+$$\mathbf{T}_{1:N}^\star=\arg\min \sum_t\Big[ w_\text{mask}R_\text{mask} + w_\text{kp}R_\text{kp} + w_\text{depth}R_\text{depth} + w_\text{center}R_\text{center} + w_\text{contact}R_\text{contact} + w_\text{support}R_\text{support} \Big] \;+\; w_\text{reg}R_\text{reg}$$
+
+Data terms (each from a zero-shot source):
+
+- $R_\text{mask}$ — object geometry silhouette vs. SAM2/Grounding-DINO mask (chamfer/IoU). Replaces the sphere size/radius cue.
+- $R_\text{kp}$ — CoTracker 2D tracks vs. reprojected surface points (also constrains rotation).
+- $R_\text{depth}$ — object metric depth $Z_t-\hat Z_t$ from DA3 (Section 2).
+- $R_\text{center}$ — projected centroid vs. observed centroid/bbox.
+- $R_\text{contact}$ — at contact frames, object surface meets the human contact part or support plane; **gated and time-stamped by the audio–visual events** (audio onsets give the exact impact frame, video gives the candidate, alignment activates the term). The contact *point* itself comes from `scripts/shared/events/extract_contact_points.py`: at each audio-confirmed onset it places a surface point on the object (geometric: along the centre→nearest-part ray, exact for a sphere; or VLM: a Qwen3-VL crop query for the precise contact pixel + object part). Reprojecting that known surface point to the observed contact pixel is the residual that constrains object translation and — for non-spherical objects — rotation.
+- $R_\text{support}$ — object rests on / rebounds off the estimated ground plane.
+
+**The only prior is one smoothness regularizer** (Section 6) — no gravity, no
+constant-velocity, no parabola. The motion is carried by the data; the regularizer just
+stops it jumping.
+
+## 6. The smoothness regularizer
+
+A light penalty on **acceleration / jerk** (the *change* of motion), not on speed — so
+genuinely fast-but-smooth motion (a kick, a throw) is allowed, while frame-to-frame
+jitter and teleport-like jumps are suppressed:
+
+$$R_\text{reg}=\sum_t \big\| \mathbf{t}_{t+1}-2\mathbf{t}_t+\mathbf{t}_{t-1} \big\|^2 \quad(\text{and analogously for } \mathbf{R}_t).$$
+
+Keep $w_\text{reg}$ small and the loss robust (`soft_l1`) so sharp but real velocity
+changes at contacts survive; relax it locally at audio/visual contact frames, where a kink
+is physically expected. This local audio relaxation is implemented in the depth-only
+contact-phase solver (Section 4, the $\gamma$ term).
+
+## 7. VLM agentic check & real-time scene adjustment
+
+On top of the optimisation sits an agentic feedback layer. A vision-language model
+inspects the generated scene (rendered overlay + world view) against the input video and
+the textual/event description, and judges plausibility that the energy alone can't —
+interpenetration, wrong/missing contact, implausible placement or pose, object on the
+wrong side, etc.
+
+Its findings drive a **real-time adjustment of the scene generation**: re-weight or
+toggle terms (e.g. strengthen $R_\text{contact}$ or $R_\text{depth}$), re-time/re-assign
+contacts, re-pick the contact part, or re-run the relevant stage — then re-render and
+re-check, in a loop until the VLM signs off. This keeps the system zero-shot (the VLM is
+a general critic, not a trained-per-object module) while catching the failures a
+geometric loss is blind to.
+
+## 8. Rendering transforms (not a loss)
 
 `scripts/shared/human_ball/render_full_scene_3d.py`
 

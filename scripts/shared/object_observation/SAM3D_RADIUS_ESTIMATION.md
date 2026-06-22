@@ -4,6 +4,10 @@
 
 This pipeline estimates the 3D object radius from single-image SAM 3D Objects reconstruction, replacing the hard-coded `radius_m = 0.12` with per-frame data-driven estimates.
 
+> **Note:** with the Depth Anything 3 path (`--depth-source depthv3`), object depth no longer
+> depends on a known radius, so radius estimation is optional — it only matters for the legacy
+> sphere baseline (`--depth-source sphere`). See `method_losses.md`.
+
 **Pipeline:**
 ```
 SAM 2 masks + video frames

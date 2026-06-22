@@ -1,6 +1,10 @@
 # Basketball 3D Lifting Flow
 
-这份说明只描述当前正在使用的 **basketball 3D lifting baseline**，不包含之前的 pseudo-3D 可视化分支。
+这份说明描述最初的 **basketball 3D lifting baseline**（球体、基于尺寸的深度）。
+
+> **更新：** 下文基于尺寸的深度（`Z = f * R / r`）现在是*旧路径*。默认的与物体无关路径使用
+> **Depth Anything 3** 度量深度，并逐帧对齐到 GVHMR 人体（`--depth-source depthv3`）。
+> 当前通用、与物体无关的能量函数（数据项 + 单一平滑正则项，无物理先验）见 `method_losses.md`。
 
 ## 1. 目标
 

@@ -1,9 +1,15 @@
 # Sharedcam and Contactphase Mathematical Formulation
 
-This note summarizes the current optimization objectives used in the basketball shared-camera pipeline.
+This note summarizes the optimization objectives for the basketball shared-camera pipeline (sphere baseline).
 
 Pipeline update:
 SAM2 masks + CoTracker -> generic object observations -> shared-camera baseline -> contactphase anchor interpolation.
+
+> **Newer than this note:** depth can now come from Depth Anything 3 (`--depth-source depthv3`)
+> instead of the size term §2.3, and the contact phase lives in
+> `run_human_ball_contact_phase_calibration_anchorinterp_generic.py` with **no gravity/ballistic
+> term** (anchors + reference + smoothness only). The generalized, object-agnostic energy is in
+> `method_losses.md`.
 
 ## 1. Notation
 

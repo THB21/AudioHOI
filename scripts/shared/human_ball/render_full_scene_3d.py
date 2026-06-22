@@ -222,12 +222,17 @@ def main():
     ap.add_argument("--orbit-turns", type=float, default=1.0, help="full camera turns over the clip")
     ap.add_argument("--elevation-deg", type=float, default=16.0)
     ap.add_argument("--mode", choices=["both", "overlay", "world"], default="both")
+    ap.add_argument("--out-dir", type=Path, default=None,
+                    help="override output directory (default results/renders/full_scene_3d)")
+    ap.add_argument("--tag", type=str, default="",
+                    help="filename prefix so renders are saved under distinct names (e.g. L1, L2)")
     args = ap.parse_args()
 
     body_color = BODY_PALETTE[args.body_color]
     results_dir = args.sample_dir / "results"
-    out_dir = results_dir / "renders" / "full_scene_3d"
+    out_dir = args.out_dir or (results_dir / "renders" / "full_scene_3d")
     out_dir.mkdir(parents=True, exist_ok=True)
+    pfx = (args.tag + "_") if args.tag else ""
 
     traj_path = pick_trajectory(results_dir, args.object_trajectory)
     print(f"object trajectory: {traj_path}")
@@ -291,8 +296,8 @@ def main():
 
     do_overlay = args.mode in ("both", "overlay")
     do_world = args.mode in ("both", "world")
-    w_over = writer("overlay.mp4") if do_overlay else None
-    w_world = writer("world.mp4") if do_world else None
+    w_over = writer(f"{pfx}overlay.mp4") if do_overlay else None
+    w_world = writer(f"{pfx}world.mp4") if do_world else None
 
     print(f"Rendering {len(frame_paths)} frames ({W}x{H}); mode={args.mode}")
     n = len(frame_paths)
@@ -303,7 +308,7 @@ def main():
             frame = composite(img, rgba, args.alpha)
             w_over.write(frame)
             if i == 0:
-                cv2.imwrite(str(out_dir / "overlay_preview.png"), frame)
+                cv2.imwrite(str(out_dir / f"{pfx}overlay_preview.png"), frame)
         if do_world:
             theta = 2.0 * np.pi * args.orbit_turns * (i / max(n - 1, 1))
             eye = center_w + orbit_dist * np.array([
@@ -315,16 +320,16 @@ def main():
             frame = cv2.cvtColor(rgba[:, :, :3], cv2.COLOR_RGB2BGR)
             w_world.write(frame)
             if i == 0:
-                cv2.imwrite(str(out_dir / "world_preview.png"), frame)
+                cv2.imwrite(str(out_dir / f"{pfx}world_preview.png"), frame)
         if (i + 1) % 24 == 0 or (i + 1) == n:
             print(f"  {i + 1}/{n}")
 
     if w_over:
         w_over.release()
-        print(f"overlay_mp4: {out_dir / 'overlay.mp4'}")
+        print(f"overlay_mp4: {out_dir / (pfx + 'overlay.mp4')}")
     if w_world:
         w_world.release()
-        print(f"world_mp4: {out_dir / 'world.mp4'}")
+        print(f"world_mp4: {out_dir / (pfx + 'world.mp4')}")
     renderer.delete()
 
 

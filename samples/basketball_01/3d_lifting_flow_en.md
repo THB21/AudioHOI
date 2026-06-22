@@ -1,6 +1,12 @@
 # Basketball 3D Lifting Flow
 
-This note describes the current **basketball 3D lifting baseline** only.
+This note describes the original **basketball 3D lifting baseline** (sphere, size-based depth).
+
+> **Update:** the size-based depth below (`Z = f * R / r`) is now the *legacy* path. The
+> default object-agnostic path uses **Depth Anything 3** metric depth, scaled per-frame to
+> the GVHMR body, via `--depth-source depthv3`. See `method_losses.md` for the current
+> generalized, object-agnostic energy (data terms + a single smoothness regularizer, no
+> physics priors).
 
 ## 1. Goal
 

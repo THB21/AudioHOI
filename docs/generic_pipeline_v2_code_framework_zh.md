@@ -83,10 +83,22 @@ core/evaluation/
 ```text
 components/geometry/
 components/observation/
+  policies/   # stage1 直接调用的 observation model
+  solvers/    # 具体检测、传播、采样、导出脚本
+  utils/      # observation 公共工具
 components/contact/
+  policies/   # stage2 直接调用的 contact policy
+  solvers/    # contact candidate / GVHMR / anchor state 求解器
+  utils/      # contact part / human part 公共工具
 components/pose/
+  models/     # stage3 直接调用的 pose model
+  solvers/    # 具体 2D/3D/phase fitting 脚本
 components/refinement/
+  policies/   # stage4 直接调用的 refinement policy
+  solvers/    # anchor interp / chair SE(3) / quality eval 等求解器
 components/render/
+  backends/   # stage5 直接调用的 render backend
+  scenes/     # 真正绘制 overlay/camera3d/side_yz 的底层脚本
 ```
 
 例子：
@@ -94,6 +106,18 @@ components/render/
 - 球类复用 `mask_track_center + hand_floor/foot_floor + translation3 + anchor_depth + proxy_sphere`。
 - mug 复用 `rigid_body_plus_parts + palm_handle_rim_body + rigid6_plus_phase + stable_grasp_anchor + articraft_mesh`。
 - chair 复用 `semantic_graph_tracks + two_hand_toprail_endpoint + semantic_graph_6d + small_se3/anchor_propagate_freeze + urdf_solid`。
+
+stage 只动态加载以下目录：
+
+```text
+stage1 -> components/observation/policies/<observation_model>.py
+stage2 -> components/contact/policies/<contact_policy>.py
+stage3 -> components/pose/models/<pose_model>.py
+stage4 -> components/refinement/policies/<refinement_policy>.py
+stage5 -> components/render/backends/<render_backend>.py
+```
+
+`solvers/` 和 `scenes/` 可以很复杂，但不能被当作 case runner；它们只能被 policy/model/backend 调用。
 
 ### `stages/`
 
@@ -191,10 +215,10 @@ scripts/known_object/mug/run_mug_m18_physical_nohide_pipeline.py
 是历史 M18/M17 单 object runner。其稳定逻辑已经迁移到：
 
 ```text
-components/pose/mug_handle_phase_correction.py
-components/pose/mug_opening_2d_pose_correction.py
-components/refinement/stable_grasp_anchor.py
-components/render/render_mug_articraft_camera3d_scene.py
+components/pose/solvers/mug_handle_phase_correction.py
+components/pose/solvers/mug_opening_2d_pose_correction.py
+components/refinement/policies/stable_grasp_anchor.py
+components/render/scenes/render_mug_articraft_camera3d_scene.py
 ```
 
 因此主线不再依赖该旧 runner。
@@ -210,9 +234,9 @@ configs/cases/<new_object>.yaml
 如果已有能力不够，再新增一个小 component，例如：
 
 ```text
-components/observation/<new_observation>.py
-components/contact/<new_contact_policy>.py
-components/refinement/<new_refinement>.py
+components/observation/policies/<new_observation>.py
+components/contact/policies/<new_contact_policy>.py
+components/refinement/policies/<new_refinement>.py
 ```
 
 不要新增整套 `run_<object>_xxx.py`。stage runner 应该继续根据 config 选择 component。

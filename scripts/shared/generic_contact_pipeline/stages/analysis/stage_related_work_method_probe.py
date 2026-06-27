@@ -13,6 +13,8 @@ if __package__ in {None, ""}:
     REPO = Path(__file__).resolve().parents[5]
     if str(REPO) not in sys.path:
         sys.path.insert(0, str(REPO))
+else:
+    REPO = Path(__file__).resolve().parents[5]
 
 from scripts.shared.generic_contact_pipeline.core.base.config import available_cases, load_case_profile  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.base.io import read_csv, repo_path, write_csv, write_json  # noqa: E402

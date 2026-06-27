@@ -6,11 +6,11 @@ import math
 from pathlib import Path
 
 from ...components.contact.build_mug_grasp_anchor_state import FIELDS, build_state
-from ...core.config import CaseProfile
-from ...core.io import float_or_none, read_csv, repo_path, write_csv, write_json
-from ...core.provenance import resolve_mug_m17_phase, write_mug_m17_reconstruction_report
-from ...core.schema import stage_paths
-from ...core.vlm_gates import apply_contact_gate_to_rows
+from ...core.base.config import CaseProfile
+from ...core.base.io import float_or_none, read_csv, repo_path, write_csv, write_json
+from ...core.semantics.provenance import resolve_mug_m17_phase, write_mug_m17_reconstruction_report
+from ...core.base.schema import stage_paths
+from ...core.gates.vlm_gates import apply_contact_gate_to_rows
 
 
 def _matmul(a, b):

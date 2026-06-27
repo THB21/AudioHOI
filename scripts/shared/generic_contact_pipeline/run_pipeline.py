@@ -14,12 +14,14 @@ if __package__ in {None, ""}:
     if str(REPO) not in sys.path:
         sys.path.insert(0, str(REPO))
 
-from scripts.shared.generic_contact_pipeline.core.config import available_cases, load_case_profile, with_runtime_overrides  # noqa: E402
-from scripts.shared.generic_contact_pipeline.core.io import write_json  # noqa: E402
-from scripts.shared.generic_contact_pipeline.core.schema import stage_paths  # noqa: E402
-from scripts.shared.generic_contact_pipeline.core.vlm_provider import load_vlm_provider  # noqa: E402
-from scripts.shared.generic_contact_pipeline.core.vlm_gates import write_stage_gates  # noqa: E402
-from scripts.shared.generic_contact_pipeline.stages import (  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.base.config import available_cases, load_case_profile, with_runtime_overrides  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.base.io import write_json  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.base.schema import stage_paths  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.gates.vlm_provider import load_vlm_provider  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.gates.vlm_gates import write_stage_gates  # noqa: E402
+from scripts.shared.generic_contact_pipeline.stages.analysis import stage_loss_analysis  # noqa: E402
+from scripts.shared.generic_contact_pipeline.stages.gates import stage_vlm_qwen, stage_vlm_verify  # noqa: E402
+from scripts.shared.generic_contact_pipeline.stages.main import (  # noqa: E402
     stage_minus1_llm_prior,
     stage0_preprocess,
     stage1_observation,
@@ -28,9 +30,6 @@ from scripts.shared.generic_contact_pipeline.stages import (  # noqa: E402
     stage4_contact_refine,
     stage5_render,
     stage6_compare,
-    stage_loss_analysis,
-    stage_vlm_qwen,
-    stage_vlm_verify,
 )
 
 
@@ -71,7 +70,7 @@ def _run_stage_vlm(profile, stage_name: str, args: argparse.Namespace) -> dict[s
     provider = load_vlm_provider(args.vlm_provider)
     provider.apply_env_defaults()
     if not provider.is_current_python():
-        script = Path(__file__).resolve().parent / "stages" / "stage_vlm_qwen.py"
+        script = Path(__file__).resolve().parent / "stages" / "gates" / "stage_vlm_qwen.py"
         cmd = [
             str(provider.python),
             str(script),

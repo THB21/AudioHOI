@@ -24,7 +24,7 @@ REPO = Path(__file__).resolve().parents[5]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from scripts.shared.human_ball.contact.contact_part_utils import build_contact_part_centers  # noqa: E402
+from scripts.shared.generic_contact_pipeline.components.contact.contact_part_utils import build_contact_part_centers  # noqa: E402
 
 
 FIELDS = [

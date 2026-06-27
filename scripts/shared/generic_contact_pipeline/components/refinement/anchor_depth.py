@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import subprocess
 
-from ...core.config import CaseProfile
-from ...core.ball_residuals import write_ball_residual_report
-from ...core.camera import backproject_uvz
-from ...core.io import copy_file, float_or_none, read_csv, repo_path, write_csv, write_json
-from ...core.runtime import runtime_python
-from ...core.schema import stage_paths
-from ...core.vlm_gates import apply_contact_gate_to_rows
+from ...core.base.config import CaseProfile
+from ...core.evaluation.ball_residuals import write_ball_residual_report
+from ...core.base.camera import backproject_uvz
+from ...core.base.io import copy_file, float_or_none, read_csv, repo_path, write_csv, write_json
+from ...core.base.runtime import runtime_python
+from ...core.base.schema import stage_paths
+from ...core.gates.vlm_gates import apply_contact_gate_to_rows
 
 
 def _interp_anchor_segment(frames: list[int], z_init: list[float], anchor_values: dict[int, float]) -> list[float]:

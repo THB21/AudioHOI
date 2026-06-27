@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from ...core.config import CaseProfile
-from ...core.io import copy_file, repo_path, write_json
-from ...core.schema import stage_paths
+from ...core.base.config import CaseProfile
+from ...core.base.io import copy_file, repo_path, write_json
+from ...core.base.schema import stage_paths
 
 
 def build(profile: CaseProfile) -> dict[str, object]:

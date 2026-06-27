@@ -3,12 +3,12 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from ...core.config import CaseProfile
-from ...core.io import REPO, copy_file, read_csv, repo_path, write_csv, write_json
-from ...core.provenance import resolve_chair_physical6d_seed
-from ...core.runtime import runtime_python
-from ...core.schema import stage_paths
-from ...core.vlm_gates import apply_contact_gate_to_rows
+from ...core.base.config import CaseProfile
+from ...core.base.io import REPO, copy_file, read_csv, repo_path, write_csv, write_json
+from ...core.semantics.provenance import resolve_chair_physical6d_seed
+from ...core.base.runtime import runtime_python
+from ...core.base.schema import stage_paths
+from ...core.gates.vlm_gates import apply_contact_gate_to_rows
 
 
 def apply(profile: CaseProfile) -> dict[str, object]:

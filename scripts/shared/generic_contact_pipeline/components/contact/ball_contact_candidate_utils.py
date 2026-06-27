@@ -17,7 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[5]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.shared.human_ball.contact.contact_part_utils import build_contact_part_centers
+from scripts.shared.generic_contact_pipeline.components.contact.contact_part_utils import build_contact_part_centers
 
 LEFT_HAND_KEY = 'left_hand'
 RIGHT_HAND_KEY = 'right_hand'

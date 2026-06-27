@@ -18,7 +18,7 @@ from scipy.optimize import least_squares
 import smplx
 import torch
 
-from scripts.shared.human_ball.contact.contact_part_utils import (
+from scripts.shared.generic_contact_pipeline.components.contact.contact_part_utils import (
     build_contact_identity,
     choose_active_contact_relation,
     normalize_contact_label,

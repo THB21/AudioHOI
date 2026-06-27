@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from ...core.config import CaseProfile
-from ...core.io import read_csv, write_csv, write_json
-from ...core.schema import stage_paths
+from ...core.base.config import CaseProfile
+from ...core.base.io import read_csv, write_csv, write_json
+from ...core.base.schema import stage_paths
 
 
 def _by_frame(rows: list[dict[str, str]]) -> dict[int, dict[str, str]]:

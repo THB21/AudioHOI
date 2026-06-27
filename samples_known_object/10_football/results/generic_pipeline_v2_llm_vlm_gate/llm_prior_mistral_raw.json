@@ -1,0 +1,135 @@
+{
+  "case_name": "football",
+  "provider": "mistral_api",
+  "provider_doctor": {
+    "name": "mistral_api",
+    "kind": "mistral_chat_completions",
+    "api_key_env": "MISTRAL_API_KEY",
+    "api_key_present": true,
+    "model_id": "mistral-small-latest",
+    "base_url": "https://api.mistral.ai/v1",
+    "temperature": 0.0,
+    "max_new_tokens": 900,
+    "timeout_seconds": 120
+  },
+  "raw_text": "{\n  \"case_name\": \"football\",\n  \"object_category\": \"football\",\n  \"object_family\": \"dynamic_ball\",\n  \"object_parts\": [\n    {\n      \"name\": \"ball_center\",\n      \"role\": \"2d_center_anchor\"\n    },\n    {\n      \"name\": \"ball_boundary\",\n      \"role\": \"mask_radius_anchor\"\n    },\n    {\n      \"name\": \"ball_bottom\",\n      \"role\": \"floor_support_anchor\"\n    }\n  ],\n  \"human_parts\": [\n    \"foot\",\n    \"floor\"\n  ],\n  \"interaction_edges\": [\n    {\n      \"human_part\": \"foot\",\n      \"object_part\": \"ball_boundary\",\n      \"relation\": \"touch\"\n    },\n    {\n      \"human_part\": \"floor\",\n      \"object_part\": \"ball_bottom\",\n      \"relation\": \"support\"\n    }\n  ],\n  \"support_priors\": [\n    \"floor_support\"\n  ],\n  \"motion_priors\": [\n    \"smooth_ball_translation\",\n    \"foot_contact_depth_stabilization\",\n    \"gravity_affected_ball_motion\"\n  ],\n  \"vlm_query_policy\": {\n    \"stage0\": [\n      \"target_mask_check\"\n    ],\n    \"stage1\": [\n      \"keypart_identity_check\",\n      \"track_stability_check\"\n    ],\n    \"stage2\": [\n      \"contact_relation_check\"\n    ],\n    \"stage3\": [\n      \"overlay_alignment_check\"\n    ],\n    \"stage4\": [\n      \"anchor_update_check\",\n      \"temporal_motion_check\"\n    ],\n    \"stage5\": [\n      \"post_render_sanity_check\"\n    ]\n  }\n}",
+  "parsed_json": {
+    "case_name": "football",
+    "object_category": "football",
+    "object_family": "dynamic_ball",
+    "object_parts": [
+      {
+        "name": "ball_center",
+        "role": "2d_center_anchor"
+      },
+      {
+        "name": "ball_boundary",
+        "role": "mask_radius_anchor"
+      },
+      {
+        "name": "ball_bottom",
+        "role": "floor_support_anchor"
+      }
+    ],
+    "human_parts": [
+      "foot",
+      "floor"
+    ],
+    "interaction_edges": [
+      {
+        "human_part": "foot",
+        "object_part": "ball_boundary",
+        "relation": "touch"
+      },
+      {
+        "human_part": "floor",
+        "object_part": "ball_bottom",
+        "relation": "support"
+      }
+    ],
+    "support_priors": [
+      "floor_support"
+    ],
+    "motion_priors": [
+      "smooth_ball_translation",
+      "foot_contact_depth_stabilization",
+      "gravity_affected_ball_motion"
+    ],
+    "vlm_query_policy": {
+      "stage0": [
+        "target_mask_check"
+      ],
+      "stage1": [
+        "keypart_identity_check",
+        "track_stability_check"
+      ],
+      "stage2": [
+        "contact_relation_check"
+      ],
+      "stage3": [
+        "overlay_alignment_check"
+      ],
+      "stage4": [
+        "anchor_update_check",
+        "temporal_motion_check"
+      ],
+      "stage5": [
+        "post_render_sanity_check"
+      ]
+    }
+  },
+  "parse_ok": true,
+  "prompt_context": {
+    "case_name": "football",
+    "result_name": "generic_pipeline_v2_llm_vlm_gate",
+    "prompt_entry_count": 5,
+    "entries": [
+      {
+        "kind": "sample_metadata.prompt",
+        "path": "samples_known_object/10_football/metadata.json",
+        "record_id": "",
+        "text_preview": "Generate an 8-second realistic video from this image. The soccer player starts with the ball on the grass near one foot. The player first kicks the ball upward with one foot, then keeps the ball close and performs a short controlled juggling sequence using the feet. The ball should move naturally according to the player’s foot contact and gravity, without floating or changing direction by itself. Keep the camera static in a wide shot, with the full body and the soccer ball visible for most of the sequence.Add realistic synchronized audio: a clear foot-ball kick sound at the first kick, followed by light foot-ball contact sounds during the juggling touches. The contact sounds should occur only when the ball visibly touches the foot. No music, no speech.",
+        "sha256": "3d1aceb03d0c14c84054481f548304ae2ebb81b4e32bb48c456245c2738fb0c4"
+      },
+      {
+        "kind": "sample_metadata.detection_text",
+        "path": "samples_known_object/10_football/metadata.json",
+        "record_id": "",
+        "text_preview": "football.",
+        "sha256": "b4c078ba4ee8c61d9a7b7233e0910423e3c9b0ffa0229a9ac0914d498a30d5f2"
+      },
+      {
+        "kind": "sample_metadata.name",
+        "path": "samples_known_object/10_football/metadata.json",
+        "record_id": "",
+        "text_preview": "football",
+        "sha256": "6382deaf1f5dc6e792b76db4a4a7bf2ba468884e000b25e7928e621e27fb23cb"
+      },
+      {
+        "kind": "sample_metadata.video",
+        "path": "samples_known_object/10_football/metadata.json",
+        "record_id": "",
+        "text_preview": "video_sample/10_football_video.mp4",
+        "sha256": "36bc570d8256964c54b9a67a918dc96148863376822ac7e02130fcd516773598"
+      },
+      {
+        "kind": "sample_metadata.image",
+        "path": "samples_known_object/10_football/metadata.json",
+        "record_id": "",
+        "text_preview": "video_sample/10_football.jpg",
+        "sha256": "45c650645115f11c6a2b9b9230114912ec6fe4d71cbc1cb21b6596c6a3e8c3e0"
+      }
+    ],
+    "missing_referenced_prompts": [],
+    "usage_rule": "Prompt context is semantic evidence for LLM/VLM query design only; it must not supply continuous pose, coordinates, or loss weights."
+  },
+  "usage": {
+    "prompt_tokens": 1916,
+    "total_tokens": 2277,
+    "completion_tokens": 361,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "response_id": "c79deb7baa014cf481c518cdab4e501a"
+}

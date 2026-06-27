@@ -1,0 +1,38 @@
+{
+  "case_name": "mug",
+  "stage": "stage5",
+  "mode": "dry_run",
+  "decision": "not_blocking_dry_run",
+  "blocking": false,
+  "query_count": 3,
+  "gate_counts": {
+    "not_evaluated": 3
+  },
+  "query_counts": {
+    "post_render_sanity_check": 3
+  },
+  "accepted_frames": [],
+  "blocked_frames": [],
+  "report_only_reject_frames": [],
+  "unclear_frames": [
+    1,
+    121,
+    240
+  ],
+  "repair_actions_by_frame": {},
+  "rejected_results": [],
+  "allowed_repair_actions": [
+    "accept_candidate",
+    "reject_candidate",
+    "disable_contact_frame",
+    "keep_previous_anchor",
+    "downweight_correspondence",
+    "use_mask_fallback",
+    "retry_with_alternative_keypart",
+    "allow_small_se3_refine",
+    "freeze_before_after_contact",
+    "mark_for_report_only",
+    "unclear_no_update"
+  ],
+  "note": "Dry-run outputs generate schema/evidence only and never block."
+}

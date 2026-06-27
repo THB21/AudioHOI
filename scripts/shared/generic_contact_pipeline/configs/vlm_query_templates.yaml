@@ -1,0 +1,61 @@
+version: 1
+mode: conservative_verification
+rules:
+  - one_question_per_call
+  - forced_choice_labels_only
+  - always_include_unclear
+  - do_not_emit_continuous_loss_weights
+  - do_not_directly_optimize_pose
+allowed_repair_actions:
+  - accept_candidate
+  - reject_candidate
+  - disable_contact_frame
+  - keep_previous_anchor
+  - downweight_correspondence
+  - use_mask_fallback
+  - retry_with_alternative_keypart
+  - allow_small_se3_refine
+  - freeze_before_after_contact
+  - mark_for_report_only
+  - unclear_no_update
+query_types:
+  target_mask_check:
+    stage_scope: [stage0]
+    question_template: "Does the highlighted mask correspond to the target {target_object}?"
+    choices: [yes, partially, wrong_object, missing_object, unclear]
+  keypart_identity_check:
+    stage_scope: [stage1]
+    question_template: "Which {target_object} part is highlighted?"
+    choices_from_profile: candidate_parts
+  keypart_visibility_check:
+    stage_scope: [stage2]
+    question_template: "Is the highlighted key {target_object} part visible in this frame?"
+    choices: [visible, partially_visible, hidden, occluded_by_human, unclear]
+  track_stability_check:
+    stage_scope: [stage1]
+    question_template: "Is the highlighted reference point or part stable and visually trackable across neighboring frames?"
+    choices: [stable, unstable_due_to_occlusion, unstable_not_real_part, wrong_part, unclear]
+  contact_relation_check:
+    stage_scope: [stage2, stage4]
+    question_template: "What is the highlighted object contact region closest to?"
+    choices_from_profile: contact_proxies
+  overlay_alignment_check:
+    stage_scope: [stage3, stage4]
+    question_template: "Does the rendered object overlay align with the visible object?"
+    choices: [aligned, lateral_shift, depth_shift, wrong_scale, rotation_error, wrong_object, unclear]
+  temporal_motion_check:
+    stage_scope: [stage4]
+    question_template: "Does the highlighted object move consistently across neighboring frames?"
+    choices: [consistent, jumps_unnaturally, wrong_object_tracking, physically_implausible, unclear]
+  post_render_sanity_check:
+    stage_scope: [stage5]
+    question_template: "Which failure label best describes the final rendered result?"
+    choices: [pass, overlay_shift, wrong_contact, object_jitter, depth_mismatch, render_missing, unclear]
+  baseline_regression_check:
+    stage_scope: [stage6]
+    question_template: "Compared with the solved baseline, does the current render show a regression?"
+    choices: [no_regression, worse_overlay, worse_contact, worse_jitter, missing_output, unclear]
+  loss_diagnostic_check:
+    stage_scope: [stage7]
+    question_template: "Which label best describes the highlighted loss diagnostic plots?"
+    choices: [normal, visual_spike, contact_spike, smoothness_spike, support_spike, missing_loss, unclear]

@@ -1,0 +1,4 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+basketball,stage6,1,baseline_regression_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+basketball,stage6,97,baseline_regression_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+basketball,stage6,192,baseline_regression_check,dry_run_not_evaluated,not_evaluated,none,0,0,1

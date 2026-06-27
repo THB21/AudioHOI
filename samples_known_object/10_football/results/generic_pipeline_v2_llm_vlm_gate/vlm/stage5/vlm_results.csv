@@ -1,0 +1,4 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+football,stage5,1,post_render_sanity_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+football,stage5,122,post_render_sanity_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+football,stage5,242,post_render_sanity_check,dry_run_not_evaluated,not_evaluated,none,0,0,1

@@ -1,0 +1,20 @@
+{
+  "stage": "stage4_contact_refine",
+  "case_name": "football",
+  "components": [
+    {
+      "component": "anchor_depth",
+      "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/generic_pipeline_v2_llm_vlm_gate/A7_v2_no_depth_gate/object_pose.csv",
+      "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/generic_pipeline_v2_llm_vlm_gate/A7_v2_no_depth_gate/object_contact_points.csv",
+      "policy": "ablation_disable_depth_refine_copy_stage3_pose",
+      "ablation_flags": [
+        "disable_depth_refine"
+      ]
+    },
+    {
+      "component": "backproject_xy",
+      "case_name": "football",
+      "policy": "preserved_in_solved_anchor_refined_pose"
+    }
+  ]
+}

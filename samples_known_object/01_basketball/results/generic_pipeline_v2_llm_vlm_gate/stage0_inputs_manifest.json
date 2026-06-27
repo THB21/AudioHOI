@@ -1,0 +1,30 @@
+{
+  "stage": "stage0_preprocess",
+  "case_name": "basketball",
+  "sample_dir": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball",
+  "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate",
+  "render_dir": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/renders/generic_pipeline_v2_llm_vlm_gate",
+  "camera": {
+    "fx": 1468.604736328125,
+    "fy": 1468.604736328125,
+    "cx": 640.0,
+    "cy": 360.0
+  },
+  "prepared_inputs": {
+    "sam2_masks": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/segmentation/masks",
+    "cotracker": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/tracking",
+    "da3_scene_depth_index": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/da3/scene_depth/index.csv",
+    "audio_events": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/events/audio_events.csv",
+    "gvhmr_search_root": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results"
+  },
+  "checks": {
+    "sample_dir": true,
+    "metadata": true,
+    "segmentation_masks": true,
+    "tracking_dir": true,
+    "da3_scene_depth": true,
+    "events_audio": true,
+    "gvhmr_available": true
+  },
+  "note": "Stage0 is non-destructive: it validates existing SAM2/CoTracker/DA3/GVHMR/audio artifacts for downstream generic stages."
+}

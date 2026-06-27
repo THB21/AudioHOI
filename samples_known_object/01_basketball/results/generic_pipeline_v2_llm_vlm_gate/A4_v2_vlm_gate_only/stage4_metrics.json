@@ -1,0 +1,47 @@
+{
+  "stage": "stage4_contact_refine",
+  "case_name": "basketball",
+  "components": [
+    {
+      "component": "anchor_depth",
+      "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/A4_v2_vlm_gate_only/object_pose.csv",
+      "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/A4_v2_vlm_gate_only/object_contact_points.csv",
+      "anchors_used": 0,
+      "policy": "exact_radius_free_anchor_refinement_audiohoi_env_using_stage2_contact_proxy",
+      "exact_optimizer": {
+        "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
+        "script": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/refinement/anchor_depth_solver.py",
+        "out_dir": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/A4_v2_vlm_gate_only/exact_anchor_depth_reference",
+        "pose_csv": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/A4_v2_vlm_gate_only/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_trajectory.csv",
+        "summary_txt": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/A4_v2_vlm_gate_only/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_summary.txt"
+      },
+      "raw_debug_pose": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/A4_v2_vlm_gate_only/object_pose_anchor_raw_debug.csv",
+      "raw_debug_policy": "pre-optimization anchor-segment reference only; final uses original least_squares logic",
+      "raw_vs_final_max_abs_z_m": 1.4616069999999999,
+      "optimizer_style_residual_report": {
+        "stage_label": "stage4_anchor_depth_final",
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/A4_v2_vlm_gate_only/loss_analysis/ball_stage4_anchor_depth_residuals.csv",
+        "rows": 192,
+        "terms": {
+          "E_total": 860.284005792,
+          "E_visual": 0.0,
+          "E_depth": 828.654068893,
+          "E_support": 0.0,
+          "E_contact": 16.367537712,
+          "E_smooth": 0.103538815,
+          "E_reg": 15.158860365
+        },
+        "note": "Optimizer-style normalized ball residuals mirroring the radius-free center/support/contact/smooth/reg construction; report only, does not alter pose."
+      },
+      "vlm_gate_summary": {
+        "vlm_contact_gate": "no_effective_disabled_frames",
+        "disabled_frames": []
+      }
+    },
+    {
+      "component": "backproject_xy",
+      "case_name": "basketball",
+      "policy": "preserved_in_solved_anchor_refined_pose"
+    }
+  ]
+}

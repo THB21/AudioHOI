@@ -1,0 +1,4 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+chair,stage5,1,post_render_sanity_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,1,0
+chair,stage5,97,post_render_sanity_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,1,0
+chair,stage5,192,post_render_sanity_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,1,0

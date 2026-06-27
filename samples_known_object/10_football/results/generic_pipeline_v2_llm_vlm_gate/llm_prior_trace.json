@@ -1,0 +1,12 @@
+{
+  "case_name": "football",
+  "mode": "mistral",
+  "mistral_status": "ok",
+  "mistral_raw_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/generic_pipeline_v2_llm_vlm_gate/llm_prior_mistral_raw.json",
+  "prompt_context": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/generic_pipeline_v2_llm_vlm_gate/prompt_context.json",
+  "prompt_entry_count": 5,
+  "warnings": [],
+  "fallback_used": false,
+  "stdout": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/generic_pipeline_v2_llm_vlm_gate/llm_prior_mistral_raw.json\n",
+  "stderr": ""
+}

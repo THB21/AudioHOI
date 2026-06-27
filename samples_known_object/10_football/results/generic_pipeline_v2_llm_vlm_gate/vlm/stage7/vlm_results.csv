@@ -1,0 +1,6 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+football,stage7,129,loss_diagnostic_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+football,stage7,127,loss_diagnostic_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+football,stage7,130,loss_diagnostic_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+football,stage7,1,loss_diagnostic_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+football,stage7,122,loss_diagnostic_check,dry_run_not_evaluated,not_evaluated,none,0,0,1

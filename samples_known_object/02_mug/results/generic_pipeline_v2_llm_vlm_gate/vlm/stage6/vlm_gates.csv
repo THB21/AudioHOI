@@ -1,0 +1,4 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+mug,stage6,1,baseline_regression_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,1,0
+mug,stage6,121,baseline_regression_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,1,0
+mug,stage6,240,baseline_regression_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,1,0

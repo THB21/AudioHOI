@@ -1,0 +1,7 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+mug,stage2,1,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+mug,stage2,1,keypart_visibility_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+mug,stage2,121,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+mug,stage2,121,keypart_visibility_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+mug,stage2,240,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+mug,stage2,240,keypart_visibility_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0

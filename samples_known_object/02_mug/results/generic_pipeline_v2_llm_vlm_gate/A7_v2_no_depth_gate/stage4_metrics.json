@@ -1,0 +1,144 @@
+{
+  "stage": "stage4_contact_refine",
+  "case_name": "mug",
+  "components": [
+    {
+      "component": "stable_grasp_anchor",
+      "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A7_v2_no_depth_gate/object_pose.csv",
+      "object_phase": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A7_v2_no_depth_gate/object_phase.csv",
+      "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A7_v2_no_depth_gate/object_contact_points.csv",
+      "object_contact_points_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A7_v2_no_depth_gate/mug_grasp_anchor_state_internal/mug_grasp_anchor_state.csv",
+      "object_contact_points_builder": "generic_contact_pipeline/components/contact/build_mug_grasp_anchor_state.py",
+      "hidden_handle_policy": "keep_previous_stable_grasp_anchor",
+      "pose_policy": "m18_rotation_slerp_table_freeze_clean_python",
+      "pose_info": {
+        "rotation_smooth_start": 60,
+        "rotation_smooth_end": 70,
+        "rotation_detection": "auto_rotation_jump jump=61 step=32.913 threshold=12.000",
+        "static_frame": 160,
+        "static_detection": "auto_table_static support_conf>=0.99 support_gap>=-10.0 run=8",
+        "pose_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A7_v2_no_depth_gate/object_pose_init.csv"
+      },
+      "phase_policy": "m17_phase_pchip_smooth_entry_no_hide_clean_python",
+      "phase_info": {
+        "anchors": 30,
+        "max_abs_velocity_deg": 7.0,
+        "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A7_v2_no_depth_gate/m17_rebuild_from_recovered_m15/corrected_handle_phase.csv",
+        "phase_reconstruction": {
+          "policy": "rebuilt_from_recovered_m15",
+          "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A7_v2_no_depth_gate/m17_rebuild_from_recovered_m15/corrected_handle_phase.csv",
+          "recovered_m15_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+          "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/mug_handle_phase_correction.py",
+          "snapshot_fallback_used": false
+        }
+      },
+      "grasp_anchor_summary": {
+        "input_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A7_v2_no_depth_gate/object_local_points.csv",
+        "vlm_keyframe_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/annotations/vlm_mug_contact_keyframes/mug_contact_keyframe_annotations.csv",
+        "n_frames": 240,
+        "mode_counts": {
+          "direct_grasp_anchor": 20,
+          "keep_previous_grasp_anchor": 215,
+          "rim_contact_keep_previous_grasp_anchor": 5
+        },
+        "n_anchor_updates": 20,
+        "anchor_update_frames": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          121,
+          122,
+          123,
+          124,
+          125
+        ],
+        "n_keep_previous_frames": 220,
+        "keep_previous_frames_sample": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37
+        ],
+        "n_rim_drinking_frames": 5,
+        "rim_drinking_frames_sample": [
+          72,
+          73,
+          77,
+          78,
+          83
+        ],
+        "final_stable_grasp_local": [
+          -0.077386,
+          -0.036629,
+          0.0
+        ],
+        "final_stable_grasp_source_frame": "125",
+        "final_stable_grasp_meta": {
+          "object_part": "handle",
+          "object_region": "upper_handle",
+          "hand_side": "left_hand",
+          "primary_finger": "thumb",
+          "fingers": "[\"thumb\", \"index\", \"middle\", \"ring\", \"pinky\", \"palm\", \"unknown\"]",
+          "grasp_type": "pinch_handle",
+          "vlm_source_frame": "125"
+        }
+      },
+      "vlm_gate_summary": {
+        "vlm_contact_gate": "no_effective_disabled_frames",
+        "disabled_frames": []
+      }
+    },
+    {
+      "component": "anchor_depth",
+      "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A7_v2_no_depth_gate/object_pose.csv",
+      "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A7_v2_no_depth_gate/object_contact_points.csv",
+      "policy": "ablation_disable_depth_refine_copy_stage3_pose",
+      "ablation_flags": [
+        "disable_depth_refine"
+      ]
+    },
+    {
+      "component": "table_freeze",
+      "case_name": "mug",
+      "policy": "preserved_in_final_solved_pose"
+    }
+  ]
+}

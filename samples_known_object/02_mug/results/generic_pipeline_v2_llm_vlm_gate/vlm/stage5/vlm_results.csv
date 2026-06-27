@@ -1,0 +1,4 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+mug,stage5,1,post_render_sanity_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+mug,stage5,121,post_render_sanity_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+mug,stage5,240,post_render_sanity_check,dry_run_not_evaluated,not_evaluated,none,0,0,1

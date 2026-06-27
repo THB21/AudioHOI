@@ -1,0 +1,12 @@
+{
+  "case_name": "chair",
+  "mode": "mistral",
+  "mistral_status": "ok",
+  "mistral_raw_path": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/llm_prior_mistral_raw.json",
+  "prompt_context": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/prompt_context.json",
+  "prompt_entry_count": 10,
+  "warnings": [],
+  "fallback_used": false,
+  "stdout": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/llm_prior_mistral_raw.json\n",
+  "stderr": ""
+}

@@ -1,0 +1,650 @@
+{
+  "case_name": "mug",
+  "profile": {
+    "case_name": "mug",
+    "sample_dir": "samples_known_object/02_mug",
+    "object_family": "graspable_articraft",
+    "geometry_model": "articraft_mug_mesh",
+    "observation_model": "rigid_body_plus_parts",
+    "contact_policy": "palm_handle_rim_body",
+    "pose_model": "rigid6_plus_phase",
+    "refinement_policy": [
+      "stable_grasp_anchor",
+      "anchor_depth",
+      "table_freeze"
+    ],
+    "render_backend": "articraft_mesh",
+    "result_name": "generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation",
+    "vlm": {
+      "target": "mug",
+      "parts": [
+        "handle",
+        "cup_body",
+        "rim",
+        "bottom",
+        "background",
+        "unclear"
+      ],
+      "contacts": [
+        "palm",
+        "fingertip",
+        "rim_mouth",
+        "table",
+        "nothing_nearby",
+        "unclear"
+      ],
+      "stable_refs": [
+        "mug_body",
+        "handle_loop",
+        "rim",
+        "bottom",
+        "unclear"
+      ]
+    },
+    "camera": {
+      "fx": 1468.604736328125,
+      "fy": 1468.604736328125,
+      "cx": 640.0,
+      "cy": 360.0
+    },
+    "baseline": {
+      "final_pose_csv": "samples_known_object/02_mug/results/final_result/object_pose.csv",
+      "final_phase_csv": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
+      "m15_recovered_phase_csv": "samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+      "m17_phase_csv": "samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv",
+      "m18_pose_csv": "samples_known_object/02_mug/results/mug_m18_opening_2d_video_correction/mug_m18_opening_2d_video_pose.csv",
+      "contact_state_csv": "samples_known_object/02_mug/results/contact_candidates_object_proxy/contact_state_frames.csv",
+      "object_local_points_csv": "samples_known_object/02_mug/results/mug_articraft_contact_points/mug_articraft_contact_points.csv",
+      "grasp_anchor_csv": "samples_known_object/02_mug/results/mug_grasp_anchor_state/mug_grasp_anchor_state.csv",
+      "render_dir": "samples_known_object/02_mug/results/renders/final_result"
+    },
+    "ablation_flags": [
+      "disable_anchor_propagation"
+    ]
+  },
+  "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation",
+  "render_dir": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation",
+  "from_stage": "stage-1",
+  "to_stage": "stage4",
+  "vlm_mode": "dry-run",
+  "llm_mode": "mistral",
+  "vlm_blocking": false,
+  "stage_results": [
+    {
+      "stage": "stage-1",
+      "result": {
+        "stage": "stage_minus1_llm_prior",
+        "case_name": "mug",
+        "llm_mode": "mistral",
+        "hoi_profile": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/hoi_profile.json",
+        "hoi_profile_resolved": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/hoi_profile_resolved.yaml",
+        "llm_prior_trace": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/llm_prior_trace.json",
+        "prompt_context": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/prompt_context.json",
+        "object_parts": [
+          "cup_body",
+          "handle",
+          "rim",
+          "bottom"
+        ],
+        "human_parts": [
+          "palm",
+          "fingertip",
+          "mouth",
+          "table"
+        ],
+        "interaction_edges": [
+          {
+            "human_part": "palm",
+            "object_part": "handle",
+            "relation": "hold"
+          },
+          {
+            "human_part": "palm",
+            "object_part": "cup_body",
+            "relation": "touch"
+          },
+          {
+            "human_part": "mouth",
+            "object_part": "rim",
+            "relation": "touch"
+          },
+          {
+            "human_part": "table",
+            "object_part": "bottom",
+            "relation": "support"
+          }
+        ],
+        "note": "LLM/seed prior defines discrete HOI semantics only; it does not output pose, coordinates, or loss weights."
+      },
+      "vlm_verification": null,
+      "vlm_gate": null
+    },
+    {
+      "stage": "stage0",
+      "result": {
+        "stage": "stage0_preprocess",
+        "case_name": "mug",
+        "checks": {
+          "sample_dir": true,
+          "metadata": true,
+          "segmentation_masks": true,
+          "tracking_dir": true,
+          "da3_scene_depth": true,
+          "events_audio": true,
+          "gvhmr_available": true
+        },
+        "baseline_paths_exist": {
+          "final_pose_csv": true,
+          "final_phase_csv": true,
+          "m15_recovered_phase_csv": true,
+          "m17_phase_csv": true,
+          "m18_pose_csv": true,
+          "contact_state_csv": true,
+          "object_local_points_csv": true,
+          "grasp_anchor_csv": true,
+          "render_dir": true
+        },
+        "provenance_snapshots": {},
+        "note": "v1 validates and reuses existing preprocess artifacts; it does not overwrite them."
+      },
+      "vlm_verification": {
+        "case_name": "mug",
+        "stage": "stage0",
+        "mode": "dry_run",
+        "decision": "not_blocking_dry_run",
+        "blocking": false,
+        "query_count": 3,
+        "gate_counts": {
+          "not_evaluated": 3
+        },
+        "query_counts": {
+          "target_mask_check": 3
+        },
+        "accepted_frames": [],
+        "blocked_frames": [],
+        "report_only_reject_frames": [],
+        "unclear_frames": [
+          1,
+          121,
+          240
+        ],
+        "repair_actions_by_frame": {},
+        "rejected_results": [],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Dry-run outputs generate schema/evidence only and never block.",
+        "gate_decision": {
+          "case_name": "mug",
+          "stage": "stage0",
+          "gate_rows": 3,
+          "effective_rows": 0,
+          "blocked_frames": [],
+          "unclear_frames": [],
+          "accepted_contact_frames": [],
+          "accepted_anchor_frames": [],
+          "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/vlm/stage0/vlm_gates.csv"
+        }
+      },
+      "vlm_gate": {
+        "case_name": "mug",
+        "stage": "stage0",
+        "gate_rows": 3,
+        "effective_rows": 0,
+        "blocked_frames": [],
+        "unclear_frames": [],
+        "accepted_contact_frames": [],
+        "accepted_anchor_frames": [],
+        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/vlm/stage0/vlm_gates.csv"
+      }
+    },
+    {
+      "stage": "stage1",
+      "result": {
+        "component": "rigid_body_plus_parts",
+        "observation_rows": 240,
+        "object_observations": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_observations.csv",
+        "object_local_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_local_points.csv",
+        "object_local_points_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/mug_articraft_contact_points_internal/mug_articraft_contact_points.csv",
+        "object_local_points_exporter": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/observation/export_mug_articraft_contact_points.py",
+        "object_proxy_observations": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_proxy_observations_internal/object_proxy_observations.csv",
+        "object_proxy_builder": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/observation/build_object_proxy_observations.py",
+        "observation_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/object_observations/object_observations.csv",
+        "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/m17_rebuild_from_recovered_m15/corrected_handle_phase.csv",
+        "phase_reconstruction": {
+          "policy": "rebuilt_from_recovered_m15",
+          "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/m17_rebuild_from_recovered_m15/corrected_handle_phase.csv",
+          "recovered_m15_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+          "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/mug_handle_phase_correction.py",
+          "snapshot_fallback_used": false
+        },
+        "handle_visibility_from_phase": true
+      },
+      "vlm_verification": {
+        "case_name": "mug",
+        "stage": "stage1",
+        "mode": "dry_run",
+        "decision": "not_blocking_dry_run",
+        "blocking": false,
+        "query_count": 6,
+        "gate_counts": {
+          "not_evaluated": 6
+        },
+        "query_counts": {
+          "keypart_identity_check": 3,
+          "track_stability_check": 3
+        },
+        "accepted_frames": [],
+        "blocked_frames": [],
+        "report_only_reject_frames": [],
+        "unclear_frames": [
+          1,
+          121,
+          240
+        ],
+        "repair_actions_by_frame": {},
+        "rejected_results": [],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Dry-run outputs generate schema/evidence only and never block.",
+        "gate_decision": {
+          "case_name": "mug",
+          "stage": "stage1",
+          "gate_rows": 6,
+          "effective_rows": 0,
+          "blocked_frames": [],
+          "unclear_frames": [],
+          "accepted_contact_frames": [],
+          "accepted_anchor_frames": [],
+          "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/vlm/stage1/vlm_gates.csv"
+        }
+      },
+      "vlm_gate": {
+        "case_name": "mug",
+        "stage": "stage1",
+        "gate_rows": 6,
+        "effective_rows": 0,
+        "blocked_frames": [],
+        "unclear_frames": [],
+        "accepted_contact_frames": [],
+        "accepted_anchor_frames": [],
+        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/vlm/stage1/vlm_gates.csv"
+      }
+    },
+    {
+      "stage": "stage2",
+      "result": {
+        "component": "palm_handle",
+        "rows": 240,
+        "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/contact_candidates.csv",
+        "source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_local_points.csv"
+      },
+      "vlm_verification": {
+        "case_name": "mug",
+        "stage": "stage2",
+        "mode": "dry_run",
+        "decision": "not_blocking_dry_run",
+        "blocking": false,
+        "query_count": 6,
+        "gate_counts": {
+          "not_evaluated": 6
+        },
+        "query_counts": {
+          "contact_relation_check": 3,
+          "keypart_visibility_check": 3
+        },
+        "accepted_frames": [],
+        "blocked_frames": [],
+        "report_only_reject_frames": [],
+        "unclear_frames": [
+          1,
+          121,
+          240
+        ],
+        "repair_actions_by_frame": {},
+        "rejected_results": [],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Dry-run outputs generate schema/evidence only and never block.",
+        "gate_decision": {
+          "case_name": "mug",
+          "stage": "stage2",
+          "gate_rows": 6,
+          "effective_rows": 0,
+          "blocked_frames": [],
+          "unclear_frames": [],
+          "accepted_contact_frames": [],
+          "accepted_anchor_frames": [],
+          "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/vlm/stage2/vlm_gates.csv"
+        }
+      },
+      "vlm_gate": {
+        "case_name": "mug",
+        "stage": "stage2",
+        "gate_rows": 6,
+        "effective_rows": 0,
+        "blocked_frames": [],
+        "unclear_frames": [],
+        "accepted_contact_frames": [],
+        "accepted_anchor_frames": [],
+        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/vlm/stage2/vlm_gates.csv"
+      }
+    },
+    {
+      "stage": "stage3",
+      "result": {
+        "component": "rigid6_plus_phase",
+        "object_pose_init": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_pose_init.csv",
+        "body_pose_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/m18_opening_2d_video_correction_internal/mug_m18_opening_2d_video_pose.csv",
+        "body_pose_solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/mug_opening_2d_pose_correction.py",
+        "body_pose_report": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/m18_opening_2d_video_correction_internal/mug_m18_opening_2d_video_report.csv",
+        "body_pose_trajectory": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/m18_opening_2d_video_correction_internal/mug_m18_opening_2d_video_trajectory.csv",
+        "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/m17_rebuild_from_recovered_m15/corrected_handle_phase.csv",
+        "phase_reconstruction": {
+          "policy": "rebuilt_from_recovered_m15",
+          "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/m17_rebuild_from_recovered_m15/corrected_handle_phase.csv",
+          "recovered_m15_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+          "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/mug_handle_phase_correction.py",
+          "snapshot_fallback_used": false
+        },
+        "rows": 240
+      },
+      "vlm_verification": {
+        "case_name": "mug",
+        "stage": "stage3",
+        "mode": "dry_run",
+        "decision": "not_blocking_dry_run",
+        "blocking": false,
+        "query_count": 3,
+        "gate_counts": {
+          "not_evaluated": 3
+        },
+        "query_counts": {
+          "overlay_alignment_check": 3
+        },
+        "accepted_frames": [],
+        "blocked_frames": [],
+        "report_only_reject_frames": [],
+        "unclear_frames": [
+          1,
+          121,
+          240
+        ],
+        "repair_actions_by_frame": {},
+        "rejected_results": [],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Dry-run outputs generate schema/evidence only and never block.",
+        "gate_decision": {
+          "case_name": "mug",
+          "stage": "stage3",
+          "gate_rows": 3,
+          "effective_rows": 0,
+          "blocked_frames": [],
+          "unclear_frames": [],
+          "accepted_contact_frames": [],
+          "accepted_anchor_frames": [],
+          "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/vlm/stage3/vlm_gates.csv"
+        }
+      },
+      "vlm_gate": {
+        "case_name": "mug",
+        "stage": "stage3",
+        "gate_rows": 3,
+        "effective_rows": 0,
+        "blocked_frames": [],
+        "unclear_frames": [],
+        "accepted_contact_frames": [],
+        "accepted_anchor_frames": [],
+        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/vlm/stage3/vlm_gates.csv"
+      }
+    },
+    {
+      "stage": "stage4",
+      "result": {
+        "stage": "stage4_contact_refine",
+        "case_name": "mug",
+        "components": [
+          {
+            "component": "stable_grasp_anchor",
+            "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_pose.csv",
+            "object_phase": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_phase.csv",
+            "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_contact_points.csv",
+            "object_contact_points_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/mug_grasp_anchor_state_internal/mug_grasp_anchor_state.csv",
+            "object_contact_points_builder": "generic_contact_pipeline/components/contact/build_mug_grasp_anchor_state.py",
+            "hidden_handle_policy": "keep_previous_stable_grasp_anchor",
+            "pose_policy": "m18_rotation_slerp_table_freeze_clean_python",
+            "pose_info": {
+              "rotation_smooth_start": 60,
+              "rotation_smooth_end": 70,
+              "rotation_detection": "auto_rotation_jump jump=61 step=32.913 threshold=12.000",
+              "static_frame": 160,
+              "static_detection": "auto_table_static support_conf>=0.99 support_gap>=-10.0 run=8",
+              "pose_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_pose_init.csv"
+            },
+            "phase_policy": "m17_phase_pchip_smooth_entry_no_hide_clean_python",
+            "phase_info": {
+              "anchors": 30,
+              "max_abs_velocity_deg": 7.0,
+              "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/m17_rebuild_from_recovered_m15/corrected_handle_phase.csv",
+              "phase_reconstruction": {
+                "policy": "rebuilt_from_recovered_m15",
+                "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/m17_rebuild_from_recovered_m15/corrected_handle_phase.csv",
+                "recovered_m15_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+                "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/mug_handle_phase_correction.py",
+                "snapshot_fallback_used": false
+              }
+            },
+            "grasp_anchor_summary": {
+              "input_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_local_points.csv",
+              "vlm_keyframe_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/annotations/vlm_mug_contact_keyframes/mug_contact_keyframe_annotations.csv",
+              "n_frames": 240,
+              "mode_counts": {
+                "direct_grasp_anchor": 20,
+                "keep_previous_grasp_anchor": 215,
+                "rim_contact_keep_previous_grasp_anchor": 5
+              },
+              "n_anchor_updates": 20,
+              "anchor_update_frames": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                53,
+                54,
+                55,
+                56,
+                57,
+                58,
+                59,
+                60,
+                121,
+                122,
+                123,
+                124,
+                125
+              ],
+              "n_keep_previous_frames": 220,
+              "keep_previous_frames_sample": [
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                29,
+                30,
+                31,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37
+              ],
+              "n_rim_drinking_frames": 5,
+              "rim_drinking_frames_sample": [
+                72,
+                73,
+                77,
+                78,
+                83
+              ],
+              "final_stable_grasp_local": [
+                -0.077386,
+                -0.036629,
+                0.0
+              ],
+              "final_stable_grasp_source_frame": "125",
+              "final_stable_grasp_meta": {
+                "object_part": "handle",
+                "object_region": "upper_handle",
+                "hand_side": "left_hand",
+                "primary_finger": "thumb",
+                "fingers": "[\"thumb\", \"index\", \"middle\", \"ring\", \"pinky\", \"palm\", \"unknown\"]",
+                "grasp_type": "pinch_handle",
+                "vlm_source_frame": "125"
+              }
+            },
+            "vlm_gate_summary": {
+              "vlm_contact_gate": "no_effective_disabled_frames",
+              "disabled_frames": []
+            }
+          },
+          {
+            "component": "anchor_depth",
+            "policy": "no_op_for_non_translation_pose_model",
+            "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_pose.csv"
+          },
+          {
+            "component": "table_freeze",
+            "case_name": "mug",
+            "policy": "preserved_in_final_solved_pose"
+          }
+        ]
+      },
+      "vlm_verification": {
+        "case_name": "mug",
+        "stage": "stage4",
+        "mode": "dry_run",
+        "decision": "not_blocking_dry_run",
+        "blocking": false,
+        "query_count": 6,
+        "gate_counts": {
+          "not_evaluated": 6
+        },
+        "query_counts": {
+          "anchor_update_check": 3,
+          "temporal_motion_check": 3
+        },
+        "accepted_frames": [],
+        "blocked_frames": [],
+        "report_only_reject_frames": [],
+        "unclear_frames": [
+          1,
+          121,
+          240
+        ],
+        "repair_actions_by_frame": {},
+        "rejected_results": [],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Dry-run outputs generate schema/evidence only and never block.",
+        "gate_decision": {
+          "case_name": "mug",
+          "stage": "stage4",
+          "gate_rows": 6,
+          "effective_rows": 0,
+          "blocked_frames": [],
+          "unclear_frames": [],
+          "accepted_contact_frames": [],
+          "accepted_anchor_frames": [],
+          "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/vlm/stage4/vlm_gates.csv"
+        }
+      },
+      "vlm_gate": {
+        "case_name": "mug",
+        "stage": "stage4",
+        "gate_rows": 6,
+        "effective_rows": 0,
+        "blocked_frames": [],
+        "unclear_frames": [],
+        "accepted_contact_frames": [],
+        "accepted_anchor_frames": [],
+        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/vlm/stage4/vlm_gates.csv"
+      }
+    }
+  ]
+}

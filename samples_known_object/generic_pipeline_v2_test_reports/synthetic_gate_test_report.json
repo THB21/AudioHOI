@@ -1,0 +1,119 @@
+{
+  "gate_decision": {
+    "case_name": "basketball",
+    "stage": "stage2",
+    "gate_rows": 3,
+    "effective_rows": 3,
+    "blocked_frames": [
+      20
+    ],
+    "unclear_frames": [
+      30
+    ],
+    "accepted_contact_frames": [
+      10
+    ],
+    "accepted_anchor_frames": [],
+    "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_gate_synthetic_test/vlm/stage2/vlm_gates.csv"
+  },
+  "fused_decision": {
+    "case_name": "basketball",
+    "stage": "stage2",
+    "mode": "qwen_vl",
+    "decision": "blocked_by_vlm_reject",
+    "blocking": true,
+    "query_count": 3,
+    "gate_counts": {
+      "pass": 1,
+      "reject": 1,
+      "unclear": 1
+    },
+    "query_counts": {
+      "contact_relation_check": 3
+    },
+    "accepted_frames": [
+      10
+    ],
+    "blocked_frames": [
+      20
+    ],
+    "report_only_reject_frames": [],
+    "unclear_frames": [
+      30
+    ],
+    "repair_actions_by_frame": {
+      "10": [
+        "accept_candidate"
+      ],
+      "20": [
+        "disable_contact_frame"
+      ],
+      "30": [
+        "unclear_no_update"
+      ]
+    },
+    "rejected_results": [
+      {
+        "case_name": "basketball",
+        "stage": "stage2",
+        "frame": "20",
+        "query_type": "contact_relation_check",
+        "normalized_label": "no_contact",
+        "pass_gate": "reject",
+        "repair_action": "disable_contact_frame",
+        "used_for_anchor_update": "0",
+        "used_for_contact_residual": "0",
+        "used_for_report": "0"
+      }
+    ],
+    "allowed_repair_actions": [
+      "accept_candidate",
+      "reject_candidate",
+      "disable_contact_frame",
+      "keep_previous_anchor",
+      "downweight_correspondence",
+      "use_mask_fallback",
+      "retry_with_alternative_keypart",
+      "allow_small_se3_refine",
+      "freeze_before_after_contact",
+      "mark_for_report_only",
+      "unclear_no_update"
+    ],
+    "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+  },
+  "disabled_contact_frames": [
+    20,
+    30
+  ],
+  "apply_summary": {
+    "vlm_contact_gate": "applied",
+    "disabled_frames": [
+      20,
+      30
+    ],
+    "rows_disabled": 2
+  },
+  "gated_rows": [
+    {
+      "frame": "10",
+      "contact_active": "1",
+      "score": "1",
+      "active_label": "candidate",
+      "vlm_contact_gate": "unchanged"
+    },
+    {
+      "frame": "20",
+      "contact_active": "0",
+      "score": "0",
+      "active_label": "disabled_by_vlm",
+      "vlm_contact_gate": "disabled_by_vlm"
+    },
+    {
+      "frame": "30",
+      "contact_active": "0",
+      "score": "0",
+      "active_label": "disabled_by_vlm",
+      "vlm_contact_gate": "disabled_by_vlm"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "stage": "stage4_contact_refine",
+  "case_name": "chair",
+  "components": [
+    {
+      "component": "small_se3",
+      "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_pose.csv",
+      "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_contact_points.csv",
+      "object_phase": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/object_phase.csv",
+      "generic_stage4_dir": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/stage4_generic_refine",
+      "generic_stage4_contacts_vlm_gated": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/generic_pipeline_v2_llm_vlm_gate/A8_v2_no_anchor_propagation/stage4_generic_refine/object_contact_points_vlm_gated.csv",
+      "vlm_gate_summary": {
+        "vlm_contact_gate": "no_effective_disabled_frames",
+        "disabled_frames": []
+      },
+      "generic_pairprop_pose_accepted": false,
+      "pose_policy": "ablation_disable_anchor_propagation_retains_generic_stage4_pose_without_pairprop_contact_refine",
+      "ablation_flags": [
+        "disable_anchor_propagation"
+      ]
+    },
+    {
+      "component": "anchor_propagate_freeze",
+      "case_name": "chair",
+      "policy": "ablation_disabled_anchor_propagation",
+      "ablation_flags": [
+        "disable_anchor_propagation"
+      ]
+    }
+  ]
+}

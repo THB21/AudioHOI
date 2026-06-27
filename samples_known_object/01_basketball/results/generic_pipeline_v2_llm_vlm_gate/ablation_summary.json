@@ -1,0 +1,27 @@
+{
+  "case_name": "basketball",
+  "ablation_summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/ablation_summary.csv",
+  "ablation_summary_md": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/ablation_summary.md",
+  "variants": [
+    "A0_solved_baseline",
+    "A1_generic_pipeline_v1",
+    "A2_v2_no_llm_prior",
+    "A3_v2_llm_prior_only",
+    "A4_v2_vlm_gate_only",
+    "A5_v2_llm_prior_plus_vlm_gate",
+    "A6_v2_no_contact_gate",
+    "A7_v2_no_depth_gate",
+    "A8_v2_no_anchor_propagation"
+  ],
+  "run_reports": [
+    {
+      "case_name": "basketball",
+      "variant": "A5_v2_llm_prior_plus_vlm_gate",
+      "ran": true,
+      "returncode": 0,
+      "command": "/home/yang/miniconda3/bin/python /mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/run_pipeline.py --case basketball --from-stage stage-1 --to-stage stage4 --result-name generic_pipeline_v2_llm_vlm_gate/A5_v2_llm_prior_plus_vlm_gate --llm-mode mistral --vlm-mode dry-run",
+      "stdout_tail": "[basketball] stage-1\n[basketball] stage0\n[basketball] stage0 vlm=dry_run decision=not_blocking_dry_run gates={'not_evaluated': 1}\n[basketball] stage1\n[basketball] stage1 vlm=dry_run decision=not_blocking_dry_run gates={'not_evaluated': 6}\n[basketball] stage2\n[basketball] stage2 vlm=dry_run decision=not_blocking_dry_run gates={'not_evaluated': 5}\n[basketball] stage3\n[basketball] stage3 vlm=dry_run decision=not_blocking_dry_run gates={'not_evaluated': 3}\n[basketball] stage4\nobject_contact_csv: /mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/A5_v2_llm_prior_plus_vlm_gate/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_trajectory.csv\nobject_contact_reproj_csv: /mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/A5_v2_llm_prior_plus_vlm_gate/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_reprojection_comparison.csv\nobject_contact_summary: /mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/A5_v2_llm_prior_plus_vlm_gate/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_summary.txt\n[basketball] stage4 vlm=dry_run decision=not_blocking_dry_run gates={'not_evaluated': 10}\n",
+      "stderr_tail": ""
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+case_name: chair
+object_category: folding_chair
+object_family: articulated_support_object
+object_parts:
+- name: top_rail
+  role: two_hand_contact_anchor
+- name: right_top_rail_endpoint
+  role: left_palm_contact_anchor
+- name: left_top_rail_endpoint
+  role: right_palm_contact_anchor
+- name: backrest
+  role: orientation_anchor
+- name: backrest_hole
+  role: backrest_tracking_anchor
+- name: seat
+  role: seat_plane_anchor
+- name: front_leg
+  role: stable_2d_pose_anchor
+- name: rear_leg
+  role: depth_orientation_anchor
+- name: stretcher
+  role: perspective_depth_anchor
+- name: foot
+  role: floor_support_anchor
+- name: hole
+  role: secondary_tracking_anchor
+human_parts:
+- left_palm
+- right_palm
+- floor
+interaction_edges:
+- human_part: left_palm
+  object_part: right_top_rail_endpoint
+  relation: hold
+- human_part: right_palm
+  object_part: left_top_rail_endpoint
+  relation: hold
+- human_part: left_palm
+  object_part: top_rail
+  relation: touch
+- human_part: right_palm
+  object_part: top_rail
+  relation: touch
+- human_part: floor
+  object_part: foot
+  relation: support
+support_priors:
+- floor_support
+- static_after_place
+- stable_top_rail_endpoints
+motion_priors:
+- trusted_middle_contact_propagates_to_edges
+- small_se3_refine_allowed
+- preserve_articraft_geometry
+- smooth_contact_interval
+- two_hand_symmetry_preserve
+vlm_query_policy:
+  stage0:
+  - target_mask_check
+  stage1:
+  - keypart_identity_check
+  - track_stability_check
+  stage2:
+  - contact_relation_check
+  stage3:
+  - overlay_alignment_check
+  stage4:
+  - anchor_update_check
+  - temporal_motion_check
+  stage5:
+  - post_render_sanity_check
+source: mistral_llm_schema_validated
+schema_version: 1
+rules:
+  llm_outputs_pose: false
+  vlm_outputs_pose: false
+  vlm_outputs_loss_weights: false
+  optimizer_is_only_continuous_solver: true
+source_prompt_count: 10
+source_prompts:
+- kind: sample_metadata.prompt
+  path: samples_known_object/05_chair/metadata.json
+  record_id: ''
+  text_preview: 'Generate a 7-second realistic video from this image. At the beginning,
+    the person is not yet touching the lightweight wooden chair. The person first
+    reaches forward and grasps the chair with both hands, then lifts it from the floor,
+    walks from right to left across the room while carrying it for a noticeable distance,
+    and finally places the chair back down on the wooden floor. Keep the camera static.
+    Keep the full body, chair, hands, and floor contact area clearly visible throughout
+    the motion. Make sure the person starts near the right side of the frame and moves
+    into the open space on the left side. Add realistic synchronized audio: a small
+    wooden chair lift sound when the chair leaves the floor, subtle footsteps while
+    the person walks, and one clear wooden chair placement sound exactly when the
+    chair touches the floor again. No music, no speech.Ensure the entire process is
+    smooth and taken in one continuous shot.'
+- kind: sample_metadata.detection_text
+  path: samples_known_object/05_chair/metadata.json
+  record_id: ''
+  text_preview: chair.
+- kind: sample_metadata.name
+  path: samples_known_object/05_chair/metadata.json
+  record_id: ''
+  text_preview: chair
+- kind: sample_metadata.video
+  path: samples_known_object/05_chair/metadata.json
+  record_id: ''
+  text_preview: video_sample/5_chair_video.mp4
+- kind: sample_metadata.image
+  path: samples_known_object/05_chair/metadata.json
+  record_id: ''
+  text_preview: video_sample/5_chair.jpg
+- kind: prompt_txt
+  path: samples_known_object/05_chair/articraft/generated_record/rec_only-fix-the-seat-proportions-and-seat-construct_20260619_141726_227599_145a532b/revisions/rev_000001/prompt.txt
+  record_id: ''
+  text_preview: 'Only fix the seat proportions and seat construction of the current
+    proportional wooden folding chair. Do not redesign the frame, backrest, front/top
+    rails, rear support legs, hinges, lower stretchers, materials, or overall chair
+    dimensions. Current issue: the seat reads wrong because the previous edit made
+    the sitting surface too short and too narrow, like a small ledge. Correct it to
+    match the reference chair/video more plausibly while preserving the already-correct
+    overall frame proportions. Seat-only targets: - Keep overall chair WIDTH = 0.440
+    m, HEIGHT = 0.780 m, DEPTH about 0.330 m, and seat top height about 0.351 m. -
+    Keep the seat hinged near the same rear/upper support location. Do not move the
+    chair frame. - Increase the visible sitting surface depth so it reads as a usable
+    folding-chair seat, about 0.24-0.27 m. The front edge may project forward from
+    the hinge, but it must stay inside the existing stance and not collide with the
+    front legs. - Increase seat width so the top surface fills most of the chair interior,
+    roughly 0.36-0.39 m overall visible width, close to the front frame width but
+    still inside the side posts. - Preserve the known visual requirement: the two
+    side wooden rails and the central slats are flush/level on top. Do not make the
+    side rails stand proud above the middle slats. - Keep the seat as parallel front-to-back
+    wooden slats plus side rails, like the original video chair. Add or reposition
+    slats if needed so the sitting surface is evenly filled, but do not create many
+    thin metal-looking strips. - Keep the front rounded/dowel edge and rear hinge
+    tie aligned with the corrected seat dimensions. - Update tests so they validate
+    the corrected usable seat: top height remains 0.45H, seat depth is usable and
+    within the stance, seat width is broad, side rails and slats are flush, and compile
+    passes cleanly. Make the smallest code changes needed for this seat-only correction
+    and pass compile with zero failures and zero warnings.'
+- kind: record_display.title
+  path: samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1054/record.source_6911e934.json
+  record_id: rec_continue-editing-the-current-topology-fixed-chai_20260615_113825_272909_6911e934
+  text_preview: attach_backrest_to_front_top_posts
+- kind: record_display.prompt_preview
+  path: samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1054/record.source_6911e934.json
+  record_id: rec_continue-editing-the-current-topology-fixed-chai_20260615_113825_272909_6911e934
+  text_preview: Continue editing the current topology-fixed chair. The previous fork
+    changed the side-frame roles, but the backrest/top connection still looks wrong.
+    Current...

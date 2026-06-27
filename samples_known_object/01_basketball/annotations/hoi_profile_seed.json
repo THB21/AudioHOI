@@ -1,0 +1,25 @@
+{
+  "case_name": "basketball",
+  "object_category": "basketball",
+  "object_family": "dynamic_ball",
+  "object_parts": [
+    {"name": "ball_center", "role": "2d_center_anchor"},
+    {"name": "ball_boundary", "role": "mask_radius_anchor"},
+    {"name": "ball_bottom", "role": "floor_support_anchor"}
+  ],
+  "human_parts": ["hand", "floor"],
+  "interaction_edges": [
+    {"human_part": "hand", "object_part": "ball_boundary", "relation": "touch"},
+    {"human_part": "floor", "object_part": "ball_bottom", "relation": "support"}
+  ],
+  "support_priors": ["floor_support"],
+  "motion_priors": ["smooth_ball_translation", "contact_depth_stabilization"],
+  "vlm_query_policy": {
+    "stage0": ["target_mask_check"],
+    "stage1": ["keypart_identity_check", "track_stability_check"],
+    "stage2": ["contact_relation_check"],
+    "stage3": ["overlay_alignment_check"],
+    "stage4": ["anchor_update_check", "temporal_motion_check"],
+    "stage5": ["post_render_sanity_check"]
+  }
+}

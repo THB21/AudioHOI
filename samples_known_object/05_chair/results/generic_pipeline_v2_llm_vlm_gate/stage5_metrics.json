@@ -1,0 +1,25 @@
+{
+  "backend": "urdf_solid",
+  "outputs": {
+    "object_only/overlay.mp4": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/renders/generic_pipeline_v2_llm_vlm_gate/object_only/overlay.mp4",
+    "object_only/camera3d.mp4": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/renders/generic_pipeline_v2_llm_vlm_gate/object_only/camera3d.mp4",
+    "object_only/side_yz.mp4": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/renders/generic_pipeline_v2_llm_vlm_gate/object_only/side_yz.mp4",
+    "with_human/overlay.mp4": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/renders/generic_pipeline_v2_llm_vlm_gate/with_human/overlay.mp4",
+    "with_human/camera3d.mp4": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/renders/generic_pipeline_v2_llm_vlm_gate/with_human/camera3d.mp4",
+    "with_human/side_yz.mp4": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/renders/generic_pipeline_v2_llm_vlm_gate/with_human/side_yz.mp4"
+  },
+  "required": [
+    "object_only/overlay.mp4",
+    "object_only/camera3d.mp4",
+    "object_only/side_yz.mp4",
+    "with_human/overlay.mp4",
+    "with_human/camera3d.mp4",
+    "with_human/side_yz.mp4"
+  ],
+  "policy": "rerender Articraft URDF solid mesh with generic urdf_solid_scene from generic pose/contact",
+  "renderer": {
+    "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
+    "script": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/render/urdf_solid_scene.py",
+    "urdf": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/model.urdf"
+  }
+}

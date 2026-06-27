@@ -1,0 +1,6 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+chair,stage2,20,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+chair,stage2,82,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+chair,stage2,144,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+chair,stage2,1,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+chair,stage2,89,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1

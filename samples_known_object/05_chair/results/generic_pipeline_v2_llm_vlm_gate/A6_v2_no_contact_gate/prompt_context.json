@@ -1,0 +1,86 @@
+{
+  "case_name": "chair",
+  "result_name": "generic_pipeline_v2_llm_vlm_gate/A6_v2_no_contact_gate",
+  "prompt_entry_count": 10,
+  "entries": [
+    {
+      "kind": "sample_metadata.prompt",
+      "path": "samples_known_object/05_chair/metadata.json",
+      "record_id": "",
+      "text_preview": "Generate a 7-second realistic video from this image. At the beginning, the person is not yet touching the lightweight wooden chair. The person first reaches forward and grasps the chair with both hands, then lifts it from the floor, walks from right to left across the room while carrying it for a noticeable distance, and finally places the chair back down on the wooden floor. Keep the camera static. Keep the full body, chair, hands, and floor contact area clearly visible throughout the motion. Make sure the person starts near the right side of the frame and moves into the open space on the left side. Add realistic synchronized audio: a small wooden chair lift sound when the chair leaves the floor, subtle footsteps while the person walks, and one clear wooden chair placement sound exactly when the chair touches the floor again. No music, no speech.Ensure the entire process is smooth and taken in one continuous shot.",
+      "sha256": "98d55e1c3bad0d8cd566d47b17f3fb551c341384317f952c84bcd49e8e52069d"
+    },
+    {
+      "kind": "sample_metadata.detection_text",
+      "path": "samples_known_object/05_chair/metadata.json",
+      "record_id": "",
+      "text_preview": "chair.",
+      "sha256": "cbd246bfc6d3d7a50d23f8d78a6f81d10a1715a03ba33e35b0a8ded3750b5e3e"
+    },
+    {
+      "kind": "sample_metadata.name",
+      "path": "samples_known_object/05_chair/metadata.json",
+      "record_id": "",
+      "text_preview": "chair",
+      "sha256": "3d7eb3d3dab17ee509a6911e0feb928eb46e956adcada792493614bfb97a7a9c"
+    },
+    {
+      "kind": "sample_metadata.video",
+      "path": "samples_known_object/05_chair/metadata.json",
+      "record_id": "",
+      "text_preview": "video_sample/5_chair_video.mp4",
+      "sha256": "f2ef35c32a02d42c6db16c6809afc5392929d222035a7b704037b713863bbc7f"
+    },
+    {
+      "kind": "sample_metadata.image",
+      "path": "samples_known_object/05_chair/metadata.json",
+      "record_id": "",
+      "text_preview": "video_sample/5_chair.jpg",
+      "sha256": "4e933a566d2322caa2cbfd1eedf4db3379890266c95d5988c0aa41fdc05cfca5"
+    },
+    {
+      "kind": "prompt_txt",
+      "path": "samples_known_object/05_chair/articraft/generated_record/rec_only-fix-the-seat-proportions-and-seat-construct_20260619_141726_227599_145a532b/revisions/rev_000001/prompt.txt",
+      "record_id": "",
+      "text_preview": "Only fix the seat proportions and seat construction of the current proportional wooden folding chair. Do not redesign the frame, backrest, front/top rails, rear support legs, hinges, lower stretchers, materials, or overall chair dimensions. Current issue: the seat reads wrong because the previous edit made the sitting surface too short and too narrow, like a small ledge. Correct it to match the reference chair/video more plausibly while preserving the already-correct overall frame proportions. Seat-only targets: - Keep overall chair WIDTH = 0.440 m, HEIGHT = 0.780 m, DEPTH about 0.330 m, and seat top height about 0.351 m. - Keep the seat hinged near the same rear/upper support location. Do not move the chair frame. - Increase the visible sitting surface depth so it reads as a usable folding-chair seat, about 0.24-0.27 m. The front edge may project forward from the hinge, but it must stay inside the existing stance and not collide with the front legs. - Increase seat width so the top surface fills most of the chair interior, roughly 0.36-0.39 m overall visible width, close to the front frame width but still inside the side posts. - Preserve the known visual requirement: the two side wooden rails and the central slats are flush/level on top. Do not make the side rails stand proud above the middle slats. - Keep the seat as parallel front-to-back wooden slats plus side rails, like the original video chair. Add or reposition slats if needed so the sitting surface is evenly filled, but do not create many thin metal-looking strips. - Keep the front rounded/dowel edge and rear hinge tie aligned with the corrected seat dimensions. - Update tests so they validate the corrected usable seat: top height remains 0.45H, seat depth is usable and within the stance, seat width is broad, side rails and slats are flush, and compile passes cleanly. Make the smallest code changes needed for this seat-only correction and pass compile with zero failures and zero warnings.",
+      "sha256": "5932175f6b41e988f005ec90675c84849f575dbfc34feefe8af7bec99ff07a2e"
+    },
+    {
+      "kind": "record_display.title",
+      "path": "samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1054/record.source_6911e934.json",
+      "record_id": "rec_continue-editing-the-current-topology-fixed-chai_20260615_113825_272909_6911e934",
+      "text_preview": "attach_backrest_to_front_top_posts",
+      "sha256": "3ddee28f8457a6aca10b53cb45b9b9a0b0baea3e8a2b4473335708a4b5e9b738"
+    },
+    {
+      "kind": "record_display.prompt_preview",
+      "path": "samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1054/record.source_6911e934.json",
+      "record_id": "rec_continue-editing-the-current-topology-fixed-chai_20260615_113825_272909_6911e934",
+      "text_preview": "Continue editing the current topology-fixed chair. The previous fork changed the side-frame roles, but the backrest/top connection still looks wrong. Current...",
+      "sha256": "aeeee5ca2d439658652c9a85ba7133b7430f780e6b18492430292a0a95520357"
+    },
+    {
+      "kind": "record_display.title",
+      "path": "samples_known_object/05_chair/articraft/generated_record/rec_only-fix-the-seat-proportions-and-seat-construct_20260619_141726_227599_145a532b/record.json",
+      "record_id": "rec_only-fix-the-seat-proportions-and-seat-construct_20260619_141726_227599_145a532b",
+      "text_preview": "Only fix the seat proportions and seat construction of the current proportional wooden folding chair. Do not redesign th",
+      "sha256": "67806934b35e37863a19f157e553b564794b25423d9e5bcae1117f7f233fc69b"
+    },
+    {
+      "kind": "record_display.prompt_preview",
+      "path": "samples_known_object/05_chair/articraft/generated_record/rec_only-fix-the-seat-proportions-and-seat-construct_20260619_141726_227599_145a532b/record.json",
+      "record_id": "rec_only-fix-the-seat-proportions-and-seat-construct_20260619_141726_227599_145a532b",
+      "text_preview": "Only fix the seat proportions and seat construction of the current proportional wooden folding chair. Do not redesign the frame, backrest, front/top rails, r...",
+      "sha256": "f62401368faf1311fa9fb4f68b0d22035ee90360f1de56b7b0ce59a36cd6db3d"
+    }
+  ],
+  "missing_referenced_prompts": [
+    "/mnt/hdd/AudioHOI/samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1054/revisions/rev_000001/prompt.txt",
+    "/mnt/hdd/AudioHOI/samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/revisions/rev_000001/prompt.txt",
+    "/mnt/hdd/AudioHOI/samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel_20260619_1052/revisions/rev_000001/prompt.txt",
+    "/mnt/hdd/AudioHOI/samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-seatwidth-pass_20260619_1028/revisions/rev_000001/prompt.txt",
+    "/mnt/hdd/AudioHOI/samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-seatwidth-rearstartup_20260619_1045/revisions/rev_000001/prompt.txt",
+    "/mnt/hdd/AudioHOI/samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-visible-proportion-tune_20260619_1025/revisions/rev_000001/prompt.txt"
+  ],
+  "usage_rule": "Prompt context is semantic evidence for LLM/VLM query design only; it must not supply continuous pose, coordinates, or loss weights."
+}

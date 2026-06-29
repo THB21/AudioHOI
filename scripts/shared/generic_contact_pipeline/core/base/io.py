@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Iterable
 
 
-REPO = Path(__file__).resolve().parents[4]
+REPO = Path(__file__).resolve().parents[5]
 
 
 def repo_path(path: str | Path) -> Path:

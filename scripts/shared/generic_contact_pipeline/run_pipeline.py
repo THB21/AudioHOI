@@ -19,7 +19,7 @@ from scripts.shared.generic_contact_pipeline.core.base.io import write_json  # n
 from scripts.shared.generic_contact_pipeline.core.base.schema import stage_paths  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_provider import load_vlm_provider  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_gates import write_stage_gates  # noqa: E402
-from scripts.shared.generic_contact_pipeline.stages.analysis import stage_loss_analysis  # noqa: E402
+from scripts.shared.generic_contact_pipeline.stages.analysis import stage_llm_csv_audit, stage_loss_analysis  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.gates import stage_vlm_qwen, stage_vlm_verify  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.main import (  # noqa: E402
     stage_minus1_llm_prior,
@@ -42,6 +42,7 @@ STAGES = [
     ("stage4", stage4_contact_refine.run),
     ("stage5", stage5_render.run),
     ("stage6", stage6_compare.run),
+    ("stage6.5", stage_llm_csv_audit.run),
     ("stage7", stage_loss_analysis.run),
 ]
 
@@ -129,7 +130,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
     stage_results = []
     for stage_name, fn in selected_stages(from_stage, to_stage):
         print(f"[{case_name}] {stage_name}", flush=True)
-        if stage_name == "stage-1":
+        if stage_name in {"stage-1", "stage6.5"}:
             result = fn(profile, args.llm_mode)
         else:
             result = fn(profile)

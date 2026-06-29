@@ -4,7 +4,7 @@
 
 ## 1. 总结：我们从论文中抽象出的三层结构
 
-AudioHOI v2 的核心不是复现某一篇论文，而是把多类 HOI/HSI 方法抽象成三层：
+AudioHOI v2 的核心不是复现某一篇论文，而是把多类 HOI/HSI 方法抽象成三层，并额外加入一个表格层面的 LLM 审计：
 
 ```text
 LLM semantic prior
@@ -15,12 +15,15 @@ VLM visual gate
 
 optimizer
   -> 连续 2D-to-6D、depth、contact、temporal、static/freeze、small SE(3)
+
+LLM CSV/data audit
+  -> schema、stage consistency、contact emptiness、side swap、static drift、rotation jump 的离散诊断
 ```
 
 对应到论文启发：
 
 - InterCap / MOVER 说明：contact、occlusion、floor/support、penetration 是强几何约束，应该进入 optimizer。
-- HOI-PAGE / InteractAnything 说明：LLM 更适合生成部件级 affordance 和 interaction graph，不应该直接输出连续 pose。
+- HOI-PAGE / InteractAnything 说明：LLM 更适合生成部件级 affordance 和 interaction graph，也适合检查结构化 CSV 是否违反语义规则，但不应该直接输出连续 pose。
 - GenZI / ZeroHSI 说明：VLM/video generation 含有强视觉先验，但更适合作为视觉验证或候选生成，不应该替代数值优化。
 - InterDiff / CoopDiff 说明：动态 HOI 要保持 contact-consistent motion，不能只逐帧拟合。
 - Gaussian-HOI / Open3DHOI / WildHOI 类方法说明：开放词汇物体、contact region、human-conditioned object pose 是关键，但完整神经重建不是我们当前 solved cases 的目标。
@@ -32,8 +35,8 @@ optimizer
 | InterCap | 人体和物体必须联合估计，contact 能同时改善 body pose 和 object pose | 多视角 RGB-D + SMPL-X + 已知物体 mesh，利用接触、地面、物体位姿等约束联合优化 | 把 contact 作为真实几何 residual：mug palm-handle、chair two-hand endpoint、ball hand/foot/floor contact |
 | MOVER | 人在场景中的运动能约束物体布局 | 利用遮挡深度顺序、free-space、contact surface 一致性来优化 camera、ground、object placement | 加入 `E_depth_order`、`E_penetration_or_floor_violation`、`E_contact`、floor/table static |
 | InterDiff / CoopDiff | 动态 HOI 需要 human/object motion consistency 和 contact consistency | diffusion 生成人和物体运动，并用 physics/contact-aware 机制约束动态 | 不引入 diffusion solver，但保留 contact interval、temporal smooth、rotation jump penalty、static/freeze |
-| HOI-PAGE | LLM 可以推理部件级 affordance graph | 从 text prompt + object parts 生成 Part Affordance Graph，指导 4D HOI 生成 | Stage -1 生成 `hoi_profile.json`：object parts、human parts、interaction edges、VLM query policy |
-| InteractAnything | open-set object 的交互需要 LLM 解析关系、affordance、细节动作 | LLM feedback 生成/修正 interaction pose 和 object affordance，适配任意 mesh | Mistral/Qwen 只做离散语义先验和检查项，不直接给坐标或 loss weight |
+| HOI-PAGE | LLM 可以推理部件级 affordance graph | 从 text prompt + object parts 生成 Part Affordance Graph，指导 4D HOI 生成 | Stage -1 生成 `hoi_profile.json`；Stage 6.5 检查 CSV 是否违反这些语义规则 |
+| InteractAnything | open-set object 的交互需要 LLM 解析关系、affordance、细节动作 | LLM feedback 生成/修正 interaction pose 和 object affordance，适配任意 mesh | Mistral/Qwen 只做离散语义先验、CSV 审计和检查项，不直接给坐标或 loss weight |
 | GenZI | VLM 可以从 scene view 和 text prompt 想象合理人体交互 | VLM inpainting 多视角 2D human，再通过 3D optimization 还原 human-scene interaction | VLM 用来 gate mask/keypart/contact/render；optimizer 才负责 3D/6D 连续求解 |
 | ZeroHSI | video generation 提供强 motion prior，可用于 zero-shot HSI | 利用视频生成模型产生运动先验，再用 differentiable rendering 重建 4D human-scene interaction | 我们的视频本身来自生成模型，因此必须反向验证：SAM2/CoTracker/VLM/audio 只给证据，最终靠 optimizer 对齐 |
 | Open3DHOI / WildHOI | in-the-wild RGB 可做开放词汇 HOI 3D annotation/reconstruction | 结合 2D 图像、人体估计、物体重建/6D pose、语义标注形成 3D HOI 数据 | 输出统一的 `object_pose.csv`、`object_contact_points.csv`、part-level local points，便于扩展到新 object |
@@ -136,6 +139,7 @@ LLM 允许：
 - 生成 interaction edges。
 - 生成 support/motion prior。
 - 生成每个 stage 应该问 VLM 的问题类型。
+- 在 Stage 6.5 读取 CSV/JSON/metrics，检查 schema、stage consistency、contact emptiness、left/right swap、static drift、rotation jump。
 
 LLM 不允许：
 
@@ -143,6 +147,7 @@ LLM 不允许：
 - 输出 SE(3) correction。
 - 输出连续 loss weight。
 - 直接覆盖 optimizer 的 pose。
+- 直接改写 `object_pose.csv` 或 `object_contact_points.csv`。
 
 这就是 `hoi_profile.json` 的定位。
 
@@ -278,12 +283,13 @@ ours_full
 
 论文方法最终落到 AudioHOI v2 的设计决策：
 
-1. LLM 只生成离散 HOI profile。
+1. LLM 在 Stage -1 生成离散 HOI profile，在 Stage 6.5 做 CSV/data audit。
 2. VLM 每个 stage 都做 forced-choice gate。
 3. Optimizer 是唯一连续求解器。
 4. Contact candidate 不能直接信任，必须经过视觉/几何 gate。
 5. object-specific 能力写成可复用 component，而不是每个 object 一个 runner。
-6. 输出必须包含 pose、contact points、phase、loss residual 和六个 render video，便于和论文方法做 fair proxy comparison。
+6. LLM/VLM 都只能输出离散 gate、diagnostic label 或 summary，不能直接输出连续修正。
+7. 输出必须包含 pose、contact points、phase、loss residual、LLM CSV audit 和六个 render video，便于和论文方法做 fair proxy comparison。
 
 ## References
 

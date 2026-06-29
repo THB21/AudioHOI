@@ -259,6 +259,68 @@ Checks:
 - six render videos exist and pass codec/frame checks
 - chair also passes semantic/contact/freeze quality gates
 
+### Stage 6.5: LLM CSV / Data Audit
+
+Stage 6.5 is a symbolic audit over tables and logs. It does not inspect images and does not perform continuous optimization. It reads the CSV/JSON/metrics produced by the pipeline and checks whether the stages are internally consistent.
+
+Inputs:
+
+```text
+object_observations.csv
+contact_candidates.csv
+contact_state_frames.csv
+object_pose_init.csv
+object_pose.csv
+object_contact_points.csv
+object_phase.csv
+stage3_metrics.json
+stage4_metrics.json
+stage6_compare_report.json
+vlm_gates.csv
+loss_analysis/loss_summary.json
+```
+
+Outputs:
+
+```text
+llm_csv_audit_queries.json
+llm_csv_audit_results.json
+llm_csv_audit_summary.md
+llm_csv_audit_failures.csv
+```
+
+Audit checks:
+
+- Schema completeness: for example, chair should contain left/right endpoint contacts, mug should contain handle phase, and ball cases should contain contact/floor fields.
+- Stage consistency: for example, Stage2 may contain contact while Stage4 contains no object contact points, or a VLM-rejected frame may still activate `E_contact`.
+- Object-specific rule violations:
+  - basketball / football: unstable depth after contact, drifting floor support.
+  - mug: handle jumps during drinking, pose drift after table release.
+  - chair: left/right palm endpoint swap, missing freeze/interp before and after contact interval.
+- Failure range summaries: largest contact gap, rotation jumps, static drift, and missing-contact frame ranges.
+
+The LLM CSV audit may only output discrete labels and explanations:
+
+```text
+pass
+schema_missing
+stage_inconsistent
+contact_empty
+contact_side_swapped
+static_drift
+rotation_jump
+depth_outlier
+vlm_gate_ignored
+unclear
+```
+
+Forbidden:
+
+- no `tx/ty/tz/rx/ry/rz` corrections
+- no loss weights
+- no direct rewrite of `object_pose.csv`
+- no conversion from natural-language explanation into continuous residuals
+
 ### Stage 7: Loss / Residual Logging
 
 Outputs:
@@ -333,7 +395,14 @@ Object-specific residuals:
 
 ### LLM: Mistral
 
-The LLM is used only in Stage -1.
+The LLM has two allowed roles:
+
+```text
+Stage -1: semantic prior generation
+Stage 6.5: CSV/data consistency audit
+```
+
+Stage -1 generates the HOI semantic prior. Stage 6.5 reads CSV/JSON/metrics and produces discrete consistency checks and failure explanations.
 
 Inputs:
 
@@ -349,6 +418,7 @@ Outputs:
 - interaction edges
 - support/motion priors
 - VLM query policy
+- CSV audit labels / failure summary
 
 Forbidden:
 
@@ -356,6 +426,7 @@ Forbidden:
 - no coordinates
 - no loss weights
 - no direct optimizer updates
+- no direct rewrite of result CSVs
 
 ### VLM: Qwen-VL
 

@@ -259,6 +259,68 @@ migration_audit.json
 - 六个 render videos 存在且 codec/frame pass
 - chair 额外 semantic/contact/freeze quality gate
 
+### Stage 6.5：LLM CSV / Data Audit
+
+Stage 6.5 是表格和日志层面的语义审计。它不看图片，不做连续优化，只读取 pipeline 已经产出的 CSV/JSON/metrics，并判断 stage 之间是否自洽。
+
+输入：
+
+```text
+object_observations.csv
+contact_candidates.csv
+contact_state_frames.csv
+object_pose_init.csv
+object_pose.csv
+object_contact_points.csv
+object_phase.csv
+stage3_metrics.json
+stage4_metrics.json
+stage6_compare_report.json
+vlm_gates.csv
+loss_analysis/loss_summary.json
+```
+
+输出：
+
+```text
+llm_csv_audit_queries.json
+llm_csv_audit_results.json
+llm_csv_audit_summary.md
+llm_csv_audit_failures.csv
+```
+
+审计内容：
+
+- schema 是否完整：例如 chair 是否有左右 endpoint contact，mug 是否有 handle phase，ball 是否有 contact/floor 字段。
+- stage 是否一致：例如 Stage2 有 contact，但 Stage4 没有 object contact point；VLM reject 的帧却仍启用了 `E_contact`。
+- object-specific 规则是否被违反：
+  - basketball / football：contact 后 depth 是否仍抖动，floor support 是否漂移。
+  - mug：drinking phase handle 是否突跳，table release 后 pose 是否还漂。
+  - chair：左右 palm 与左右 endpoint 是否交换，contact interval 前后是否 freeze/interp。
+- 异常段落总结：最大 contact gap、rotation jump、static drift、missing contact 的 frame range。
+
+LLM CSV audit 只允许输出离散标签和解释：
+
+```text
+pass
+schema_missing
+stage_inconsistent
+contact_empty
+contact_side_swapped
+static_drift
+rotation_jump
+depth_outlier
+vlm_gate_ignored
+unclear
+```
+
+禁止：
+
+- 不输出 `tx/ty/tz/rx/ry/rz` 修正。
+- 不输出 loss weight。
+- 不直接改写 `object_pose.csv`。
+- 不把自然语言解释转换成连续残差。
+
 ### Stage 7：Loss / Residual Logging
 
 输出：
@@ -333,7 +395,14 @@ object-specific：
 
 ### LLM：Mistral
 
-LLM 只在 Stage -1 使用。
+LLM 有两个允许角色：
+
+```text
+Stage -1: semantic prior generation
+Stage 6.5: CSV/data consistency audit
+```
+
+Stage -1 用于生成 HOI 语义先验。Stage 6.5 用于读取 CSV/JSON/metrics，做离散的一致性审计和错误解释。
 
 输入：
 
@@ -349,6 +418,7 @@ LLM 只在 Stage -1 使用。
 - interaction edges
 - support/motion priors
 - VLM query policy
+- CSV audit labels / failure summary
 
 禁止：
 
@@ -356,6 +426,7 @@ LLM 只在 Stage -1 使用。
 - 不输出 coordinates。
 - 不输出 loss weights。
 - 不直接修改 optimization。
+- 不直接改写任何结果 CSV。
 
 ### VLM：Qwen-VL
 

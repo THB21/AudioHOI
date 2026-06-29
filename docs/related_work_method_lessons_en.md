@@ -4,7 +4,7 @@ This note complements the `generic_pipeline_v2_llm_vlm_gate` mainline design. Th
 
 ## 1. Summary: The Three-Layer Abstraction We Borrow
 
-AudioHOI v2 does not try to reproduce one specific paper. Instead, it abstracts several HOI/HSI methods into a three-layer design:
+AudioHOI v2 does not try to reproduce one specific paper. Instead, it abstracts several HOI/HSI methods into a three-layer design, plus an LLM audit layer over structured tables:
 
 ```text
 LLM semantic prior
@@ -15,12 +15,15 @@ VLM visual gate
 
 optimizer
   -> continuous 2D-to-6D, depth, contact, temporal, static/freeze, small SE(3) solving
+
+LLM CSV/data audit
+  -> discrete diagnosis for schema, stage consistency, empty contact, side swaps, static drift, rotation jumps
 ```
 
 The main lessons are:
 
 - InterCap and MOVER show that contact, occlusion, support surfaces, and penetration/floor constraints should be treated as geometry, not as comments.
-- HOI-PAGE and InteractAnything show that LLMs are useful for part-level affordance and interaction graphs, but should not output continuous pose.
+- HOI-PAGE and InteractAnything show that LLMs are useful for part-level affordance and interaction graphs, and also useful for checking whether structured CSV outputs violate semantic rules, but they should not output continuous pose.
 - GenZI and ZeroHSI show that VLM/video priors are useful for candidate generation and visual reasoning, but they still need geometric optimization.
 - InterDiff and CoopDiff show that dynamic HOI must be contact-consistent over time, not fitted frame by frame.
 - Gaussian-HOI/Open3DHOI/WildHOI-style work shows that explicit contact regions and structured 3D HOI outputs are important, even when the representation differs.
@@ -32,8 +35,8 @@ The main lessons are:
 | InterCap | Humans and objects must be estimated jointly; contact improves both body pose and object pose | Multi-view RGB-D + SMPL-X + known object mesh, jointly optimized with contact, ground, and object pose constraints | Treat contact as a real geometric residual: mug palm-handle, chair two-hand endpoint, ball hand/foot/floor contact |
 | MOVER | Human motion constrains object placement and scene geometry | Optimizes camera, ground, object scale and placement with occlusion, depth ordering, free-space, and contact surface constraints | `E_depth_order`, `E_penetration_or_floor_violation`, `E_contact`, floor/table static priors |
 | InterDiff / CoopDiff | Dynamic HOI needs human/object motion consistency and contact consistency | Uses diffusion models with physics/contact-aware mechanisms for human-object motion | We do not use diffusion as the solver, but keep contact intervals, temporal smoothness, rotation-jump penalties, static/freeze |
-| HOI-PAGE | LLMs can reason about part-level affordance graphs | Generates part affordance graphs from text prompt and object parts to guide 4D HOI generation | Stage -1 writes `hoi_profile.json`: object parts, human parts, interaction edges, and VLM query policy |
-| InteractAnything | Open-set object interaction needs relationship reasoning and affordance parsing | Uses LLM feedback to generate/refine interaction poses and object affordance | Mistral/Qwen are used only for discrete semantic priors and checks, not coordinates or loss weights |
+| HOI-PAGE | LLMs can reason about part-level affordance graphs | Generates part affordance graphs from text prompt and object parts to guide 4D HOI generation | Stage -1 writes `hoi_profile.json`; Stage 6.5 audits CSVs against the semantic rules |
+| InteractAnything | Open-set object interaction needs relationship reasoning and affordance parsing | Uses LLM feedback to generate/refine interaction poses and object affordance | Mistral/Qwen are used only for discrete semantic priors, CSV audits, and checks, not coordinates or loss weights |
 | GenZI | VLMs can imagine plausible humans interacting with a scene | Uses VLM inpainting over scene views, then optimizes a 3D human-scene interaction | VLM gates mask/keypart/contact/render evidence; the optimizer handles continuous 3D/6D solving |
 | ZeroHSI | Video generation provides a strong zero-shot motion prior | Uses video generation and differentiable rendering to reconstruct 4D human-scene interaction | Our input videos are generated, so we use SAM2/CoTracker/VLM/audio as evidence and rely on optimization for alignment |
 | Open3DHOI / WildHOI | In-the-wild RGB can be converted into structured 3D HOI annotations/reconstruction | Combines 2D images, human estimation, object reconstruction/6D pose, and semantic labels | Unified CSV outputs: `object_pose.csv`, `object_contact_points.csv`, and part-level local points |
@@ -136,6 +139,7 @@ The LLM may:
 - produce interaction edges
 - produce support and motion priors
 - decide which VLM query types should be used at each stage
+- read CSV/JSON/metrics in Stage 6.5 and check schema, stage consistency, empty contacts, left/right swaps, static drift, and rotation jumps
 
 The LLM must not:
 
@@ -143,6 +147,7 @@ The LLM must not:
 - output SE(3) corrections
 - output continuous loss weights
 - directly overwrite optimizer pose
+- directly rewrite `object_pose.csv` or `object_contact_points.csv`
 
 This is the role of `hoi_profile.json`.
 
@@ -278,12 +283,13 @@ The goal is not to claim that “other code fails.” The goal is to identify wh
 
 These papers motivate the following AudioHOI v2 decisions:
 
-1. The LLM only generates a discrete HOI profile.
+1. The LLM generates a discrete HOI profile in Stage -1 and performs CSV/data audit in Stage 6.5.
 2. The VLM performs forced-choice gates at every stage.
 3. The optimizer is the only continuous solver.
 4. Contact candidates must be verified by visual/geometric gates before activating residuals.
 5. Object-specific logic is implemented as reusable components, not one runner per object.
-6. The output must include pose, contact points, phase, loss residuals, and six render videos for fair proxy comparison.
+6. LLM/VLM outputs are limited to discrete gates, diagnostic labels, and summaries, not continuous corrections.
+7. The output must include pose, contact points, phase, loss residuals, LLM CSV audit, and six render videos for fair proxy comparison.
 
 ## References
 

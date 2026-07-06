@@ -1,0 +1,2 @@
+iteration,E_total,E_visual,E_mask,E_contact,E_audio,E_support,E_smooth,E_reg,active_frames,active_contact_frames,active_audio_frames
+0,6317.822647700,4698.317748191,0.000000000,0.000000000,0.000000000,1519.515302800,0.033627423,99.955969286,192,125,8

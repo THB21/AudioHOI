@@ -1,0 +1,19 @@
+{
+  "point_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_semantic_local_points/chair_semantic_local_points.csv",
+  "segment_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_semantic_local_points/chair_semantic_local_segments.csv",
+  "points": 46,
+  "segments": 21,
+  "source_model_py": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/revisions/rev_000001/model.py",
+  "record_id": "rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056",
+  "bbox_min": [
+    -0.212,
+    -0.246,
+    0.0
+  ],
+  "bbox_max": [
+    0.212,
+    0.246,
+    0.78
+  ],
+  "axis_note": "local x=chair width, local y=depth/front-back, local z=up; root frame is front_frame with rear/seat joints at default open pose."
+}

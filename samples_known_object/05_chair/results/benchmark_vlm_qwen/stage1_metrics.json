@@ -1,0 +1,41 @@
+{
+  "component": "generic_observation_mainline",
+  "case_name": "chair",
+  "adapter": {
+    "component": "semantic_graph_tracks",
+    "object_observations": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_observations.csv",
+    "chair_leg_candidates": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_leg_candidates.csv",
+    "chair_front_frame_cotracker_observations": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_front_frame_cotracker_observations.csv",
+    "object_local_points": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_local_points.csv",
+    "object_local_segments": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_local_segments.csv",
+    "semantic_observations_source": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_semantic_observations_internal/chair_semantic_observations.csv",
+    "semantic_leg_candidates_source": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_semantic_observations_internal/chair_leg_candidates.csv",
+    "semantic_builder": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/observation/solvers/build_chair_semantic_observations.py",
+    "front_frame_builder": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/observation/solvers/build_chair_front_frame_cotracker_observations.py",
+    "front_frame_source": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_front_frame_cotracker_internal/chair_front_frame_cotracker_observations.csv",
+    "tracks_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/tracking/object_mesh_tracks.csv",
+    "semantic_local_points_source": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_semantic_local_points/chair_semantic_local_points.csv",
+    "semantic_local_segments_source": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_semantic_local_points/chair_semantic_local_segments.csv",
+    "articraft_model_py": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/revisions/rev_000001/model.py",
+    "generator": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/observation/solvers/sample_chair_semantic_local_points.py",
+    "semantic_parts": [
+      "top_rail",
+      "backrest_hole",
+      "seat",
+      "front_leg",
+      "rear_leg",
+      "stretchers",
+      "feet"
+    ],
+    "adapter_component": "semantic_graph_tracks"
+  },
+  "object_observations": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_observations.csv",
+  "object_correspondence": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_correspondence.csv",
+  "object_surface_points": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_surface_points.csv",
+  "object_semantic_points": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_semantic_points.csv",
+  "rows": 192,
+  "correspondence_rows": 192,
+  "surface_rows": 46,
+  "semantic_rows": 21,
+  "policy": "fixed generic observation contract; case-specific observation code is compatibility adapter only"
+}

@@ -1,0 +1,51 @@
+{
+  "component": "generic_se3_pose_init",
+  "case_name": "football",
+  "adapter": {
+    "component": "translation3",
+    "source": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_observations.csv",
+    "object_pose_init": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_init.csv",
+    "rows": 242,
+    "line_orientation_frames": 0,
+    "policy": "clean backprojection from Stage1 object observation using K_fullimg; optional tip_a/tip_b tracks define camera-plane object orientation",
+    "optimizer_style_residual_report": {
+      "stage_label": "stage3_translation3_init",
+      "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/ball_stage3_translation3_residuals.csv",
+      "rows": 242,
+      "terms": {
+        "E_total": 11.815675350000003,
+        "E_visual": 0.0,
+        "E_depth": 0.0,
+        "E_support": 0.0,
+        "E_contact": 0.0,
+        "E_smooth": 11.815675350000003,
+        "E_reg": 0.0
+      },
+      "note": "Optimizer-style normalized ball residuals mirroring the radius-free center/support/contact/smooth/reg construction; report only, does not alter pose."
+    },
+    "adapter_component": "translation3"
+  },
+  "object_pose_init": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_init.csv",
+  "rows": 242,
+  "se3_fields": [
+    "frame",
+    "time",
+    "tx",
+    "ty",
+    "tz",
+    "qw",
+    "qx",
+    "qy",
+    "qz"
+  ],
+  "missing_se3_fields": [],
+  "geometry_pose_prior": {
+    "enabled": false,
+    "reason": "no line geometry prior inputs"
+  },
+  "line_contact_pose_prior": {
+    "enabled": false,
+    "reason": "not a line object"
+  },
+  "policy": "fixed SE3 pose schema; weak or unobserved rotations remain identity/low-weight instead of dropping quaternion fields"
+}

@@ -1,0 +1,5 @@
+{
+  "case_name": "chair",
+  "object_family": "articulated_support_object",
+  "result_name": "benchmark_vlm_qwen"
+}

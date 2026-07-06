@@ -1,0 +1,23 @@
+{
+  "case_name": "basketball",
+  "stage": "stage2",
+  "llm_mode": "mistral",
+  "note": "LLM audit operates on CSV/metrics evidence and may only emit discrete gates/actions.",
+  "queries": [
+    {
+      "case_name": "basketball",
+      "stage": "stage2",
+      "object_family": "dynamic_ball",
+      "role": "CSV/metrics LLM audit gate; labels only, no coordinates or pose generation",
+      "query_id": "contact_anchor_contract",
+      "question": "Do contact candidates and anchor_state expose observed/persistent/update/pose-anchor fields consistently?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "contact_empty",
+        "stage_inconsistent",
+        "unclear"
+      ]
+    }
+  ]
+}

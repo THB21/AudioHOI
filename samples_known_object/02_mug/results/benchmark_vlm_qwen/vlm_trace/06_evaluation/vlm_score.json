@@ -1,0 +1,16 @@
+{
+  "mode": "dry-run_metric_grounded",
+  "score": 0.75,
+  "checklist_count": 20,
+  "pipeline_vlm_gate_score": {
+    "mode": "existing_vlm_artifacts",
+    "score": 0.7424242424242424,
+    "checklist_count": 33,
+    "pass_count": 20,
+    "unclear_count": 9,
+    "reject_count": 4,
+    "note": "Scored from existing VLM gate artifacts; no pose coordinates are generated here."
+  },
+  "pipeline_vlm_gate_framewise_count": 33,
+  "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+}

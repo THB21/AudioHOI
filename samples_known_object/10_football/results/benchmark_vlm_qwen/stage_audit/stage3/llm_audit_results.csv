@@ -1,0 +1,2 @@
+query_id,label,blocking,rerun_stage,residual_reweight,short_reason
+se3_schema,pass,0,0,0,object_pose_init has SE3 schema

@@ -1,0 +1,37 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+basketball,stage-1,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+basketball,stage-1,llm_csv:stage_contract,pass,keep_outputs,0,1,0,no stage-specific CSV audit rule
+basketball,stage0,artifact:stage0_inputs_manifest,pass,keep_outputs,0,1,0,stage0_inputs_manifest exists
+basketball,stage0,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+basketball,stage0,llm_csv:stage0_inputs,pass,keep_outputs,0,1,0,stage0 input manifest exists
+basketball,stage1,artifact:object_observations,pass,keep_outputs,0,1,0,object_observations exists
+basketball,stage1,artifact:object_correspondence,pass,keep_outputs,0,1,0,object_correspondence exists
+basketball,stage1,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+basketball,stage1,llm_csv:observation_contract,pass,keep_outputs,0,1,0,object_observations=192 object_correspondence=192
+basketball,stage2,artifact:contact_candidates,pass,keep_outputs,0,1,0,contact_candidates exists
+basketball,stage2,artifact:anchor_state,pass,keep_outputs,0,1,0,anchor_state exists
+basketball,stage2,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+basketball,stage2,llm_csv:contact_anchor_contract,pass,keep_outputs,0,1,0,contact_candidates=192 anchor_state=192
+basketball,stage3,artifact:object_pose_init,pass,keep_outputs,0,1,0,object_pose_init exists
+basketball,stage3,se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+basketball,stage3,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+basketball,stage3,llm_csv:se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+basketball,stage4,artifact:object_pose,pass,keep_outputs,0,1,0,object_pose exists
+basketball,stage4,artifact:motion_regime,pass,keep_outputs,0,1,0,motion_regime exists
+basketball,stage4,artifact:optimizer_decisions,pass,keep_outputs,0,1,0,optimizer_decisions exists
+basketball,stage4,artifact:physical_smooth_residuals,pass,keep_outputs,0,1,0,physical_smooth_residuals exists
+basketball,stage4,artifact:pose_jump_audit,pass,keep_outputs,0,1,0,pose_jump_audit exists
+basketball,stage4,pose_jump_audit,pass,keep_outputs,0,1,0,no pose/contact/smoothness spike rows
+basketball,stage4,vlm_gate,unclear,rerun_stage_with_lower_trust,1,1,1,VLM marked 8 frame/query rows unclear
+basketball,stage4,llm_csv:sequence_optimizer_contract,pass,keep_outputs,0,1,0,sequence optimizer decisions enabled
+basketball,stage4,llm_csv:pose_jump_audit,pass,keep_outputs,0,1,0,no pose/contact/smoothness spikes
+basketball,stage5,artifact:render_manifest,pass,keep_outputs,0,1,0,render_manifest exists
+basketball,stage5,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+basketball,stage5,llm_csv:render_manifest,pass,keep_outputs,0,1,0,render manifest exists
+basketball,stage5,llm_csv:render_temporal_consistency,pass,keep_outputs,0,1,0,temporal VLM/machine audit has no mismatch
+basketball,stage6,vlm_gate,unclear,rerun_stage_with_lower_trust,0,1,0,VLM marked 3 frame/query rows unclear
+basketball,stage6,llm_csv:stage_contract,pass,keep_outputs,0,1,0,no stage-specific CSV audit rule
+basketball,stage6.5,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+basketball,stage6.5,llm_csv:stage_contract,pass,keep_outputs,0,1,0,no stage-specific CSV audit rule
+basketball,stage7,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+basketball,stage7,llm_csv:stage_contract,pass,keep_outputs,0,1,0,no stage-specific CSV audit rule

@@ -1,0 +1,107 @@
+{
+  "case_name": "football",
+  "stage": "stage7",
+  "mode": "qwen_vl",
+  "decision": "pass_with_report_only_failures",
+  "blocking": false,
+  "query_count": 5,
+  "gate_counts": {
+    "reject": 4,
+    "unclear": 1
+  },
+  "query_counts": {
+    "loss_diagnostic_check": 5
+  },
+  "accepted_frames": [],
+  "blocked_frames": [],
+  "report_only_reject_frames": [
+    1,
+    122,
+    129,
+    130
+  ],
+  "unclear_frames": [
+    127
+  ],
+  "repair_actions_by_frame": {
+    "129": [
+      "mark_for_report_only"
+    ],
+    "127": [
+      "unclear_no_update"
+    ],
+    "130": [
+      "mark_for_report_only"
+    ],
+    "1": [
+      "mark_for_report_only"
+    ],
+    "122": [
+      "mark_for_report_only"
+    ]
+  },
+  "rejected_results": [
+    {
+      "case_name": "football",
+      "stage": "stage7",
+      "frame": "129",
+      "query_type": "loss_diagnostic_check",
+      "normalized_label": "visual_spike",
+      "pass_gate": "reject",
+      "repair_action": "mark_for_report_only",
+      "used_for_anchor_update": "0",
+      "used_for_contact_residual": "0",
+      "used_for_report": "1"
+    },
+    {
+      "case_name": "football",
+      "stage": "stage7",
+      "frame": "130",
+      "query_type": "loss_diagnostic_check",
+      "normalized_label": "visual_spike",
+      "pass_gate": "reject",
+      "repair_action": "mark_for_report_only",
+      "used_for_anchor_update": "0",
+      "used_for_contact_residual": "0",
+      "used_for_report": "1"
+    },
+    {
+      "case_name": "football",
+      "stage": "stage7",
+      "frame": "1",
+      "query_type": "loss_diagnostic_check",
+      "normalized_label": "visual_spike",
+      "pass_gate": "reject",
+      "repair_action": "mark_for_report_only",
+      "used_for_anchor_update": "0",
+      "used_for_contact_residual": "0",
+      "used_for_report": "1"
+    },
+    {
+      "case_name": "football",
+      "stage": "stage7",
+      "frame": "122",
+      "query_type": "loss_diagnostic_check",
+      "normalized_label": "visual_spike",
+      "pass_gate": "reject",
+      "repair_action": "mark_for_report_only",
+      "used_for_anchor_update": "0",
+      "used_for_contact_residual": "0",
+      "used_for_report": "1"
+    }
+  ],
+  "allowed_repair_actions": [
+    "accept_candidate",
+    "reject_candidate",
+    "disable_contact_frame",
+    "keep_previous_anchor",
+    "downweight_correspondence",
+    "use_mask_fallback",
+    "retry_with_alternative_keypart",
+    "allow_small_se3_refine",
+    "freeze_before_after_contact",
+    "mark_for_report_only",
+    "unclear_no_update"
+  ],
+  "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+}

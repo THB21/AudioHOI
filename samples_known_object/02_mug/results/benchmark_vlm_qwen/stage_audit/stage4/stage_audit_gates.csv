@@ -1,0 +1,10 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+mug,stage4,artifact:object_pose,pass,keep_outputs,0,1,0,object_pose exists
+mug,stage4,artifact:motion_regime,pass,keep_outputs,0,1,0,motion_regime exists
+mug,stage4,artifact:optimizer_decisions,pass,keep_outputs,0,1,0,optimizer_decisions exists
+mug,stage4,artifact:physical_smooth_residuals,pass,keep_outputs,0,1,0,physical_smooth_residuals exists
+mug,stage4,artifact:pose_jump_audit,pass,keep_outputs,0,1,0,pose_jump_audit exists
+mug,stage4,pose_jump_audit,pass,keep_outputs,0,1,0,no pose/contact/smoothness spike rows
+mug,stage4,vlm_gate,unclear,rerun_stage_with_lower_trust,1,1,1,VLM marked 6 frame/query rows unclear
+mug,stage4,llm_csv:sequence_optimizer_contract,pass,keep_outputs,0,1,0,sequence optimizer decisions enabled
+mug,stage4,llm_csv:pose_jump_audit,pass,keep_outputs,0,1,0,no pose/contact/smoothness spikes

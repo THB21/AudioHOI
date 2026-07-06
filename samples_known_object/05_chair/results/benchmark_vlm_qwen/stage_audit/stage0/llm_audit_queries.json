@@ -1,0 +1,22 @@
+{
+  "case_name": "chair",
+  "stage": "stage0",
+  "llm_mode": "mistral",
+  "note": "LLM audit operates on CSV/metrics evidence and may only emit discrete gates/actions.",
+  "queries": [
+    {
+      "case_name": "chair",
+      "stage": "stage0",
+      "object_family": "articulated_support_object",
+      "role": "CSV/metrics LLM audit gate; labels only, no coordinates or pose generation",
+      "query_id": "stage0_inputs",
+      "question": "Are preprocessing inputs present or explicitly marked with a reusable/generatable status?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "stage_inconsistent",
+        "unclear"
+      ]
+    }
+  ]
+}

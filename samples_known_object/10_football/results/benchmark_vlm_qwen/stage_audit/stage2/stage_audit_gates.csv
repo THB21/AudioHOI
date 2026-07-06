@@ -1,0 +1,5 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+football,stage2,artifact:contact_candidates,pass,keep_outputs,0,1,0,contact_candidates exists
+football,stage2,artifact:anchor_state,pass,keep_outputs,0,1,0,anchor_state exists
+football,stage2,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+football,stage2,llm_csv:contact_anchor_contract,pass,keep_outputs,0,1,0,contact_candidates=242 anchor_state=242

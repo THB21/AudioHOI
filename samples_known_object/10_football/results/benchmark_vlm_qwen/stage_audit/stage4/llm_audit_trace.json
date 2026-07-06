@@ -1,0 +1,25 @@
+{
+  "provider": {
+    "name": "mistral_api",
+    "kind": "mistral_chat_completions",
+    "api_key_env": "MISTRAL_API_KEY",
+    "api_key_present": true,
+    "model_id": "mistral-small-latest",
+    "base_url": "https://api.mistral.ai/v1",
+    "temperature": 0.0,
+    "max_new_tokens": 900,
+    "timeout_seconds": 120
+  },
+  "used": true,
+  "error": "",
+  "response_id": "8dccddd2ca6d4bfd9b62cf73d676d33e",
+  "usage": {
+    "prompt_tokens": 6101,
+    "total_tokens": 6210,
+    "completion_tokens": 109,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "raw_text": "{\"results\": [{\"query_id\": \"sequence_optimizer_contract\", \"label\": \"pass\", \"blocking\": false, \"rerun_stage\": false, \"residual_reweight\": false, \"short_reason\": \"optimizer artifacts present and valid\"}, {\"query_id\": \"pose_jump_audit\", \"label\": \"pass\", \"blocking\": false, \"rerun_stage\": false, \"residual_reweight\": false, \"short_reason\": \"no pose/contact/smoothness spikes detected\"}]}"
+}

@@ -1,0 +1,6 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+chair,stage7,45,loss_diagnostic_check,visual_spike,reject,mark_for_report_only,0,0,1
+chair,stage7,121,loss_diagnostic_check,visual_spike,reject,mark_for_report_only,0,0,1
+chair,stage7,46,loss_diagnostic_check,visual_spike,reject,mark_for_report_only,0,0,1
+chair,stage7,1,loss_diagnostic_check,visual_spike,reject,mark_for_report_only,0,0,1
+chair,stage7,97,loss_diagnostic_check,visual_spike,reject,mark_for_report_only,0,0,1

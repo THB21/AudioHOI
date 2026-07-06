@@ -1,0 +1,93 @@
+{
+  "csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_front_frame_cotracker_internal/chair_front_frame_cotracker_observations.csv",
+  "rows": 136,
+  "seed_info": {
+    "0:1": {
+      "frame_range": [
+        1,
+        32
+      ],
+      "seed_frame": 16,
+      "track_ids": {
+        "lt": "chunk000_boundary_002",
+        "lb": "chunk000_boundary_020",
+        "rt": "chunk000_boundary_056",
+        "rb": "chunk000_boundary_030"
+      },
+      "max_bind_dist": 0.05575840743780938
+    },
+    "1:33": {
+      "frame_range": [
+        33,
+        64
+      ],
+      "seed_frame": 49,
+      "track_ids": {
+        "lt": "chunk001_boundary_002",
+        "lb": "chunk001_boundary_018",
+        "rt": "chunk001_boundary_059",
+        "rb": "chunk001_boundary_026"
+      },
+      "max_bind_dist": 2.3166063541309514
+    },
+    "2:65": {
+      "frame_range": [
+        65,
+        96
+      ],
+      "seed_frame": 81,
+      "track_ids": {
+        "lt": "chunk002_boundary_002",
+        "lb": "chunk002_boundary_022",
+        "rt": "chunk002_interior_007",
+        "rb": "chunk002_boundary_030"
+      },
+      "max_bind_dist": 1.8991919334285423
+    },
+    "3:97": {
+      "frame_range": [
+        97,
+        128
+      ],
+      "seed_frame": 112,
+      "track_ids": {
+        "lt": "chunk003_boundary_002",
+        "lb": "chunk003_boundary_021",
+        "rt": "chunk003_interior_008",
+        "rb": "chunk003_interior_062"
+      },
+      "max_bind_dist": 1.0509319673508621
+    },
+    "4:129": {
+      "frame_range": [
+        129,
+        160
+      ],
+      "seed_frame": 144,
+      "track_ids": {
+        "lt": "chunk004_boundary_001",
+        "lb": "chunk004_boundary_018",
+        "rt": "chunk004_boundary_058",
+        "rb": "chunk004_boundary_026"
+      },
+      "max_bind_dist": 0.05322593352867275
+    },
+    "5:161": {
+      "frame_range": [
+        161,
+        192
+      ],
+      "seed_frame": 176,
+      "track_ids": {
+        "lt": "chunk005_boundary_002",
+        "lb": "chunk005_boundary_021",
+        "rt": "chunk005_boundary_057",
+        "rb": "chunk005_interior_063"
+      },
+      "max_bind_dist": 0.06760177512460284
+    }
+  },
+  "preview_dir": "",
+  "write_previews": false,
+  "note": "Chunk-local CoTracker front-frame quadrilateral observations. Each chunk binds top_rail_left/right plus front bottom support points to four track IDs and propagates that quadrilateral inside the chunk."
+}

@@ -1,0 +1,19 @@
+{
+  "case_name": "mug",
+  "stage": "stage2",
+  "gate_rows": 6,
+  "effective_rows": 6,
+  "blocked_frames": [],
+  "unclear_frames": [],
+  "accepted_contact_frames": [
+    1,
+    121,
+    240
+  ],
+  "accepted_anchor_frames": [
+    1,
+    121,
+    240
+  ],
+  "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage2/vlm_gates.csv"
+}

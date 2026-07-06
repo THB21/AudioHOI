@@ -1,0 +1,4 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+mug,stage3,1,overlay_alignment_check,aligned,pass,accept_candidate,0,0,1,0,1
+mug,stage3,121,overlay_alignment_check,aligned,pass,accept_candidate,0,0,1,0,1
+mug,stage3,240,overlay_alignment_check,aligned,pass,accept_candidate,0,0,1,0,1

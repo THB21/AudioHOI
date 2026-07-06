@@ -1,0 +1,4 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+chair,stage6,1,baseline_regression_check,unclear,unclear,unclear_no_update,0,0,1
+chair,stage6,97,baseline_regression_check,unclear,unclear,unclear_no_update,0,0,1
+chair,stage6,192,baseline_regression_check,no_regression,pass,accept_candidate,0,0,1

@@ -1,0 +1,3 @@
+query_id,label,blocking,rerun_stage,residual_reweight,short_reason
+render_manifest,pass,0,0,0,render manifest exists
+render_temporal_consistency,pass,0,0,0,temporal VLM/machine audit has no mismatch

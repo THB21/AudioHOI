@@ -1,0 +1,37 @@
+{
+  "component": "generic_se3_pose_init",
+  "case_name": "chair",
+  "adapter": {
+    "component": "semantic_graph_6d",
+    "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/solvers/fit_chair_metric_6d_pose.py",
+    "seed_dir": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/physical6d_seed",
+    "seed_render_dir": "",
+    "render_skipped": true,
+    "object_pose_init": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose_init.csv",
+    "semantic_graph": "top_rail+hole+seat+front_rear_legs+stretchers+feet",
+    "adapter_component": "semantic_graph_6d"
+  },
+  "object_pose_init": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose_init.csv",
+  "rows": 192,
+  "se3_fields": [
+    "frame",
+    "time",
+    "tx",
+    "ty",
+    "tz",
+    "qw",
+    "qx",
+    "qy",
+    "qz"
+  ],
+  "missing_se3_fields": [],
+  "geometry_pose_prior": {
+    "enabled": false,
+    "reason": "no line geometry prior inputs"
+  },
+  "line_contact_pose_prior": {
+    "enabled": false,
+    "reason": "not a line object"
+  },
+  "policy": "fixed SE3 pose schema; weak or unobserved rotations remain identity/low-weight instead of dropping quaternion fields"
+}

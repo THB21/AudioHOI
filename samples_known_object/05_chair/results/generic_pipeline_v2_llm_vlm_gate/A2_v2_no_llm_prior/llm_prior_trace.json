@@ -1,8 +1,0 @@
-{
-  "case_name": "chair",
-  "mode": "none",
-  "prompt_context": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/generic_pipeline_v2_llm_vlm_gate/A2_v2_no_llm_prior/prompt_context.json",
-  "prompt_entry_count": 10,
-  "warnings": [],
-  "fallback_used": true
-}

@@ -1,0 +1,4 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+stick,stage6,1,baseline_regression_check,unclear,unclear,unclear_no_update,0,0,1
+stick,stage6,121,baseline_regression_check,unclear,unclear,unclear_no_update,0,0,1
+stick,stage6,240,baseline_regression_check,unclear,unclear,unclear_no_update,0,0,1

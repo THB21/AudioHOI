@@ -5,6 +5,13 @@ from ....core.base.io import read_csv, write_csv, write_json
 from ....core.base.schema import stage_paths
 
 
+def _first_existing(*paths):
+    for path in paths:
+        if path.exists():
+            return path
+    return paths[0]
+
+
 def _by_frame(rows: list[dict[str, str]]) -> dict[int, dict[str, str]]:
     out: dict[int, dict[str, str]] = {}
     for row in rows:
@@ -29,16 +36,22 @@ def _pick(*values: object, default: float = 0.0) -> float:
 def build(profile: CaseProfile) -> dict[str, object]:
     paths = stage_paths(profile)
     tracking_dir = profile.sample_dir / "results/tracking"
-    ball_traj_csv = tracking_dir / "ball_trajectory.csv"
-    center_traj_csv = tracking_dir / "cotracker_center_trajectory.csv"
-    points_csv = tracking_dir / "cotracker_points.csv"
-    depth_csv = profile.sample_dir / "results/da3/priors/ball_depth_prior.csv"
+    ball_traj_csv = _first_existing(tracking_dir / "object_trajectory.csv", tracking_dir / "ball_trajectory.csv")
+    center_traj_csv = _first_existing(
+        tracking_dir / "object_center_trajectory.csv",
+        tracking_dir / "cotracker_center_trajectory.csv",
+    )
+    points_csv = _first_existing(tracking_dir / "object_points.csv", tracking_dir / "cotracker_points.csv")
+    depth_csv = _first_existing(
+        profile.sample_dir / "results/da3/priors/object_depth_prior.csv",
+        profile.sample_dir / "results/da3/priors/ball_depth_prior.csv",
+    )
     if not ball_traj_csv.exists():
-        raise FileNotFoundError(f"Missing SAM2 ball trajectory: {ball_traj_csv}")
+        raise FileNotFoundError(f"Missing SAM2/object trajectory: {ball_traj_csv}")
     if not center_traj_csv.exists():
-        raise FileNotFoundError(f"Missing CoTracker center trajectory: {center_traj_csv}")
+        raise FileNotFoundError(f"Missing CoTracker/object center trajectory: {center_traj_csv}")
     if not depth_csv.exists():
-        raise FileNotFoundError(f"Missing DA3 ball depth prior: {depth_csv}")
+        raise FileNotFoundError(f"Missing DA3 object depth prior: {depth_csv}")
 
     ball_by_frame = _by_frame(read_csv(ball_traj_csv))
     center_by_frame = _by_frame(read_csv(center_traj_csv))
@@ -119,7 +132,7 @@ def build(profile: CaseProfile) -> dict[str, object]:
         "object_observations": str(out),
         "local_points": "none_for_center_proxy",
         "rows": len(rows),
-        "policy": "SAM2 mask-circle center/radius + CoTracker center/bottom + DA3 depth only; contact fields are owned by Stage2",
+        "policy": "generic mask/object center/radius + optional CoTracker/object bottom + DA3 depth only; contact fields are owned by Stage2",
     }
     write_json(paths["stage1_metrics"], metrics)
     return metrics

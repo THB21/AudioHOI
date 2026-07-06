@@ -23,10 +23,13 @@ import smplx
 
 THIS_DIR = Path(__file__).resolve().parent
 REPO = THIS_DIR.parents[5]
+POSE_SOLVERS = REPO / "scripts/shared/generic_contact_pipeline/components/pose/solvers"
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 if str(THIS_DIR) not in sys.path:
     sys.path.insert(0, str(THIS_DIR))
+if str(POSE_SOLVERS) not in sys.path:
+    sys.path.insert(0, str(POSE_SOLVERS))
 
 from render_chair_articraft_3d_scene import (  # noqa: E402
     BODY_EDGES,

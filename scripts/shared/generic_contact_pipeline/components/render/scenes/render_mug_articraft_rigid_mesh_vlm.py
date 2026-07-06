@@ -12,9 +12,14 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
+REPO = HERE.parents[5]
+POSE_SOLVERS = REPO / "scripts/shared/generic_contact_pipeline/components/pose/solvers"
+for path in (REPO, HERE, POSE_SOLVERS):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 import fit_mug_articraft_keyframe_pose as base  # noqa: E402
 import fit_mug_body_only_cylinder_pose as bodyfit  # noqa: E402
 try:
@@ -50,7 +55,23 @@ def read_pose_sequence(path: Path) -> dict[int, np.ndarray]:
     out = {}
     for row in read_csv(path):
         fr = int(float(row['frame']))
-        out[fr] = np.array([ff(row, k) for k in ['x', 'y', 'z', 'yaw', 'pitch', 'roll', 'scale']], dtype=float)
+        if any(row.get(k, "") != "" for k in ("tx", "ty", "tz", "qw", "qx", "qy", "qz")):
+            quat = [ff(row, "qx", 0.0), ff(row, "qy", 0.0), ff(row, "qz", 0.0), ff(row, "qw", 1.0)]
+            yaw, pitch, roll = Rotation.from_quat(quat).as_euler("zyx")
+            out[fr] = np.array(
+                [
+                    ff(row, "tx", ff(row, "x", 0.0)),
+                    ff(row, "ty", ff(row, "y", 0.0)),
+                    ff(row, "tz", ff(row, "z", 3.0)),
+                    yaw,
+                    pitch,
+                    roll,
+                    ff(row, "scale", 1.0),
+                ],
+                dtype=float,
+            )
+        else:
+            out[fr] = np.array([ff(row, k) for k in ['x', 'y', 'z', 'yaw', 'pitch', 'roll', 'scale']], dtype=float)
     return out
 
 

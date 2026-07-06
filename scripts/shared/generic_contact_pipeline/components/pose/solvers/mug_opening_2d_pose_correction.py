@@ -13,8 +13,10 @@ import numpy as np
 from scipy.optimize import least_squares
 
 REPO = Path(__file__).resolve().parents[6]
+HERE = Path(__file__).resolve().parent
 GENERIC_RENDER = REPO / "scripts" / "shared" / "generic_contact_pipeline" / "components" / "render"
-for p in (REPO, GENERIC_RENDER):
+GENERIC_RENDER_SCENES = GENERIC_RENDER / "scenes"
+for p in (REPO, HERE, GENERIC_RENDER, GENERIC_RENDER_SCENES):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 

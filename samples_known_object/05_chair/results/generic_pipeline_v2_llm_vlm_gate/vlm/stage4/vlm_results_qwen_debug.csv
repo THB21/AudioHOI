@@ -1,3 +1,0 @@
-case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
-chair,stage4,20,anchor_update_check,unclear,unclear,unclear_no_update,0,0,1
-chair,stage4,20,temporal_motion_check,unclear,unclear,unclear_no_update,0,0,1

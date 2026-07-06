@@ -1,3 +1,0 @@
-case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
-chair,stage1,1,keypart_identity_check,right_top_rail_endpoint,pass,accept_candidate,1,0,1
-chair,stage1,1,track_stability_check,stable,pass,accept_candidate,1,0,1

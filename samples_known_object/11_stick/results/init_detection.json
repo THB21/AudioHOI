@@ -1,0 +1,12 @@
+{
+  "text": "wooden staff.",
+  "model_id": "IDEA-Research/grounding-dino-tiny",
+  "score": 0.7298657894134521,
+  "box": [
+    419.49285888671875,
+    86.5993423461914,
+    915.2776489257812,
+    530.0178833007812
+  ],
+  "label": "wooden staff"
+}

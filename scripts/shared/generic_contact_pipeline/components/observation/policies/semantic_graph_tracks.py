@@ -11,7 +11,7 @@ from ....core.base.schema import stage_paths
 def build(profile: CaseProfile) -> dict[str, object]:
     paths = stage_paths(profile)
     semantic_dir = profile.result_dir / "chair_semantic_observations_internal"
-    semantic_builder = repo_path("scripts/shared/generic_contact_pipeline/components/observation/build_chair_semantic_observations.py")
+    semantic_builder = repo_path("scripts/shared/generic_contact_pipeline/components/observation/solvers/build_chair_semantic_observations.py")
     tracks_csv = profile.sample_dir / "results/tracking/object_mesh_tracks.csv"
     semantic_cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
@@ -27,7 +27,7 @@ def build(profile: CaseProfile) -> dict[str, object]:
     obs = copy_file(semantic_dir / "chair_semantic_observations.csv", paths["object_observations"])
     leg_candidates = copy_file(semantic_dir / "chair_leg_candidates.csv", profile.result_dir / "chair_leg_candidates.csv")
     front_frame_dir = profile.result_dir / "chair_front_frame_cotracker_internal"
-    front_frame_builder = repo_path("scripts/shared/generic_contact_pipeline/components/observation/build_chair_front_frame_cotracker_observations.py")
+    front_frame_builder = repo_path("scripts/shared/generic_contact_pipeline/components/observation/solvers/build_chair_front_frame_cotracker_observations.py")
     front_frame_cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
         str(front_frame_builder),
@@ -43,7 +43,7 @@ def build(profile: CaseProfile) -> dict[str, object]:
     subprocess.run(front_frame_cmd, cwd=repo_path("."), check=True)
     front_frame = copy_file(front_frame_dir / "chair_front_frame_cotracker_observations.csv", profile.result_dir / "chair_front_frame_cotracker_observations.csv")
     model_py = repo_path(profile.data["articraft_model_py"])
-    generator = repo_path("scripts/shared/generic_contact_pipeline/components/observation/sample_chair_semantic_local_points.py")
+    generator = repo_path("scripts/shared/generic_contact_pipeline/components/observation/solvers/sample_chair_semantic_local_points.py")
     generated_dir = profile.result_dir / "chair_semantic_local_points"
     cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),

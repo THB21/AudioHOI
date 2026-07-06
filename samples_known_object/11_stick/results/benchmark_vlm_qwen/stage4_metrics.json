@@ -1,0 +1,157 @@
+{
+  "component": "generic_sequence_se3_mainline",
+  "case_name": "stick",
+  "compatibility_adapters": [
+    {
+      "component": "line_contact_lock",
+      "enabled": true,
+      "report": {
+        "component": "line_contact_lock",
+        "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+        "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+        "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_candidates.csv",
+        "rows": 240,
+        "solved_frames": 240,
+        "skipped_frames": 0,
+        "skipped_frame_examples": [],
+        "temporal_filled_frames": 0,
+        "temporal_filled_frame_examples": [],
+        "blend_debug_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_contact_lock_blend_debug.csv",
+        "policy": "refine elongated object 2D pose from persistent left/right palm contacts at stable local line coordinates, blended with compatible visible line observations"
+      }
+    },
+    {
+      "component": "backproject_xy",
+      "enabled": true,
+      "report": {
+        "component": "backproject_xy",
+        "case_name": "stick",
+        "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+        "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+        "policy": "generic pass-through from Stage3 backprojected pose when no stronger refinement has produced object_pose"
+      }
+    }
+  ],
+  "legacy_refinement_policies_ignored": [],
+  "legacy_refinement_policies_as_seed_builders": [
+    "line_contact_lock",
+    "backproject_xy"
+  ],
+  "line_object_special_refinement": true,
+  "line_object_seed_builder": {
+    "component": "generic_line_physical_smooth_seed_candidate_selector",
+    "enabled": true,
+    "selected_ignore_vlm_gates": true,
+    "selected_score": {
+      "spike_count": 16,
+      "smoothness_spike_count": 13,
+      "max_translation_jump_m": "0.000000"
+    },
+    "candidates": [
+      {
+        "ignore_vlm_gates": true,
+        "metrics_suffix": "_candidate_ignore_vlm",
+        "score": {
+          "spike_count": 16,
+          "smoothness_spike_count": 13,
+          "max_translation_jump_m": "0.000000"
+        }
+      },
+      {
+        "ignore_vlm_gates": false,
+        "metrics_suffix": "_candidate_with_vlm",
+        "score": {
+          "spike_count": 16,
+          "smoothness_spike_count": 13,
+          "max_translation_jump_m": "0.000000"
+        }
+      }
+    ],
+    "policy": "line seed builder runs with and without VLM-disabled frames; hard pose-jump audit selects the non-degrading seed"
+  },
+  "object_pose_pre_smooth": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+  "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+  "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+  "motion_regime": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/motion_regime.csv",
+  "physical_smooth_residuals": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+  "pose_jump_audit": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+  "optimizer_decisions": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+  "rows": 240,
+  "smoothed_rows": 222,
+  "pose_lock_reason": "",
+  "residuals": {
+    "visual": true,
+    "contact_anchor": true,
+    "depth": true,
+    "geometry": true,
+    "velocity": true,
+    "acceleration": true,
+    "static_freeze": true,
+    "boundary_freeze_interpolation": true,
+    "static_tail_freeze": true,
+    "motion_regime_reweighting": true,
+    "feedback_reoptimization": true
+  },
+  "anchor_residual": {
+    "enabled": true,
+    "constraints": 435,
+    "skipped_rows": 0,
+    "source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/anchor_state.csv",
+    "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
+  },
+  "anchor_pose_prior": {
+    "enabled": false,
+    "adjusted_rows": 0,
+    "median_before_m": "0.000000",
+    "median_after_m": "0.000000",
+    "policy": "generic per-frame rigid anchor pose prior before sequence smoothing"
+  },
+  "line_overlay_depth_stabilizer": {
+    "enabled": false,
+    "reason": "replaced_by_generic_line_physical_smooth_seed_builder"
+  },
+  "feedback_reweight_sources": [
+    "vlm"
+  ],
+  "requested_feedback_reweight_sources": [
+    "vlm"
+  ],
+  "rejected_feedback_sources": [],
+  "feedback_candidate_selection": {
+    "policy": "choose the candidate with the fewest hard pose_jump_audit spikes; ties prefer more accepted audit sources",
+    "candidates": [
+      {
+        "sources": [],
+        "feedback_reweight_reason": "",
+        "score": {
+          "spike_count": 14,
+          "smoothness_spike_count": 14,
+          "max_translation_jump_m": "0.228782",
+          "max_delta_rotation_rad": "0.000365"
+        },
+        "trust_first": "8.000000",
+        "smooth_first": "0.015000",
+        "accel_first": "0.015000"
+      },
+      {
+        "sources": [
+          "vlm"
+        ],
+        "feedback_reweight_reason": "stage_audit_residual_reweight:vlm",
+        "score": {
+          "spike_count": 0,
+          "smoothness_spike_count": 0,
+          "max_translation_jump_m": "0.167287",
+          "max_delta_rotation_rad": "2.589284"
+        },
+        "trust_first": "0.200000",
+        "smooth_first": "0.050000",
+        "accel_first": "0.050000"
+      }
+    ]
+  },
+  "feedback_reweight_reason": "stage_audit_residual_reweight:vlm",
+  "visual_prior_reason": "",
+  "overlay_prior_reason": "line_contact_pose_prior",
+  "policy": "compatibility refinement policies run as seed/residual builders; line objects run generic_line_physical_smooth as seed/visual prior; final output is unified through smooth_quaternion_pose_sequence"
+}

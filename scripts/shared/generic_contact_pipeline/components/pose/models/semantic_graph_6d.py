@@ -11,7 +11,7 @@ from ....core.base.schema import stage_paths
 def build(profile: CaseProfile) -> dict[str, object]:
     paths = stage_paths(profile)
     seed_dir = profile.result_dir / "physical6d_seed"
-    script = REPO / "scripts/shared/generic_contact_pipeline/components/render/fit_chair_metric_6d_pose.py"
+    script = REPO / "scripts/shared/generic_contact_pipeline/components/pose/solvers/fit_chair_metric_6d_pose.py"
     cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
         str(script),

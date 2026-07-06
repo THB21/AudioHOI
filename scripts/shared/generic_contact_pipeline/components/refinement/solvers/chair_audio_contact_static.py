@@ -691,7 +691,7 @@ def render_contacts(sample: Path, contact_rows: list[dict[str, str]], phase_by_f
 
 
 def load_pose_render_module():
-    fit_path = REPO / "scripts/shared/generic_contact_pipeline/components/render/fit_chair_metric_6d_pose.py"
+    fit_path = REPO / "scripts/shared/generic_contact_pipeline/components/pose/solvers/fit_chair_metric_6d_pose.py"
     spec = importlib.util.spec_from_file_location("chair_metric_pose_render", fit_path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Cannot import pose renderer from {fit_path}")

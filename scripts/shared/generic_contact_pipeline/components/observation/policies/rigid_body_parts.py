@@ -32,7 +32,7 @@ def build(profile: CaseProfile) -> dict[str, object]:
         rows.append(merged)
     out_obs = write_csv(paths["object_observations"], rows)
     proxy_dir = profile.result_dir / "object_proxy_observations_internal"
-    proxy_builder = REPO / "scripts/shared/generic_contact_pipeline/components/observation/build_object_proxy_observations.py"
+    proxy_builder = REPO / "scripts/shared/generic_contact_pipeline/components/observation/solvers/build_object_proxy_observations.py"
     proxy_cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
         str(proxy_builder),
@@ -46,7 +46,7 @@ def build(profile: CaseProfile) -> dict[str, object]:
     subprocess.run(proxy_cmd, cwd=REPO, check=True)
     proxy_csv = proxy_dir / "object_proxy_observations.csv"
     export_dir = profile.result_dir / "mug_articraft_contact_points_internal"
-    exporter = REPO / "scripts/shared/generic_contact_pipeline/components/observation/export_mug_articraft_contact_points.py"
+    exporter = REPO / "scripts/shared/generic_contact_pipeline/components/observation/solvers/export_mug_articraft_contact_points.py"
     cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
         str(exporter),
@@ -54,6 +54,8 @@ def build(profile: CaseProfile) -> dict[str, object]:
         str(profile.sample_dir),
         "--object-proxy-csv",
         str(proxy_csv),
+        "--phase-csv",
+        str(phase_source),
         "--out-dir",
         str(export_dir),
     ]

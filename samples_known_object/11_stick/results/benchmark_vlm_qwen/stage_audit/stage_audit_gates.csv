@@ -1,0 +1,37 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+stick,stage-1,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+stick,stage-1,llm_csv:stage_contract,pass,keep_outputs,0,1,0,no stage-specific CSV audit rule
+stick,stage0,artifact:stage0_inputs_manifest,pass,keep_outputs,0,1,0,stage0_inputs_manifest exists
+stick,stage0,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+stick,stage0,llm_csv:stage0_inputs,pass,keep_outputs,0,1,0,stage0 input manifest exists
+stick,stage1,artifact:object_observations,pass,keep_outputs,0,1,0,object_observations exists
+stick,stage1,artifact:object_correspondence,pass,keep_outputs,0,1,0,object_correspondence exists
+stick,stage1,vlm_gate,unclear,rerun_stage_with_lower_trust,0,1,0,VLM marked 202 frame/query rows unclear
+stick,stage1,llm_csv:observation_contract,pass,keep_outputs,0,1,0,object_observations=240 object_correspondence=240
+stick,stage2,artifact:contact_candidates,pass,keep_outputs,0,1,0,contact_candidates exists
+stick,stage2,artifact:anchor_state,pass,keep_outputs,0,1,0,anchor_state exists
+stick,stage2,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+stick,stage2,llm_csv:contact_anchor_contract,pass,keep_outputs,0,1,0,contact_candidates=480 anchor_state=480
+stick,stage3,artifact:object_pose_init,pass,keep_outputs,0,1,0,object_pose_init exists
+stick,stage3,se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+stick,stage3,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+stick,stage3,llm_csv:se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+stick,stage4,artifact:object_pose,pass,keep_outputs,0,1,0,object_pose exists
+stick,stage4,artifact:motion_regime,pass,keep_outputs,0,1,0,motion_regime exists
+stick,stage4,artifact:optimizer_decisions,pass,keep_outputs,0,1,0,optimizer_decisions exists
+stick,stage4,artifact:physical_smooth_residuals,pass,keep_outputs,0,1,0,physical_smooth_residuals exists
+stick,stage4,artifact:pose_jump_audit,pass,keep_outputs,0,1,0,pose_jump_audit exists
+stick,stage4,pose_jump_audit,pass,keep_outputs,0,1,0,no pose/contact/smoothness spike rows
+stick,stage4,vlm_gate,unclear,rerun_stage_with_lower_trust,1,1,1,VLM marked 169 frame/query rows unclear
+stick,stage4,llm_csv:sequence_optimizer_contract,pass,keep_outputs,0,1,0,sequence optimizer decisions enabled and artifacts present
+stick,stage4,llm_csv:pose_jump_audit,pass,keep_outputs,0,1,0,no pose/contact/smoothness spikes detected
+stick,stage5,artifact:render_manifest,pass,keep_outputs,0,1,0,render_manifest exists
+stick,stage5,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+stick,stage5,llm_csv:render_manifest,pass,keep_outputs,0,1,0,render manifest exists and is accessible
+stick,stage5,llm_csv:render_temporal_consistency,pass,keep_outputs,0,1,0,VLM gates and machine temporal metrics show no disagreement
+stick,stage6,vlm_gate,unclear,rerun_stage_with_lower_trust,0,1,0,VLM marked 3 frame/query rows unclear
+stick,stage6,llm_csv:stage_contract,pass,keep_outputs,0,1,0,required artifacts present and stage contract satisfied
+stick,stage6.5,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+stick,stage6.5,llm_csv:stage_contract,pass,keep_outputs,0,1,0,required artifacts exist and stage contract satisfied
+stick,stage7,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+stick,stage7,llm_csv:stage_contract,pass,keep_outputs,0,1,0,required artifact exists and stage contract satisfied

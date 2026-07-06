@@ -1,0 +1,106 @@
+case_name: stick
+object_category: stick
+object_family: rigid_staff
+object_parts:
+- name: main_body
+  role: semantic_or_contact_candidate
+- name: contact_region
+  role: semantic_or_contact_candidate
+- name: support_region
+  role: semantic_or_contact_candidate
+- name: tip_regions
+  role: semantic_or_contact_candidate
+- name: grip_bands
+  role: semantic_or_contact_candidate
+human_parts:
+- hand
+- body
+interaction_edges:
+- human_part: hand
+  object_part: main_body
+  relation: candidate_contact
+- human_part: hand
+  object_part: contact_region
+  relation: candidate_contact
+- human_part: body
+  object_part: support_region
+  relation: candidate_contact
+support_priors:
+- floor_support
+- persistent_two_palm_line
+motion_priors:
+- smooth_temporal_motion
+- line_contact_lock
+vlm_query_policy:
+  stage0:
+  - target_mask_check
+  stage1:
+  - keypart_identity_check
+  - track_stability_check
+  stage2:
+  - contact_relation_check
+  - floor_contact_check
+  stage3:
+  - overlay_alignment_check
+  stage4:
+  - anchor_update_check
+  - temporal_motion_check
+  stage5:
+  - post_render_sanity_check
+source: mistral_llm_schema_validated
+schema_version: 1
+rules:
+  llm_outputs_pose: false
+  vlm_outputs_pose: false
+  vlm_outputs_loss_weights: false
+  optimizer_is_only_continuous_solver: true
+source_prompt_count: 8
+source_prompts:
+- kind: sample_metadata.prompt
+  path: samples_known_object/11_stick/metadata.json
+  record_id: ''
+  text_preview: 'Generate an 8-second realistic video from this image. The person
+    performs a short martial arts staff routine using the same long wooden staff.
+    The sequence should include several natural staff movements such as swinging,
+    turning, and changing stance. During the routine, the staff should lightly tap
+    the ground one or two times as part of the movement. Keep the camera static in
+    a wide shot, with the full body and the staff visible throughout most of the sequence.
+    Add realistic synchronized audio: soft whooshing sounds during the staff swings,
+    subtle footsteps, and one or two clear wooden staff-to-floor tapping sounds when
+    the staff touches the ground. No music, no speech.'
+- kind: sample_metadata.detection_text
+  path: samples_known_object/11_stick/metadata.json
+  record_id: ''
+  text_preview: long wooden staff. martial arts staff. bo staff. stick.
+- kind: sample_metadata.name
+  path: samples_known_object/11_stick/metadata.json
+  record_id: ''
+  text_preview: stick
+- kind: sample_metadata.video
+  path: samples_known_object/11_stick/metadata.json
+  record_id: ''
+  text_preview: video_sample/11_stick_video.mp4
+- kind: sample_metadata.image
+  path: samples_known_object/11_stick/metadata.json
+  record_id: ''
+  text_preview: video_sample/11_stick.jpg
+- kind: prompt_txt
+  path: samples_known_object/11_stick/articraft/generated_record/rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada/revisions/rev_000001/prompt.txt
+  record_id: ''
+  text_preview: 'Create a realistic long wooden martial arts staff / bo staff asset
+    for a human-object interaction video pipeline. It should be a rigid cylindrical
+    wooden staff around 1.8 meters long with subtle tapered rounded end caps, visible
+    wood material, two darker grip bands around the center contact region, and semantic
+    parts suitable for tracking/contact: shaft, grip bands, tip regions, and floor
+    contact ends. Keep it as one physically connected rigid asset; no invented mechanisms.'
+- kind: record_display.title
+  path: samples_known_object/11_stick/articraft/generated_record/rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada/record.json
+  record_id: rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada
+  text_preview: Create a realistic long wooden martial arts staff / bo staff asset
+    for a human-object interaction video pipeline. It sho
+- kind: record_display.prompt_preview
+  path: samples_known_object/11_stick/articraft/generated_record/rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada/record.json
+  record_id: rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada
+  text_preview: Create a realistic long wooden martial arts staff / bo staff asset
+    for a human-object interaction video pipeline. It should be a rigid cylindrical
+    wooden sta...

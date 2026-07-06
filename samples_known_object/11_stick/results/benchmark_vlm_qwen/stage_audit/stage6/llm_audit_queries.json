@@ -1,0 +1,22 @@
+{
+  "case_name": "stick",
+  "stage": "stage6",
+  "llm_mode": "mistral",
+  "note": "LLM audit operates on CSV/metrics evidence and may only emit discrete gates/actions.",
+  "queries": [
+    {
+      "case_name": "stick",
+      "stage": "stage6",
+      "object_family": "rigid_staff",
+      "role": "CSV/metrics LLM audit gate; labels only, no coordinates or pose generation",
+      "query_id": "stage_contract",
+      "question": "Do this stage's machine metrics and gate artifacts allow the pipeline to continue?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "stage_inconsistent",
+        "unclear"
+      ]
+    }
+  ]
+}

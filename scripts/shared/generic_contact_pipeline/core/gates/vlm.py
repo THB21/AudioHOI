@@ -53,7 +53,7 @@ STAGE_QUERY_TYPES = {
     "stage2": ["contact_relation_check", "keypart_visibility_check"],
     "stage3": ["overlay_alignment_check"],
     "stage4": ["anchor_update_check", "contact_relation_check", "overlay_alignment_check", "temporal_motion_check"],
-    "stage5": ["post_render_sanity_check"],
+    "stage5": ["post_render_sanity_check", "temporal_motion_check"],
     "stage6": ["baseline_regression_check"],
     "stage7": ["loss_diagnostic_check"],
 }
@@ -254,6 +254,29 @@ def _unique_limited(values: Iterable[int], limit: int = 5) -> list[int]:
 
 def stage_keyframes(profile: CaseProfile, stage: str) -> list[tuple[int, str]]:
     paths = stage_paths(profile)
+    frame_policy = profile.data.get("vlm", {}).get("frame_policy", {}) if isinstance(profile.data.get("vlm", {}), dict) else {}
+    if isinstance(frame_policy, dict) and str(frame_policy.get(stage, "")).lower() == "all":
+        source_by_stage_all = {
+            "stage0": paths["object_observations"],
+            "stage1": paths["object_observations"],
+            "stage2": paths["contact_candidates"],
+            "stage3": paths["object_pose_init"],
+            "stage4": paths["object_contact_points"],
+            "stage5": paths["object_pose"],
+            "stage6": paths["object_pose"],
+            "stage7": paths["loss_residuals"],
+        }
+        rows_all = _read_rows(source_by_stage_all.get(stage, paths["object_pose"]))
+        out: list[tuple[int, str]] = []
+        seen: set[int] = set()
+        for row in rows_all:
+            fr = _row_frame(row, 1)
+            if fr in seen:
+                continue
+            seen.add(fr)
+            out.append((fr, _row_time(row)))
+        if out:
+            return out
     if stage == "stage7":
         rows = _read_rows(paths["loss_residuals"])
         if not rows:
@@ -298,6 +321,27 @@ def stage_keyframes(profile: CaseProfile, stage: str) -> list[tuple[int, str]]:
     frames = _unique_limited((_row_frame(row, 1) for row in chosen_rows), 5)
     by_frame = {_row_frame(row, 1): _row_time(row) for row in rows}
     return [(fr, by_frame.get(fr, "")) for fr in frames]
+
+
+def temporal_risk_keyframes(profile: CaseProfile, stage: str, *, limit: int = 80) -> list[tuple[int, str]]:
+    paths = stage_paths(profile)
+    risk_frames: list[int] = []
+    for row in _read_rows(paths["pose_jump_audit"]):
+        if row.get("visual_spike") == "1" or row.get("contact_spike") == "1" or row.get("smoothness_spike") == "1":
+            risk_frames.append(_row_frame(row, 1))
+    if not risk_frames:
+        return stage_keyframes(profile, stage)[: min(5, limit)]
+    out: list[int] = []
+    for fr in sorted(set(risk_frames)):
+        for near in (max(1, fr - 1), fr, fr + 1):
+            if near not in out:
+                out.append(near)
+            if len(out) >= limit:
+                break
+        if len(out) >= limit:
+            break
+    pose_by_frame = {_row_frame(row, 1): _row_time(row) for row in _read_rows(paths["object_pose"])}
+    return [(fr, pose_by_frame.get(fr, "")) for fr in out]
 
 
 def _render_video_for_stage(profile: CaseProfile, stage: str) -> Path | None:
@@ -390,6 +434,59 @@ def _draw_point(img: Any, u: float | None, v: float | None, label: str, color: t
     draw.ellipse((x - 13, y - 13, x + 13, y + 13), fill=(20, 20, 20))
     draw.ellipse((x - 8, y - 8, x + 8, y + 8), fill=color)
     _draw_label(img, label, (x + 12, max(18, y - 18)), color)
+
+
+def _draw_line(img: Any, a: tuple[float, float] | None, b: tuple[float, float] | None, label: str, color: tuple[int, int, int]) -> None:
+    if a is None or b is None:
+        return
+    _Image, ImageDraw = _pil_modules()
+    if ImageDraw is None:
+        return
+    draw = ImageDraw.Draw(img)
+    p1 = (int(round(a[0])), int(round(a[1])))
+    p2 = (int(round(b[0])), int(round(b[1])))
+    draw.line((p1, p2), fill=(20, 20, 20), width=9)
+    draw.line((p1, p2), fill=color, width=5)
+    mid = ((p1[0] + p2[0]) // 2, (p1[1] + p2[1]) // 2)
+    _draw_label(img, label, (mid[0] + 8, max(18, mid[1] - 24)), color)
+
+
+def _tracking_line(profile: CaseProfile, frame: int) -> tuple[tuple[float, float], tuple[float, float]] | None:
+    tracks = profile.sample_dir / "results" / "tracking" / "object_mesh_tracks_test.csv"
+    pts: dict[str, tuple[float, float]] = {}
+    for row in _read_rows(tracks):
+        if _row_frame(row, 1) != frame:
+            continue
+        pid = row.get("point_id", "")
+        if pid in {"tip_a", "tip_b"}:
+            u = _float(row, "x")
+            v = _float(row, "y")
+            if u is not None and v is not None:
+                pts[pid] = (u, v)
+    if "tip_a" in pts and "tip_b" in pts:
+        return pts["tip_a"], pts["tip_b"]
+    return None
+
+
+def _draw_stage4_context(profile: CaseProfile, img: Any, frame: int) -> None:
+    line = _tracking_line(profile, frame)
+    if line is not None:
+        _draw_line(img, line[0], line[1], "tracked visible stick", (40, 255, 80))
+    rows = [row for row in _read_rows(stage_paths(profile)["object_contact_points"]) if _row_frame(row, 1) == frame]
+    for row in rows:
+        u = _float(row, "palm_u")
+        v = _float(row, "palm_v")
+        if u is None:
+            u = _float(row, "state_active_part_u")
+        if v is None:
+            v = _float(row, "state_active_part_v")
+        side = row.get("human_side") or row.get("contact_side") or "palm"
+        active = str(row.get("contact_active", "1")).strip() not in {"0", "false", "False"}
+        color = (255, 230, 0) if active else (160, 160, 160)
+        label = f"{side} active" if active else f"{side} inactive"
+        _draw_point(img, u, v, label, color)
+    _draw_label(img, "brown render = predicted stick, green = tracked visible stick", (24, 42), (40, 255, 80))
+    _draw_label(img, "yellow = active palm contact, gray = inactive palm", (24, 76), (255, 230, 0))
 
 
 def _draw_mask(img: Any, mask_path: Path | None) -> None:
@@ -573,6 +670,25 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
         img.save(out_path)
         return str(out_path)
     video = _render_video_for_stage(profile, stage)
+    if stage in {"stage4", "stage5"} and query_type == "temporal_motion_check" and video is not None:
+        Image, ImageDraw = _pil_modules()
+        if Image is not None:
+            frames = []
+            for fr in [max(1, frame - 1), frame, frame + 1]:
+                panel = _extract_video_frame(video, fr)
+                if panel is None:
+                    panel = _read_frame(profile.sample_dir, fr)
+                if panel is not None:
+                    panel = panel.resize((426, 240))
+                    _draw_stage4_context(profile, panel, fr)
+                    _draw_label(panel, f"frame {fr:03d}", (18, 24), (255, 255, 255))
+                    frames.append(panel)
+            if frames:
+                canvas = Image.new("RGB", (426 * len(frames), 240), (245, 245, 245))
+                for idx, panel in enumerate(frames):
+                    canvas.paste(panel, (idx * 426, 0))
+                canvas.save(out_path)
+                return str(out_path)
     if video is not None:
         img = _extract_video_frame(video, frame)
     else:
@@ -591,6 +707,8 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
         _draw_label(img, "highlighted contact candidate", (24, 42), (0, 255, 255))
     elif query_type == "overlay_alignment_check":
         _draw_label(img, "rendered overlay alignment check", (24, 42), (0, 255, 0))
+    elif stage == "stage4" and query_type == "anchor_update_check":
+        _draw_stage4_context(profile, img, frame)
     elif query_type == "temporal_motion_check":
         _draw_label(img, "temporal motion check: inspect neighboring context from stage rows", (24, 42), (255, 200, 0))
     elif query_type == "post_render_sanity_check":
@@ -641,25 +759,25 @@ def question_for(profile: CaseProfile, query_type: str) -> tuple[str, list[str],
         return ("What is the highlighted object contact region closest to?", contacts, "contact_candidate_overlay")
     if query_type == "overlay_alignment_check":
         return (
-            "Does the rendered object overlay align with the visible object?",
+            "Does the rendered object overlay sit on top of the same visible physical object in the video? Choose aligned only if the rendered object follows the real visible object; choose lateral_shift, wrong_scale, or rotation_error if it is offset, too long/short, or at a different angle.",
             ["aligned", "lateral_shift", "depth_shift", "wrong_scale", "rotation_error", "wrong_object", "unclear"],
             "render_overlay",
         )
     if query_type == "anchor_update_check":
         return (
-            "Does the proposed anchor/contact update improve or preserve the object alignment without creating a wrong contact?",
+            "Using the visual guide in the image: brown render is the predicted stick, green line is the tracked visible stick, yellow circles are active palm contacts, and gray circles are inactive palms. Does the predicted stick preserve alignment with the green visible stick and the active yellow palm contacts without creating a wrong contact?",
             ["improvement", "no_change", "worse_overlay", "wrong_contact", "unclear"],
             "before_after_anchor_update_overlay",
         )
     if query_type == "temporal_motion_check":
         return (
-            "Does the highlighted object move consistently across neighboring frames?",
+            "In the three-panel neighboring-frame view, do the brown predicted stick and green tracked stick move consistently without sudden jumps, wrong-object tracking, or physically implausible motion?",
             ["consistent", "jumps_unnaturally", "wrong_object_tracking", "physically_implausible", "unclear"],
             "temporal_triplet_overlay",
         )
     if query_type == "post_render_sanity_check":
         return (
-            "Which failure label best describes the final rendered result?",
+            "Inspect the dark rendered object over the video. Does it accurately cover the real visible object without floating away, using the wrong angle/scale, or incorrectly covering the human? Choose pass only if alignment is visually good.",
             ["pass", "overlay_shift", "wrong_contact", "object_jitter", "depth_mismatch", "render_missing", "unclear"],
             "final_render_preview",
         )
@@ -693,8 +811,9 @@ def query_types_for_stage(profile: CaseProfile, stage: str) -> list[str]:
 def build_queries(profile: CaseProfile, stage: str) -> list[dict[str, object]]:
     queries: list[dict[str, object]] = []
     obj = object_vlm_profile(profile)
-    for frame, time in stage_keyframes(profile, stage):
-        for query_type in query_types_for_stage(profile, stage):
+    for query_type in query_types_for_stage(profile, stage):
+        frames = temporal_risk_keyframes(profile, stage) if stage == "stage5" and query_type == "temporal_motion_check" else stage_keyframes(profile, stage)
+        for frame, time in frames:
             question, choices, highlight = question_for(profile, query_type)
             evidence_path = render_reference(profile, stage, frame, query_type)
             queries.append(

@@ -1,0 +1,5 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+stick,stage1,artifact:object_observations,pass,keep_outputs,0,1,0,object_observations exists
+stick,stage1,artifact:object_correspondence,pass,keep_outputs,0,1,0,object_correspondence exists
+stick,stage1,vlm_gate,unclear,rerun_stage_with_lower_trust,0,1,0,VLM marked 202 frame/query rows unclear
+stick,stage1,llm_csv:observation_contract,pass,keep_outputs,0,1,0,object_observations=240 object_correspondence=240

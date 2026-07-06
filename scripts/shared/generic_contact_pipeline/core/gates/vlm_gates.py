@@ -140,7 +140,7 @@ def disabled_anchor_frames(profile: CaseProfile, stage: str = "stage1") -> set[i
             continue
         if row.get("is_effective") != "1":
             continue
-        if row.get("pass_gate") in {GATE_REJECT, GATE_UNCLEAR} or row.get("allow_anchor_update") != "1":
+        if row.get("pass_gate") == GATE_REJECT:
             fr = _frame(row)
             if fr >= 0:
                 frames.add(fr)

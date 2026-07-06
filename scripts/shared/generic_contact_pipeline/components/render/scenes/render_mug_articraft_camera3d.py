@@ -23,9 +23,14 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
+REPO = HERE.parents[5]
+POSE_SOLVERS = REPO / "scripts/shared/generic_contact_pipeline/components/pose/solvers"
+for path in (REPO, HERE, POSE_SOLVERS):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 import fit_mug_articraft_keyframe_pose as base  # noqa: E402
 import render_mug_articraft_rigid_mesh_vlm as rigid  # noqa: E402
 
@@ -62,7 +67,23 @@ def read_pose_sequence(path: Path) -> dict[int, np.ndarray]:
     out: dict[int, np.ndarray] = {}
     for row in read_csv(path):
         fr = int(float(row["frame"]))
-        out[fr] = np.asarray([ff(row, k) for k in ["x", "y", "z", "yaw", "pitch", "roll", "scale"]], dtype=float)
+        if any(row.get(k, "") != "" for k in ("tx", "ty", "tz", "qw", "qx", "qy", "qz")):
+            quat = [ff(row, "qx", 0.0), ff(row, "qy", 0.0), ff(row, "qz", 0.0), ff(row, "qw", 1.0)]
+            yaw, pitch, roll = Rotation.from_quat(quat).as_euler("zyx")
+            out[fr] = np.asarray(
+                [
+                    ff(row, "tx", ff(row, "x", 0.0)),
+                    ff(row, "ty", ff(row, "y", 0.0)),
+                    ff(row, "tz", ff(row, "z", 3.0)),
+                    yaw,
+                    pitch,
+                    roll,
+                    ff(row, "scale", 1.0),
+                ],
+                dtype=float,
+            )
+        else:
+            out[fr] = np.asarray([ff(row, k) for k in ["x", "y", "z", "yaw", "pitch", "roll", "scale"]], dtype=float)
     return out
 
 

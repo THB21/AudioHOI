@@ -8,6 +8,12 @@ pose_model: semantic_graph_6d
 refinement_policy:
   - small_se3
   - anchor_propagate_freeze
+  - sequence_se3_optimizer
+sequence_se3_optimizer:
+  anchor_type: stable_grasp_contact
+  prior_w: 0.34
+  smooth_w: 0.95
+  accel_w: 4.2
 render_backend: urdf_solid_mesh
 result_name: generic_pipeline_v1
 articraft_model_py: samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/revisions/rev_000001/model.py

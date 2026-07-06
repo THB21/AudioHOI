@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 
 from ..base.config import CaseProfile
-from ..base.io import REPO, repo_path, write_json
+from ..base.io import REPO, read_csv, repo_path, write_csv, write_json
 from ..base.runtime import runtime_python
 
 
@@ -20,7 +20,7 @@ def resolve_mug_m17_phase(profile: CaseProfile) -> tuple[Path, dict[str, object]
     rebuilt = rebuild_dir / "corrected_handle_phase.csv"
     recovered_m15 = profile.baseline.get("m15_recovered_phase_csv", "")
     recovered_m15_path = repo_path(recovered_m15) if recovered_m15 else Path("")
-    solver = REPO / "scripts/shared/generic_contact_pipeline/components/pose/mug_handle_phase_correction.py"
+    solver = REPO / "scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py"
     if recovered_m15_path.exists() and not rebuilt.exists():
         cmd = [
             runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
@@ -52,13 +52,54 @@ def resolve_mug_m17_phase(profile: CaseProfile) -> tuple[Path, dict[str, object]
             "snapshot_fallback_used": True,
         }
 
-    baseline = repo_path(profile.baseline["m17_phase_csv"])
-    return baseline, {
-        "policy": "fallback_solved_m17_baseline",
-        "phase_source": str(baseline),
+    baseline_raw = profile.baseline.get("m17_phase_csv", "")
+    baseline = repo_path(baseline_raw) if baseline_raw else Path("")
+    if baseline.exists():
+        return baseline, {
+            "policy": "fallback_solved_m17_baseline",
+            "phase_source": str(baseline),
+            "recovered_m15_csv": str(recovered_m15_path),
+            "solver": str(solver),
+            "snapshot_fallback_used": True,
+        }
+
+    final_raw = profile.baseline.get("final_phase_csv", "")
+    final_phase = repo_path(final_raw) if final_raw else Path("")
+    if final_phase.exists():
+        return final_phase, {
+            "policy": "fallback_final_phase_csv",
+            "phase_source": str(final_phase),
+            "recovered_m15_csv": str(recovered_m15_path),
+            "solver": str(solver),
+            "snapshot_fallback_used": True,
+            "missing_preferred_phase_sources": [str(p) for p in [recovered_m15_path, snapshot, baseline] if str(p)],
+        }
+
+    identity = rebuild_dir / "identity_handle_phase.csv"
+    observation_csv = profile.sample_dir / "results/object_observations/object_observations.csv"
+    rows = []
+    if observation_csv.exists():
+        for row in read_csv(observation_csv):
+            rows.append(
+                {
+                    "frame": row.get("frame", ""),
+                    "time": row.get("time", ""),
+                    "m17_phase_rad": "0.000000",
+                    "m17_phase_deg": "0.000000",
+                    "m43_phase_rad": "0.000000",
+                    "m43_phase_deg": "0.000000",
+                    "vlm_visibility": "unclear",
+                    "source": "identity_phase_fallback_missing_mug_phase_sources",
+                }
+            )
+    write_csv(identity, rows, ["frame", "time", "m17_phase_rad", "m17_phase_deg", "m43_phase_rad", "m43_phase_deg", "vlm_visibility", "source"])
+    return identity, {
+        "policy": "identity_phase_fallback_missing_all_phase_sources",
+        "phase_source": str(identity),
         "recovered_m15_csv": str(recovered_m15_path),
         "solver": str(solver),
         "snapshot_fallback_used": True,
+        "missing_preferred_phase_sources": [str(p) for p in [recovered_m15_path, snapshot, baseline, final_phase] if str(p)],
     }
 
 
@@ -81,7 +122,7 @@ def resolve_chair_physical6d_seed(profile: CaseProfile) -> tuple[Path, dict[str,
     mainline_segments = profile.sample_dir / "results/mainline_0425/semantic_local_points/chair_semantic_local_segments.csv"
     mainline_obs = profile.sample_dir / "results/mainline_0425/inputs_2d/chair_semantic_observations.csv"
     target_segments = profile.result_dir / "object_local_segments.csv"
-    solver = REPO / "scripts/shared/generic_contact_pipeline/components/pose/chair_physical6d_from_baseline_constraints.py"
+    solver = REPO / "scripts/shared/generic_contact_pipeline/components/pose/solvers/chair_physical6d_from_baseline_constraints.py"
     can_rebuild = mainline_pose.exists() and mainline_segments.exists() and mainline_obs.exists() and target_segments.exists()
     if can_rebuild and not rebuilt.exists():
         cmd = [

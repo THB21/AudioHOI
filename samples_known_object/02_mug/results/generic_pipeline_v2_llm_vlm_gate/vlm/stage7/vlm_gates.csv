@@ -1,6 +1,0 @@
-case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
-mug,stage7,101,loss_diagnostic_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,1,0
-mug,stage7,61,loss_diagnostic_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,1,0
-mug,stage7,62,loss_diagnostic_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,1,0
-mug,stage7,1,loss_diagnostic_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,1,0
-mug,stage7,121,loss_diagnostic_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,1,0

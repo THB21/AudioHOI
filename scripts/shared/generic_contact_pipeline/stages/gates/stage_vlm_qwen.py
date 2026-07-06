@@ -19,7 +19,7 @@ from scripts.shared.generic_contact_pipeline.core.base.io import write_csv, writ
 from scripts.shared.generic_contact_pipeline.core.base.schema import stage_paths  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm import RESULT_FIELDS, STAGE_QUERY_TYPES, fuse_stage_decision, write_aggregate, write_stage_verification  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_provider import load_vlm_provider  # noqa: E402
-from scripts.shared.generic_contact_pipeline.core.gates.vlm_gates import write_stage_gates  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.gates.vlm_gates import GATE_FIELDS, gate_row_from_result, write_stage_gates  # noqa: E402
 
 
 PROMPT_TEMPLATE = """You are a conservative visual verifier for an AudioHOI pipeline.
@@ -245,6 +245,20 @@ def evaluate_stage(profile, stage: str, args: argparse.Namespace) -> dict[str, o
     decision = fuse_stage_decision(profile.case_name, stage, results, mode="qwen_vl")
     if debug_limited:
         write_csv(out_dir / "vlm_results_qwen_debug.csv", results, RESULT_FIELDS)
+        gates = [gate_row_from_result({key: str(value) for key, value in row.items()}) for row in results]
+        write_csv(out_dir / "vlm_gates_qwen_debug.csv", gates, GATE_FIELDS)
+        write_json(
+            out_dir / "vlm_gate_decision_qwen_debug.json",
+            {
+                "case_name": profile.case_name,
+                "stage": stage,
+                "gate_rows": len(gates),
+                "effective_rows": sum(1 for row in gates if row["is_effective"] == "1"),
+                "gate_csv": str(out_dir / "vlm_gates_qwen_debug.csv"),
+                "debug_limit": args.limit,
+                "note": "Debug Qwen gates are audit evidence only and do not overwrite full-stage vlm_gates.csv.",
+            },
+        )
         write_json(out_dir / "qwen_raw_results_debug.json", raw_rows)
         write_json(out_dir / "stage_decision_qwen_debug.json", decision)
     else:

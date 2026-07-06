@@ -1,0 +1,1337 @@
+{
+  "case_name": "stick",
+  "stage": "stage4",
+  "mode": "qwen_vl",
+  "decision": "pass_with_unclear_frames",
+  "blocking": false,
+  "query_count": 480,
+  "gate_counts": {
+    "pass": 311,
+    "unclear": 169
+  },
+  "query_counts": {
+    "anchor_update_check": 240,
+    "temporal_motion_check": 240
+  },
+  "accepted_frames": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    147,
+    148,
+    149,
+    150,
+    151,
+    152,
+    153,
+    154,
+    155,
+    156,
+    157,
+    158,
+    159,
+    160,
+    161,
+    162,
+    163,
+    164,
+    165,
+    166,
+    167,
+    168,
+    169,
+    170,
+    171,
+    172,
+    173,
+    174,
+    175,
+    176,
+    177,
+    178,
+    179,
+    180,
+    181,
+    182,
+    183,
+    184,
+    185,
+    186,
+    187,
+    188,
+    189,
+    190,
+    191,
+    192,
+    193,
+    194,
+    195,
+    196,
+    197,
+    198,
+    199,
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219,
+    220,
+    221,
+    222,
+    223,
+    224,
+    225,
+    226,
+    227,
+    228,
+    229,
+    230,
+    231,
+    232,
+    233,
+    234,
+    235,
+    236,
+    237,
+    238,
+    239,
+    240
+  ],
+  "blocked_frames": [],
+  "report_only_reject_frames": [],
+  "unclear_frames": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    14,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    26,
+    32,
+    33,
+    34,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    49,
+    50,
+    51,
+    52,
+    53,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    84,
+    89,
+    90,
+    91,
+    92,
+    95,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    113,
+    114,
+    116,
+    117,
+    118,
+    119,
+    121,
+    122,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    133,
+    134,
+    141,
+    145,
+    146,
+    147,
+    149,
+    150,
+    151,
+    152,
+    153,
+    154,
+    156,
+    157,
+    163,
+    167,
+    172,
+    173,
+    174,
+    175,
+    176,
+    177,
+    178,
+    179,
+    180,
+    181,
+    182,
+    183,
+    184,
+    185,
+    186,
+    187,
+    188,
+    189,
+    192,
+    193,
+    194,
+    195,
+    197,
+    198,
+    199,
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219,
+    220,
+    221,
+    222,
+    225,
+    226,
+    227,
+    228,
+    229,
+    231,
+    232,
+    233,
+    234,
+    235,
+    236,
+    237,
+    238,
+    239,
+    240
+  ],
+  "repair_actions_by_frame": {
+    "1": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "2": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "3": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "4": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "5": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "6": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "7": [
+      "accept_candidate"
+    ],
+    "8": [
+      "accept_candidate"
+    ],
+    "9": [
+      "accept_candidate"
+    ],
+    "10": [
+      "accept_candidate"
+    ],
+    "11": [
+      "accept_candidate"
+    ],
+    "12": [
+      "accept_candidate"
+    ],
+    "13": [
+      "accept_candidate"
+    ],
+    "14": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "15": [
+      "accept_candidate"
+    ],
+    "16": [
+      "accept_candidate"
+    ],
+    "17": [
+      "accept_candidate"
+    ],
+    "18": [
+      "accept_candidate"
+    ],
+    "19": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "20": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "21": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "22": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "23": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "24": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "25": [
+      "accept_candidate"
+    ],
+    "26": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "27": [
+      "accept_candidate"
+    ],
+    "28": [
+      "accept_candidate"
+    ],
+    "29": [
+      "accept_candidate"
+    ],
+    "30": [
+      "accept_candidate"
+    ],
+    "31": [
+      "accept_candidate"
+    ],
+    "32": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "33": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "34": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "35": [
+      "accept_candidate"
+    ],
+    "36": [
+      "accept_candidate"
+    ],
+    "37": [
+      "accept_candidate"
+    ],
+    "38": [
+      "accept_candidate"
+    ],
+    "39": [
+      "accept_candidate"
+    ],
+    "40": [
+      "accept_candidate"
+    ],
+    "41": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "42": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "43": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "44": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "45": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "46": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "47": [
+      "accept_candidate"
+    ],
+    "48": [
+      "accept_candidate"
+    ],
+    "49": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "50": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "51": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "52": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "53": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "54": [
+      "accept_candidate"
+    ],
+    "55": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "56": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "57": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "58": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "59": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "60": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "61": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "62": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "63": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "64": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "65": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "66": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "67": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "68": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "69": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "70": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "71": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "72": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "73": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "74": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "75": [
+      "accept_candidate"
+    ],
+    "76": [
+      "accept_candidate"
+    ],
+    "77": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "78": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "79": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "80": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "81": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "82": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "83": [
+      "accept_candidate"
+    ],
+    "84": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "85": [
+      "accept_candidate"
+    ],
+    "86": [
+      "accept_candidate"
+    ],
+    "87": [
+      "accept_candidate"
+    ],
+    "88": [
+      "accept_candidate"
+    ],
+    "89": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "90": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "91": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "92": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "93": [
+      "accept_candidate"
+    ],
+    "94": [
+      "accept_candidate"
+    ],
+    "95": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "96": [
+      "accept_candidate"
+    ],
+    "97": [
+      "accept_candidate"
+    ],
+    "98": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "99": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "100": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "101": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "102": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "103": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "104": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "105": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "106": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "107": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "108": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "109": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "110": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "111": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "112": [
+      "accept_candidate"
+    ],
+    "113": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "114": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "115": [
+      "accept_candidate"
+    ],
+    "116": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "117": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "118": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "119": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "120": [
+      "accept_candidate"
+    ],
+    "121": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "122": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "123": [
+      "accept_candidate"
+    ],
+    "124": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "125": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "126": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "127": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "128": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "129": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "130": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "131": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "132": [
+      "accept_candidate"
+    ],
+    "133": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "134": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "135": [
+      "accept_candidate"
+    ],
+    "136": [
+      "accept_candidate"
+    ],
+    "137": [
+      "accept_candidate"
+    ],
+    "138": [
+      "accept_candidate"
+    ],
+    "139": [
+      "accept_candidate"
+    ],
+    "140": [
+      "accept_candidate"
+    ],
+    "141": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "142": [
+      "accept_candidate"
+    ],
+    "143": [
+      "accept_candidate"
+    ],
+    "144": [
+      "accept_candidate"
+    ],
+    "145": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "146": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "147": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "148": [
+      "accept_candidate"
+    ],
+    "149": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "150": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "151": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "152": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "153": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "154": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "155": [
+      "accept_candidate"
+    ],
+    "156": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "157": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "158": [
+      "accept_candidate"
+    ],
+    "159": [
+      "accept_candidate"
+    ],
+    "160": [
+      "accept_candidate"
+    ],
+    "161": [
+      "accept_candidate"
+    ],
+    "162": [
+      "accept_candidate"
+    ],
+    "163": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "164": [
+      "accept_candidate"
+    ],
+    "165": [
+      "accept_candidate"
+    ],
+    "166": [
+      "accept_candidate"
+    ],
+    "167": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "168": [
+      "accept_candidate"
+    ],
+    "169": [
+      "accept_candidate"
+    ],
+    "170": [
+      "accept_candidate"
+    ],
+    "171": [
+      "accept_candidate"
+    ],
+    "172": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "173": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "174": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "175": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "176": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "177": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "178": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "179": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "180": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "181": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "182": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "183": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "184": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "185": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "186": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "187": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "188": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "189": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "190": [
+      "accept_candidate"
+    ],
+    "191": [
+      "accept_candidate"
+    ],
+    "192": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "193": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "194": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "195": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "196": [
+      "accept_candidate"
+    ],
+    "197": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "198": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "199": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "200": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "201": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "202": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "203": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "204": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "205": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "206": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "207": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "208": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "209": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "210": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "211": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "212": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "213": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "214": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "215": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "216": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "217": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "218": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "219": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "220": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "221": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "222": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "223": [
+      "accept_candidate"
+    ],
+    "224": [
+      "accept_candidate"
+    ],
+    "225": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "226": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "227": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "228": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "229": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "230": [
+      "accept_candidate"
+    ],
+    "231": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "232": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "233": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "234": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "235": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "236": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "237": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "238": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "239": [
+      "accept_candidate",
+      "unclear_no_update"
+    ],
+    "240": [
+      "accept_candidate",
+      "unclear_no_update"
+    ]
+  },
+  "rejected_results": [],
+  "allowed_repair_actions": [
+    "accept_candidate",
+    "reject_candidate",
+    "disable_contact_frame",
+    "keep_previous_anchor",
+    "downweight_correspondence",
+    "use_mask_fallback",
+    "retry_with_alternative_keypart",
+    "allow_small_se3_refine",
+    "freeze_before_after_contact",
+    "mark_for_report_only",
+    "unclear_no_update"
+  ],
+  "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+}

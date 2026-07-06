@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import os
 from pathlib import Path
 
 from ....core.base.config import CaseProfile
@@ -76,7 +77,7 @@ def _label(default_part: str, side: str, human_on: bool, floor_on: bool) -> tupl
 def _build_ball_proxy_depth(profile: CaseProfile) -> str:
     paths = stage_paths(profile)
     out_csv = profile.result_dir / "ball_proxy_depth.csv"
-    builder = REPO / "scripts/shared/generic_contact_pipeline/components/contact/ball_proxy_depth_builder.py"
+    builder = REPO / "scripts/shared/generic_contact_pipeline/components/contact/solvers/ball_proxy_depth_builder.py"
     cmd = [
         runtime_python("audiohoi"),
         str(builder),
@@ -87,7 +88,10 @@ def _build_ball_proxy_depth(profile: CaseProfile) -> str:
         "--output-csv",
         str(out_csv),
     ]
-    result = subprocess.run(cmd, cwd=str(REPO), text=True, capture_output=True)
+    env = os.environ.copy()
+    if "disable_audio_events" in set(profile.data.get("ablation_flags", [])):
+        env["AUDIOHOI_DISABLE_AUDIO_EVENTS"] = "1"
+    result = subprocess.run(cmd, cwd=str(REPO), text=True, capture_output=True, env=env)
     if result.returncode != 0:
         raise RuntimeError(
             "Generic ball proxy-depth builder failed\n"
@@ -100,7 +104,7 @@ def _build_ball_proxy_depth(profile: CaseProfile) -> str:
 
 def _build_ball_contact_candidates(profile: CaseProfile, proxy_csv: str) -> str:
     out_dir = profile.result_dir / "contact_candidates_internal"
-    builder = REPO / "scripts/shared/generic_contact_pipeline/components/contact/ball_contact_candidate_builder.py"
+    builder = REPO / "scripts/shared/generic_contact_pipeline/components/contact/solvers/ball_contact_candidate_builder.py"
     cmd = [
         runtime_python("audiohoi"),
         str(builder),
@@ -111,7 +115,10 @@ def _build_ball_contact_candidates(profile: CaseProfile, proxy_csv: str) -> str:
         "--out-dir",
         str(out_dir),
     ]
-    result = subprocess.run(cmd, cwd=str(REPO), text=True, capture_output=True)
+    env = os.environ.copy()
+    if "disable_audio_events" in set(profile.data.get("ablation_flags", [])):
+        env["AUDIOHOI_DISABLE_AUDIO_EVENTS"] = "1"
+    result = subprocess.run(cmd, cwd=str(REPO), text=True, capture_output=True, env=env)
     if result.returncode != 0:
         raise RuntimeError(
             "Generic ball contact-candidate builder failed\n"

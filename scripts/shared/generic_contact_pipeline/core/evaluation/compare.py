@@ -112,11 +112,41 @@ def render_video_summary(path: Path) -> dict[str, object]:
     return summary
 
 
+def _stage4_component_items(stage4: dict[str, object]) -> list[dict[str, object]]:
+    items: list[dict[str, object]] = []
+    for key in ("components", "compatibility_adapters"):
+        value = stage4.get(key, [])
+        if isinstance(value, list):
+            items.extend(item for item in value if isinstance(item, dict))
+    if stage4.get("component"):
+        items.append(stage4)
+    return items
+
+
+def _chair_quality_gate_from_stage4(stage4: dict[str, object]) -> tuple[bool, dict[str, object]]:
+    for item in _stage4_component_items(stage4):
+        if item.get("component") != "small_se3" and item.get("adapter_component") != "small_se3":
+            continue
+        summary = item.get("generic_pairprop_quality_summary")
+        if not isinstance(summary, dict):
+            quality_path = item.get("generic_pairprop_quality")
+            if quality_path:
+                try:
+                    with Path(str(quality_path)).open() as f:
+                        summary = json.load(f)
+                except Exception:
+                    summary = {}
+        gate = summary.get("quality_gate", {}) if isinstance(summary, dict) else {}
+        accepted = bool(item.get("generic_pairprop_pose_accepted"))
+        return bool(accepted and isinstance(gate, dict) and gate.get("pass")), gate if isinstance(gate, dict) else {}
+    return False, {}
+
+
 def compare_case(profile: CaseProfile) -> dict[str, object]:
     paths = stage_paths(profile)
     baseline = profile.baseline
     final_pose = paths["object_pose"]
-    baseline_pose = repo_path(baseline["final_pose_csv"])
+    baseline_pose = repo_path(baseline["final_pose_csv"]) if baseline.get("final_pose_csv") else None
     report: dict[str, object] = {
         "case_name": profile.case_name,
         "result_dir": str(profile.result_dir),
@@ -142,8 +172,15 @@ def compare_case(profile: CaseProfile) -> dict[str, object]:
     checks["required_csvs_pass"] = all(item["pass"] for item in csv_checks.values())
     checks["frame_count"] = {
         "new": count_rows(final_pose) if final_pose.exists() else 0,
-        "baseline": count_rows(baseline_pose) if baseline_pose.exists() else 0,
-        "pass": final_pose.exists() and count_rows(final_pose) == count_rows(baseline_pose),
+        "baseline": count_rows(baseline_pose) if baseline_pose and baseline_pose.exists() else 0,
+        "pass": (
+            final_pose.exists()
+            and (
+                (baseline_pose.exists() and count_rows(final_pose) == count_rows(baseline_pose))
+                if baseline_pose
+                else count_rows(final_pose) > 0
+            )
+        ),
     }
     if profile.case_name in {"basketball", "football"}:
         keys = ["tx", "ty", "tz", "u_obs", "v_obs", "z_ref_anchor_segment"]
@@ -151,35 +188,29 @@ def compare_case(profile: CaseProfile) -> dict[str, object]:
         keys = ["x", "y", "z", "yaw", "pitch", "roll", "scale"]
     else:
         keys = ["tx", "ty", "tz", "qx", "qy", "qz", "qw", "line_rmse_px", "endpoint_rmse_px"]
-    checks["pose_delta"] = pose_delta_summary(final_pose, baseline_pose, keys) if final_pose.exists() else {"comparable": False}
+    if baseline_pose and final_pose.exists():
+        checks["pose_delta"] = pose_delta_summary(final_pose, baseline_pose, keys)
+    else:
+        checks["pose_delta"] = {"comparable": False, "reason": "no_baseline_for_new_case"}
     pose_delta = checks["pose_delta"]
     if isinstance(pose_delta, dict) and pose_delta.get("comparable"):
         # Current migration target is near-identical reproduction. This gate is
         # intentionally strict enough to catch coordinate/camera regressions but
         # still allows tiny CSV rounding differences.
         checks["pose_delta_pass"] = float(pose_delta.get("max_abs_delta", 999.0)) <= 0.01
+    elif not baseline_pose:
+        checks["pose_delta_pass"] = final_pose.exists() and count_rows(final_pose) > 0
     else:
         checks["pose_delta_pass"] = False
     if profile.case_name == "chair" and paths["stage4_metrics"].exists():
         try:
             with paths["stage4_metrics"].open() as f:
                 stage4 = json.load(f)
-            chair_quality_pass = False
-            chair_quality = {}
-            for item in stage4.get("components", []):
-                if not isinstance(item, dict):
-                    continue
-                if item.get("component") != "small_se3":
-                    continue
-                chair_quality = dict(item.get("generic_pairprop_quality_summary", {}))
-                chair_quality_pass = bool(item.get("generic_pairprop_pose_accepted")) and bool(
-                    chair_quality.get("quality_gate", {}).get("pass")
-                )
-                break
+            chair_quality_pass, quality_gate = _chair_quality_gate_from_stage4(stage4)
             checks["chair_quality_pose_gate"] = {
                 "pass": chair_quality_pass,
                 "note": "semantic 2D/contact/freeze gate for generic chair pairprop pose",
-                "quality_gate": chair_quality.get("quality_gate", {}),
+                "quality_gate": quality_gate,
             }
             checks["pose_delta_pass"] = bool(checks["pose_delta_pass"] or chair_quality_pass)
         except Exception as exc:

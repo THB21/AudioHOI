@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import importlib
-
 from ...core.base.config import CaseProfile
+from ...components.mainline import observation
 
 
 def run(profile: CaseProfile) -> dict[str, object]:
-    name = profile.component("observation_model")
-    mod = importlib.import_module(f"scripts.shared.generic_contact_pipeline.components.observation.policies.{name}")
-    return mod.build(profile)
+    return observation.build(profile)

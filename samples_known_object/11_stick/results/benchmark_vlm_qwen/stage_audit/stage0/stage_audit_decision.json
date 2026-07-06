@@ -1,0 +1,15 @@
+{
+  "case_name": "stick",
+  "stage": "stage0",
+  "decision": "pass",
+  "llm_mode": "mistral",
+  "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+  "gate_rows": 3,
+  "blocking_count": 0,
+  "rerun_stage": false,
+  "residual_reweight": false,
+  "repair_actions": [],
+  "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage0/stage_audit_gates.csv",
+  "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage0/llm_audit_queries.json",
+  "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage0/llm_audit_results.csv"
+}

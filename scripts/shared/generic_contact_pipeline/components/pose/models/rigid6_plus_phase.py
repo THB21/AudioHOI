@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 
 from ....core.base.config import CaseProfile
-from ....core.base.io import REPO, read_csv, write_csv, write_json
+from ....core.base.io import REPO, read_csv, repo_path, write_csv, write_json
 from ....core.semantics.provenance import resolve_mug_m17_phase, write_mug_m17_reconstruction_report
 from ....core.base.runtime import runtime_python
 from ....core.base.schema import stage_paths
@@ -14,12 +14,16 @@ def build(profile: CaseProfile) -> dict[str, object]:
     phase_source, phase_info = resolve_mug_m17_phase(profile)
     write_mug_m17_reconstruction_report(profile, phase_info)
     m18_dir = profile.result_dir / "m18_opening_2d_video_correction_internal"
-    m18_solver = REPO / "scripts/shared/generic_contact_pipeline/components/pose/mug_opening_2d_pose_correction.py"
+    m18_solver = REPO / "scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_opening_2d_pose_correction.py"
+    seed_pose_raw = profile.baseline.get("m18_pose_csv") or profile.baseline.get("final_pose_csv", "")
+    seed_pose_csv = repo_path(seed_pose_raw) if seed_pose_raw else profile.sample_dir / "results/pipe/anchored_pose_obs.csv"
     m18_cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
         str(m18_solver),
         "--sample-dir",
         str(profile.sample_dir),
+        "--pose-csv",
+        str(seed_pose_csv),
         "--phase-csv",
         str(phase_source),
         "--object-observation-csv",
@@ -50,6 +54,7 @@ def build(profile: CaseProfile) -> dict[str, object]:
         "component": "rigid6_plus_phase",
         "object_pose_init": str(pose),
         "body_pose_source": str(m18_pose_csv),
+        "body_pose_seed": str(seed_pose_csv),
         "body_pose_solver": str(m18_solver),
         "body_pose_report": str(m18_dir / "mug_m18_opening_2d_video_report.csv"),
         "body_pose_trajectory": str(m18_dir / "mug_m18_opening_2d_video_trajectory.csv"),

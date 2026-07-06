@@ -1,0 +1,50 @@
+case_name: stick
+sample_dir: samples_known_object/11_stick
+object_family: rigid_staff
+geometry_model: articraft_urdf
+observation_model: mask_track_center
+contact_policy: persistent_two_palm_line
+pose_model: translation3
+refinement_policy:
+  - line_contact_lock
+  - backproject_xy
+render_backend: urdf_solid
+render_scene: generic_urdf
+result_name: generic_pipeline_v1
+preprocess:
+  detector_model: IDEA-Research/grounding-dino-tiny
+  detector_text: wooden staff.
+  segmenter_model: facebook/sam2.1-hiera-tiny
+  tracker: cotracker3_offline
+  tracker_query_source: sam2_mask_major_axis
+articraft_urdf: samples_known_object/11_stick/articraft/generated_record/rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada/materialized/model.urdf
+vlm:
+  target: stick
+  parts: [main_body, contact_region, support_region, background, unclear]
+  contacts: [hand, floor, body, nothing_nearby, unclear]
+  stable_refs: [center, visible_semantic_part, support_point, unclear]
+  frame_policy:
+    stage1: all
+    stage2: all
+    stage4: all
+    stage5: all
+camera:
+  fx: 1468.604736328125
+  fy: 1468.604736328125
+  cx: 640.0
+  cy: 360.0
+line_object:
+  length_m: 1.86
+sequence_se3_optimizer:
+  anchor_type: palm_line_contact
+  prior_w: 0.24
+  smooth_w: 1.25
+  accel_w: 7.2
+  low_trust_weight: 0.08
+  trusted_physical_contact_weight: 0.92
+  static_tail_min_frames: 16
+  static_tail_center_px: 2.0
+  static_tail_angle_deg: 0.75
+  static_tail_length_px: 3.0
+  translation_scales: [0.055, 0.055, 0.085]
+  rotation_scale: 0.060

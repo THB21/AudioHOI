@@ -78,7 +78,7 @@ def _max_abs_delta(a: list[float], b: list[float]) -> float:
 
 def _run_exact_anchor_refinement(profile: CaseProfile, pose_csv: str, proxy_csv: str, state_csv: str) -> dict[str, str]:
     python_bin = runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON")
-    script = repo_path("scripts/shared/generic_contact_pipeline/components/refinement/anchor_depth_solver.py")
+    script = repo_path("scripts/shared/generic_contact_pipeline/components/refinement/solvers/anchor_depth_solver.py")
     event_csv = profile.sample_dir / "results/contact_candidates_object_proxy/contact_candidates_labeled.csv"
     out_subdir = f"{profile.result_name}/exact_anchor_depth_reference"
     cmd = [

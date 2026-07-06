@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -225,7 +226,7 @@ def main() -> None:
 
     object_rows = read_object_proxy_track(args.object_proxy_observation_csv or (results_dir / 'generic_pipeline_v1' / 'ball_proxy_depth.csv'))
     object_mesh_by_frame = read_object_mesh_tracks(args.object_mesh_csv or (results_dir / 'tracking' / 'object_mesh_tracks_test.csv'))
-    audio_rows = read_audio_events(audio_csv)
+    audio_rows = [] if os.environ.get("AUDIOHOI_DISABLE_AUDIO_EVENTS") == "1" else read_audio_events(audio_csv)
 
     human = read_human_result(results_dir / 'gvhmr' / 'result.pkl')
     joints = build_body_joints(args.body_model_root, human)

@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import csv
 import math
+import os
 import pickle
 import sys
 from pathlib import Path
@@ -410,7 +411,7 @@ def build_proxy_depth(
     mesh_tracks = read_object_mesh_tracks(results_dir / "tracking" / "object_mesh_tracks_test.csv")
     frame_to_depth = read_depth_index(results_dir / "da3" / "scene_depth" / "index.csv")
     video_hw = get_video_hw(sample_dir / "video.mp4")
-    audio_rows = read_audio_events(results_dir / "events" / "audio_events.csv")
+    audio_rows = [] if os.environ.get("AUDIOHOI_DISABLE_AUDIO_EVENTS") == "1" else read_audio_events(results_dir / "events" / "audio_events.csv")
 
     human = read_human_result(results_dir / "gvhmr" / "result.pkl")
     joints = build_body_joints(body_model_root, human)

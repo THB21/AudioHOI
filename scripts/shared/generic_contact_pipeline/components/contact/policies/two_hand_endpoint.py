@@ -90,7 +90,7 @@ def build(profile: CaseProfile) -> dict[str, object]:
     state_csv = state_dir / "chair_grasp_anchor_state.csv"
     state_summary = state_dir / "chair_grasp_anchor_state_summary.json"
     qwen_csv = profile.sample_dir / "annotations/vlm_chair_semantic_candidates/chair_semantic_candidate_annotations.csv"
-    script = REPO / "scripts/shared/generic_contact_pipeline/components/contact/chair_grasp_anchor_state.py"
+    script = REPO / "scripts/shared/generic_contact_pipeline/components/contact/solvers/chair_grasp_anchor_state.py"
     cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
         str(script),

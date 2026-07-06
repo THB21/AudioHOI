@@ -1,0 +1,15 @@
+{
+  "case_name": "stick",
+  "summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/related_work_proxy_summary.csv",
+  "summary_md": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/related_work_proxy_report.md",
+  "variants": [
+    "video_only_tracking",
+    "mesh_only_alignment",
+    "human_only_contact",
+    "no_audio_event",
+    "no_vlm_gate",
+    "no_llm_prior",
+    "no_contact_refine",
+    "ours_full"
+  ]
+}

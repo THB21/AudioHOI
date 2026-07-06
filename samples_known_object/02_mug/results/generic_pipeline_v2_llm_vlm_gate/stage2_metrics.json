@@ -1,6 +1,0 @@
-{
-  "component": "palm_handle",
-  "rows": 240,
-  "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/contact_candidates.csv",
-  "source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/generic_pipeline_v2_llm_vlm_gate/object_local_points.csv"
-}

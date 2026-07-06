@@ -1,0 +1,33 @@
+{
+  "mode": "dry-run_metric_grounded",
+  "query_count": 3,
+  "mean_overall_plausibility": 5.0,
+  "failure_stage_hint": "stage2_contact",
+  "scores": {
+    "visibility": 5,
+    "contact_correctness": 4,
+    "support_consistency": 5,
+    "penetration_absence": 5,
+    "temporal_plausibility": 5,
+    "overall_plausibility": 5,
+    "short_reason": "metric-grounded final evaluator checklist; replace source with Qwen final judge when available",
+    "failure_stage_hint": "stage2_contact"
+  },
+  "vlm_pipeline_score": {
+    "mode": "dry-run_metric_grounded",
+    "score": 1.0,
+    "checklist_count": 20,
+    "pipeline_vlm_gate_score": {
+      "mode": "existing_vlm_artifacts",
+      "score": 0.8698347107438017,
+      "checklist_count": 1452,
+      "pass_count": 1076,
+      "unclear_count": 374,
+      "reject_count": 2,
+      "note": "Scored from existing VLM gate artifacts; no pose coordinates are generated here."
+    },
+    "pipeline_vlm_gate_framewise_count": 1452,
+    "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+  },
+  "framewise_pipeline_judgment_count": 20
+}

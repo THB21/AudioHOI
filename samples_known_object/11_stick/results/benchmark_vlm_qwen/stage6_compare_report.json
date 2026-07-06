@@ -1,0 +1,454 @@
+{
+  "case_name": "stick",
+  "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen",
+  "render_dir": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen",
+  "checks": {
+    "required_csvs": {
+      "object_observations": {
+        "exists": true,
+        "rows": 240,
+        "pass": true
+      },
+      "contact_candidates": {
+        "exists": true,
+        "rows": 480,
+        "pass": true
+      },
+      "object_pose_init": {
+        "exists": true,
+        "rows": 240,
+        "pass": true
+      },
+      "object_pose": {
+        "exists": true,
+        "rows": 240,
+        "pass": true
+      },
+      "object_contact_points": {
+        "exists": true,
+        "rows": 480,
+        "pass": true
+      }
+    },
+    "required_csvs_pass": true,
+    "frame_count": {
+      "new": 240,
+      "baseline": 0,
+      "pass": true
+    },
+    "pose_delta": {
+      "comparable": false,
+      "reason": "no_baseline_for_new_case"
+    },
+    "pose_delta_pass": true,
+    "phase_delta": {
+      "comparable": true,
+      "reason": "no_phase_baseline"
+    },
+    "phase_delta_pass": true,
+    "renders": {
+      "object_only/overlay.mp4": {
+        "exists": true,
+        "bytes": 1326880,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "frames": 240,
+        "pass": true
+      },
+      "object_only/camera3d.mp4": {
+        "exists": true,
+        "bytes": 150797,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "frames": 240,
+        "pass": true
+      },
+      "object_only/side_yz.mp4": {
+        "exists": true,
+        "bytes": 171731,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "frames": 240,
+        "pass": true
+      },
+      "with_human/overlay.mp4": {
+        "exists": true,
+        "bytes": 1593428,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "frames": 240,
+        "pass": true
+      },
+      "with_human/camera3d.mp4": {
+        "exists": true,
+        "bytes": 289474,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "frames": 240,
+        "pass": true
+      },
+      "with_human/side_yz.mp4": {
+        "exists": true,
+        "bytes": 622152,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "frames": 240,
+        "pass": true
+      }
+    },
+    "required_renders_pass": true,
+    "overall_pass": true,
+    "old_script_reference_scan_pass": true
+  },
+  "migration_audit": {
+    "case_name": "stick",
+    "result_name": "benchmark_vlm_qwen",
+    "component_status": {
+      "geometry_model": {
+        "component": "articraft_urdf",
+        "migration_status": "clean_from_raw_or_stage_inputs",
+        "migration_priority": "keep",
+        "note": "no solved artifact dependency declared"
+      },
+      "observation_model": {
+        "component": "mask_track_center",
+        "migration_status": "clean_from_raw_or_stage_inputs",
+        "migration_priority": "keep",
+        "note": "no solved artifact dependency declared"
+      },
+      "contact_policy": {
+        "component": "persistent_two_palm_line",
+        "migration_status": "clean_from_raw_or_stage_inputs",
+        "migration_priority": "keep",
+        "note": "no solved artifact dependency declared"
+      },
+      "pose_model": {
+        "component": "translation3",
+        "migration_status": "clean_from_raw_or_stage_inputs",
+        "migration_priority": "keep",
+        "note": "no solved artifact dependency declared"
+      },
+      "render_backend": {
+        "component": "urdf_solid",
+        "migration_status": "clean_from_raw_or_stage_inputs",
+        "migration_priority": "keep",
+        "note": "no solved artifact dependency declared"
+      },
+      "refinement_policy_0": {
+        "component": "line_contact_lock",
+        "migration_status": "clean_from_raw_or_stage_inputs",
+        "migration_priority": "keep",
+        "note": "no solved artifact dependency declared"
+      },
+      "refinement_policy_1": {
+        "component": "backproject_xy",
+        "migration_status": "clean_from_raw_or_stage_inputs",
+        "migration_priority": "keep",
+        "note": "no solved artifact dependency declared"
+      }
+    },
+    "migration_status_counts": {
+      "clean_from_raw_or_stage_inputs": 7
+    },
+    "runtime_coupling_components": {},
+    "old_script_reference_scan": {
+      "root": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline",
+      "patterns": [
+        "scripts.shared.radius_free_proxy",
+        "scripts/shared/radius_free_proxy",
+        "stage4_anchor_refinement/run_anchor_refinement.py",
+        "stage5_render/render_pose6d_scene.py",
+        "stage5_render/render_mug_articraft_fast_scene.py",
+        "stage5_render/render_chair_articraft_solid_3d_scene.py"
+      ],
+      "hit_count": 0,
+      "hits": [],
+      "pass": true
+    },
+    "schema_status": {
+      "object_observations": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_observations.csv",
+        "exists": true,
+        "columns": [
+          "frame",
+          "time",
+          "ref_u",
+          "ref_v",
+          "ref_u_smooth",
+          "ref_v_smooth",
+          "ref_u_fit",
+          "ref_v_fit",
+          "ref_source",
+          "ref_type",
+          "support_u",
+          "support_v",
+          "support_v_raw",
+          "support_dv",
+          "support_dv_smooth",
+          "support_source",
+          "contact_u",
+          "contact_v",
+          "contact_source",
+          "object_ref_depth_m",
+          "contact_proxy_depth_m",
+          "contact_depth_offset_m",
+          "ref_conf",
+          "support_conf",
+          "contact_conf",
+          "depth_conf",
+          "observation_conf",
+          "proxy_conf",
+          "proxy_jitter_px",
+          "support_jitter_px",
+          "proxy_sigma_px",
+          "support_sigma_px",
+          "active_label",
+          "active_label_conf",
+          "active_part_u",
+          "active_part_v",
+          "active_part_z",
+          "contact_proxy_name",
+          "da3_depth_raw",
+          "da3_depth_smooth",
+          "object_depth_raw",
+          "object_depth_smooth",
+          "object_depth_confidence",
+          "support_gap_px",
+          "object_motion_score",
+          "audio_score",
+          "radius_px"
+        ]
+      },
+      "object_local_points": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_local_points.csv",
+        "exists": true,
+        "columns": [
+          "point_id",
+          "part",
+          "role",
+          "local_x",
+          "local_y",
+          "local_z",
+          "source"
+        ]
+      },
+      "object_local_segments": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_local_segments.csv",
+        "exists": false,
+        "columns": []
+      },
+      "contact_candidates": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_candidates.csv",
+        "exists": true,
+        "columns": [
+          "frame",
+          "time",
+          "contact_active",
+          "human_part",
+          "human_side",
+          "object_part",
+          "object_local_id",
+          "object_local_s",
+          "contact_u",
+          "contact_v",
+          "palm_u",
+          "palm_v",
+          "palm_x",
+          "palm_y",
+          "palm_z",
+          "anchor_z_m",
+          "palm_to_line_px",
+          "hand_joint_min_line_px",
+          "hand_joint_median_line_px",
+          "hand_joint_near_count_25px",
+          "fingertip_min_line_px",
+          "fingertip_median_line_px",
+          "contact_depth_offset_m",
+          "contact_conf",
+          "anchor_score",
+          "source",
+          "line_source",
+          "stable_object_local_s",
+          "local_s_drift"
+        ]
+      },
+      "object_pose_init": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose_init.csv",
+        "exists": true,
+        "columns": [
+          "frame",
+          "time",
+          "tx",
+          "ty",
+          "tz",
+          "qw",
+          "qx",
+          "qy",
+          "qz",
+          "radius_m",
+          "coord_frame",
+          "u_obs",
+          "v_obs",
+          "u_proj",
+          "v_proj",
+          "bottom_proj_v",
+          "floor_v",
+          "u_ref_obs",
+          "v_ref_obs",
+          "support_v_obs",
+          "depth_prior_m",
+          "contact_depth_offset_m",
+          "contact_frame",
+          "audio_contact_frame",
+          "source",
+          "se3_schema",
+          "object_pixel_len",
+          "z_from_geometry_len_m",
+          "generic_geometry_pose_prior",
+          "geometry_pose_prior_source",
+          "u_contact_lock",
+          "v_contact_lock",
+          "contact_lock_pixel_len",
+          "contact_lock_angle_rad",
+          "blend_visible_weight",
+          "visible_len_px",
+          "contact_len_px",
+          "angle_gap_deg",
+          "center_gap_px",
+          "mean_palm_to_visible_line_px",
+          "left_local_s_source",
+          "right_local_s_source",
+          "left_local_s_used",
+          "right_local_s_used",
+          "blend_reason",
+          "depth_anchor_source",
+          "depth_anchor_z",
+          "depth_anchor_sides",
+          "depth_anchor_mean_dist_px",
+          "line_contact_se3_refined",
+          "line_contact_se3_cost",
+          "line_contact_se3_overlay_err_px",
+          "line_contact_se3_max_gap_m",
+          "line_contact_se3_anchor_count",
+          "line_contact_se3_local_s_adjustments",
+          "z_from_pixel_len_m",
+          "line_contact_pose_prior",
+          "line_contact_se3_reason"
+        ]
+      },
+      "object_pose": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+        "exists": true,
+        "columns": [
+          "frame",
+          "time",
+          "tx",
+          "ty",
+          "tz",
+          "qw",
+          "qx",
+          "qy",
+          "qz",
+          "radius_m",
+          "coord_frame",
+          "u_obs",
+          "v_obs",
+          "u_proj",
+          "v_proj",
+          "bottom_proj_v",
+          "floor_v",
+          "u_ref_obs",
+          "v_ref_obs",
+          "support_v_obs",
+          "depth_prior_m",
+          "contact_depth_offset_m",
+          "contact_frame",
+          "audio_contact_frame",
+          "source",
+          "se3_schema",
+          "object_pixel_len",
+          "z_from_geometry_len_m",
+          "generic_geometry_pose_prior",
+          "geometry_pose_prior_source",
+          "u_contact_lock",
+          "v_contact_lock",
+          "contact_lock_pixel_len",
+          "contact_lock_angle_rad",
+          "blend_visible_weight",
+          "visible_len_px",
+          "contact_len_px",
+          "angle_gap_deg",
+          "center_gap_px",
+          "mean_palm_to_visible_line_px",
+          "left_local_s_source",
+          "right_local_s_source",
+          "left_local_s_used",
+          "right_local_s_used",
+          "blend_reason",
+          "depth_anchor_source",
+          "depth_anchor_z",
+          "depth_anchor_sides",
+          "depth_anchor_mean_dist_px",
+          "line_contact_se3_refined",
+          "line_contact_se3_cost",
+          "line_contact_se3_overlay_err_px",
+          "line_contact_se3_max_gap_m",
+          "line_contact_se3_anchor_count",
+          "line_contact_se3_local_s_adjustments",
+          "z_from_pixel_len_m",
+          "line_contact_pose_prior",
+          "line_contact_se3_reason"
+        ]
+      },
+      "object_contact_points": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+        "exists": true,
+        "columns": [
+          "frame",
+          "time",
+          "contact_active",
+          "human_part",
+          "human_side",
+          "object_part",
+          "object_local_id",
+          "object_local_s",
+          "contact_u",
+          "contact_v",
+          "palm_u",
+          "palm_v",
+          "palm_x",
+          "palm_y",
+          "palm_z",
+          "anchor_z_m",
+          "palm_to_line_px",
+          "hand_joint_min_line_px",
+          "hand_joint_median_line_px",
+          "hand_joint_near_count_25px",
+          "fingertip_min_line_px",
+          "fingertip_median_line_px",
+          "contact_depth_offset_m",
+          "contact_conf",
+          "anchor_score",
+          "source",
+          "line_source",
+          "stable_object_local_s",
+          "local_s_drift"
+        ]
+      },
+      "object_phase": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_phase.csv",
+        "exists": false,
+        "columns": []
+      }
+    },
+    "baseline_path_status": {},
+    "migration_note": "v1 keeps solved baselines only for regression comparison and explicit provenance snapshots. baseline_reader components would copy solved artifacts, but current four case profiles should not use any. external_runner_on_generic_inputs components would run old stable scripts on generic stage files, but current four case profiles should not use any. generic_solver_external_env components are generic-owned code but intentionally run in a non-base conda env for dependency isolation. clean_from_verified_intermediate components rebuild outputs from trusted intermediate artifacts. preserved_provenance_snapshot components use explicit generic_pipeline_v1/provenance_snapshots files where the historical upstream chain is no longer fully present. clean_from_raw_or_stage_inputs components do not declare solved-artifact dependencies. Each step should be migrated leftward and validated with stage6_compare before replacing the old path."
+  },
+  "migration_audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/migration_audit.csv"
+}

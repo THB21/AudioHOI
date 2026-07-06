@@ -1,7 +1,0 @@
-case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
-football,stage1,1,keypart_identity_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
-football,stage1,1,track_stability_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
-football,stage1,122,keypart_identity_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
-football,stage1,122,track_stability_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
-football,stage1,242,keypart_identity_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
-football,stage1,242,track_stability_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0

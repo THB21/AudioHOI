@@ -1,0 +1,170 @@
+{
+  "case_name": "stick",
+  "provider": "mistral_api",
+  "provider_doctor": {
+    "name": "mistral_api",
+    "kind": "mistral_chat_completions",
+    "api_key_env": "MISTRAL_API_KEY",
+    "api_key_present": true,
+    "model_id": "mistral-small-latest",
+    "base_url": "https://api.mistral.ai/v1",
+    "temperature": 0.0,
+    "max_new_tokens": 900,
+    "timeout_seconds": 120
+  },
+  "raw_text": "{\n  \"case_name\": \"stick\",\n  \"object_category\": \"stick\",\n  \"object_family\": \"rigid_staff\",\n  \"object_parts\": [\n    {\n      \"name\": \"main_body\",\n      \"role\": \"semantic_or_contact_candidate\"\n    },\n    {\n      \"name\": \"contact_region\",\n      \"role\": \"semantic_or_contact_candidate\"\n    },\n    {\n      \"name\": \"support_region\",\n      \"role\": \"semantic_or_contact_candidate\"\n    },\n    {\n      \"name\": \"tip_regions\",\n      \"role\": \"semantic_or_contact_candidate\"\n    },\n    {\n      \"name\": \"grip_bands\",\n      \"role\": \"semantic_or_contact_candidate\"\n    }\n  ],\n  \"human_parts\": [\n    \"hand\",\n    \"body\"\n  ],\n  \"interaction_edges\": [\n    {\n      \"human_part\": \"hand\",\n      \"object_part\": \"main_body\",\n      \"relation\": \"candidate_contact\"\n    },\n    {\n      \"human_part\": \"hand\",\n      \"object_part\": \"contact_region\",\n      \"relation\": \"candidate_contact\"\n    },\n    {\n      \"human_part\": \"body\",\n      \"object_part\": \"support_region\",\n      \"relation\": \"candidate_contact\"\n    }\n  ],\n  \"support_priors\": [\n    \"floor_support\",\n    \"persistent_two_palm_line\"\n  ],\n  \"motion_priors\": [\n    \"smooth_temporal_motion\",\n    \"line_contact_lock\"\n  ],\n  \"vlm_query_policy\": {\n    \"stage0\": [\n      \"target_mask_check\"\n    ],\n    \"stage1\": [\n      \"keypart_identity_check\",\n      \"track_stability_check\"\n    ],\n    \"stage2\": [\n      \"contact_relation_check\",\n      \"floor_contact_check\"\n    ],\n    \"stage3\": [\n      \"overlay_alignment_check\"\n    ],\n    \"stage4\": [\n      \"anchor_update_check\",\n      \"temporal_motion_check\"\n    ],\n    \"stage5\": [\n      \"post_render_sanity_check\"\n    ]\n  }\n}",
+  "parsed_json": {
+    "case_name": "stick",
+    "object_category": "stick",
+    "object_family": "rigid_staff",
+    "object_parts": [
+      {
+        "name": "main_body",
+        "role": "semantic_or_contact_candidate"
+      },
+      {
+        "name": "contact_region",
+        "role": "semantic_or_contact_candidate"
+      },
+      {
+        "name": "support_region",
+        "role": "semantic_or_contact_candidate"
+      },
+      {
+        "name": "tip_regions",
+        "role": "semantic_or_contact_candidate"
+      },
+      {
+        "name": "grip_bands",
+        "role": "semantic_or_contact_candidate"
+      }
+    ],
+    "human_parts": [
+      "hand",
+      "body"
+    ],
+    "interaction_edges": [
+      {
+        "human_part": "hand",
+        "object_part": "main_body",
+        "relation": "candidate_contact"
+      },
+      {
+        "human_part": "hand",
+        "object_part": "contact_region",
+        "relation": "candidate_contact"
+      },
+      {
+        "human_part": "body",
+        "object_part": "support_region",
+        "relation": "candidate_contact"
+      }
+    ],
+    "support_priors": [
+      "floor_support",
+      "persistent_two_palm_line"
+    ],
+    "motion_priors": [
+      "smooth_temporal_motion",
+      "line_contact_lock"
+    ],
+    "vlm_query_policy": {
+      "stage0": [
+        "target_mask_check"
+      ],
+      "stage1": [
+        "keypart_identity_check",
+        "track_stability_check"
+      ],
+      "stage2": [
+        "contact_relation_check",
+        "floor_contact_check"
+      ],
+      "stage3": [
+        "overlay_alignment_check"
+      ],
+      "stage4": [
+        "anchor_update_check",
+        "temporal_motion_check"
+      ],
+      "stage5": [
+        "post_render_sanity_check"
+      ]
+    }
+  },
+  "parse_ok": true,
+  "prompt_context": {
+    "case_name": "stick",
+    "result_name": "benchmark_vlm_qwen",
+    "prompt_entry_count": 8,
+    "entries": [
+      {
+        "kind": "sample_metadata.prompt",
+        "path": "samples_known_object/11_stick/metadata.json",
+        "record_id": "",
+        "text_preview": "Generate an 8-second realistic video from this image. The person performs a short martial arts staff routine using the same long wooden staff. The sequence should include several natural staff movements such as swinging, turning, and changing stance. During the routine, the staff should lightly tap the ground one or two times as part of the movement. Keep the camera static in a wide shot, with the full body and the staff visible throughout most of the sequence. Add realistic synchronized audio: soft whooshing sounds during the staff swings, subtle footsteps, and one or two clear wooden staff-to-floor tapping sounds when the staff touches the ground. No music, no speech.",
+        "sha256": "77df5fcabcabce2b2991ef18cea6c9f2180cb5abae9dbd563ff7fb5f1c257069"
+      },
+      {
+        "kind": "sample_metadata.detection_text",
+        "path": "samples_known_object/11_stick/metadata.json",
+        "record_id": "",
+        "text_preview": "long wooden staff. martial arts staff. bo staff. stick.",
+        "sha256": "0bd3b241a3f74db267128da71c662fcf00479c55e4cd122c50e298cd776831dc"
+      },
+      {
+        "kind": "sample_metadata.name",
+        "path": "samples_known_object/11_stick/metadata.json",
+        "record_id": "",
+        "text_preview": "stick",
+        "sha256": "8f53dd914ced58d84b4d816958f1442f59387ce7eadb03fa6aed193a512b2e5f"
+      },
+      {
+        "kind": "sample_metadata.video",
+        "path": "samples_known_object/11_stick/metadata.json",
+        "record_id": "",
+        "text_preview": "video_sample/11_stick_video.mp4",
+        "sha256": "bc0c4328701b5e695d8fc8066a34e4c466532edae913b74fbc3937d02c5ecdd5"
+      },
+      {
+        "kind": "sample_metadata.image",
+        "path": "samples_known_object/11_stick/metadata.json",
+        "record_id": "",
+        "text_preview": "video_sample/11_stick.jpg",
+        "sha256": "bc74af5714141574bae344f88b762738a10e6424b2a13a3f724cbe4d17c7c973"
+      },
+      {
+        "kind": "prompt_txt",
+        "path": "samples_known_object/11_stick/articraft/generated_record/rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada/revisions/rev_000001/prompt.txt",
+        "record_id": "",
+        "text_preview": "Create a realistic long wooden martial arts staff / bo staff asset for a human-object interaction video pipeline. It should be a rigid cylindrical wooden staff around 1.8 meters long with subtle tapered rounded end caps, visible wood material, two darker grip bands around the center contact region, and semantic parts suitable for tracking/contact: shaft, grip bands, tip regions, and floor contact ends. Keep it as one physically connected rigid asset; no invented mechanisms.",
+        "sha256": "bae161f57d174abee0d7df020a30f6fd64d6c7cb57fbcea2951635f862dcdf81"
+      },
+      {
+        "kind": "record_display.title",
+        "path": "samples_known_object/11_stick/articraft/generated_record/rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada/record.json",
+        "record_id": "rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada",
+        "text_preview": "Create a realistic long wooden martial arts staff / bo staff asset for a human-object interaction video pipeline. It sho",
+        "sha256": "e7524a4192e0599187be3f79badb3fe844a1f8119f226fa69b2885e587665e7d"
+      },
+      {
+        "kind": "record_display.prompt_preview",
+        "path": "samples_known_object/11_stick/articraft/generated_record/rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada/record.json",
+        "record_id": "rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada",
+        "text_preview": "Create a realistic long wooden martial arts staff / bo staff asset for a human-object interaction video pipeline. It should be a rigid cylindrical wooden sta...",
+        "sha256": "e6ba6a44007cfb0f21bce95a87dc74be180ec38ca73197152909f14043573984"
+      }
+    ],
+    "missing_referenced_prompts": [],
+    "usage_rule": "Prompt context is semantic evidence for LLM/VLM query design only; it must not supply continuous pose, coordinates, or loss weights."
+  },
+  "usage": {
+    "prompt_tokens": 2772,
+    "total_tokens": 3220,
+    "completion_tokens": 448,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "response_id": "a70ded653faa42848cbaae0b5a954228"
+}

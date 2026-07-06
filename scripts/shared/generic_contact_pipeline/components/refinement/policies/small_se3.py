@@ -15,7 +15,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
     paths = stage_paths(profile)
     generic_stage4_dir = profile.result_dir / "stage4_generic_refine"
     generic_stage4_render_dir = profile.render_dir / "stage4_generic_refine"
-    script = REPO / "scripts/shared/generic_contact_pipeline/components/refinement/chair_audio_contact_static.py"
+    script = REPO / "scripts/shared/generic_contact_pipeline/components/refinement/solvers/chair_audio_contact_static.py"
     cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
         str(script),
@@ -43,7 +43,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
 
     pairprop_dir = profile.result_dir / "stage4_pairprop_contact_refine"
     pairprop_dir.mkdir(parents=True, exist_ok=True)
-    pairprop_script = REPO / "scripts/shared/generic_contact_pipeline/components/refinement/chair_twohand_endpoint_se3.py"
+    pairprop_script = REPO / "scripts/shared/generic_contact_pipeline/components/refinement/solvers/chair_twohand_endpoint_se3.py"
     seed_csv, seed_info = resolve_chair_physical6d_seed(profile)
     use_rebuilt_seed = seed_info.get("policy") == "rebuilt_from_mainline_saved2d"
     pairprop_pose = pairprop_dir / "object_pose_pairprop_generic.csv"
@@ -112,7 +112,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         "240",
     ]
     subprocess.run(pairprop_cmd, cwd=REPO, check=True)
-    quality_script = REPO / "scripts/shared/generic_contact_pipeline/components/refinement/evaluate_chair_pose_quality.py"
+    quality_script = REPO / "scripts/shared/generic_contact_pipeline/components/refinement/solvers/evaluate_chair_pose_quality.py"
     quality_cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
         str(quality_script),

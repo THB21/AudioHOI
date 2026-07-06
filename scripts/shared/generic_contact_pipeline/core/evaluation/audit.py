@@ -28,8 +28,8 @@ GENERIC_SOLVER_EXTERNAL_ENV_COMPONENTS = {
     "urdf_solid_mesh": "runs generic_contact_pipeline/components/render/urdf_solid_scene.py in the audiohoi env because render deps are not in base Python",
     "two_hand_toprail_endpoint": "runs generic_contact_pipeline/components/contact/chair_grasp_anchor_state.py in the audiohoi env, then builds two-hand endpoint contact candidates from generic object_observations",
     "semantic_graph_6d": "runs generic_contact_pipeline/components/render/fit_chair_metric_6d_pose.py in the audiohoi env on generic semantic observations/local points/contact state",
-    "hand_floor": "runs generic_contact_pipeline/components/contact/ball_proxy_depth_builder.py and ball_contact_candidate_builder.py in the audiohoi env; builds hand/floor gates from object mesh tracks + GVHMR + DA3 + audio",
-    "foot_floor": "runs generic_contact_pipeline/components/contact/ball_proxy_depth_builder.py and ball_contact_candidate_builder.py in the audiohoi env; builds foot/floor gates from object mesh tracks + GVHMR + DA3 + audio",
+    "hand_floor": "runs generic_contact_pipeline/components/contact/solvers/ball_proxy_depth_builder.py and ball_contact_candidate_builder.py in the audiohoi env; builds hand/floor gates from object mesh tracks + GVHMR + DA3 + audio",
+    "foot_floor": "runs generic_contact_pipeline/components/contact/solvers/ball_proxy_depth_builder.py and ball_contact_candidate_builder.py in the audiohoi env; builds foot/floor gates from object mesh tracks + GVHMR + DA3 + audio",
 }
 
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 from ....core.base.config import CaseProfile
 from ....core.evaluation.ball_residuals import write_ball_residual_report
 from ....core.base.camera import backproject_uvz
@@ -7,9 +9,43 @@ from ....core.base.io import float_or_none, read_csv, write_csv, write_json
 from ....core.base.schema import stage_paths
 
 
+def _line_angles_by_frame(profile: CaseProfile) -> dict[int, float]:
+    path = profile.sample_dir / "results" / "tracking" / "object_mesh_tracks_test.csv"
+    if not path.exists():
+        return {}
+    grouped: dict[int, dict[str, tuple[float, float]]] = {}
+    for row in read_csv(path):
+        pid = row.get("point_id", "")
+        if pid not in {"tip_a", "tip_b"}:
+            continue
+        try:
+            fr = int(float(row["frame"]))
+            x = float(row["x"])
+            y = float(row["y"])
+        except Exception:
+            continue
+        grouped.setdefault(fr, {})[pid] = (x, y)
+    out: dict[int, float] = {}
+    for fr, pts in grouped.items():
+        if "tip_a" not in pts or "tip_b" not in pts:
+            continue
+        ax, ay = pts["tip_a"]
+        bx, by = pts["tip_b"]
+        out[fr] = math.atan2(by - ay, bx - ax)
+    return out
+
+
+def _quat_z(angle: float | None) -> tuple[float, float, float, float]:
+    if angle is None:
+        return 1.0, 0.0, 0.0, 0.0
+    half = 0.5 * angle
+    return math.cos(half), 0.0, 0.0, math.sin(half)
+
+
 def build(profile: CaseProfile) -> dict[str, object]:
     paths = stage_paths(profile)
     obs_rows = read_csv(paths["object_observations"])
+    line_angles = _line_angles_by_frame(profile)
     rows = []
     for row in obs_rows:
         # Use the raw stable observation for the camera ray. Smoothing belongs
@@ -25,6 +61,8 @@ def build(profile: CaseProfile) -> dict[str, object]:
         )
         tx, ty, tz = backproject_uvz(float(u), float(v), float(z), profile.camera)
         support_dv = float_or_none(row.get("support_dv_smooth")) or float_or_none(row.get("support_dv")) or 0.0
+        fr = int(float(row.get("frame", "0") or 0))
+        qw, qx, qy, qz = _quat_z(line_angles.get(fr))
         rows.append(
             {
                 "frame": row.get("frame", ""),
@@ -32,10 +70,10 @@ def build(profile: CaseProfile) -> dict[str, object]:
                 "tx": f"{tx:.6f}",
                 "ty": f"{ty:.6f}",
                 "tz": f"{tz:.6f}",
-                "qw": "1.000000",
-                "qx": "0.000000",
-                "qy": "0.000000",
-                "qz": "0.000000",
+                "qw": f"{qw:.6f}",
+                "qx": f"{qx:.6f}",
+                "qy": f"{qy:.6f}",
+                "qz": f"{qz:.6f}",
                 "radius_m": "0.120000",
                 "coord_frame": "gvhmr_incam",
                 "u_obs": f"{float(u):.3f}",
@@ -66,7 +104,8 @@ def build(profile: CaseProfile) -> dict[str, object]:
         "source": str(paths["object_observations"]),
         "object_pose_init": str(out),
         "rows": len(rows),
-        "policy": "clean backprojection from Stage1 object observation using K_fullimg",
+        "line_orientation_frames": len(line_angles),
+        "policy": "clean backprojection from Stage1 object observation using K_fullimg; optional tip_a/tip_b tracks define camera-plane object orientation",
         "optimizer_style_residual_report": residual_report,
     }
     write_json(paths["stage3_metrics"], metrics)

@@ -133,10 +133,12 @@ def build_queries(profile: CaseProfile) -> list[dict[str, object]]:
     evidence = {
         "case_name": profile.case_name,
         "object_family": profile.data.get("object_family", ""),
-        "observation_model": profile.component("observation_model"),
-        "contact_policy": profile.component("contact_policy"),
-        "pose_model": profile.component("pose_model"),
-        "refinement_policy": profile.refinement_policies(),
+        "fixed_mainline": "preprocess -> generic observation -> generic contact/anchor -> generic SE3 pose init -> generic sequence_se3_optimizer -> render/eval",
+        "legacy_yaml_selectors_role": "compatibility adapters only",
+        "legacy_observation_model": profile.data.get("observation_model", ""),
+        "legacy_contact_policy": profile.data.get("contact_policy", ""),
+        "legacy_pose_model": profile.data.get("pose_model", ""),
+        "legacy_refinement_policy": profile.data.get("refinement_policy", []),
         "render_backend": profile.component("render_backend"),
     }
     return [
@@ -169,17 +171,41 @@ def build_queries(profile: CaseProfile) -> list[dict[str, object]]:
 
 def _schema_audit(profile: CaseProfile, summaries: dict[str, dict[str, object]]) -> dict[str, object]:
     missing: list[str] = []
-    for name in ("object_pose", "object_observations"):
+    for name in (
+        "object_observations",
+        "object_correspondence",
+        "contact_candidates",
+        "anchor_state",
+        "object_pose_init",
+        "object_pose",
+        "physical_smooth_residuals",
+        "motion_regime",
+        "pose_jump_audit",
+        "optimizer_decisions",
+    ):
         if not summaries[name]["exists"] or int(summaries[name]["row_count"]) == 0:
             missing.append(name)
     pose_cols = list(summaries["object_pose"]["columns"])
-    if profile.component("pose_model") == "translation3":
-        required_any = [{"tx", "x"}, {"ty", "y"}, {"tz", "z"}, {"frame"}]
-    else:
-        required_any = [{"rx", "yaw", "qx"}, {"ry", "pitch", "qy"}, {"rz", "roll", "qz"}, {"tx", "x"}, {"ty", "y"}, {"tz", "z"}, {"frame"}]
+    required_any = [{"frame"}, {"tx"}, {"ty"}, {"tz"}, {"qw"}, {"qx"}, {"qy"}, {"qz"}]
     for choices in required_any:
         if not _has_any_col(pose_cols, choices):
             missing.append("object_pose:" + "|".join(sorted(choices)))
+    anchor_cols = list(summaries["anchor_state"]["columns"])
+    for col in ("contact_observed", "contact_persistent", "anchor_update_allowed", "pose_anchor_allowed"):
+        if col not in anchor_cols:
+            missing.append(f"anchor_state:{col}")
+    decision_cols = list(summaries["optimizer_decisions"]["columns"])
+    for col in (
+        "motion_regime",
+        "sequence_se3_optimizer_enabled",
+        "velocity_residual_enabled",
+        "acceleration_residual_enabled",
+        "smooth_weight",
+        "accel_weight",
+        "feedback_reoptimized",
+    ):
+        if col not in decision_cols:
+            missing.append(f"optimizer_decisions:{col}")
 
     contact_cols = list(summaries["object_contact_points"]["columns"])
     phase_cols = list(summaries["object_phase"]["columns"])
@@ -208,6 +234,8 @@ def _stage_consistency_audit(profile: CaseProfile, paths: dict[str, Path], summa
     contact_candidates = _rows(paths["contact_candidates"])
     contact_points = _rows(paths["object_contact_points"])
     gates = _rows(paths["vlm_gates"])
+    decisions = _rows(paths["optimizer_decisions"])
+    regimes = _rows(paths["motion_regime"])
     failures: list[str] = []
     if contact_candidates and profile.case_name in {"mug", "chair"} and not contact_points:
         failures.append("stage2_has_contact_but_stage4_contact_empty")
@@ -220,6 +248,10 @@ def _stage_consistency_audit(profile: CaseProfile, paths: dict[str, Path], summa
     ignored = sorted(frame for frame in rejected_frames if frame and frame in contact_frames)
     if ignored:
         failures.append("vlm_rejected_frames_present_in_contact_points")
+    if decisions and not any(row.get("sequence_se3_optimizer_enabled") == "1" for row in decisions):
+        failures.append("sequence_se3_optimizer_not_enabled")
+    if not decisions:
+        failures.append("missing_optimizer_decisions")
     label = PASS if not failures else "stage_inconsistent"
     if ignored:
         label = "vlm_gate_ignored"
@@ -231,6 +263,8 @@ def _stage_consistency_audit(profile: CaseProfile, paths: dict[str, Path], summa
             "contact_candidates_rows": len(contact_candidates),
             "object_contact_points_rows": len(contact_points),
             "vlm_gates_rows": len(gates),
+            "optimizer_decision_rows": len(decisions),
+            "motion_regime_rows": len(regimes),
             "ignored_rejected_frames": ignored[:20],
             "failures": failures,
         },
@@ -262,17 +296,19 @@ def _object_specific_audit(profile: CaseProfile, paths: dict[str, Path]) -> dict
             label = "contact_empty"
 
     if profile.case_name == "chair":
-        left_ok = any("left" in (row.get("hand_side", "") + row.get("contact_side", "") + row.get("human_part", "")).lower() for row in contact_rows)
-        right_ok = any("right" in (row.get("hand_side", "") + row.get("contact_side", "") + row.get("human_part", "")).lower() for row in contact_rows)
-        if contact_rows and not (left_ok and right_ok):
+        active_contacts = [row for row in contact_rows if str(row.get("contact_active", "0")).strip() in {"1", "true", "True"}]
+        left_ok = any("left" in (row.get("hand_side", "") + row.get("human_side", "") + row.get("contact_side", "") + row.get("human_part", "")).lower() for row in active_contacts)
+        right_ok = any("right" in (row.get("hand_side", "") + row.get("human_side", "") + row.get("contact_side", "") + row.get("human_part", "")).lower() for row in active_contacts)
+        if active_contacts and not (left_ok and right_ok):
             failures.append("chair_missing_left_or_right_hand_contact")
             label = "contact_side_swapped"
-        if contact_rows and not _nonempty(contact_rows, "object_part", "contact_part", "target_object_part"):
+        if active_contacts and not _nonempty(active_contacts, "object_part", "contact_part", "target_object_part"):
             failures.append("chair_contact_object_part_empty")
             label = "contact_empty"
 
     if profile.case_name in {"basketball", "football"}:
-        if contact_rows and not _nonempty(contact_rows, "contact_part", "contact_label", "anchor_type"):
+        active_contacts = [row for row in contact_rows if str(row.get("contact_active", "0")).strip() in {"1", "true", "True"}]
+        if active_contacts and not _nonempty(active_contacts, "contact_part", "contact_label", "anchor_type", "human_part", "object_part"):
             failures.append("ball_contact_label_empty")
             label = "contact_empty"
 
@@ -288,6 +324,9 @@ def _object_specific_audit(profile: CaseProfile, paths: dict[str, Path]) -> dict
 def _failure_range_audit(profile: CaseProfile, paths: dict[str, Path]) -> dict[str, object]:
     pose_rows = _rows(paths["object_pose"])
     contact_rows = _rows(paths["object_contact_points"])
+    pose_jump_rows = _rows(paths["pose_jump_audit"])
+    decision_rows = _rows(paths["optimizer_decisions"])
+    trusted_pose_lock = bool(decision_rows) and all(row.get("pose_lock_reason") for row in decision_rows)
     frames = [_safe_frame(row.get("frame"), i + 1) for i, row in enumerate(pose_rows)]
     z_values = _numeric_series(pose_rows, "tz", "z", "Z")
     jump_frames: list[int] = []
@@ -301,6 +340,18 @@ def _failure_range_audit(profile: CaseProfile, paths: dict[str, Path]) -> dict[s
         if float_or_none(row.get("frame")) is not None
     )
     label = "depth_outlier" if jump_frames else PASS
+    audited_spike_frames = [
+        _safe_frame(row.get("frame"), -1)
+        for row in pose_jump_rows
+        if row.get("visual_spike") == "1" or row.get("smoothness_spike") == "1" or row.get("contact_spike") == "1"
+    ]
+    low_trust_frames = [
+        _safe_frame(row.get("frame"), -1)
+        for row in decision_rows
+        if (float_or_none(row.get("trust_weight")) or 1.0) < 0.35
+    ]
+    if audited_spike_frames and label == PASS and not trusted_pose_lock:
+        label = "rotation_jump"
     return {
         "query_id": "failure_range_summary",
         "label": label,
@@ -310,8 +361,18 @@ def _failure_range_audit(profile: CaseProfile, paths: dict[str, Path]) -> dict[s
             "contact_frame_min": min(contact_frames) if contact_frames else "",
             "contact_frame_max": max(contact_frames) if contact_frames else "",
             "contact_frame_count": len(contact_frames),
+            "pose_jump_audit_frames": [fr for fr in audited_spike_frames[:30] if fr >= 0],
+            "trusted_solved_pose_lock": trusted_pose_lock,
+            "report_only_pose_jump_frames": [fr for fr in audited_spike_frames[:30] if fr >= 0] if trusted_pose_lock else [],
+            "low_trust_optimizer_frames": [fr for fr in low_trust_frames[:30] if fr >= 0],
         },
-        "short_reason": "inspect listed frames" if jump_frames else "no obvious numeric jump range found",
+        "short_reason": (
+            "pose jump frames are report-only under trusted solved pose lock"
+            if trusted_pose_lock and audited_spike_frames
+            else "inspect listed frames"
+            if (jump_frames or audited_spike_frames)
+            else "no obvious numeric jump range found"
+        ),
     }
 
 
@@ -340,6 +401,7 @@ For every query, return:
 
 Allowed labels are provided per query. Use "unclear" if evidence is insufficient.
 Never invent continuous values or pose updates.
+If evidence contains trusted_solved_pose_lock=true, pose_jump_audit frames are report-only solved-pose diagnostics; do not label them rotation_jump unless another non-locked failure source is present.
 
 Case:
 {case_name}
@@ -466,12 +528,18 @@ def run_llm_csv_audit(profile: CaseProfile, mode: str = "seed") -> dict[str, obj
     paths = stage_paths(profile)
     summaries = {
         "object_observations": _csv_summary(paths["object_observations"]),
+        "object_correspondence": _csv_summary(paths["object_correspondence"]),
         "contact_candidates": _csv_summary(paths["contact_candidates"]),
+        "anchor_state": _csv_summary(paths["anchor_state"]),
         "contact_state": _csv_summary(paths["contact_state"]),
         "object_pose_init": _csv_summary(paths["object_pose_init"]),
         "object_pose": _csv_summary(paths["object_pose"]),
         "object_contact_points": _csv_summary(paths["object_contact_points"]),
         "object_phase": _csv_summary(paths["object_phase"]),
+        "physical_smooth_residuals": _csv_summary(paths["physical_smooth_residuals"]),
+        "motion_regime": _csv_summary(paths["motion_regime"]),
+        "pose_jump_audit": _csv_summary(paths["pose_jump_audit"]),
+        "optimizer_decisions": _csv_summary(paths["optimizer_decisions"]),
         "stage3_metrics": _metric_json_summary(paths["stage3_metrics"]),
         "stage4_metrics": _metric_json_summary(paths["stage4_metrics"]),
         "stage6_compare_report": _metric_json_summary(paths["compare_report"]),

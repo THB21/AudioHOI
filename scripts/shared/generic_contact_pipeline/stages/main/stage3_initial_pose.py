@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import importlib
-
 from ...core.base.config import CaseProfile
+from ...components.mainline import pose_init
 
 
 def run(profile: CaseProfile) -> dict[str, object]:
-    name = profile.component("pose_model")
-    mod = importlib.import_module(f"scripts.shared.generic_contact_pipeline.components.pose.models.{name}")
-    return mod.build(profile)
+    return pose_init.build(profile)

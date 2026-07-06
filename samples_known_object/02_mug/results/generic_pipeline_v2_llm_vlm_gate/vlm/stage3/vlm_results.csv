@@ -1,4 +1,0 @@
-case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
-mug,stage3,1,overlay_alignment_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
-mug,stage3,121,overlay_alignment_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
-mug,stage3,240,overlay_alignment_check,dry_run_not_evaluated,not_evaluated,none,0,0,1

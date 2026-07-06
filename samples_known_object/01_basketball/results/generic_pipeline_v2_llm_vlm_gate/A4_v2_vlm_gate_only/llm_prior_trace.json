@@ -1,8 +1,0 @@
-{
-  "case_name": "basketball",
-  "mode": "none",
-  "prompt_context": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/generic_pipeline_v2_llm_vlm_gate/A4_v2_vlm_gate_only/prompt_context.json",
-  "prompt_entry_count": 5,
-  "warnings": [],
-  "fallback_used": true
-}

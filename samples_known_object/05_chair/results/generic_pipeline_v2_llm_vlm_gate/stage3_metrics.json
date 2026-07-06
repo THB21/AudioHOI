@@ -1,9 +1,0 @@
-{
-  "component": "semantic_graph_6d",
-  "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/render/fit_chair_metric_6d_pose.py",
-  "seed_dir": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/generic_pipeline_v2_llm_vlm_gate/physical6d_seed",
-  "seed_render_dir": "",
-  "render_skipped": true,
-  "object_pose_init": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/generic_pipeline_v2_llm_vlm_gate/object_pose_init.csv",
-  "semantic_graph": "top_rail+hole+seat+front_rear_legs+stretchers+feet"
-}

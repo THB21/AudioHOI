@@ -275,6 +275,20 @@ samples_known_object/11_stick/results/tracking/
 samples_known_object/11_stick/results/generic_pipeline_v2_stick_mainline_seq_anchor_full_qwen/
 samples_known_object/11_stick/results/renders/benchmark_baseline_no_vlm/
 
+# Keep compact final human-object render previews for sharing/evaluation.
+!samples_known_object/01_basketball/results/renders/benchmark_vlm_qwen/
+!samples_known_object/01_basketball/results/renders/benchmark_vlm_qwen/with_human/
+!samples_known_object/01_basketball/results/renders/benchmark_vlm_qwen/with_human/**
+!samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/
+!samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/
+!samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/**
+!samples_known_object/05_chair/results/renders/benchmark_vlm_qwen/
+!samples_known_object/05_chair/results/renders/benchmark_vlm_qwen/with_human/
+!samples_known_object/05_chair/results/renders/benchmark_vlm_qwen/with_human/**
+!samples_known_object/10_football/results/renders/benchmark_vlm_qwen/
+!samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/
+!samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/**
+
 # Local regenerated preprocessing/result caches outside the current stick final scope.
 samples_known_object/05_chair/annotations/vlm_chair_contact_keyframes/
 samples_known_object/05_chair/proxy/

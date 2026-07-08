@@ -32,8 +32,8 @@ def read_ball_track(path: Path) -> list[dict[str, float | int | str]]:
                     "ball_center_x": float(row["ball_center_x"]),
                     "ball_center_y": float(row["ball_center_y"]),
                     "radius": float(row["radius"]),
-                    "mask_area": float(row["mask_area"]),
-                    "source": row["source"],
+                    "mask_area": float(row.get("mask_area", 0.0) or 0.0),
+                    "source": row.get("source", "mask"),
                 }
             )
     if not rows:
@@ -126,12 +126,7 @@ def build_palm_centers(joints: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
 
 def build_foot_points(joints: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Return fixed per-foot GVHMR foot points for contact reasoning.
-
-    Use the explicit GVHMR/SMPL-X body joints with stable semantics:
-      10 = left foot, 11 = right foot.
-    We intentionally avoid synthetic toe/edge probes here.
-    """
+    # joints 10/11 = left/right foot. No synthetic toe/edge probes.
     left = joints[:, 10, :]
     right = joints[:, 11, :]
     return left, right
@@ -342,8 +337,8 @@ def detect_anchor_contact(*, left_contact_uv: np.ndarray, right_contact_uv: np.n
     contact_local_min = local_min_mask(min_contact_gap, local_radius)
     response_local_peak = local_max_mask(object_response_score, local_radius)
 
-    # Conservative near-touch path for visible early contacts that have not yet
-    # produced overlap under our simplified foot-point geometry.
+    # near-touch path for visible early contacts that haven't yet overlapped
+    # under the simplified foot-point geometry
     near_touch_gap_thresh = max(anchor_region_radius_px * 0.75, 18.0)
     strong_near_touch = (
         (min_contact_gap <= near_touch_gap_thresh)
@@ -352,7 +347,7 @@ def detect_anchor_contact(*, left_contact_uv: np.ndarray, right_contact_uv: np.n
         & (approaching_score >= 0.30)
     )
 
-    # If a strong audio impact happens nearby, accept a slightly looser near-touch.
+    # a strong nearby audio impact buys a slightly looser near-touch
     audio_supported_near_touch = (
         (audio_support >= 0.45)
         & (min_contact_gap <= max(anchor_region_radius_px * 1.5, 32.0))
@@ -414,8 +409,8 @@ def detect_floor_contact(*, ball_v: np.ndarray, ball_r: np.ndarray, support_v: n
     else:
         bounce_turn = np.zeros(len(ball_bottom_v), dtype=bool)
 
-    # Geometric floor contact is primarily explained by the ball bottom approaching
-    # a fixed support line. Kinematic turning points only add support.
+    # geometric floor contact = ball bottom approaching a fixed support line;
+    # kinematic turning points only add support
     candidate_geom = floor_local_peak & (floor_gap <= gap_thresh_px)
     is_candidate = candidate_geom | (bounce_turn & (floor_gap <= gap_thresh_px * 1.5))
 
@@ -528,8 +523,8 @@ def enforce_audio_contact_coverage(*, frames: np.ndarray, audio_rows: list[dict[
             dominant_burst = best_right_burst if choose_right else best_left_burst
         dominant_idxs = dominant_burst or []
 
-        # Window-level side override: if this audio window already contains a foot
-        # contact but the opposing side forms a stronger burst, reassign it.
+        # window-level side override: if the window already has a foot contact but
+        # the opposing side forms a stronger burst, reassign it
         existing_anchor_idxs = [i for i in idxs if contact_state[i] and str(active_target[i]).endswith('_foot')]
         if existing_anchor_idxs and dominant_idxs:
             existing_best = max(existing_anchor_idxs, key=lambda i: anchor_score[i] + 0.10 * audio_support[i])
@@ -548,7 +543,7 @@ def enforce_audio_contact_coverage(*, frames: np.ndarray, audio_rows: list[dict[
         if np.any(contact_state[idxs] | floor_state[idxs]):
             continue
 
-        # First try the normal anchor fallback inside this audio window.
+        # normal anchor fallback inside this audio window
         anchor_candidates = [i for i in idxs if anchor_score[i] >= 0.42 and min_contact_gap[i] <= 36.0]
         best_anchor = max(anchor_candidates, key=lambda i: anchor_score[i] + 0.10 * audio_support[i], default=None)
         best_floor = max(idxs, key=lambda i: floor_score[i] + 0.05 * audio_support[i])
@@ -560,8 +555,7 @@ def enforce_audio_contact_coverage(*, frames: np.ndarray, audio_rows: list[dict[
                 is_contact_candidate[best_anchor] = True
                 continue
 
-        # If the audio window still has no resolved frame, do a relaxed foot-only
-        # fallback locally, using the dominant side decided above.
+        # still unresolved: relaxed foot-only fallback on the dominant side
         relaxed_anchor = None
         if dominant_idxs:
             relaxed_single = [
@@ -585,8 +579,8 @@ def enforce_audio_contact_coverage(*, frames: np.ndarray, audio_rows: list[dict[
             is_contact_candidate[relaxed_anchor] = True
             continue
 
-        # Floor fallback must still be geometrically plausible; otherwise leave the
-        # audio window unresolved rather than forcing a fake floor contact.
+        # floor fallback must stay geometrically plausible; otherwise leave the
+        # window unresolved rather than force a fake floor contact
         if floor_gap[best_floor] <= 18.0 and floor_score[best_floor] >= 0.35:
             floor_state[best_floor] = True
             is_floor_candidate[best_floor] = True
@@ -617,7 +611,7 @@ def maybe_override_anchor_center_from_audio_window(*, peak_frame: int, target: s
     min_contact_gap: np.ndarray, audio_support: np.ndarray, left_motion_score: np.ndarray,
     right_motion_score: np.ndarray, left_toward_score: np.ndarray, right_toward_score: np.ndarray,
     min_audio_score: float = 0.45, radius: int = 2) -> tuple[int, str]:
-    # Only reconsider anchor centers when a nearby strong audio peak exists.
+    # only reconsider anchor centers near a strong audio peak
     nearby_audio = [row for row in audio_rows if float(row.get('audio_score', 0.0) or 0.0) >= min_audio_score and abs(int(row['audio_frame']) - peak_frame) <= radius]
     if not nearby_audio:
         return peak_frame, target
@@ -702,10 +696,10 @@ def suppress_boundary_long_foot_segments(*,
     max_mean_gap: float = 18.0,
     protect_audio_support: float = 0.45,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Remove long boundary foot segments from hard contact output.
+    """Drop long foot segments touching the clip boundary from hard contact output.
 
-    These segments may be persistent contact or pure occlusion, but without full
-    temporal context at the boundary they are not reliable hard anchors.
+    They may be real persistent contact or pure occlusion, but without full temporal
+    context at the boundary they aren't reliable hard anchors.
     """
     contact_state = contact_state.copy()
     is_contact_candidate = is_contact_candidate.copy()

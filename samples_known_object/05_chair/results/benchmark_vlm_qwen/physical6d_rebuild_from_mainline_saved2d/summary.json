@@ -1,0 +1,30 @@
+{
+  "overlay_video": "",
+  "pose_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/physical6d_rebuild_from_mainline_saved2d/physical6d_pose.csv",
+  "baseline_pose_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/mainline_0425/object_pose.csv",
+  "baseline_segments_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/mainline_0425/semantic_local_points/chair_semantic_local_segments.csv",
+  "target_segments_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_local_segments.csv",
+  "frames": 192,
+  "median_line_rmse_px": 1.5140164167377272,
+  "median_endpoint_rmse_px": 3.6010085702212513,
+  "median_side_ratio_rmse_px": 0.9454599796616963,
+  "median_rail_rmse_px": 6.790632035382398,
+  "weights": {
+    "leg_line": 1.35,
+    "leg_endpoint": 0.08,
+    "side": 18.0,
+    "top_rail": 3.2,
+    "bottom_rail": 0.65,
+    "seat_front": 0.25,
+    "pose_prior": 0.2,
+    "joint_prior": 0.45
+  },
+  "fit_K_override": [
+    1468.604736328125,
+    1468.604736328125,
+    640.0,
+    360.0
+  ],
+  "render_skipped": true,
+  "note": "Physical camera projection only: optimizes R/t and chair joints; no projective q and no Articraft local-geometry edits."
+}

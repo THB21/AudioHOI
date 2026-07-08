@@ -1,0 +1,22 @@
+{
+  "case_name": "football",
+  "stage": "stage3",
+  "llm_mode": "mistral",
+  "note": "LLM audit operates on CSV/metrics evidence and may only emit discrete gates/actions.",
+  "queries": [
+    {
+      "case_name": "football",
+      "stage": "stage3",
+      "object_family": "dynamic_ball",
+      "role": "CSV/metrics LLM audit gate; labels only, no coordinates or pose generation",
+      "query_id": "se3_schema",
+      "question": "Does the initialized object pose use the fixed SE3 schema for every frame?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "stage_inconsistent",
+        "unclear"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": 10,
+  "name": "football",
+  "image": "video_sample/10_football.jpg",
+  "video": "video_sample/10_football_video.mp4",
+  "prompt": "Generate an 8-second realistic video from this image. The soccer player starts with the ball on the grass near one foot. The player first kicks the ball upward with one foot, then keeps the ball close and performs a short controlled juggling sequence using the feet. The ball should move naturally according to the player\u2019s foot contact and gravity, without floating or changing direction by itself. Keep the camera static in a wide shot, with the full body and the soccer ball visible for most of the sequence.Add realistic synchronized audio: a clear foot-ball kick sound at the first kick, followed by light foot-ball contact sounds during the juggling touches. The contact sounds should occur only when the ball visibly touches the foot. No music, no speech.",
+  "detection_text": "football."
+}

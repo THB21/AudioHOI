@@ -1,0 +1,2 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+stick,stage0,1,target_mask_check,yes,pass,accept_candidate,0,0,1,0,1

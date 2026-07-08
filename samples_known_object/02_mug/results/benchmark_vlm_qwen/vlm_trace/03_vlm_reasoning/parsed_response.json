@@ -1,0 +1,16 @@
+{
+  "rows": 33,
+  "labels": [
+    "aligned",
+    "cup_body",
+    "normal",
+    "palm_on_cup_body",
+    "palm_on_handle",
+    "pass",
+    "stable",
+    "unclear",
+    "visible",
+    "visual_spike",
+    "yes"
+  ]
+}

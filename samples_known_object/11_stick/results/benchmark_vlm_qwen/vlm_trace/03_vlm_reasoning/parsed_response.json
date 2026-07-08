@@ -1,0 +1,19 @@
+{
+  "rows": 1452,
+  "labels": [
+    "aligned",
+    "consistent",
+    "floor_support",
+    "grip_bands",
+    "hand_on_contact_region",
+    "hand_on_main_body",
+    "no_change",
+    "normal",
+    "pass",
+    "stable",
+    "tip_regions",
+    "unclear",
+    "visual_spike",
+    "yes"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "component": "generic_observation_mainline",
+  "case_name": "mug",
+  "adapter": {
+    "component": "rigid_body_plus_parts",
+    "observation_rows": 240,
+    "object_observations": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv",
+    "object_local_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
+    "object_local_points_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/mug_articraft_contact_points_internal/mug_articraft_contact_points.csv",
+    "object_local_points_exporter": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/observation/solvers/export_mug_articraft_contact_points.py",
+    "object_proxy_observations": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_proxy_observations_internal/object_proxy_observations.csv",
+    "object_proxy_builder": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/observation/solvers/build_object_proxy_observations.py",
+    "observation_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/object_observations/object_observations.csv",
+    "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
+    "phase_reconstruction": {
+      "policy": "fallback_final_phase_csv",
+      "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
+      "recovered_m15_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+      "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py",
+      "snapshot_fallback_used": true,
+      "missing_preferred_phase_sources": [
+        "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+        "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/provenance_snapshots/mug_m17_handle_phase.csv",
+        "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv"
+      ]
+    },
+    "handle_visibility_from_phase": true,
+    "adapter_component": "rigid_body_plus_parts"
+  },
+  "object_observations": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv",
+  "object_correspondence": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_correspondence.csv",
+  "object_surface_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_surface_points.csv",
+  "object_semantic_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_semantic_points.csv",
+  "rows": 240,
+  "correspondence_rows": 240,
+  "surface_rows": 240,
+  "semantic_rows": 0,
+  "policy": "fixed generic observation contract; case-specific observation code is compatibility adapter only"
+}

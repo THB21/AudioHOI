@@ -1,0 +1,11 @@
+sample,label,n_frames,tz_min,tz_max,jerk,contact_rate,contact_gap_cm,audio_err_ms,pen_frames
+football_10,full_audio,242,5.94,6.723,0.020625,1.0,0.12,24.0,2
+football_10,no_audio,242,5.94,6.367,0.007367,1.0,0.0,30.7,1
+football_10,depthlift_baseline,242,2.173,7.103,0.936082,,,22.7,11
+football_10,budget,242,5.94,6.723,0.010771,1.0,0.12,24.0,2
+football_10,flightphys,242,5.94,6.723,0.020834,1.0,0.12,24.0,2
+football_10,both,242,5.94,6.723,0.01078,1.0,0.12,24.0,2
+football_10,budget,242,5.94,6.723,0.010771,1.0,0.12,24.0,2
+football_10,flightphys,242,5.94,6.723,0.020834,1.0,0.12,24.0,2
+football_10,both,242,5.94,6.723,0.01078,1.0,0.12,24.0,2
+football_10,surface_gap,242,5.951,6.776,0.01167,0.778,3.29,33.3,1

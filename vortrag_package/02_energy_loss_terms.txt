@@ -1,0 +1,28 @@
+ENERGY / LOSS TERMS  —  E_total = sum of weighted per-frame residuals
+(no learned prior, no z=f*R/r sphere cue; all geometric/observational)
+
+  E_2d       center reprojection   | projected 3D center vs 2D obs        | px
+  E_contact  contact gap           | object <-> contact body part        | m
+  E_depth    metric depth          | |solved tz - DA3 depth|             | m
+  E_support  floor                 | object bottom vs floor line         | px
+  E_smooth   smoothness (R_reg)    | translation acceleration (jerk)     | m/frame^2
+
+E_total mean per video:   basketball 0.31   |   football 1.76   |   mug 0.07
+
+SHARE of E_total:
+                 basketball   football   mug
+  E_depth          79%          83%      78%   <- DOMINANT everywhere (weakest link)
+  E_smooth         15%           3%       3%
+  E_support         6%          15%        -
+  E_2d / E_contact  0% / 0%      0% / 0%   -    <- HARD ANCHORS (satisfied exactly)
+
+3 KEY POINTS:
+  1. 2D center + contact are exactly 0 -> hard anchors, the reliable backbone.
+  2. Depth dominates (78-83%) -> its size = depth reliability:
+       basketball 0.25m (ok)  mug 0.05m (tiny motion)  football 1.46m (bad, conf 0.07).
+  3. Football's big E_depth is CORRECT: the solver ignores bad DA3 depth
+     (conf 0.07) instead of following garbage.
+
+CONTACT (new): VLM picks the body part (football->foot, basketball->hand);
+full-3D constraint pulls object onto it at audio+visual contacts.
+  football ball->foot: 1.107 -> 0.158 m   (0 -> 12/15 touching)

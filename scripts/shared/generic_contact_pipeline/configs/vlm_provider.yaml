@@ -1,0 +1,14 @@
+version: 1
+default_provider: qwen_vl_local
+providers:
+  qwen_vl_local:
+    kind: qwen_vl
+    python: /home/yang/miniconda3/envs/qwen-vl/bin/python
+    model_id: Qwen/Qwen3-VL-8B-Instruct
+    local_dir: models/modelscope/Qwen/Qwen3-VL-8B-Instruct
+    device_map: auto
+    load_4bit: true
+    resize_max: 720
+    max_new_tokens: 80
+    env:
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True

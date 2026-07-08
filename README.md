@@ -47,6 +47,7 @@ Third-party (GVHMR, HaMeR, Depth Anything 3, SAM 3D Objects) are cloned/installe
 
 ## Docs
 
+- `SETUP.md` — getting the project running from scratch on a new machine.
 - `CLAUDE.md` — full architecture, per-stage scripts, commands, and gotchas.
 - `method_losses.md` — mathematical overview of the depth alignment, lifting, and
   contact-phase losses, plus the generalized zero-shot energy and the VLM agentic layer.

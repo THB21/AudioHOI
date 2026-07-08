@@ -1,0 +1,36 @@
+{
+  "component": "generic_observation_mainline",
+  "case_name": "stick",
+  "adapter": {
+    "component": "mask_track_center",
+    "source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/tracking/object_trajectory.csv",
+    "center_source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/tracking/object_center_trajectory.csv",
+    "points_source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/tracking/object_points.csv",
+    "depth_source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/da3/priors/object_depth_prior.csv",
+    "object_observations": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_observations.csv",
+    "local_points": "none_for_center_proxy",
+    "rows": 240,
+    "policy": "generic mask/object center/radius + optional CoTracker/object bottom + DA3 depth only; contact fields are owned by Stage2",
+    "adapter_component": "mask_track_center",
+    "generic_line_correspondence": {
+      "component": "generic_line_correspondence",
+      "enabled": true,
+      "line_correspondence": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
+      "line_observations": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_observations.csv",
+      "rows": 240,
+      "trusted_rows": 208,
+      "untrusted_rows": 32,
+      "sam2_rows": 240,
+      "policy": "SAM2 mask major-axis is primary line observation; CoTracker is a low-trust correspondence hint unless visible and temporally consistent"
+    }
+  },
+  "object_observations": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_observations.csv",
+  "object_correspondence": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_correspondence.csv",
+  "object_surface_points": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_surface_points.csv",
+  "object_semantic_points": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_semantic_points.csv",
+  "rows": 240,
+  "correspondence_rows": 240,
+  "surface_rows": 0,
+  "semantic_rows": 0,
+  "policy": "fixed generic observation contract; case-specific observation code is compatibility adapter only"
+}

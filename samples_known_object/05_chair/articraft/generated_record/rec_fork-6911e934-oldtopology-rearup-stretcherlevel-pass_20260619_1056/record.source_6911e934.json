@@ -1,0 +1,51 @@
+{
+  "schema_version": 3,
+  "record_id": "rec_continue-editing-the-current-topology-fixed-chai_20260615_113825_272909_6911e934",
+  "created_at": "2026-06-15T11:38:25Z",
+  "updated_at": "2026-06-15T11:40:18Z",
+  "rating": null,
+  "secondary_rating": null,
+  "author": "Yixin Yang",
+  "rated_by": null,
+  "secondary_rated_by": null,
+  "kind": "generated_model",
+  "prompt_kind": "single_prompt",
+  "category_slug": null,
+  "source": {
+    "run_id": "run_20260615_113825_272909_6911e934",
+    "prompt_batch_id": null,
+    "batch_spec_id": null,
+    "row_id": null,
+    "prompt_index": null
+  },
+  "sdk_package": "sdk",
+  "provider": "codex-cli",
+  "model_id": "gpt-5.5",
+  "display": {
+    "title": "attach_backrest_to_front_top_posts",
+    "prompt_preview": "Continue editing the current topology-fixed chair. The previous fork changed the side-frame roles, but the backrest/top connection still looks wrong. Current..."
+  },
+  "artifacts": {
+    "prompt_txt": "revisions/rev_000001/prompt.txt",
+    "prompt_series_json": null,
+    "model_py": "revisions/rev_000001/model.py",
+    "provenance_json": "revisions/rev_000001/provenance.json",
+    "cost_json": null,
+    "inputs_dir": "revisions/rev_000001/inputs",
+    "traces_dir": "revisions/rev_000001/traces"
+  },
+  "hashes": {
+    "prompt_sha256": "6b3642f0fcd968d2b1aa948f7a0b7f775aae33dd8e2cf6fdf45dcbf3fd8b6b88",
+    "model_py_sha256": "d8ff0d82b5e081177cdafcbdb7e72c4381791a237a89f595c2d1b3d685f06299"
+  },
+  "collections": [
+    "workbench"
+  ],
+  "active_revision_id": "rev_000001",
+  "lineage": {
+    "origin_record_id": "rec_create-a-fresh-image-conditioned-articulated-3d-_20260615_110036_846363_699fc32e",
+    "parent_record_id": "rec_continue-editing-the-current-fresh-dimensioned-f_20260615_112144_757819_b0ad5120",
+    "parent_revision_id": "rev_000001",
+    "edit_mode": "copy"
+  }
+}

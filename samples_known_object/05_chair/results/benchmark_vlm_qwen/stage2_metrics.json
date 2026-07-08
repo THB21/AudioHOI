@@ -1,0 +1,46 @@
+{
+  "component": "generic_contact_anchor_mainline",
+  "case_name": "chair",
+  "adapter": {
+    "component": "two_hand_endpoint",
+    "rows": 317,
+    "active_rows": 250,
+    "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/contact_candidates.csv",
+    "grasp_anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_grasp_anchor_state/chair_grasp_anchor_state.csv",
+    "grasp_anchor_summary": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_grasp_anchor_state/chair_grasp_anchor_state_summary.json",
+    "contact_window": {
+      "start_frame": 20,
+      "end_frame": 144,
+      "source": "audio_place_frame_no_object_motion_gate"
+    },
+    "policy": "gvhmr/qwen gates contact frames; observed top-rail endpoints define right_hand->left and left_hand->right object anchors",
+    "adapter_component": "two_hand_toprail_endpoint"
+  },
+  "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/contact_candidates.csv",
+  "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/anchor_state.csv",
+  "anchor_rows": 317,
+  "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only",
+  "generic_contact_anchor_mainline": {
+    "component": "generic_contact_anchor_mainline",
+    "case_name": "chair",
+    "adapter": {
+      "component": "two_hand_endpoint",
+      "rows": 317,
+      "active_rows": 250,
+      "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/contact_candidates.csv",
+      "grasp_anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_grasp_anchor_state/chair_grasp_anchor_state.csv",
+      "grasp_anchor_summary": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_grasp_anchor_state/chair_grasp_anchor_state_summary.json",
+      "contact_window": {
+        "start_frame": 20,
+        "end_frame": 144,
+        "source": "audio_place_frame_no_object_motion_gate"
+      },
+      "policy": "gvhmr/qwen gates contact frames; observed top-rail endpoints define right_hand->left and left_hand->right object anchors",
+      "adapter_component": "two_hand_toprail_endpoint"
+    },
+    "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/contact_candidates.csv",
+    "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/anchor_state.csv",
+    "anchor_rows": 317,
+    "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only"
+  }
+}

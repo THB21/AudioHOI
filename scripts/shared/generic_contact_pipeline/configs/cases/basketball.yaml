@@ -1,0 +1,30 @@
+case_name: basketball
+sample_dir: samples_known_object/01_basketball
+object_family: dynamic_ball
+geometry_model: sphere_proxy
+observation_model: mask_track_center
+contact_policy: hand_floor
+pose_model: translation3
+refinement_policy:
+  - anchor_depth
+  - backproject_xy
+render_backend: proxy_sphere
+result_name: generic_pipeline_v1
+vlm:
+  target: basketball
+  parts: [ball_center, ball_boundary, ball_bottom, background, unclear]
+  contacts: [hand, floor, body, nothing_nearby, unclear]
+  stable_refs: [center, bottom_support, boundary_point, unclear]
+camera:
+  fx: 1468.604736328125
+  fy: 1468.604736328125
+  cx: 640.0
+  cy: 360.0
+baseline:
+  final_pose_csv: samples_known_object/01_basketball/results/pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv
+  init_pose_csv: samples_known_object/01_basketball/results/pose6d_object_proxy_da3_init/object_pose6d_sharedcam_trajectory.csv
+  object_observations_csv: samples_known_object/01_basketball/results/object_observations/object_observations.csv
+  object_proxy_observations_csv: samples_known_object/01_basketball/results/object_proxy_observations/object_proxy_observations.csv
+  contact_candidates_csv: samples_known_object/01_basketball/results/contact_candidates_object_proxy/anchor_contact_candidates.csv
+  contact_state_csv: samples_known_object/01_basketball/results/contact_candidates_object_proxy/contact_state_frames.csv
+  render_dir: samples_known_object/01_basketball/results/renders/pose6d_object_proxy_anchor_refined

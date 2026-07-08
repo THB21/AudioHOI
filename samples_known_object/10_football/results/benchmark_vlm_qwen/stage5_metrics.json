@@ -1,0 +1,24 @@
+{
+  "backend": "proxy_sphere",
+  "outputs": {
+    "object_only/overlay.mp4": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/object_only/overlay.mp4",
+    "object_only/camera3d.mp4": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/object_only/camera3d.mp4",
+    "object_only/side_yz.mp4": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/object_only/side_yz.mp4",
+    "with_human/overlay.mp4": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+    "with_human/camera3d.mp4": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/camera3d.mp4",
+    "with_human/side_yz.mp4": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/side_yz.mp4"
+  },
+  "required": [
+    "object_only/overlay.mp4",
+    "object_only/camera3d.mp4",
+    "object_only/side_yz.mp4",
+    "with_human/overlay.mp4",
+    "with_human/camera3d.mp4",
+    "with_human/side_yz.mp4"
+  ],
+  "policy": "rerendered with generic proxy_sphere_scene using generic object_pose.csv and automatic h264 finalize",
+  "renderer": {
+    "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
+    "script": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/render/scenes/proxy_sphere_scene.py"
+  }
+}

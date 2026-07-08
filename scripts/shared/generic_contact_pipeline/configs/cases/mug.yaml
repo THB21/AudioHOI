@@ -1,0 +1,33 @@
+case_name: mug
+sample_dir: samples_known_object/02_mug
+object_family: graspable_articraft
+geometry_model: articraft_mug_mesh
+observation_model: rigid_body_plus_parts
+contact_policy: palm_handle_rim_body
+pose_model: rigid6_plus_phase
+refinement_policy:
+  - stable_grasp_anchor
+  - anchor_depth
+  - table_freeze
+render_backend: articraft_mesh
+result_name: generic_pipeline_v1
+vlm:
+  target: mug
+  parts: [handle, cup_body, rim, bottom, background, unclear]
+  contacts: [palm, fingertip, rim_mouth, table, nothing_nearby, unclear]
+  stable_refs: [mug_body, handle_loop, rim, bottom, unclear]
+camera:
+  fx: 1468.604736328125
+  fy: 1468.604736328125
+  cx: 640.0
+  cy: 360.0
+baseline:
+  final_pose_csv: samples_known_object/02_mug/results/final_result/object_pose.csv
+  final_phase_csv: samples_known_object/02_mug/results/final_result/handle_phase.csv
+  m15_recovered_phase_csv: samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv
+  m17_phase_csv: samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv
+  m18_pose_csv: samples_known_object/02_mug/results/mug_m18_opening_2d_video_correction/mug_m18_opening_2d_video_pose.csv
+  contact_state_csv: samples_known_object/02_mug/results/contact_candidates_object_proxy/contact_state_frames.csv
+  object_local_points_csv: samples_known_object/02_mug/results/mug_articraft_contact_points/mug_articraft_contact_points.csv
+  grasp_anchor_csv: samples_known_object/02_mug/results/mug_grasp_anchor_state/mug_grasp_anchor_state.csv
+  render_dir: samples_known_object/02_mug/results/renders/final_result

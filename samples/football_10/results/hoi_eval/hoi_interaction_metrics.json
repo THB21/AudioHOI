@@ -1,0 +1,23 @@
+{
+  "case": "football",
+  "trajectory": "samples/football_10/results/pose6d_sharedcam_contactphase_depthv3/ball_pose6d_sharedcam_contactphase_trajectory.csv",
+  "human_params": "contact_refine",
+  "object_type": "sphere",
+  "n_frames": 242,
+  "pen_frame_ratio": 0.0,
+  "non_collision_ratio": 1.0,
+  "pen_depth_mean_mm": 0.0,
+  "pen_depth_max_mm": 0.0,
+  "contact_frame_ratio": 0.0248,
+  "expected_contact_frames": 22,
+  "contact_gap_mm": 143.95,
+  "part_named_frames": 22,
+  "part_correct_ratio": 0.864,
+  "object_jerk": 0.01167,
+  "grasp_stability_mm": null,
+  "audio_events": 11,
+  "contact_ratio_audio_windows": 0.455,
+  "accel_at_events": 0.08574,
+  "accel_in_flight": 0.02511,
+  "mdev_star_mm": null
+}

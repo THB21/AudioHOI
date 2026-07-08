@@ -47,6 +47,12 @@ def normalize_contact_label(
     side = str(row.get("contact_side", row.get("active_anchor_side", fallback_side)) or fallback_side).strip()
     if str(row.get("contact_part", "") or "").strip() == "floor" or str(row.get("contact_type", "") or "") == "floor_contact_event":
         return "floor"
+    # contact-candidate CSVs declare the probed part in anchor_type (hand for a
+    # dribble, foot for a kick); without reading it the label falls back to
+    # default_part — football anchors then silently pin to hand depth
+    anchor_part = str(row.get("anchor_type", "") or "").strip()
+    if anchor_part in {"hand", "foot"}:
+        return f"{side}_{anchor_part}"
     return f"{side}_{default_part}"
 
 

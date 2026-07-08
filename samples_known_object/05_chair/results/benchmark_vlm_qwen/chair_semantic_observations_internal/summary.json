@@ -1,0 +1,17 @@
+{
+  "csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_semantic_observations_internal/chair_semantic_observations.csv",
+  "candidate_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_semantic_observations_internal/chair_leg_candidates.csv",
+  "rows": 192,
+  "candidate_rows": 4842,
+  "preview_dir": "",
+  "parallel_preview_dir": "",
+  "candidate_preview_dir": "",
+  "write_previews": false,
+  "valid_stats": {
+    "front_leg_pair_valid": 105,
+    "rear_leg_pair_valid": 114,
+    "leg_parallel_family_a_valid": 192,
+    "leg_parallel_family_b_valid": 159
+  },
+  "note": "support_center/floor_support_proxy are lift-place/static floor proxies, not chair body anchors. 6D pose should use top_rail, seat_front, RGB leg candidates, and valid leg_parallel_family_a/b constraints with robust loss."
+}

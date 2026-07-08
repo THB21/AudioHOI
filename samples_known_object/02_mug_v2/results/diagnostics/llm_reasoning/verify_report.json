@@ -1,0 +1,19 @@
+{
+  "applied": [
+    {
+      "field": "yaw",
+      "action": "flatten_excursion",
+      "ref": -3.1416,
+      "span": [
+        18,
+        118
+      ]
+    }
+  ],
+  "accel": {
+    "yaw": {
+      "max_acc_before": 0.1766,
+      "max_acc_after": 0.0637
+    }
+  }
+}

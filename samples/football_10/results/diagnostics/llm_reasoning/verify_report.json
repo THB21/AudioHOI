@@ -1,0 +1,45 @@
+{
+  "applied": [
+    {
+      "field": "tx",
+      "action": "clamp",
+      "n_frames": 49,
+      "span": [
+        1,
+        217
+      ]
+    },
+    {
+      "field": "ty",
+      "action": "clamp",
+      "n_frames": 49,
+      "span": [
+        1,
+        217
+      ]
+    },
+    {
+      "field": "tz",
+      "action": "clamp",
+      "n_frames": 49,
+      "span": [
+        1,
+        217
+      ]
+    }
+  ],
+  "accel": {
+    "tx": {
+      "max_acc_before": 0.0915,
+      "max_acc_after": 0.0915
+    },
+    "ty": {
+      "max_acc_before": 0.282,
+      "max_acc_after": 0.282
+    },
+    "tz": {
+      "max_acc_before": 0.4898,
+      "max_acc_after": 0.491
+    }
+  }
+}

@@ -1,0 +1,27 @@
+Generic anchor interpolation z refinement for human-ball contact.
+default_part: hand
+outside_window_mode: boundary_constant
+z_ref_mode: anchor_segment
+w_ref: 0.700000
+w_temp: 5.000000
+w_phys_xz: 0.000000
+w_phys_y: 0.000000
+audio_flight_physics: False
+impulse_mode: budget
+kappa_budget: 0.050000
+gravity_mps2: 9.810000
+w_pen: 2.000000
+pen_clearance_m: 0.100000
+audio_vis_coupling: 2.000000
+audio_subframe_anchors: True
+num_penetrating_free_frames_after_solve: 0
+w_audio: 3.000000
+audio_accel_relax: 0.800000
+audio_events_csv: samples/03_hammer/results/events/audio_events.csv
+global_z_shift_from_human_events_m: -0.268366
+num_frames: 192
+num_human_event_frames: 6
+num_floor_event_frames: 5
+num_audio_events: 0
+num_audio_anchor_frames: 0
+audio_semantics: False

@@ -1,0 +1,4 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+chair,stage5,1,post_render_sanity_check,pass,pass,accept_candidate,0,0,1
+chair,stage5,97,post_render_sanity_check,pass,pass,accept_candidate,0,0,1
+chair,stage5,192,post_render_sanity_check,pass,pass,accept_candidate,0,0,1

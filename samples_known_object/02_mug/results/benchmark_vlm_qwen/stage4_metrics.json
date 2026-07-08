@@ -1,0 +1,206 @@
+{
+  "component": "generic_sequence_se3_mainline",
+  "case_name": "mug",
+  "compatibility_adapters": [
+    {
+      "component": "stable_grasp_anchor",
+      "enabled": true,
+      "report": {
+        "component": "stable_grasp_anchor",
+        "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+        "object_phase": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_phase.csv",
+        "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
+        "object_contact_points_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/mug_grasp_anchor_state_internal/mug_grasp_anchor_state.csv",
+        "object_contact_points_builder": "generic_contact_pipeline/components/contact/build_mug_grasp_anchor_state.py",
+        "hidden_handle_policy": "keep_previous_stable_grasp_anchor",
+        "pose_policy": "m18_rotation_slerp_table_freeze_clean_python",
+        "pose_info": {
+          "rotation_smooth_start": 60,
+          "rotation_smooth_end": 70,
+          "rotation_detection": "auto_rotation_jump jump=61 step=32.913 threshold=12.000",
+          "static_frame": 160,
+          "static_detection": "auto_table_static support_conf>=0.99 support_gap>=-10.0 run=8",
+          "pose_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv"
+        },
+        "phase_policy": "m17_phase_pchip_smooth_entry_no_hide_clean_python",
+        "phase_info": {
+          "anchors": 30,
+          "max_abs_velocity_deg": 7.0,
+          "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
+          "phase_reconstruction": {
+            "policy": "fallback_final_phase_csv",
+            "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
+            "recovered_m15_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+            "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py",
+            "snapshot_fallback_used": true,
+            "missing_preferred_phase_sources": [
+              "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+              "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/provenance_snapshots/mug_m17_handle_phase.csv",
+              "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv"
+            ]
+          }
+        },
+        "grasp_anchor_summary": {
+          "input_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
+          "vlm_keyframe_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/annotations/vlm_mug_contact_keyframes/mug_contact_keyframe_annotations.csv",
+          "n_frames": 240,
+          "mode_counts": {
+            "direct_grasp_anchor": 13,
+            "keep_previous_grasp_anchor": 222,
+            "rim_contact_keep_previous_grasp_anchor": 5
+          },
+          "n_anchor_updates": 13,
+          "anchor_update_frames": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            20,
+            21,
+            22,
+            23,
+            122,
+            123,
+            124,
+            125
+          ],
+          "n_keep_previous_frames": 227,
+          "keep_previous_frames_sample": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39
+          ],
+          "n_rim_drinking_frames": 5,
+          "rim_drinking_frames_sample": [
+            72,
+            73,
+            77,
+            78,
+            83
+          ],
+          "final_stable_grasp_local": [
+            -0.077386,
+            -0.036629,
+            0.0
+          ],
+          "final_stable_grasp_source_frame": "125",
+          "final_stable_grasp_meta": {
+            "object_part": "handle",
+            "object_region": "upper_handle",
+            "hand_side": "left_hand",
+            "primary_finger": "thumb",
+            "fingers": "[\"thumb\", \"index\", \"middle\", \"ring\", \"pinky\", \"palm\", \"unknown\"]",
+            "grasp_type": "pinch_handle",
+            "vlm_source_frame": "125"
+          }
+        },
+        "vlm_gate_summary": {
+          "vlm_contact_gate": "no_effective_disabled_frames",
+          "disabled_frames": []
+        }
+      }
+    },
+    {
+      "component": "anchor_depth",
+      "enabled": true,
+      "report": {
+        "component": "anchor_depth",
+        "policy": "no_op_for_non_translation_pose_model",
+        "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv"
+      }
+    },
+    {
+      "component": "table_freeze",
+      "enabled": true,
+      "report": {
+        "component": "table_freeze",
+        "case_name": "mug",
+        "policy": "preserved_in_final_solved_pose"
+      }
+    }
+  ],
+  "legacy_refinement_policies_ignored": [],
+  "legacy_refinement_policies_as_seed_builders": [
+    "stable_grasp_anchor",
+    "anchor_depth",
+    "table_freeze"
+  ],
+  "line_object_special_refinement": false,
+  "line_object_seed_builder": {
+    "enabled": false,
+    "reason": "not_line_object"
+  },
+  "object_pose_pre_smooth": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+  "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+  "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
+  "motion_regime": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/motion_regime.csv",
+  "physical_smooth_residuals": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+  "pose_jump_audit": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+  "optimizer_decisions": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+  "rows": 240,
+  "smoothed_rows": 239,
+  "pose_lock_reason": "",
+  "residuals": {
+    "visual": true,
+    "contact_anchor": true,
+    "depth": true,
+    "geometry": true,
+    "velocity": true,
+    "acceleration": true,
+    "static_freeze": true,
+    "boundary_freeze_interpolation": true,
+    "static_tail_freeze": true,
+    "motion_regime_reweighting": true,
+    "feedback_reoptimization": true
+  },
+  "anchor_residual": {
+    "enabled": false,
+    "constraints": 0,
+    "skipped_rows": 240,
+    "source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
+    "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
+  },
+  "anchor_pose_prior": {
+    "enabled": false,
+    "adjusted_rows": 0,
+    "median_before_m": "0.000000",
+    "median_after_m": "0.000000",
+    "policy": "generic per-frame rigid anchor pose prior before sequence smoothing"
+  },
+  "line_overlay_depth_stabilizer": {
+    "enabled": false,
+    "reason": "replaced_by_generic_line_physical_smooth_seed_builder"
+  },
+  "feedback_reweight_reason": "stage_audit_residual_reweight",
+  "visual_prior_reason": "",
+  "overlay_prior_reason": "",
+  "policy": "compatibility refinement policies run as seed/residual builders; line objects run generic_line_physical_smooth as seed/visual prior; final output is unified through smooth_quaternion_pose_sequence"
+}

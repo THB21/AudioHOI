@@ -1,0 +1,25 @@
+{
+  "component": "generic_observation_mainline",
+  "case_name": "football",
+  "adapter": {
+    "component": "mask_track_center",
+    "source": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/tracking/ball_trajectory.csv",
+    "center_source": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/tracking/cotracker_center_trajectory.csv",
+    "points_source": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/tracking/cotracker_points.csv",
+    "depth_source": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/da3/priors/ball_depth_prior.csv",
+    "object_observations": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_observations.csv",
+    "local_points": "none_for_center_proxy",
+    "rows": 242,
+    "policy": "generic mask/object center/radius + optional CoTracker/object bottom + DA3 depth only; contact fields are owned by Stage2",
+    "adapter_component": "mask_track_center"
+  },
+  "object_observations": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_observations.csv",
+  "object_correspondence": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_correspondence.csv",
+  "object_surface_points": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_surface_points.csv",
+  "object_semantic_points": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_semantic_points.csv",
+  "rows": 242,
+  "correspondence_rows": 242,
+  "surface_rows": 0,
+  "semantic_rows": 0,
+  "policy": "fixed generic observation contract; case-specific observation code is compatibility adapter only"
+}

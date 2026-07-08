@@ -1,0 +1,14 @@
+{
+  "component": "line_contact_lock",
+  "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+  "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+  "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_candidates.csv",
+  "rows": 240,
+  "solved_frames": 240,
+  "skipped_frames": 0,
+  "skipped_frame_examples": [],
+  "temporal_filled_frames": 0,
+  "temporal_filled_frame_examples": [],
+  "blend_debug_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_contact_lock_blend_debug.csv",
+  "policy": "refine elongated object 2D pose from persistent left/right palm contacts at stable local line coordinates, blended with compatible visible line observations"
+}

@@ -1,0 +1,8 @@
+{
+  "id": 3,
+  "name": "hammer",
+  "image": "video_sample/3_hammer.jpg",
+  "video": "video_sample/3_hammer_video.mp4",
+  "prompt": "Generate a 8-second realistic video from this image. The person slowly swings the hammer down and hits the wooden block two times. Keep the camera static. Make the hammer, hand, and wooden block clearly visible throughout the motion. Add realistic synchronized audio: a sharp wooden impact sound exactly when the hammer hits the block, no music, no speech.",
+  "detection_text": "hammer."
+}

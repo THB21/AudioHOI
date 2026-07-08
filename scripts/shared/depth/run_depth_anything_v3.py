@@ -152,15 +152,40 @@ def sample_object_raw_depth(raw, frame, masks_dir, obs):
     return float(np.median(vals)), int(vals.size), float(np.std(vals)), source
 
 
+def sample_patch_median(dmap, u, v, rad=2):
+    """Median DA3 over a small patch around (u,v). A patch is robust to a single joint pixel
+    landing just off the body onto far background."""
+    H, W = dmap.shape
+    y0, y1 = max(0, v - rad), min(H, v + rad + 1)
+    x0, x1 = max(0, u - rad), min(W, u + rad + 1)
+    patch = dmap[y0:y1, x0:x1]
+    patch = patch[np.isfinite(patch)]
+    return float(np.median(patch)) if patch.size else float("nan")
+
+
+def reject_background_joints(d, z, k=4.0):
+    """Drop joints whose DA3 value is a MAD-outlier vs the body median (e.g. a joint projected
+    onto the far grass/horizon). Returns the kept (d, z)."""
+    ok = np.isfinite(d) & np.isfinite(z) & (d > 0)
+    d, z = d[ok], z[ok]
+    if d.size < 6:
+        return d, z
+    med = np.median(d)
+    mad = np.median(np.abs(d - med)) + 1e-9
+    keep = np.abs(d - med) < k * 1.4826 * mad
+    return d[keep], z[keep]
+
+
 def fit_frame_affine(d, z, min_pts=6, min_span=0.05):
     # bail out if there aren't enough joints in frame, or they're all at one depth
-    # (a line through a single x is meaningless)
+    # (a line through a single x is meaningless). Returns (a, b, n, corr, dlo, dhi) or None.
     ok = np.isfinite(d) & np.isfinite(z) & (d > 0)
     d, z = d[ok], z[ok]
     if d.shape[0] < min_pts or float(np.ptp(d)) < min_span:
         return None
+    corr = float(np.corrcoef(d, z)[0, 1]) if d.size >= 3 else float("nan")
     a, b, _, n = robust_affine_fit(d, z, n_iter=3)
-    return a, b, n
+    return a, b, n, corr, float(np.min(d)), float(np.max(d))
 
 
 def interpolate_fill(values):
@@ -221,6 +246,9 @@ def main() -> None:
     n_f = len(frame_paths)
     a_t = np.full(n_f, np.nan)
     b_t = np.full(n_f, np.nan)
+    corr_t = np.full(n_f, np.nan)   # per-frame corr(DA3, trueZ) on the body joints
+    dlo_t = np.full(n_f, np.nan)    # joint DA3 range (to forbid object extrapolation)
+    dhi_t = np.full(n_f, np.nan)
     obj_raw = np.full(n_f, np.nan)
     obj_n = np.zeros(n_f, dtype=int)
     obj_spread = np.full(n_f, np.nan)
@@ -253,13 +281,17 @@ def main() -> None:
             vv = np.round(uv[:, 1]).astype(int)
             inb = (uu >= 0) & (uu < W) & (vv >= 0) & (vv < H) & (jc[:, 2] > 1e-3)
             if inb.any():
-                dj = dmap[vv[inb], uu[inb]].astype(np.float64)
+                # patch-median per joint (robust to a pixel landing just off the body), then
+                # drop joints whose DA3 is a far-background outlier vs the body median.
+                dj = np.array([sample_patch_median(dmap, int(u), int(v))
+                               for u, v in zip(uu[inb], vv[inb])], dtype=np.float64)
                 zj = jc[inb, 2].astype(np.float64)
+                dj, zj = reject_background_joints(dj, zj)
                 glob_d.extend(dj.tolist())
                 glob_z.extend(zj.tolist())
                 fit = fit_frame_affine(dj, zj)
                 if fit is not None:
-                    a_t[i], b_t[i], _ = fit
+                    a_t[i], b_t[i], _, corr_t[i], dlo_t[i], dhi_t[i] = fit
 
         obj_raw[i], obj_n[i], obj_spread[i], obj_src[i] = sample_object_raw_depth(
             dmap, fid, masks_dir, obs
@@ -281,7 +313,15 @@ def main() -> None:
     except Exception:
         a_s, b_s = a_fill, b_fill
 
-    obj_aligned = a_s * obj_raw + b_s
+    # forbid the object from extrapolating beyond the body-joint DA3 range: clamp its raw value
+    # to [dlo, dhi] (interp/smoothed), and record how far out of range it was.
+    dlo_s = interpolate_fill(dlo_t)
+    dhi_s = interpolate_fill(dhi_t)
+    corr_fill = interpolate_fill(corr_t)
+    span = np.maximum(dhi_s - dlo_s, 1e-6)
+    extrap_t = np.maximum(0.0, np.maximum(dlo_s - obj_raw, obj_raw - dhi_s)) / span
+    obj_clamped = np.clip(obj_raw, dlo_s, dhi_s)
+    obj_aligned = a_s * obj_clamped + b_s
 
     # also fit one global line, only so we can print it / keep it around for sanity
     gd = np.asarray(glob_d); gz = np.asarray(glob_z)
@@ -293,7 +333,14 @@ def main() -> None:
 
     rows: list[dict[str, object]] = []
     for i, (fid, t) in enumerate(zip(frame_ids, times)):
-        conf = float(1.0 / (1.0 + obj_spread[i])) if np.isfinite(obj_spread[i]) else 0.0
+        # confidence now reflects FIT QUALITY, not just mask spread:
+        #   spread_term  - tight object depth sample
+        #   corr_q       - DA3 monotonic with true depth on the body (0 if anti-correlated)
+        #   extrap_pen   - object DA3 inside the joint range (penalise extrapolation)
+        spread_term = float(1.0 / (1.0 + obj_spread[i])) if np.isfinite(obj_spread[i]) else 0.0
+        corr_q = float(max(0.0, corr_fill[i])) if np.isfinite(corr_fill[i]) else 0.0
+        extrap_pen = float(1.0 / (1.0 + extrap_t[i])) if np.isfinite(extrap_t[i]) else 0.0
+        conf = spread_term * corr_q * extrap_pen
         if args.dump_maps and raw_maps[i] is not None:
             np.save(out_dir / "maps" / f"{fid:05d}.npy", (a_s[i] * raw_maps[i] + b_s[i]).astype(np.float16))
         rows.append({
@@ -305,20 +352,25 @@ def main() -> None:
             "affine_b": f"{b_s[i]:.6f}",
             "sample_count": int(obj_n[i]),
             "depth_conf": f"{conf:.6f}",
+            "fit_corr": f"{corr_fill[i]:.4f}" if np.isfinite(corr_fill[i]) else "",
+            "extrapolation": f"{extrap_t[i]:.4f}" if np.isfinite(extrap_t[i]) else "",
             "source": obj_src[i],
         })
 
     csv_path = out_dir / "object_depth.csv"
     with csv_path.open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=["frame", "time", "object_z_raw", "object_z_aligned_m",
-                                          "affine_a", "affine_b", "sample_count", "depth_conf", "source"])
+                                          "affine_a", "affine_b", "sample_count", "depth_conf",
+                                          "fit_corr", "extrapolation", "source"])
         w.writeheader()
         w.writerows(rows)
 
     with (out_dir / "depth_alignment.json").open("w") as f:
         json.dump({
-            "mode": "per_frame_affine_smoothed",
+            "mode": "per_frame_affine_smoothed_gated",
             "median_slope": med_slope,
+            "median_corr": float(np.nanmedian(corr_t)) if np.isfinite(corr_t).any() else None,
+            "median_extrapolation": float(np.nanmedian(extrap_t)) if np.isfinite(extrap_t).any() else None,
             "n_frames_fit": n_fit,
             "n_frames": n_f,
             "smoothing_sigma_frames": 2.0,

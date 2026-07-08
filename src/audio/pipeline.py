@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 
 from . import classify, detect, features as featmod, seed
-from .extract import extract_wav, load_wav
+from .extract import detect_fps, extract_wav, load_wav
 from .fuse import FusedEvent, fuse
 from .visual_context import VisualContext, build_visual_contexts
 
@@ -27,9 +27,14 @@ def _n_frames(sample_dir: Path) -> int:
 
 
 def run_sample(sample_dir: Path, *, detector: str = "combined", classifier: str = "rule",
-               fps: float = 24.0, min_gap_s: float = 0.12, write: bool = True):
-    """Run detect→features→classify→visual→fuse for one sample. Returns the records."""
+               fps: float = 0.0, min_gap_s: float = 0.12, write: bool = True):
+    """Run detect→features→classify→visual→fuse for one sample. Returns the records.
+
+    ``fps=0`` auto-detects from video.mp4 — onset-time→frame conversion breaks on
+    clips whose rate differs from a hardcoded default (football_10 is 30 fps).
+    """
     sample_dir = Path(sample_dir)
+    fps = fps or detect_fps(sample_dir)
     wav = extract_wav(sample_dir)
     sr, x = load_wav(wav)
 
@@ -75,9 +80,7 @@ def run_sample(sample_dir: Path, *, detector: str = "combined", classifier: str 
     return records
 
 
-# ---------------------------------------------------------------------------
 # Unified semantic sheet I/O
-# ---------------------------------------------------------------------------
 
 _FUSED_COLS = ["frame", "time", "source", "detector", "audio_score", "audio_event_type", "audio_conf",
                "fused_event_type", "interaction_mode", "contact_quality", "contact_constraint",
@@ -121,7 +124,7 @@ def main() -> None:
     ap.add_argument("--sample-dir", type=Path, default=None)
     ap.add_argument("--detector", default="combined", choices=list(detect.DETECTORS) + ["combined"])
     ap.add_argument("--classifier", default="rule", choices=list(classify.CLASSIFIERS))
-    ap.add_argument("--fps", type=float, default=24.0)
+    ap.add_argument("--fps", type=float, default=0.0, help="0 = auto-detect from video.mp4")
     ap.add_argument("--compare", action="store_true", help="run all samples × approaches → report")
     args = ap.parse_args()
 

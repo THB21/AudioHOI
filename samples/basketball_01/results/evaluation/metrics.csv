@@ -1,0 +1,11 @@
+sample,label,n_frames,tz_min,tz_max,jerk,contact_rate,contact_gap_cm,audio_err_ms,pen_frames
+basketball_01,full_audio,192,3.488,3.822,0.005892,1.0,0.08,118.3,2
+basketball_01,no_audio,192,3.488,3.767,0.006952,1.0,0.0,223.7,1
+basketball_01,depthlift_baseline,192,3.505,3.968,0.020036,,,45.7,11
+basketball_01,budget,192,3.488,3.829,0.006487,1.0,0.08,43.7,2
+basketball_01,flightphys,192,3.488,3.822,0.005895,1.0,0.08,87.7,2
+basketball_01,both,192,3.488,3.829,0.006377,1.0,0.08,43.7,2
+basketball_01,budget,192,3.488,3.829,0.006487,1.0,0.08,43.7,2
+basketball_01,flightphys,192,3.488,3.822,0.005895,1.0,0.08,87.7,2
+basketball_01,both,192,3.488,3.829,0.006377,1.0,0.08,43.7,2
+basketball_01,surface_gap,192,3.48,3.823,0.007007,0.96,1.14,43.7,1

@@ -1,0 +1,14 @@
+{
+  "object": "football",
+  "contact_parts_generic": [
+    "foot"
+  ],
+  "contact_parts_concrete": [
+    "L_ankle",
+    "L_foot",
+    "R_ankle",
+    "R_foot"
+  ],
+  "source": "claude_analysis",
+  "prompt": "Generate an 8-second realistic video from this image. The soccer player starts with the ball on the grass near one foot. The player first kicks the ball upward with one foot, then keeps the ball close and performs a short controlled juggling sequence using the feet. The ball should move naturally ac"
+}

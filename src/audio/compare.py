@@ -46,13 +46,13 @@ def _match_count(a: list[float], b: list[float], tol: float) -> int:
     return m
 
 
-def analyze_sample(sample_dir: Path, fps: float = 24.0) -> dict:
+def analyze_sample(sample_dir: Path, fps: float = 0.0) -> dict:
     wav = extract_wav(sample_dir)
     sr, x = load_wav(wav)
     n_frames = _n_frames(sample_dir) or (int(len(x) / sr * fps) + 1)
     tol = 1.5 / fps  # onset match tolerance ≈ 1.5 frames
 
-    # ---- detectors ----
+    # detectors
     det_onsets = {name: detect.detect(x, name) for name in detect.DETECTORS}
     det_onsets["combined"] = detect.detect(x, "combined")
     det_times = {k: [o.time_s for o in v] for k, v in det_onsets.items()}
@@ -66,7 +66,7 @@ def analyze_sample(sample_dir: Path, fps: float = 24.0) -> dict:
             denom = min(len(a), len(b)) or 1
             overlap[f"{names[i]}∩{names[j]}"] = round(_match_count(a, b, tol) / denom, 2)
 
-    # ---- canonical event set = combined ----
+    # canonical event set = combined
     onsets = det_onsets["combined"]
     times = [o.time_s for o in onsets]
     frames = [int(np.clip(round(t * fps) + 1, 1, n_frames)) for t in times]
@@ -76,7 +76,7 @@ def analyze_sample(sample_dir: Path, fps: float = 24.0) -> dict:
     grounding_rate = round(grounded / max(1, len(vctx)), 2)
     cue_counts = dict(Counter(vc.visual_cue for vc in vctx))
 
-    # ---- classifiers on the same onsets ----
+    # classifiers on the same onsets
     labels = {"rule": [l.event_type for l in classify.rule_classify(feats, frames)],
               "cluster": [l.event_type for l in classify.cluster_classify(feats, frames)]}
     sil = None
@@ -109,7 +109,7 @@ def _fmt(d: dict) -> str:
     return ", ".join(f"{k}={v}" for k, v in d.items())
 
 
-def run_comparison(fps: float = 24.0) -> None:
+def run_comparison(fps: float = 0.0) -> None:
     samples = _samples_with_audio()
     results = [analyze_sample(s, fps=fps) for s in samples]
 

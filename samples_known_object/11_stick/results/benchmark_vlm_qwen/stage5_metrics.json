@@ -1,0 +1,27 @@
+{
+  "backend": "urdf_solid",
+  "outputs": {
+    "object_only/overlay.mp4": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/object_only/overlay.mp4",
+    "object_only/camera3d.mp4": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/object_only/camera3d.mp4",
+    "object_only/side_yz.mp4": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/object_only/side_yz.mp4",
+    "with_human/overlay.mp4": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+    "with_human/camera3d.mp4": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/with_human/camera3d.mp4",
+    "with_human/side_yz.mp4": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/with_human/side_yz.mp4",
+    "object_only/overlay_quality.csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/object_only/overlay_quality.csv",
+    "with_human/overlay_quality.csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/with_human/overlay_quality.csv"
+  },
+  "required": [
+    "object_only/overlay.mp4",
+    "object_only/camera3d.mp4",
+    "object_only/side_yz.mp4",
+    "with_human/overlay.mp4",
+    "with_human/camera3d.mp4",
+    "with_human/side_yz.mp4"
+  ],
+  "policy": "rerender configured Articraft URDF solid mesh with generic urdf_solid_scene from generic pose/contact",
+  "renderer": {
+    "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
+    "script": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/render/scenes/generic_urdf_scene.py",
+    "urdf": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/articraft/generated_record/rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada/materialized/model.urdf"
+  }
+}

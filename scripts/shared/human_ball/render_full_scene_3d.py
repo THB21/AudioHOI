@@ -11,8 +11,11 @@ default). Two outputs:
   world.mp4     orbiting camera on a clean floor, HOI-paper style
 
 The object is a plain sphere unless you pass --object-mesh (e.g. a SAM 3D
-Objects export). The trajectory has no rotation, which is fine for a ball; an
-asymmetric mesh would sit there unrotated until we estimate orientation.
+Objects export). If the trajectory CSV carries a non-identity quaternion
+(qw,qx,qy,qz — e.g. from inherit_grasp_rotation.py, which writes a *_rot.csv
+that pick_trajectory prefers), the object mesh is rotated about its center in
+the camera frame before the usual _CAM_FLIP/_CV_TO_WORLD treatment, exactly
+like the body verts.
 
 Run it as a file, not -m: it imports the overlay renderer sitting next to it.
   conda run -n gvhmr python scripts/shared/human_ball/render_full_scene_3d.py --sample-dir samples/basketball_01
@@ -59,28 +62,51 @@ BG_COLOR = np.array([0.97, 0.975, 0.98])
 _CV_TO_WORLD = np.diag([1.0, -1.0, 1.0]).astype(np.float64)
 
 
+def quat_wxyz_to_mat(qw: float, qx: float, qy: float, qz: float) -> np.ndarray:
+    """Unit quaternion (w,x,y,z) -> 3x3 rotation matrix (camera frame)."""
+    n = np.sqrt(qw * qw + qx * qx + qy * qy + qz * qz)
+    if n < 1e-9:
+        return np.eye(3)
+    w, x, y, z = qw / n, qx / n, qy / n, qz / n
+    return np.array([
+        [1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
+        [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
+        [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)],
+    ], dtype=np.float64)
+
+
 def read_object_trajectory(path: Path) -> dict[int, dict[str, float]]:
     rows: dict[int, dict[str, float]] = {}
     with path.open() as f:
         for row in csv.DictReader(f):
             try:
-                rows[int(row["frame"])] = {
+                entry = {
                     "t": np.array([float(row["tx"]), float(row["ty"]), float(row["tz"])], dtype=np.float64),
                     "r": float(row.get("radius_m", 0.12) or 0.12),
                 }
             except (KeyError, ValueError):
                 continue
+            try:
+                entry["R"] = quat_wxyz_to_mat(float(row["qw"]), float(row["qx"]),
+                                              float(row["qy"]), float(row["qz"]))
+            except (KeyError, ValueError, TypeError):
+                entry["R"] = np.eye(3)
+            rows[int(row["frame"])] = entry
     if not rows:
         raise RuntimeError(f"No object trajectory rows in {path}")
     return rows
 
 
-def make_object_mesh(radius: float, object_mesh: Path | None, object_scale: float) -> trimesh.Trimesh:
+def make_object_mesh(radius: float, object_mesh: Path | None, object_scale: float,
+                     keep_origin: bool = False) -> trimesh.Trimesh:
     # default is a coloured sphere; if a real mesh is given, centre it and scale it
     # to the trajectory radius unless an explicit scale was passed
     if object_mesh is not None:
         mesh = trimesh.load(str(object_mesh), force="mesh")
-        mesh.apply_translation(-mesh.bounding_box.centroid)
+        if not keep_origin:
+            # generic-mainline SE3 poses are defined w.r.t. the URDF/model frame —
+            # recentring breaks them (pass --keep-mesh-origin for those)
+            mesh.apply_translation(-mesh.bounding_box.centroid)
         if object_scale > 0:
             mesh.apply_scale(object_scale)
         else:
@@ -206,12 +232,16 @@ def pick_trajectory(results_dir: Path, override: Path | None) -> Path:
         if not override.exists():
             raise RuntimeError(f"trajectory not found: {override}")
         return override
-    # best available: contact-refined DA3, then plain DA3, then the old sphere one
+    # best available: contact-refined DA3, then plain DA3, then the old sphere one;
+    # each level prefers the rotation-augmented *_rot.csv (inherit_grasp_rotation.py)
     for cand in [
         results_dir / "pose6d_sharedcam_contactphase_depthv3" / "ball_pose6d_sharedcam_contactphase_trajectory.csv",
         results_dir / "pose6d_sharedcam_depthv3" / "ball_pose6d_sharedcam_trajectory.csv",
         results_dir / "pose6d_sharedcam" / "ball_pose6d_sharedcam_trajectory.csv",
     ]:
+        rot = cand.with_name(cand.stem + "_rot.csv")
+        if rot.exists():
+            return rot
         if cand.exists():
             return cand
     raise RuntimeError("No object trajectory found; run the lifting stage first.")
@@ -234,6 +264,8 @@ def main():
     ap.add_argument("--object-mesh", type=Path, default=None,
                     help="real object mesh (.glb/.obj/.ply), e.g. from SAM 3D Objects; "
                          "otherwise a sphere")
+    ap.add_argument("--keep-mesh-origin", action="store_true",
+                    help="do not recentre --object-mesh (generic-mainline SE3 poses are in the URDF frame)")
     ap.add_argument("--object-scale", type=float, default=0.0,
                     help="metric scale for --object-mesh (0 = fit to the trajectory radius)")
     ap.add_argument("--fps", type=float, default=24.0)
@@ -272,7 +304,8 @@ def main():
     verts_all, faces = build_vertices(args.body_model_root, gvhmr, stitched)
 
     median_r = float(np.median([v["r"] for v in obj.values()]))
-    ball_tri = make_object_mesh(median_r, args.object_mesh, args.object_scale)
+    ball_tri = make_object_mesh(median_r, args.object_mesh, args.object_scale,
+                                keep_origin=args.keep_mesh_origin)
     # sphere gets an orange material; a real mesh keeps whatever texture it shipped with
     ball_color = None if args.object_mesh else BALL_COLOR
     print(f"object: {'mesh ' + args.object_mesh.name if args.object_mesh else 'sphere proxy'} "
@@ -288,13 +321,20 @@ def main():
     frame_nums = [int(p.stem) if p.stem.isdigit() else i + 1 for i, p in enumerate(frame_paths)]
     body_idx = [min(max(fn - 1, 0), n_frames - 1) for fn in frame_nums]
 
-    # ball position per displayed frame; hold the last one if a frame is missing
-    ball_centers = []
+    # ball position + rotation per displayed frame; hold the last one if a frame is missing
+    ball_centers, ball_rots = [], []
     last = obj[min(obj)]["t"]
+    last_R = obj[min(obj)]["R"]
     for fn in frame_nums:
         if fn in obj:
             last = obj[fn]["t"]
+            last_R = obj[fn]["R"]
         ball_centers.append(last.copy())
+        ball_rots.append(last_R.copy())
+    # only bother re-building the mesh per frame if any rotation is non-identity
+    has_rot = any(not np.allclose(R, np.eye(3), atol=1e-6) for R in ball_rots)
+    if has_rot:
+        print("object rotation: applying per-frame trajectory quaternions")
 
     # Optional 6DOF object pose (Articraft mug): per-frame yaw/pitch/roll/scale around the
     # canonical object-local mesh, using the teammate's exact transform convention.
@@ -361,6 +401,13 @@ def main():
             obj_mesh = ball_tri.copy()
             obj_mesh.vertices = _transform6d(obj_params[i], np.asarray(ball_tri.vertices))
             obj_center = np.zeros(3)
+        elif has_rot:
+            # rotate the (origin-centered) mesh about the object center in the CV
+            # camera frame; render_overlay/render_world then translate and apply
+            # _CAM_FLIP/_CV_TO_WORLD exactly as they do for the body verts
+            obj_mesh = ball_tri.copy()
+            obj_mesh.vertices = np.asarray(ball_tri.vertices) @ ball_rots[i].T
+            obj_center = bc
         else:
             obj_mesh, obj_center = ball_tri, bc
         cpt = contact_pts.get(frame_nums[i])

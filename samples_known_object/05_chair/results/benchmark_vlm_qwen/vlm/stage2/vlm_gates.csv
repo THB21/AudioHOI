@@ -1,0 +1,6 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+chair,stage2,20,contact_relation_check,right_palm_grasp_seat_edge,pass,accept_candidate,0,1,1,0,1
+chair,stage2,82,contact_relation_check,right_palm_grasp_seat_edge,pass,accept_candidate,0,1,1,0,1
+chair,stage2,144,contact_relation_check,left_palm_on_top_rail,pass,accept_candidate,0,1,1,0,1
+chair,stage2,1,contact_relation_check,right_palm_on_top_rail,pass,accept_candidate,0,1,1,0,1
+chair,stage2,89,contact_relation_check,right_palm_on_top_rail,pass,accept_candidate,0,1,1,0,1

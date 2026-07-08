@@ -1,0 +1,12 @@
+{
+  "text": "soccer ball.",
+  "model_id": "IDEA-Research/grounding-dino-tiny",
+  "score": 0.8853697180747986,
+  "box": [
+    616.834228515625,
+    805.2577514648438,
+    690.0758056640625,
+    870.5081787109375
+  ],
+  "label": "soccer ball"
+}

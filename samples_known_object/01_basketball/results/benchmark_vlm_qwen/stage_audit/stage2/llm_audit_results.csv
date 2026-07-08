@@ -1,0 +1,2 @@
+query_id,label,blocking,rerun_stage,residual_reweight,short_reason
+contact_anchor_contract,pass,0,0,0,contact_candidates=192 anchor_state=192

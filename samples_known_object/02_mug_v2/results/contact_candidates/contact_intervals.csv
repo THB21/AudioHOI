@@ -1,0 +1,4 @@
+contact_type,target,start_frame,end_frame,start_time,end_time,peak_frame,peak_time,mean_score,max_score,num_frames
+anchor_contact_state,right_hand,1,43,0.0,1.75,43,1.75,0.6476394730800256,0.75,43
+anchor_contact_state,right_hand,50,167,2.041667,6.916667,81,3.333333,0.6218538767972958,0.75,118
+floor_contact_state,floor,128,192,5.291667,7.958333,155,6.416667,0.9673843611148387,1.0,65

@@ -1,0 +1,30 @@
+{
+  "component": "generic_contact_anchor_mainline",
+  "case_name": "mug",
+  "adapter": {
+    "component": "palm_handle",
+    "rows": 240,
+    "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
+    "source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
+    "adapter_component": "palm_handle_rim_body"
+  },
+  "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
+  "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
+  "anchor_rows": 240,
+  "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only",
+  "generic_contact_anchor_mainline": {
+    "component": "generic_contact_anchor_mainline",
+    "case_name": "mug",
+    "adapter": {
+      "component": "palm_handle",
+      "rows": 240,
+      "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
+      "source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
+      "adapter_component": "palm_handle_rim_body"
+    },
+    "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
+    "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
+    "anchor_rows": 240,
+    "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only"
+  }
+}

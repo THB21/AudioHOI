@@ -1,0 +1,10 @@
+{
+  "num_points": 240,
+  "pose_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/proxy/mug_body_only_cylinder_pose_segmented_sequence.csv",
+  "phase_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
+  "object_proxy_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_proxy_observations_internal/object_proxy_observations.csv",
+  "vlm_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/annotations/vlm_handle_visibility_full/qwen_handle_visibility.csv",
+  "mesh_root": "samples_known_object/02_mug/articraft/materialized_mug_mesh",
+  "csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/mug_articraft_contact_points_internal/mug_articraft_contact_points.csv",
+  "policy": "contact_u/v + contact_proxy_depth_m are backprojected to camera 3D, transformed into mug canonical coordinates, then assigned to nearest Articraft semantic mesh part. The export separates object_contact_event from hand_mug_contact_state: rim/drinking contacts are real but do not replace the hand grasp anchor; handle/body points near the active GVHMR hand proxy can be used for hand attachment."
+}

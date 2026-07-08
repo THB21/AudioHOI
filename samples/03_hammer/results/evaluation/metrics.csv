@@ -1,0 +1,2 @@
+sample,label,n_frames,tz_min,tz_max,jerk,contact_rate,contact_gap_cm,audio_err_ms,pen_frames
+03_hammer,full_audio,192,3.134,3.397,0.001756,0.5,4.73,,1

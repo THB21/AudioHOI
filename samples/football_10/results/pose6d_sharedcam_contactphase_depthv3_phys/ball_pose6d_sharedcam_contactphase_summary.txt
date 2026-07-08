@@ -1,0 +1,20 @@
+Generic anchor interpolation z refinement for human-ball contact.
+default_part: hand
+outside_window_mode: boundary_constant
+z_ref_mode: anchor_segment
+w_ref: 0.700000
+w_temp: 5.000000
+w_phys_xz: 1.500000
+w_phys_y: 0.800000
+gravity_mps2: 9.810000
+w_audio: 3.000000
+audio_accel_relax: 0.800000
+audio_events_csv: samples/football_10/results/events/audio_events.csv
+global_z_shift_from_human_events_m: 4.247932
+num_frames: 242
+num_human_event_frames: 7
+num_floor_event_frames: 4
+num_audio_events: 8
+num_audio_anchor_frames: 4
+audio_semantics: True
+audio_event_type_counts: {'placement': 2, 'impact': 6}

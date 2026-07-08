@@ -1,0 +1,3 @@
+query_id,label,blocking,rerun_stage,residual_reweight,short_reason,llm_reviewed
+sequence_optimizer_contract,pass,0,0,0,optimizer artifacts present and valid,1
+pose_jump_audit,pass,0,0,0,no pose/contact/smoothness spikes detected,1

@@ -1,0 +1,4 @@
+frame,time,contact_type,anchor_type,contact_part,contact_side,contact_label,target,score,confidence,source
+43,1.75,anchor_contact_event,hand,hand,right,right_hand,right_hand,0.4702527652202312,0.4702527652202312,interval_highest_point
+81,3.333333,anchor_contact_event,hand,hand,right,right_hand,right_hand,0.6347899514583881,0.6347899514583881,interval_highest_point
+155,6.416667,floor_contact_event,floor,floor,,floor,floor,1.0,1.0,interval_min_gap

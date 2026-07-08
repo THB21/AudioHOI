@@ -1,0 +1,6 @@
+case,trajectory,human_params,object_type,n_frames,pen_frame_ratio,non_collision_ratio,pen_depth_mean_mm,pen_depth_max_mm,contact_frame_ratio,expected_contact_frames,contact_gap_mm,part_named_frames,part_correct_ratio,object_jerk,grasp_stability_mm,audio_events,contact_ratio_audio_windows,accel_at_events,accel_in_flight,mdev_star_mm
+basketball,samples/basketball_01/results/pose6d_sharedcam_contactphase_depthv3/ball_pose6d_sharedcam_contactphase_trajectory.csv,contact_refine,sphere,192,0.0,1.0,0.0,0.0,0.6198,95,20.39,95,0.968,0.007007,1.01,16,1.0,0.0437,0.05437,31.35
+football,samples/football_10/results/pose6d_sharedcam_contactphase_depthv3/ball_pose6d_sharedcam_contactphase_trajectory.csv,contact_refine,sphere,242,0.0,1.0,0.0,0.0,0.0248,22,143.95,22,0.864,0.01167,,11,0.455,0.08574,0.02511,
+mug,samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv,contact_refine,sphere,240,0.0,1.0,0.0,0.0,0.4667,7,15.78,7,1.0,1e-06,,7,0.571,0.00032,0.00059,
+chair,samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose.csv,contact_refine,mesh,192,0.2292,0.7708,5.69,8.91,0.8542,3,3.68,3,0.667,1e-06,,3,1.0,0.00079,0.00053,
+stick,samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv,contact_refine,capsule,240,0.0333,0.9667,4.42,7.44,0.3708,8,54.22,8,0.875,0.000888,,8,0.5,0.02333,0.01436,

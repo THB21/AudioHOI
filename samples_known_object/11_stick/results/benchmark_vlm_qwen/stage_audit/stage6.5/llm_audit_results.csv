@@ -1,0 +1,2 @@
+query_id,label,blocking,rerun_stage,residual_reweight,short_reason,llm_reviewed
+stage_contract,pass,0,0,0,required artifacts exist and stage contract satisfied,1

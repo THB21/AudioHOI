@@ -1,0 +1,27 @@
+{
+  "object_pose_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/physical6d_seed/object_pose.csv",
+  "object_pose_stage3_raw_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/physical6d_seed/object_pose_stage3_raw.csv",
+  "observations_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_observations.csv",
+  "leg_candidates_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_leg_candidates.csv",
+  "front_frame_tracks_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_front_frame_cotracker_observations.csv",
+  "grasp_state_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_grasp_anchor_state/chair_grasp_anchor_state.csv",
+  "local_points_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_local_points.csv",
+  "local_segments_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_local_segments.csv",
+  "render_dir": "",
+  "overlay_video": "",
+  "render_skipped": true,
+  "frames": 192,
+  "fx_fy": [
+    1468.604736328125,
+    1468.604736328125
+  ],
+  "cx_cy": [
+    640.0,
+    360.0
+  ],
+  "median_residual_norm": 2.7683256068615214,
+  "da3_depth_frames": 192,
+  "grasp_anchor_frames": 192,
+  "front_frame_cotracker_frames": 136,
+  "note": "Metric articulated 6D initialization using DA3 depth, semantic 2D targets, chunk-local CoTracker front-frame parallelogram constraints, and mug-style stable chair-local grasp anchor reprojection residuals. Stage4 handles audio place/static and contact CSV rendering."
+}

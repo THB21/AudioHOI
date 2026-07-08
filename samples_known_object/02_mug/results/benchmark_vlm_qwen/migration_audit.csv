@@ -1,0 +1,9 @@
+case_name,result_name,role,component,migration_status,migration_priority,note
+mug,benchmark_vlm_qwen,geometry_model,articraft_mug_mesh,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared
+mug,benchmark_vlm_qwen,observation_model,rigid_body_plus_parts,clean_from_verified_intermediate,move_left_to_raw_preprocess_when_safe,uses mug 2D object_observations plus generic object_proxy builder and Articraft contact-point exporter; rebuilds M17 handle phase from the preserved recovered M15 branch when available
+mug,benchmark_vlm_qwen,contact_policy,palm_handle_rim_body,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared
+mug,benchmark_vlm_qwen,pose_model,rigid6_plus_phase,clean_from_verified_intermediate,move_left_to_raw_preprocess_when_safe,regenerates mug M18 body pose with generic CSV-only 2D/contact correction; rebuilds M17 handle phase from recovered M15 instead of reading the solved M17 snapshot
+mug,benchmark_vlm_qwen,render_backend,articraft_mesh,generic_solver_external_env,keep_env_boundary_or_package_deps,runs generic_contact_pipeline/components/render/articraft_mug_scene.py in the audiohoi env because render deps are not in base Python
+mug,benchmark_vlm_qwen,refinement_policy_0,stable_grasp_anchor,clean_from_verified_intermediate,move_left_to_raw_preprocess_when_safe,"uses generic-regenerated mug M18 pose and rebuilt M17 phase, then rebuilds final pose/phase and grasp-anchor state in generic code"
+mug,benchmark_vlm_qwen,refinement_policy_1,anchor_depth,generic_solver_external_env,keep_env_boundary_or_package_deps,runs generic_contact_pipeline/components/refinement/anchor_depth_solver.py in the audiohoi env because solver deps are not in base Python
+mug,benchmark_vlm_qwen,refinement_policy_2,table_freeze,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared

@@ -1,0 +1,12 @@
+frame,time,contact_type,anchor_type,contact_part,contact_side,contact_label,target,score,confidence,source
+37,1.5,floor_contact_event,floor,floor,,floor,floor,0.9993486072484349,0.9993486072484349,interval_min_gap
+55,2.25,anchor_contact_event,hand,hand,right,right_hand,right_hand,0.5969628317878621,0.5969628317878621,interval_highest_point
+65,2.666667,anchor_contact_event,hand,hand,right,right_hand,right_hand,0.589022427581936,0.589022427581936,interval_highest_point
+68,2.791667,floor_contact_event,floor,floor,,floor,floor,0.9975808508690195,0.9975808508690195,interval_min_gap
+111,4.583333,anchor_contact_event,hand,hand,right,right_hand,right_hand,0.502057464177397,0.502057464177397,interval_highest_point
+122,5.041667,anchor_contact_event,hand,hand,right,right_hand,right_hand,0.5944503072671836,0.5944503072671836,interval_highest_point
+124,5.125,floor_contact_event,floor,floor,,floor,floor,0.9321374421976958,0.9321374421976958,interval_min_gap
+144,5.958333,anchor_contact_event,hand,hand,right,right_hand,right_hand,0.5686449328476333,0.5686449328476333,interval_highest_point
+158,6.541667,anchor_contact_event,hand,hand,right,right_hand,right_hand,0.5899572989941582,0.5899572989941582,interval_highest_point
+159,6.583333,floor_contact_event,floor,floor,,floor,floor,1.0,1.0,interval_min_gap
+186,7.708333,floor_contact_event,floor,floor,,floor,floor,0.9995501012348141,0.9995501012348141,interval_min_gap

@@ -1,0 +1,11 @@
+{
+  "case_name": "stick",
+  "stage": "stage5",
+  "gate_rows": 240,
+  "effective_rows": 240,
+  "blocked_frames": [],
+  "unclear_frames": [],
+  "accepted_contact_frames": [],
+  "accepted_anchor_frames": [],
+  "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm/stage5/vlm_gates.csv"
+}

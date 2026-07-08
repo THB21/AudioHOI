@@ -1,0 +1,8 @@
+case_name,result_name,role,component,migration_status,migration_priority,note
+stick,benchmark_vlm_qwen,geometry_model,articraft_urdf,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared
+stick,benchmark_vlm_qwen,observation_model,mask_track_center,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared
+stick,benchmark_vlm_qwen,contact_policy,persistent_two_palm_line,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared
+stick,benchmark_vlm_qwen,pose_model,translation3,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared
+stick,benchmark_vlm_qwen,render_backend,urdf_solid,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared
+stick,benchmark_vlm_qwen,refinement_policy_0,line_contact_lock,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared
+stick,benchmark_vlm_qwen,refinement_policy_1,backproject_xy,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared

@@ -1,0 +1,56 @@
+{
+  "case_name": "chair",
+  "stage": "stage2",
+  "mode": "qwen_vl",
+  "decision": "pass",
+  "blocking": false,
+  "query_count": 5,
+  "gate_counts": {
+    "pass": 5
+  },
+  "query_counts": {
+    "contact_relation_check": 5
+  },
+  "accepted_frames": [
+    1,
+    20,
+    82,
+    89,
+    144
+  ],
+  "blocked_frames": [],
+  "report_only_reject_frames": [],
+  "unclear_frames": [],
+  "repair_actions_by_frame": {
+    "20": [
+      "accept_candidate"
+    ],
+    "82": [
+      "accept_candidate"
+    ],
+    "144": [
+      "accept_candidate"
+    ],
+    "1": [
+      "accept_candidate"
+    ],
+    "89": [
+      "accept_candidate"
+    ]
+  },
+  "rejected_results": [],
+  "allowed_repair_actions": [
+    "accept_candidate",
+    "reject_candidate",
+    "disable_contact_frame",
+    "keep_previous_anchor",
+    "downweight_correspondence",
+    "use_mask_fallback",
+    "retry_with_alternative_keypart",
+    "allow_small_se3_refine",
+    "freeze_before_after_contact",
+    "mark_for_report_only",
+    "unclear_no_update"
+  ],
+  "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+}

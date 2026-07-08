@@ -1,0 +1,49 @@
+{
+  "case_name": "football",
+  "stage": "stage1",
+  "mode": "qwen_vl",
+  "decision": "pass",
+  "blocking": false,
+  "query_count": 6,
+  "gate_counts": {
+    "pass": 6
+  },
+  "query_counts": {
+    "keypart_identity_check": 3,
+    "track_stability_check": 3
+  },
+  "accepted_frames": [
+    1,
+    122,
+    242
+  ],
+  "blocked_frames": [],
+  "report_only_reject_frames": [],
+  "unclear_frames": [],
+  "repair_actions_by_frame": {
+    "1": [
+      "accept_candidate"
+    ],
+    "122": [
+      "accept_candidate"
+    ],
+    "242": [
+      "accept_candidate"
+    ]
+  },
+  "rejected_results": [],
+  "allowed_repair_actions": [
+    "accept_candidate",
+    "reject_candidate",
+    "disable_contact_frame",
+    "keep_previous_anchor",
+    "downweight_correspondence",
+    "use_mask_fallback",
+    "retry_with_alternative_keypart",
+    "allow_small_se3_refine",
+    "freeze_before_after_contact",
+    "mark_for_report_only",
+    "unclear_no_update"
+  ],
+  "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+}

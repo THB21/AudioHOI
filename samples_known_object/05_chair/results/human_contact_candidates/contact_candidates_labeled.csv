@@ -1,0 +1,4 @@
+frame,time,contact_type,anchor_type,contact_part,contact_side,contact_label,target,score,confidence,source
+7,0.25,floor_contact_event,floor,floor,,floor,floor,0.4691564214154435,0.4691564214154435,interval_min_gap
+21,0.833333,floor_contact_event,floor,floor,,floor,floor,0.5546151550959928,0.5546151550959928,interval_min_gap
+149,6.166667,floor_contact_event,floor,floor,,floor,floor,1.0,1.0,interval_min_gap

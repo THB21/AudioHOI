@@ -1,0 +1,185 @@
+<robot name="wooden_bo_staff">
+  <material name="warm_wood">
+    <color rgba="0.63 0.36 0.16 1" />
+    </material>
+  <material name="end_grain">
+    <color rgba="0.48 0.27 0.12 1" />
+    </material>
+  <material name="dark_grip_wrap">
+    <color rgba="0.075 0.052 0.035 1" />
+    </material>
+  <material name="fine_wood_line">
+    <color rgba="0.34 0.19 0.08 1" />
+    </material>
+  <link name="staff">
+    <inertial>
+      <mass value="0.72" />
+      <inertia ixx="0.00021168" ixy="0" ixz="0" iyy="0.203242" iyz="0" izz="0.203242" />
+      </inertial>
+    <visual name="shaft">
+      <origin xyz="0 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.018" length="1.72" />
+        </geometry>
+      <material name="warm_wood">
+        <color rgba="0.63 0.36 0.16 1" />
+        </material>
+      </visual>
+    <visual name="tip_region_0">
+      <origin xyz="-0.89 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.017" length="0.08" />
+        </geometry>
+      <material name="end_grain">
+        <color rgba="0.48 0.27 0.12 1" />
+        </material>
+      </visual>
+    <visual name="tip_region_0_rounded_end">
+      <origin xyz="-0.93 0 0" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.017" />
+        </geometry>
+      <material name="end_grain">
+        <color rgba="0.48 0.27 0.12 1" />
+        </material>
+      </visual>
+    <visual name="tip_region_1">
+      <origin xyz="0.89 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.017" length="0.08" />
+        </geometry>
+      <material name="end_grain">
+        <color rgba="0.48 0.27 0.12 1" />
+        </material>
+      </visual>
+    <visual name="tip_region_1_rounded_end">
+      <origin xyz="0.93 0 0" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.017" />
+        </geometry>
+      <material name="end_grain">
+        <color rgba="0.48 0.27 0.12 1" />
+        </material>
+      </visual>
+    <visual name="grip_band_0">
+      <origin xyz="-0.115 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0205" length="0.095" />
+        </geometry>
+      <material name="dark_grip_wrap">
+        <color rgba="0.075 0.052 0.035 1" />
+        </material>
+      </visual>
+    <visual name="grip_band_1">
+      <origin xyz="0.115 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0205" length="0.095" />
+        </geometry>
+      <material name="dark_grip_wrap">
+        <color rgba="0.075 0.052 0.035 1" />
+        </material>
+      </visual>
+    <visual name="wood_grain_ring_480">
+      <origin xyz="-0.52 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0185" length="0.012" />
+        </geometry>
+      <material name="fine_wood_line">
+        <color rgba="0.34 0.19 0.08 1" />
+        </material>
+      </visual>
+    <visual name="wood_grain_ring_740">
+      <origin xyz="-0.26 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0185" length="0.012" />
+        </geometry>
+      <material name="fine_wood_line">
+        <color rgba="0.34 0.19 0.08 1" />
+        </material>
+      </visual>
+    <visual name="wood_grain_ring_1260">
+      <origin xyz="0.26 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0185" length="0.012" />
+        </geometry>
+      <material name="fine_wood_line">
+        <color rgba="0.34 0.19 0.08 1" />
+        </material>
+      </visual>
+    <visual name="wood_grain_ring_1520">
+      <origin xyz="0.52 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0185" length="0.012" />
+        </geometry>
+      <material name="fine_wood_line">
+        <color rgba="0.34 0.19 0.08 1" />
+        </material>
+      </visual>
+    <collision name="shaft">
+      <origin xyz="0 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.018" length="1.72" />
+        </geometry>
+      </collision>
+    <collision name="tip_region_0">
+      <origin xyz="-0.89 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.017" length="0.08" />
+        </geometry>
+      </collision>
+    <collision name="tip_region_0_rounded_end">
+      <origin xyz="-0.93 0 0" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.017" />
+        </geometry>
+      </collision>
+    <collision name="tip_region_1">
+      <origin xyz="0.89 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.017" length="0.08" />
+        </geometry>
+      </collision>
+    <collision name="tip_region_1_rounded_end">
+      <origin xyz="0.93 0 0" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.017" />
+        </geometry>
+      </collision>
+    <collision name="grip_band_0">
+      <origin xyz="-0.115 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0205" length="0.095" />
+        </geometry>
+      </collision>
+    <collision name="grip_band_1">
+      <origin xyz="0.115 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0205" length="0.095" />
+        </geometry>
+      </collision>
+    <collision name="wood_grain_ring_480">
+      <origin xyz="-0.52 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0185" length="0.012" />
+        </geometry>
+      </collision>
+    <collision name="wood_grain_ring_740">
+      <origin xyz="-0.26 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0185" length="0.012" />
+        </geometry>
+      </collision>
+    <collision name="wood_grain_ring_1260">
+      <origin xyz="0.26 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0185" length="0.012" />
+        </geometry>
+      </collision>
+    <collision name="wood_grain_ring_1520">
+      <origin xyz="0.52 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0185" length="0.012" />
+        </geometry>
+      </collision>
+    </link>
+  </robot>

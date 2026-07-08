@@ -1,0 +1,22 @@
+{
+  "description": "Precomputed Depth Anything 3 outputs",
+  "source_depth_dir": "/tmp/da3_basketball01",
+  "num_frames": 192,
+  "storage_mode": "unpacked",
+  "supported_exts": [
+    ".npy",
+    ".npz",
+    ".png",
+    ".tiff",
+    ".tif"
+  ],
+  "source_npz": "/tmp/da3_basketball01/results.npz",
+  "depth_shape": [
+    192,
+    280,
+    504
+  ],
+  "keys": [
+    "depth"
+  ]
+}

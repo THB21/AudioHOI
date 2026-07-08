@@ -1,0 +1,15 @@
+{
+  "case_name": "chair",
+  "stage": "stage1",
+  "decision": "pass",
+  "llm_mode": "mistral",
+  "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+  "gate_rows": 4,
+  "blocking_count": 0,
+  "rerun_stage": false,
+  "residual_reweight": false,
+  "repair_actions": [],
+  "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/stage_audit/stage1/stage_audit_gates.csv",
+  "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/stage_audit/stage1/llm_audit_queries.json",
+  "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/stage_audit/stage1/llm_audit_results.csv"
+}

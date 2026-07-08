@@ -1,0 +1,517 @@
+<robot name="image_conditioned_wooden_folding_chair">
+  <link name="front_frame">
+    <visual name="front_top_rail_0">
+      <origin xyz="-0.1865 -0.041 0.396" rpy="0 0.492049 1.4808" />
+      <geometry>
+        <cylinder radius="0.014" length="0.871374" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="upper_hinge_plate_0">
+      <origin xyz="-0.178 0.04 0.574" rpy="0 0 0" />
+      <geometry>
+        <box size="0.004 0.05 0.044" />
+        </geometry>
+      <material name="aged_bronze_hinge_metal">
+        <color rgba="0.24 0.2 0.16 1" />
+        </material>
+      </visual>
+    <visual name="upper_hinge_bolt_0_0">
+      <origin xyz="-0.181 0.026 0.563" rpy="0 1.5708 3.14159" />
+      <geometry>
+        <cylinder radius="0.004" length="0.006" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="upper_hinge_bolt_0_1">
+      <origin xyz="-0.181 0.054 0.564" rpy="0 1.5708 3.14159" />
+      <geometry>
+        <cylinder radius="0.004" length="0.006" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="upper_hinge_bolt_0_2">
+      <origin xyz="-0.181 0.04 0.587" rpy="0 1.5708 3.14159" />
+      <geometry>
+        <cylinder radius="0.004" length="0.006" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="front_top_rail_1">
+      <origin xyz="0.1865 -0.041 0.396" rpy="0 0.492049 1.6608" />
+      <geometry>
+        <cylinder radius="0.014" length="0.871374" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="upper_hinge_plate_1">
+      <origin xyz="0.178 0.04 0.574" rpy="0 0 0" />
+      <geometry>
+        <box size="0.004 0.05 0.044" />
+        </geometry>
+      <material name="aged_bronze_hinge_metal">
+        <color rgba="0.24 0.2 0.16 1" />
+        </material>
+      </visual>
+    <visual name="upper_hinge_bolt_1_0">
+      <origin xyz="0.181 0.026 0.563" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.004" length="0.006" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="upper_hinge_bolt_1_1">
+      <origin xyz="0.181 0.054 0.564" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.004" length="0.006" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="upper_hinge_bolt_1_2">
+      <origin xyz="0.181 0.04 0.587" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.004" length="0.006" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="backrest_board">
+      <origin xyz="0 0.121 0.715" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="assets/meshes/single_backrest_board_with_hole.obj" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="backrest_mount_bolt_0">
+      <origin xyz="-0.171132 0.13 0.715" rpy="0 1.5708 1.5708" />
+      <geometry>
+        <cylinder radius="0.0045" length="0.0342" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="backrest_mount_bolt_1">
+      <origin xyz="0.171132 0.13 0.715" rpy="0 1.5708 1.5708" />
+      <geometry>
+        <cylinder radius="0.0045" length="0.0342" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="front_lower_stretcher">
+      <origin xyz="0 -0.179 0.138" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.01" length="0.404" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="seat_hinge_brace_0">
+      <origin xyz="-0.174 0.0255 0.422" rpy="0 1.5708 1.5708" />
+      <geometry>
+        <cylinder radius="0.0035" length="0.121" />
+        </geometry>
+      <material name="aged_bronze_hinge_metal">
+        <color rgba="0.24 0.2 0.16 1" />
+        </material>
+      </visual>
+    <visual name="seat_hinge_anchor_0">
+      <origin xyz="-0.171 0.082 0.422" rpy="0 0 0" />
+      <geometry>
+        <box size="0.044 0.018 0.01" />
+        </geometry>
+      <material name="aged_bronze_hinge_metal">
+        <color rgba="0.24 0.2 0.16 1" />
+        </material>
+      </visual>
+    <visual name="seat_hinge_brace_1">
+      <origin xyz="0.174 0.0255 0.422" rpy="0 1.5708 1.5708" />
+      <geometry>
+        <cylinder radius="0.0035" length="0.121" />
+        </geometry>
+      <material name="aged_bronze_hinge_metal">
+        <color rgba="0.24 0.2 0.16 1" />
+        </material>
+      </visual>
+    <visual name="seat_hinge_anchor_1">
+      <origin xyz="0.171 0.082 0.422" rpy="0 0 0" />
+      <geometry>
+        <box size="0.044 0.018 0.01" />
+        </geometry>
+      <material name="aged_bronze_hinge_metal">
+        <color rgba="0.24 0.2 0.16 1" />
+        </material>
+      </visual>
+    </link>
+  <link name="rear_support">
+    <visual name="rear_leg_0">
+      <origin xyz="-0.2085 0.103 -0.281" rpy="0 2.79007 1.53683" />
+      <geometry>
+        <cylinder radius="0.014" length="0.598606" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="rear_pivot_plate_0">
+      <origin xyz="-0.184 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.004 0.05 0.044" />
+        </geometry>
+      <material name="aged_bronze_hinge_metal">
+        <color rgba="0.24 0.2 0.16 1" />
+        </material>
+      </visual>
+    <visual name="rear_pivot_bolt_0_0">
+      <origin xyz="-0.187 -0.014 -0.011" rpy="0 1.5708 3.14159" />
+      <geometry>
+        <cylinder radius="0.004" length="0.006" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="rear_pivot_bolt_0_1">
+      <origin xyz="-0.187 0.014 -0.01" rpy="0 1.5708 3.14159" />
+      <geometry>
+        <cylinder radius="0.004" length="0.006" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="rear_pivot_bolt_0_2">
+      <origin xyz="-0.187 0 0.013" rpy="0 1.5708 3.14159" />
+      <geometry>
+        <cylinder radius="0.004" length="0.006" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="rear_hinge_pin_0">
+      <origin xyz="-0.2 0 0" rpy="0 1.5708 3.14159" />
+      <geometry>
+        <cylinder radius="0.0045" length="0.032" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="rear_leg_1">
+      <origin xyz="0.2085 0.103 -0.281" rpy="0 2.79007 1.60476" />
+      <geometry>
+        <cylinder radius="0.014" length="0.598606" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="rear_pivot_plate_1">
+      <origin xyz="0.184 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.004 0.05 0.044" />
+        </geometry>
+      <material name="aged_bronze_hinge_metal">
+        <color rgba="0.24 0.2 0.16 1" />
+        </material>
+      </visual>
+    <visual name="rear_pivot_bolt_1_0">
+      <origin xyz="0.187 -0.014 -0.011" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.004" length="0.006" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="rear_pivot_bolt_1_1">
+      <origin xyz="0.187 0.014 -0.01" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.004" length="0.006" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="rear_pivot_bolt_1_2">
+      <origin xyz="0.187 0 0.013" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.004" length="0.006" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="rear_hinge_pin_1">
+      <origin xyz="0.2 0 0" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.0045" length="0.032" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="rear_lower_stretcher">
+      <origin xyz="0 0.164 -0.436" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.01" length="0.404" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    </link>
+  <link name="seat">
+    <visual name="seat_side_rail_0">
+      <origin xyz="-0.154 -0.1675 -0.011" rpy="0 0 0" />
+      <geometry>
+        <box size="0.036 0.335 0.022" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="seat_front_round_0">
+      <origin xyz="-0.154 -0.335 -0.011" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.011" length="0.03" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="seat_side_rail_1">
+      <origin xyz="0.154 -0.1675 -0.011" rpy="0 0 0" />
+      <geometry>
+        <box size="0.036 0.335 0.022" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="seat_front_round_1">
+      <origin xyz="0.154 -0.335 -0.011" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.011" length="0.03" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="center_slat_0">
+      <origin xyz="-0.12 -0.1675 -0.011" rpy="0 0 0" />
+      <geometry>
+        <box size="0.028 0.335 0.022" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="slat_grain_0">
+      <origin xyz="-0.12 -0.1675 0.0002" rpy="0 0 0" />
+      <geometry>
+        <box size="0.004 0.2613 0.001" />
+        </geometry>
+      <material name="subtle_end_grain">
+        <color rgba="0.46 0.25 0.1 1" />
+        </material>
+      </visual>
+    <visual name="center_slat_1">
+      <origin xyz="-0.08 -0.1675 -0.011" rpy="0 0 0" />
+      <geometry>
+        <box size="0.028 0.335 0.022" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="slat_grain_1">
+      <origin xyz="-0.08 -0.1675 0.0002" rpy="0 0 0" />
+      <geometry>
+        <box size="0.004 0.2613 0.001" />
+        </geometry>
+      <material name="subtle_end_grain">
+        <color rgba="0.46 0.25 0.1 1" />
+        </material>
+      </visual>
+    <visual name="center_slat_2">
+      <origin xyz="-0.04 -0.1675 -0.011" rpy="0 0 0" />
+      <geometry>
+        <box size="0.028 0.335 0.022" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="slat_grain_2">
+      <origin xyz="-0.04 -0.1675 0.0002" rpy="0 0 0" />
+      <geometry>
+        <box size="0.004 0.2613 0.001" />
+        </geometry>
+      <material name="subtle_end_grain">
+        <color rgba="0.46 0.25 0.1 1" />
+        </material>
+      </visual>
+    <visual name="center_slat_3">
+      <origin xyz="0 -0.1675 -0.011" rpy="0 0 0" />
+      <geometry>
+        <box size="0.028 0.335 0.022" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="slat_grain_3">
+      <origin xyz="0 -0.1675 0.0002" rpy="0 0 0" />
+      <geometry>
+        <box size="0.004 0.2613 0.001" />
+        </geometry>
+      <material name="subtle_end_grain">
+        <color rgba="0.46 0.25 0.1 1" />
+        </material>
+      </visual>
+    <visual name="center_slat_4">
+      <origin xyz="0.04 -0.1675 -0.011" rpy="0 0 0" />
+      <geometry>
+        <box size="0.028 0.335 0.022" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="slat_grain_4">
+      <origin xyz="0.04 -0.1675 0.0002" rpy="0 0 0" />
+      <geometry>
+        <box size="0.004 0.2613 0.001" />
+        </geometry>
+      <material name="subtle_end_grain">
+        <color rgba="0.46 0.25 0.1 1" />
+        </material>
+      </visual>
+    <visual name="center_slat_5">
+      <origin xyz="0.08 -0.1675 -0.011" rpy="0 0 0" />
+      <geometry>
+        <box size="0.028 0.335 0.022" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="slat_grain_5">
+      <origin xyz="0.08 -0.1675 0.0002" rpy="0 0 0" />
+      <geometry>
+        <box size="0.004 0.2613 0.001" />
+        </geometry>
+      <material name="subtle_end_grain">
+        <color rgba="0.46 0.25 0.1 1" />
+        </material>
+      </visual>
+    <visual name="center_slat_6">
+      <origin xyz="0.12 -0.1675 -0.011" rpy="0 0 0" />
+      <geometry>
+        <box size="0.028 0.335 0.022" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="slat_grain_6">
+      <origin xyz="0.12 -0.1675 0.0002" rpy="0 0 0" />
+      <geometry>
+        <box size="0.004 0.2613 0.001" />
+        </geometry>
+      <material name="subtle_end_grain">
+        <color rgba="0.46 0.25 0.1 1" />
+        </material>
+      </visual>
+    <visual name="front_slat_tie">
+      <origin xyz="0 -0.325 -0.018" rpy="0 0 0" />
+      <geometry>
+        <box size="0.372 0.014 0.012" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="rear_hinge_tie">
+      <origin xyz="0 -0.01 -0.018" rpy="0 0 0" />
+      <geometry>
+        <box size="0.372 0.014 0.012" />
+        </geometry>
+      <material name="warm_varnished_honey_oak">
+        <color rgba="0.78 0.46 0.2 1" />
+        </material>
+      </visual>
+    <visual name="seat_hinge_leaf_0">
+      <origin xyz="-0.143 -0.006 -0.018" rpy="0 0 0" />
+      <geometry>
+        <box size="0.044 0.018 0.008" />
+        </geometry>
+      <material name="aged_bronze_hinge_metal">
+        <color rgba="0.24 0.2 0.16 1" />
+        </material>
+      </visual>
+    <visual name="seat_hinge_bolt_0">
+      <origin xyz="-0.161 -0.006 -0.01" rpy="0 1.5708 3.14159" />
+      <geometry>
+        <cylinder radius="0.005" length="0.014" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    <visual name="seat_hinge_leaf_1">
+      <origin xyz="0.143 -0.006 -0.018" rpy="0 0 0" />
+      <geometry>
+        <box size="0.044 0.018 0.008" />
+        </geometry>
+      <material name="aged_bronze_hinge_metal">
+        <color rgba="0.24 0.2 0.16 1" />
+        </material>
+      </visual>
+    <visual name="seat_hinge_bolt_1">
+      <origin xyz="0.161 -0.006 -0.01" rpy="0 1.5708 0" />
+      <geometry>
+        <cylinder radius="0.005" length="0.014" />
+        </geometry>
+      <material name="dark_bronze_bolt_heads">
+        <color rgba="0.08 0.07 0.06 1" />
+        </material>
+      </visual>
+    </link>
+  <joint name="front_to_rear" type="revolute">
+    <origin xyz="0 0.04 0.574" rpy="0 0 0" />
+    <parent link="front_frame" />
+    <child link="rear_support" />
+    <axis xyz="1 0 0" />
+    <limit effort="15" velocity="1.2" lower="-0.82" upper="0.12" />
+    </joint>
+  <joint name="front_to_seat" type="revolute">
+    <origin xyz="0 0.09 0.44" rpy="0 0 0" />
+    <parent link="front_frame" />
+    <child link="seat" />
+    <axis xyz="-1 0 0" />
+    <limit effort="8" velocity="1.4" lower="0" upper="1.35" />
+    </joint>
+  </robot>

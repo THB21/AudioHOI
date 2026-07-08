@@ -1,0 +1,16 @@
+Generic contact pipeline ball anchor/contact depth refinement.
+source_solver: generic_contact_pipeline.components.refinement.solvers.anchor_depth_solver
+default_part: foot
+contact_part_mode: auto_inferred_from_state_event
+outside_window_mode: boundary_constant
+z_ref_mode: anchor_segment
+w_phys_xz: 1.250000
+w_phys_y: 1.500000
+gravity_mps2: 9.810000
+global_z_shift_from_human_events_m: -0.732156
+delta_contact_mode: object_proxy_offset
+interp_start_frame: 51
+interp_end_frame: 177
+num_frames: 242
+num_human_event_frames: 6
+num_floor_event_frames: 9

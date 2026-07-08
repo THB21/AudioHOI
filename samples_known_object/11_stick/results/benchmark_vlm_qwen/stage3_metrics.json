@@ -1,0 +1,51 @@
+{
+  "component": "generic_se3_pose_init",
+  "case_name": "stick",
+  "adapter": {
+    "component": "translation3",
+    "source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_observations.csv",
+    "object_pose_init": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose_init.csv",
+    "rows": 240,
+    "line_orientation_frames": 240,
+    "policy": "clean backprojection from Stage1 object observation using K_fullimg; optional tip_a/tip_b tracks define camera-plane object orientation",
+    "optimizer_style_residual_report": {
+      "rows": 0,
+      "path": "",
+      "stage_label": "stage3_translation3_init"
+    },
+    "adapter_component": "translation3"
+  },
+  "object_pose_init": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose_init.csv",
+  "rows": 240,
+  "se3_fields": [
+    "frame",
+    "time",
+    "tx",
+    "ty",
+    "tz",
+    "qw",
+    "qx",
+    "qy",
+    "qz"
+  ],
+  "missing_se3_fields": [],
+  "geometry_pose_prior": {
+    "enabled": true,
+    "source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
+    "rows": 208,
+    "skipped_untrusted_rows": 32,
+    "policy": "Stage3 generic geometry pose prior from correspondence schema; Stage4 remains object-agnostic SE3 optimization"
+  },
+  "line_contact_pose_prior": {
+    "enabled": true,
+    "rows": 240,
+    "solved_frames": 239,
+    "skipped_frames": 1,
+    "temporal_filled_frames": 1,
+    "overlay_first_fallback_frames": 36,
+    "overlay_first_fallback_threshold_px": 35.0,
+    "source": "line_object_geometry_adapter_from_contact_and_correspondence",
+    "policy": "promote line contact/overlay geometry into Stage3 object_pose_init.csv; Stage4 remains generic SE3 optimizer"
+  },
+  "policy": "fixed SE3 pose schema; weak or unobserved rotations remain identity/low-weight instead of dropping quaternion fields"
+}

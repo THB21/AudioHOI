@@ -46,9 +46,13 @@ def load_smplx_params(results_dir):
         "K_fullimg": np.asarray(raw["K_fullimg"], dtype=np.float32),
     }
 
+    refined_pkl = results_dir / "contact_refine" / "contact_refined_smplx_params.pkl"
     stitched_pkl = results_dir / "hands" / "stitched_smplx_params.pkl"
     stitched = None
-    if stitched_pkl.exists():
+    if refined_pkl.exists():
+        stitched = load_pkl(refined_pkl)
+        print(f"Using contact-refined body params ({refined_pkl.name})")
+    elif stitched_pkl.exists():
         stitched = load_pkl(stitched_pkl)
         print(f"Using stitched hand params ({stitched_pkl.name})")
     else:
@@ -90,7 +94,7 @@ def build_vertices(body_model_root, gvhmr, stitched):
         transl=torch.from_numpy(gvhmr["transl"]),
         return_verts=True,
     )
-    if stitched is not None:
+    if stitched is not None and "left_hand_pose" in stitched:
         kwargs["left_hand_pose"] = torch.from_numpy(stitched["left_hand_pose"])
         kwargs["right_hand_pose"] = torch.from_numpy(stitched["right_hand_pose"])
 

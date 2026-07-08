@@ -1,0 +1,3 @@
+query_id,label,blocking,rerun_stage,residual_reweight,short_reason
+sequence_optimizer_contract,pass,0,0,0,sequence optimizer decisions enabled
+pose_jump_audit,pass,0,0,0,no pose/contact/smoothness spikes

@@ -1,0 +1,56 @@
+{
+  "schema_version": 3,
+  "record_id": "rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada",
+  "created_at": "2026-06-29T23:04:36Z",
+  "updated_at": "2026-06-29T23:06:00Z",
+  "rating": null,
+  "secondary_rating": null,
+  "author": "Yixin Yang",
+  "rated_by": null,
+  "secondary_rated_by": null,
+  "kind": "external_model",
+  "prompt_kind": "single_prompt",
+  "category_slug": null,
+  "source": {
+    "run_id": null,
+    "prompt_batch_id": null,
+    "batch_spec_id": null,
+    "row_id": null,
+    "prompt_index": null
+  },
+  "sdk_package": "sdk",
+  "provider": "openai",
+  "model_id": "gpt-5",
+  "display": {
+    "title": "Create a realistic long wooden martial arts staff / bo staff asset for a human-object interaction video pipeline. It sho",
+    "prompt_preview": "Create a realistic long wooden martial arts staff / bo staff asset for a human-object interaction video pipeline. It should be a rigid cylindrical wooden sta..."
+  },
+  "artifacts": {
+    "prompt_txt": "revisions/rev_000001/prompt.txt",
+    "prompt_series_json": null,
+    "model_py": "revisions/rev_000001/model.py",
+    "provenance_json": "revisions/rev_000001/provenance.json",
+    "cost_json": null,
+    "inputs_dir": "revisions/rev_000001/inputs",
+    "traces_dir": "revisions/rev_000001/traces"
+  },
+  "hashes": {
+    "prompt_sha256": "bae161f57d174abee0d7df020a30f6fd64d6c7cb57fbcea2951635f862dcdf81",
+    "model_py_sha256": "116d737f215af841a7d12341e7164316179b7ad87cb0efc84bd0c9ea83326607"
+  },
+  "collections": [
+    "workbench"
+  ],
+  "active_revision_id": "rev_000001",
+  "lineage": {
+    "origin_record_id": "rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada",
+    "parent_record_id": null,
+    "parent_revision_id": null,
+    "edit_mode": "root"
+  },
+  "creator": {
+    "mode": "external_agent",
+    "agent": "codex",
+    "trace_available": false
+  }
+}

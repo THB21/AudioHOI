@@ -1,0 +1,8 @@
+{
+  "_backend": "claude (agent, claude-opus-4-8)",
+  "_reasoning": "PHYSICS-FIRST (prompt ignored): yaw sits at -pi, then over frames ~19-25 ramps by ~pi to -2pi, holds a plateau, then over ~112-118 ramps back to -pi. A rigid object rotating exactly 180 degrees and then reverting to its original orientation, with no corresponding change in the translation channels (tx/ty/tz stay smooth and small, max accel ~0.008 m), is not physical rigid-body motion - a real 180-deg flip-and-return would couple to translation/contact. The bounded-orientation, no-flip-and-revert physics prior is violated, so the excursion is a pose-solver branch ambiguity (handle resolved to the opposite side), not real rotation. tz max accel 0.0075 m and tx/ty are within the smooth velocity envelope (vel_over_median ~1-2), so no other field is flagged.",
+  "flags": [
+    {"frame": 23, "field": "yaw", "issue": "yaw ramps ~pi (-pi -> -2pi over f19-25) with no coupled translation change; violates rigid-body orientation continuity -> branch-flip artifact", "suggested_action": "level_align"},
+    {"frame": 115, "field": "yaw", "issue": "yaw reverts ~pi (-2pi -> -pi over f112-118); a 180-deg flip-and-return is non-physical for a smoothly translating object -> confirms artifact excursion", "suggested_action": "level_align"}
+  ]
+}

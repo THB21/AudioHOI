@@ -1,0 +1,11 @@
+{
+  "component": "generic_anchor_state",
+  "enabled": true,
+  "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/anchor_state.csv",
+  "rows": 480,
+  "anchor_updates": 325,
+  "pose_anchor_rows": 435,
+  "vlm_disabled_contact_frames": [],
+  "vlm_disabled_anchor_frames": [],
+  "policy": "mainline stable contact anchor propagation; untrusted/occluded frames propagate but do not update"
+}

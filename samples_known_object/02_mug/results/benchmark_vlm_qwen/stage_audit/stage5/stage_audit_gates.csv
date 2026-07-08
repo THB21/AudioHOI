@@ -1,0 +1,5 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+mug,stage5,artifact:render_manifest,pass,keep_outputs,0,1,0,render_manifest exists
+mug,stage5,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+mug,stage5,llm_csv:render_manifest,pass,keep_outputs,0,1,0,render manifest exists
+mug,stage5,llm_csv:render_temporal_consistency,pass,keep_outputs,0,1,0,temporal VLM/machine audit has no mismatch

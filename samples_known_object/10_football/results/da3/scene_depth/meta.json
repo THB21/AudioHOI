@@ -1,0 +1,22 @@
+{
+  "description": "Precomputed Depth Anything 3 outputs",
+  "source_depth_dir": "/tmp/da3_football10/exports/mini_npz",
+  "num_frames": 242,
+  "storage_mode": "unpacked",
+  "supported_exts": [
+    ".npy",
+    ".npz",
+    ".png",
+    ".tiff",
+    ".tif"
+  ],
+  "source_npz": "/tmp/da3_football10/exports/mini_npz/results.npz",
+  "depth_shape": [
+    242,
+    280,
+    504
+  ],
+  "keys": [
+    "depth"
+  ]
+}

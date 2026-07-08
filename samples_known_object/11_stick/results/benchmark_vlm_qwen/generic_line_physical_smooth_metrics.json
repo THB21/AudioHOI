@@ -1,0 +1,31 @@
+{
+  "component": "generic_line_physical_smooth_seed_candidate_selector",
+  "enabled": true,
+  "selected_ignore_vlm_gates": true,
+  "selected_score": {
+    "spike_count": 16,
+    "smoothness_spike_count": 13,
+    "max_translation_jump_m": "0.000000"
+  },
+  "candidates": [
+    {
+      "ignore_vlm_gates": true,
+      "metrics_suffix": "_candidate_ignore_vlm",
+      "score": {
+        "spike_count": 16,
+        "smoothness_spike_count": 13,
+        "max_translation_jump_m": "0.000000"
+      }
+    },
+    {
+      "ignore_vlm_gates": false,
+      "metrics_suffix": "_candidate_with_vlm",
+      "score": {
+        "spike_count": 16,
+        "smoothness_spike_count": 13,
+        "max_translation_jump_m": "0.000000"
+      }
+    }
+  ],
+  "policy": "line seed builder runs with and without VLM-disabled frames; hard pose-jump audit selects the non-degrading seed"
+}

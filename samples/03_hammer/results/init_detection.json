@@ -1,0 +1,12 @@
+{
+  "text": "hammer.",
+  "model_id": "IDEA-Research/grounding-dino-tiny",
+  "score": 0.585874080657959,
+  "box": [
+    539.4110717773438,
+    216.23162841796875,
+    638.4974365234375,
+    293.16839599609375
+  ],
+  "label": "hammer"
+}

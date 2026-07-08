@@ -1,0 +1,106 @@
+{
+  "case_name": "basketball",
+  "object_category": "basketball",
+  "object_family": "dynamic_ball",
+  "object_parts": [
+    {
+      "name": "ball_center",
+      "role": "2d_center_anchor"
+    },
+    {
+      "name": "ball_boundary",
+      "role": "mask_radius_anchor"
+    },
+    {
+      "name": "ball_bottom",
+      "role": "floor_support_anchor"
+    }
+  ],
+  "human_parts": [
+    "hand",
+    "floor"
+  ],
+  "interaction_edges": [
+    {
+      "human_part": "hand",
+      "object_part": "ball_boundary",
+      "relation": "touch"
+    },
+    {
+      "human_part": "floor",
+      "object_part": "ball_bottom",
+      "relation": "support"
+    }
+  ],
+  "support_priors": [
+    "floor_support"
+  ],
+  "motion_priors": [
+    "smooth_ball_translation",
+    "contact_depth_stabilization",
+    "bounce_impulse_model"
+  ],
+  "vlm_query_policy": {
+    "stage0": [
+      "target_mask_check"
+    ],
+    "stage1": [
+      "keypart_identity_check",
+      "track_stability_check"
+    ],
+    "stage2": [
+      "contact_relation_check"
+    ],
+    "stage3": [
+      "overlay_alignment_check"
+    ],
+    "stage4": [
+      "anchor_update_check",
+      "temporal_motion_check"
+    ],
+    "stage5": [
+      "post_render_sanity_check"
+    ]
+  },
+  "source": "mistral_llm_schema_validated",
+  "schema_version": 1,
+  "rules": {
+    "llm_outputs_pose": false,
+    "vlm_outputs_pose": false,
+    "vlm_outputs_loss_weights": false,
+    "optimizer_is_only_continuous_solver": true
+  },
+  "source_prompt_count": 5,
+  "source_prompts": [
+    {
+      "kind": "sample_metadata.prompt",
+      "path": "samples_known_object/01_basketball/metadata.json",
+      "record_id": "",
+      "text_preview": "Generate a 10-second realistic video from this image. The person bounces the basketball repeatedly on the wooden gym floor. Use a static camera and keep the full body visible. The basketball should move clearly between the hand and the floor. Add realistic synchronized audio: a clear bouncing impact sound each time the ball hits the floor, no music, no speech. The first frame is given."
+    },
+    {
+      "kind": "sample_metadata.detection_text",
+      "path": "samples_known_object/01_basketball/metadata.json",
+      "record_id": "",
+      "text_preview": "basketball."
+    },
+    {
+      "kind": "sample_metadata.name",
+      "path": "samples_known_object/01_basketball/metadata.json",
+      "record_id": "",
+      "text_preview": "basketball"
+    },
+    {
+      "kind": "sample_metadata.video",
+      "path": "samples_known_object/01_basketball/metadata.json",
+      "record_id": "",
+      "text_preview": "video_sample/1_basketball_video.mp4"
+    },
+    {
+      "kind": "sample_metadata.image",
+      "path": "samples_known_object/01_basketball/metadata.json",
+      "record_id": "",
+      "text_preview": "video_sample/1_basketball.jpg"
+    }
+  ]
+}

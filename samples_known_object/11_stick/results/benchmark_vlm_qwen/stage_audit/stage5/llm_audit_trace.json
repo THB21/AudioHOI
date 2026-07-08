@@ -1,0 +1,25 @@
+{
+  "provider": {
+    "name": "mistral_api",
+    "kind": "mistral_chat_completions",
+    "api_key_env": "MISTRAL_API_KEY",
+    "api_key_present": true,
+    "model_id": "mistral-small-latest",
+    "base_url": "https://api.mistral.ai/v1",
+    "temperature": 0.0,
+    "max_new_tokens": 900,
+    "timeout_seconds": 120
+  },
+  "used": true,
+  "error": "",
+  "response_id": "00aa0e416e6543ba98777649d0dd64b8",
+  "usage": {
+    "prompt_tokens": 2118,
+    "total_tokens": 2253,
+    "completion_tokens": 135,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "raw_text": "{\n  \"results\": [\n    {\n      \"query_id\": \"render_manifest\",\n      \"label\": \"pass\",\n      \"blocking\": false,\n      \"rerun_stage\": false,\n      \"residual_reweight\": false,\n      \"short_reason\": \"render manifest exists and is accessible\"\n    },\n    {\n      \"query_id\": \"render_temporal_consistency\",\n      \"label\": \"pass\",\n      \"blocking\": false,\n      \"rerun_stage\": false,\n      \"residual_reweight\": false,\n      \"short_reason\": \"VLM gates and machine temporal metrics show no disagreement\"\n    }\n  ]\n}"
+}

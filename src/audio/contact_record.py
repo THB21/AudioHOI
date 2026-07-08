@@ -49,7 +49,7 @@ def _nearest(frame: int, by_frame: dict[int, dict], tol: int = 3) -> dict:
 
 def build_records(sample_dir: Path, *, classifier: str = "rule", backend: str = "heuristic",
                   object_contact_csv: Path | None = None, grasp_state_csv: Path | None = None,
-                  fps: float = 24.0, write: bool = True):
+                  fps: float = 0.0, write: bool = True):
     sample_dir = Path(sample_dir)
     res = sample_dir / "results"
 
@@ -78,12 +78,12 @@ def build_records(sample_dir: Path, *, classifier: str = "rule", backend: str = 
     constraint = {"impulsive": "point", "repetitive": "point", "resonant": "point",
                   "continuous": "interval", "none": "none"}
 
-    # --- adopt teammate object-side contact (object-local point + semantic part) ---
+    # adopt teammate object-side contact (object-local point + semantic part)
     oc = object_contact_csv or (res / "mug_articraft_contact_points" / "mug_articraft_contact_points.csv")
     obj_rows = _load_csv(oc)
     obj_by_frame = {int(float(r["frame"])): r for r in obj_rows if r.get("frame")}
 
-    # --- adopt teammate grasp-anchor state machine (per-frame mode) ---
+    # adopt teammate grasp-anchor state machine (per-frame mode)
     gs = grasp_state_csv or (res / "mug_grasp_anchor_state" / "mug_grasp_anchor_state.csv")
     gs_rows = _load_csv(gs)
     gs_by_frame = {int(float(r["frame"])): r for r in gs_rows if r.get("frame")}
@@ -150,7 +150,7 @@ def main() -> None:
     ap.add_argument("--backend", default="heuristic", help="heuristic | qwen | none")
     ap.add_argument("--object-contact-csv", type=Path, default=None)
     ap.add_argument("--grasp-state-csv", type=Path, default=None)
-    ap.add_argument("--fps", type=float, default=24.0)
+    ap.add_argument("--fps", type=float, default=0.0, help="0 = auto-detect from video.mp4")
     args = ap.parse_args()
     build_records(args.sample_dir, classifier=args.classifier, backend=args.backend,
                   object_contact_csv=args.object_contact_csv, grasp_state_csv=args.grasp_state_csv,

@@ -1,0 +1,1518 @@
+{
+  "case_name": "stick",
+  "profile": {
+    "case_name": "stick",
+    "sample_dir": "samples_known_object/11_stick",
+    "object_family": "rigid_staff",
+    "geometry_model": "articraft_urdf",
+    "observation_model": "mask_track_center",
+    "contact_policy": "persistent_two_palm_line",
+    "pose_model": "translation3",
+    "refinement_policy": [
+      "line_contact_lock",
+      "backproject_xy"
+    ],
+    "render_backend": "urdf_solid",
+    "render_scene": "generic_urdf",
+    "result_name": "benchmark_vlm_qwen",
+    "preprocess": {
+      "detector_model": "IDEA-Research/grounding-dino-tiny",
+      "detector_text": "wooden staff.",
+      "segmenter_model": "facebook/sam2.1-hiera-tiny",
+      "tracker": "cotracker3_offline",
+      "tracker_query_source": "sam2_mask_major_axis"
+    },
+    "articraft_urdf": "samples_known_object/11_stick/articraft/generated_record/rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada/materialized/model.urdf",
+    "vlm": {
+      "target": "stick",
+      "parts": [
+        "main_body",
+        "contact_region",
+        "support_region",
+        "background",
+        "unclear"
+      ],
+      "contacts": [
+        "hand",
+        "floor",
+        "body",
+        "nothing_nearby",
+        "unclear"
+      ],
+      "stable_refs": [
+        "center",
+        "visible_semantic_part",
+        "support_point",
+        "unclear"
+      ],
+      "frame_policy": {
+        "stage1": "all",
+        "stage2": "all",
+        "stage4": "all",
+        "stage5": "all"
+      }
+    },
+    "camera": {
+      "fx": 1468.604736328125,
+      "fy": 1468.604736328125,
+      "cx": 640.0,
+      "cy": 360.0
+    },
+    "line_object": {
+      "length_m": 1.86
+    },
+    "sequence_se3_optimizer": {
+      "anchor_type": "palm_line_contact",
+      "prior_w": 0.24,
+      "smooth_w": 1.25,
+      "accel_w": 7.2,
+      "low_trust_weight": 0.08,
+      "trusted_physical_contact_weight": 0.92,
+      "static_tail_min_frames": 16,
+      "static_tail_center_px": 2.0,
+      "static_tail_angle_deg": 0.75,
+      "static_tail_length_px": 3.0,
+      "translation_scales": [
+        0.055,
+        0.055,
+        0.085
+      ],
+      "rotation_scale": 0.06
+    }
+  },
+  "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen",
+  "render_dir": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen",
+  "from_stage": "stage4",
+  "to_stage": "stage7",
+  "vlm_mode": "none",
+  "llm_mode": "mistral",
+  "vlm_blocking": false,
+  "stage_results": [
+    {
+      "stage": "stage4",
+      "result": {
+        "component": "generic_sequence_se3_mainline",
+        "case_name": "stick",
+        "compatibility_adapters": [
+          {
+            "component": "line_contact_lock",
+            "enabled": true,
+            "report": {
+              "component": "line_contact_lock",
+              "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+              "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+              "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_candidates.csv",
+              "rows": 240,
+              "solved_frames": 240,
+              "skipped_frames": 0,
+              "skipped_frame_examples": [],
+              "temporal_filled_frames": 0,
+              "temporal_filled_frame_examples": [],
+              "blend_debug_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_contact_lock_blend_debug.csv",
+              "policy": "refine elongated object 2D pose from persistent left/right palm contacts at stable local line coordinates, blended with compatible visible line observations"
+            }
+          },
+          {
+            "component": "backproject_xy",
+            "enabled": true,
+            "report": {
+              "component": "backproject_xy",
+              "case_name": "stick",
+              "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+              "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+              "policy": "generic pass-through from Stage3 backprojected pose when no stronger refinement has produced object_pose"
+            }
+          }
+        ],
+        "legacy_refinement_policies_ignored": [],
+        "legacy_refinement_policies_as_seed_builders": [
+          "line_contact_lock",
+          "backproject_xy"
+        ],
+        "line_object_special_refinement": true,
+        "line_object_seed_builder": {
+          "component": "generic_line_physical_smooth_seed_candidate_selector",
+          "enabled": true,
+          "selected_ignore_vlm_gates": true,
+          "selected_score": {
+            "spike_count": 16,
+            "smoothness_spike_count": 13,
+            "max_translation_jump_m": "0.000000"
+          },
+          "candidates": [
+            {
+              "ignore_vlm_gates": true,
+              "metrics_suffix": "_candidate_ignore_vlm",
+              "score": {
+                "spike_count": 16,
+                "smoothness_spike_count": 13,
+                "max_translation_jump_m": "0.000000"
+              }
+            },
+            {
+              "ignore_vlm_gates": false,
+              "metrics_suffix": "_candidate_with_vlm",
+              "score": {
+                "spike_count": 16,
+                "smoothness_spike_count": 13,
+                "max_translation_jump_m": "0.000000"
+              }
+            }
+          ],
+          "policy": "line seed builder runs with and without VLM-disabled frames; hard pose-jump audit selects the non-degrading seed"
+        },
+        "object_pose_pre_smooth": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+        "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+        "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+        "motion_regime": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/motion_regime.csv",
+        "physical_smooth_residuals": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+        "pose_jump_audit": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+        "optimizer_decisions": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+        "rows": 240,
+        "smoothed_rows": 222,
+        "pose_lock_reason": "",
+        "residuals": {
+          "visual": true,
+          "contact_anchor": true,
+          "depth": true,
+          "geometry": true,
+          "velocity": true,
+          "acceleration": true,
+          "static_freeze": true,
+          "boundary_freeze_interpolation": true,
+          "static_tail_freeze": true,
+          "motion_regime_reweighting": true,
+          "feedback_reoptimization": true
+        },
+        "anchor_residual": {
+          "enabled": true,
+          "constraints": 435,
+          "skipped_rows": 0,
+          "source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/anchor_state.csv",
+          "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
+        },
+        "anchor_pose_prior": {
+          "enabled": false,
+          "adjusted_rows": 0,
+          "median_before_m": "0.000000",
+          "median_after_m": "0.000000",
+          "policy": "generic per-frame rigid anchor pose prior before sequence smoothing"
+        },
+        "line_overlay_depth_stabilizer": {
+          "enabled": false,
+          "reason": "replaced_by_generic_line_physical_smooth_seed_builder"
+        },
+        "feedback_reweight_sources": [
+          "llm",
+          "machine",
+          "vlm"
+        ],
+        "requested_feedback_reweight_sources": [
+          "llm",
+          "machine",
+          "vlm"
+        ],
+        "rejected_feedback_sources": [],
+        "feedback_candidate_selection": {
+          "policy": "choose the candidate with the fewest hard pose_jump_audit spikes; ties prefer more accepted audit sources",
+          "candidates": [
+            {
+              "sources": [
+                "machine"
+              ],
+              "feedback_reweight_reason": "stage_audit_residual_reweight:machine",
+              "score": {
+                "spike_count": 14,
+                "smoothness_spike_count": 14,
+                "max_translation_jump_m": "0.228360",
+                "max_delta_rotation_rad": "0.013067"
+              },
+              "trust_first": "6.560000",
+              "smooth_first": "0.050000",
+              "accel_first": "0.050000"
+            },
+            {
+              "sources": [
+                "llm",
+                "machine"
+              ],
+              "feedback_reweight_reason": "stage_audit_residual_reweight:llm+machine",
+              "score": {
+                "spike_count": 13,
+                "smoothness_spike_count": 13,
+                "max_translation_jump_m": "0.228246",
+                "max_delta_rotation_rad": "0.217114"
+              },
+              "trust_first": "5.904000",
+              "smooth_first": "0.050000",
+              "accel_first": "0.050000"
+            },
+            {
+              "sources": [
+                "machine",
+                "vlm"
+              ],
+              "feedback_reweight_reason": "stage_audit_residual_reweight:machine+vlm",
+              "score": {
+                "spike_count": 0,
+                "smoothness_spike_count": 0,
+                "max_translation_jump_m": "0.167083",
+                "max_delta_rotation_rad": "2.589277"
+              },
+              "trust_first": "0.200000",
+              "smooth_first": "0.050000",
+              "accel_first": "0.050000"
+            },
+            {
+              "sources": [
+                "llm",
+                "machine",
+                "vlm"
+              ],
+              "feedback_reweight_reason": "stage_audit_residual_reweight:llm+machine+vlm",
+              "score": {
+                "spike_count": 0,
+                "smoothness_spike_count": 0,
+                "max_translation_jump_m": "0.167020",
+                "max_delta_rotation_rad": "2.589273"
+              },
+              "trust_first": "0.200000",
+              "smooth_first": "0.050000",
+              "accel_first": "0.050000"
+            }
+          ]
+        },
+        "feedback_reweight_reason": "stage_audit_residual_reweight:llm+machine+vlm",
+        "visual_prior_reason": "",
+        "overlay_prior_reason": "line_contact_pose_prior",
+        "policy": "compatibility refinement policies run as seed/residual builders; line objects run generic_line_physical_smooth as seed/visual prior; final output is unified through smooth_quaternion_pose_sequence",
+        "stage_audit_repair": {
+          "component": "generic_sequence_se3_mainline",
+          "case_name": "stick",
+          "compatibility_adapters": [
+            {
+              "component": "line_contact_lock",
+              "enabled": true,
+              "report": {
+                "component": "line_contact_lock",
+                "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+                "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+                "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_candidates.csv",
+                "rows": 240,
+                "solved_frames": 240,
+                "skipped_frames": 0,
+                "skipped_frame_examples": [],
+                "temporal_filled_frames": 0,
+                "temporal_filled_frame_examples": [],
+                "blend_debug_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_contact_lock_blend_debug.csv",
+                "policy": "refine elongated object 2D pose from persistent left/right palm contacts at stable local line coordinates, blended with compatible visible line observations"
+              }
+            },
+            {
+              "component": "backproject_xy",
+              "enabled": true,
+              "report": {
+                "component": "backproject_xy",
+                "case_name": "stick",
+                "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+                "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+                "policy": "generic pass-through from Stage3 backprojected pose when no stronger refinement has produced object_pose"
+              }
+            }
+          ],
+          "legacy_refinement_policies_ignored": [],
+          "legacy_refinement_policies_as_seed_builders": [
+            "line_contact_lock",
+            "backproject_xy"
+          ],
+          "line_object_special_refinement": true,
+          "line_object_seed_builder": {
+            "component": "generic_line_physical_smooth_seed_candidate_selector",
+            "enabled": true,
+            "selected_ignore_vlm_gates": true,
+            "selected_score": {
+              "spike_count": 16,
+              "smoothness_spike_count": 13,
+              "max_translation_jump_m": "0.000000"
+            },
+            "candidates": [
+              {
+                "ignore_vlm_gates": true,
+                "metrics_suffix": "_candidate_ignore_vlm",
+                "score": {
+                  "spike_count": 16,
+                  "smoothness_spike_count": 13,
+                  "max_translation_jump_m": "0.000000"
+                }
+              },
+              {
+                "ignore_vlm_gates": false,
+                "metrics_suffix": "_candidate_with_vlm",
+                "score": {
+                  "spike_count": 16,
+                  "smoothness_spike_count": 13,
+                  "max_translation_jump_m": "0.000000"
+                }
+              }
+            ],
+            "policy": "line seed builder runs with and without VLM-disabled frames; hard pose-jump audit selects the non-degrading seed"
+          },
+          "object_pose_pre_smooth": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+          "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+          "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+          "motion_regime": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/motion_regime.csv",
+          "physical_smooth_residuals": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+          "pose_jump_audit": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+          "optimizer_decisions": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+          "rows": 240,
+          "smoothed_rows": 222,
+          "pose_lock_reason": "",
+          "residuals": {
+            "visual": true,
+            "contact_anchor": true,
+            "depth": true,
+            "geometry": true,
+            "velocity": true,
+            "acceleration": true,
+            "static_freeze": true,
+            "boundary_freeze_interpolation": true,
+            "static_tail_freeze": true,
+            "motion_regime_reweighting": true,
+            "feedback_reoptimization": true
+          },
+          "anchor_residual": {
+            "enabled": true,
+            "constraints": 435,
+            "skipped_rows": 0,
+            "source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/anchor_state.csv",
+            "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
+          },
+          "anchor_pose_prior": {
+            "enabled": false,
+            "adjusted_rows": 0,
+            "median_before_m": "0.000000",
+            "median_after_m": "0.000000",
+            "policy": "generic per-frame rigid anchor pose prior before sequence smoothing"
+          },
+          "line_overlay_depth_stabilizer": {
+            "enabled": false,
+            "reason": "replaced_by_generic_line_physical_smooth_seed_builder"
+          },
+          "feedback_reweight_sources": [
+            "vlm"
+          ],
+          "requested_feedback_reweight_sources": [
+            "vlm"
+          ],
+          "rejected_feedback_sources": [],
+          "feedback_candidate_selection": {
+            "policy": "choose the candidate with the fewest hard pose_jump_audit spikes; ties prefer more accepted audit sources",
+            "candidates": [
+              {
+                "sources": [],
+                "feedback_reweight_reason": "",
+                "score": {
+                  "spike_count": 14,
+                  "smoothness_spike_count": 14,
+                  "max_translation_jump_m": "0.228782",
+                  "max_delta_rotation_rad": "0.000365"
+                },
+                "trust_first": "8.000000",
+                "smooth_first": "0.015000",
+                "accel_first": "0.015000"
+              },
+              {
+                "sources": [
+                  "vlm"
+                ],
+                "feedback_reweight_reason": "stage_audit_residual_reweight:vlm",
+                "score": {
+                  "spike_count": 0,
+                  "smoothness_spike_count": 0,
+                  "max_translation_jump_m": "0.167287",
+                  "max_delta_rotation_rad": "2.589284"
+                },
+                "trust_first": "0.200000",
+                "smooth_first": "0.050000",
+                "accel_first": "0.050000"
+              }
+            ]
+          },
+          "feedback_reweight_reason": "stage_audit_residual_reweight:vlm",
+          "visual_prior_reason": "",
+          "overlay_prior_reason": "line_contact_pose_prior",
+          "policy": "compatibility refinement policies run as seed/residual builders; line objects run generic_line_physical_smooth as seed/visual prior; final output is unified through smooth_quaternion_pose_sequence"
+        }
+      },
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "stick",
+        "stage": "stage4",
+        "decision": "unclear",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 9,
+        "blocking_count": 0,
+        "rerun_stage": true,
+        "residual_reweight": true,
+        "repair_actions": [
+          "rerun_stage_with_lower_trust"
+        ],
+        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage4/stage_audit_gates.csv",
+        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage4/llm_audit_queries.json",
+        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage4/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage5",
+      "result": {
+        "backend": "urdf_solid",
+        "outputs": {
+          "object_only/overlay.mp4": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/object_only/overlay.mp4",
+          "object_only/camera3d.mp4": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/object_only/camera3d.mp4",
+          "object_only/side_yz.mp4": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/object_only/side_yz.mp4",
+          "with_human/overlay.mp4": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+          "with_human/camera3d.mp4": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/with_human/camera3d.mp4",
+          "with_human/side_yz.mp4": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/with_human/side_yz.mp4",
+          "object_only/overlay_quality.csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/object_only/overlay_quality.csv",
+          "with_human/overlay_quality.csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/with_human/overlay_quality.csv"
+        },
+        "required": [
+          "object_only/overlay.mp4",
+          "object_only/camera3d.mp4",
+          "object_only/side_yz.mp4",
+          "with_human/overlay.mp4",
+          "with_human/camera3d.mp4",
+          "with_human/side_yz.mp4"
+        ],
+        "policy": "rerender configured Articraft URDF solid mesh with generic urdf_solid_scene from generic pose/contact",
+        "renderer": {
+          "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
+          "script": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/render/scenes/generic_urdf_scene.py",
+          "urdf": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/articraft/generated_record/rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada/materialized/model.urdf"
+        }
+      },
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "stick",
+        "stage": "stage5",
+        "decision": "pass",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 4,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [],
+        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage5/stage_audit_gates.csv",
+        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage5/llm_audit_queries.json",
+        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage5/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage6",
+      "result": {
+        "case_name": "stick",
+        "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen",
+        "render_dir": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen",
+        "checks": {
+          "required_csvs": {
+            "object_observations": {
+              "exists": true,
+              "rows": 240,
+              "pass": true
+            },
+            "contact_candidates": {
+              "exists": true,
+              "rows": 480,
+              "pass": true
+            },
+            "object_pose_init": {
+              "exists": true,
+              "rows": 240,
+              "pass": true
+            },
+            "object_pose": {
+              "exists": true,
+              "rows": 240,
+              "pass": true
+            },
+            "object_contact_points": {
+              "exists": true,
+              "rows": 480,
+              "pass": true
+            }
+          },
+          "required_csvs_pass": true,
+          "frame_count": {
+            "new": 240,
+            "baseline": 0,
+            "pass": true
+          },
+          "pose_delta": {
+            "comparable": false,
+            "reason": "no_baseline_for_new_case"
+          },
+          "pose_delta_pass": true,
+          "phase_delta": {
+            "comparable": true,
+            "reason": "no_phase_baseline"
+          },
+          "phase_delta_pass": true,
+          "renders": {
+            "object_only/overlay.mp4": {
+              "exists": true,
+              "bytes": 1326880,
+              "codec": "h264",
+              "width": 1280,
+              "height": 720,
+              "frames": 240,
+              "pass": true
+            },
+            "object_only/camera3d.mp4": {
+              "exists": true,
+              "bytes": 150797,
+              "codec": "h264",
+              "width": 1280,
+              "height": 720,
+              "frames": 240,
+              "pass": true
+            },
+            "object_only/side_yz.mp4": {
+              "exists": true,
+              "bytes": 171731,
+              "codec": "h264",
+              "width": 1280,
+              "height": 720,
+              "frames": 240,
+              "pass": true
+            },
+            "with_human/overlay.mp4": {
+              "exists": true,
+              "bytes": 1593428,
+              "codec": "h264",
+              "width": 1280,
+              "height": 720,
+              "frames": 240,
+              "pass": true
+            },
+            "with_human/camera3d.mp4": {
+              "exists": true,
+              "bytes": 289474,
+              "codec": "h264",
+              "width": 1280,
+              "height": 720,
+              "frames": 240,
+              "pass": true
+            },
+            "with_human/side_yz.mp4": {
+              "exists": true,
+              "bytes": 622152,
+              "codec": "h264",
+              "width": 1280,
+              "height": 720,
+              "frames": 240,
+              "pass": true
+            }
+          },
+          "required_renders_pass": true,
+          "overall_pass": true,
+          "old_script_reference_scan_pass": true
+        },
+        "migration_audit": {
+          "case_name": "stick",
+          "result_name": "benchmark_vlm_qwen",
+          "component_status": {
+            "geometry_model": {
+              "component": "articraft_urdf",
+              "migration_status": "clean_from_raw_or_stage_inputs",
+              "migration_priority": "keep",
+              "note": "no solved artifact dependency declared"
+            },
+            "observation_model": {
+              "component": "mask_track_center",
+              "migration_status": "clean_from_raw_or_stage_inputs",
+              "migration_priority": "keep",
+              "note": "no solved artifact dependency declared"
+            },
+            "contact_policy": {
+              "component": "persistent_two_palm_line",
+              "migration_status": "clean_from_raw_or_stage_inputs",
+              "migration_priority": "keep",
+              "note": "no solved artifact dependency declared"
+            },
+            "pose_model": {
+              "component": "translation3",
+              "migration_status": "clean_from_raw_or_stage_inputs",
+              "migration_priority": "keep",
+              "note": "no solved artifact dependency declared"
+            },
+            "render_backend": {
+              "component": "urdf_solid",
+              "migration_status": "clean_from_raw_or_stage_inputs",
+              "migration_priority": "keep",
+              "note": "no solved artifact dependency declared"
+            },
+            "refinement_policy_0": {
+              "component": "line_contact_lock",
+              "migration_status": "clean_from_raw_or_stage_inputs",
+              "migration_priority": "keep",
+              "note": "no solved artifact dependency declared"
+            },
+            "refinement_policy_1": {
+              "component": "backproject_xy",
+              "migration_status": "clean_from_raw_or_stage_inputs",
+              "migration_priority": "keep",
+              "note": "no solved artifact dependency declared"
+            }
+          },
+          "migration_status_counts": {
+            "clean_from_raw_or_stage_inputs": 7
+          },
+          "runtime_coupling_components": {},
+          "old_script_reference_scan": {
+            "root": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline",
+            "patterns": [
+              "scripts.shared.radius_free_proxy",
+              "scripts/shared/radius_free_proxy",
+              "stage4_anchor_refinement/run_anchor_refinement.py",
+              "stage5_render/render_pose6d_scene.py",
+              "stage5_render/render_mug_articraft_fast_scene.py",
+              "stage5_render/render_chair_articraft_solid_3d_scene.py"
+            ],
+            "hit_count": 0,
+            "hits": [],
+            "pass": true
+          },
+          "schema_status": {
+            "object_observations": {
+              "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_observations.csv",
+              "exists": true,
+              "columns": [
+                "frame",
+                "time",
+                "ref_u",
+                "ref_v",
+                "ref_u_smooth",
+                "ref_v_smooth",
+                "ref_u_fit",
+                "ref_v_fit",
+                "ref_source",
+                "ref_type",
+                "support_u",
+                "support_v",
+                "support_v_raw",
+                "support_dv",
+                "support_dv_smooth",
+                "support_source",
+                "contact_u",
+                "contact_v",
+                "contact_source",
+                "object_ref_depth_m",
+                "contact_proxy_depth_m",
+                "contact_depth_offset_m",
+                "ref_conf",
+                "support_conf",
+                "contact_conf",
+                "depth_conf",
+                "observation_conf",
+                "proxy_conf",
+                "proxy_jitter_px",
+                "support_jitter_px",
+                "proxy_sigma_px",
+                "support_sigma_px",
+                "active_label",
+                "active_label_conf",
+                "active_part_u",
+                "active_part_v",
+                "active_part_z",
+                "contact_proxy_name",
+                "da3_depth_raw",
+                "da3_depth_smooth",
+                "object_depth_raw",
+                "object_depth_smooth",
+                "object_depth_confidence",
+                "support_gap_px",
+                "object_motion_score",
+                "audio_score",
+                "radius_px"
+              ]
+            },
+            "object_local_points": {
+              "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_local_points.csv",
+              "exists": true,
+              "columns": [
+                "point_id",
+                "part",
+                "role",
+                "local_x",
+                "local_y",
+                "local_z",
+                "source"
+              ]
+            },
+            "object_local_segments": {
+              "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_local_segments.csv",
+              "exists": false,
+              "columns": []
+            },
+            "contact_candidates": {
+              "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_candidates.csv",
+              "exists": true,
+              "columns": [
+                "frame",
+                "time",
+                "contact_active",
+                "human_part",
+                "human_side",
+                "object_part",
+                "object_local_id",
+                "object_local_s",
+                "contact_u",
+                "contact_v",
+                "palm_u",
+                "palm_v",
+                "palm_x",
+                "palm_y",
+                "palm_z",
+                "anchor_z_m",
+                "palm_to_line_px",
+                "hand_joint_min_line_px",
+                "hand_joint_median_line_px",
+                "hand_joint_near_count_25px",
+                "fingertip_min_line_px",
+                "fingertip_median_line_px",
+                "contact_depth_offset_m",
+                "contact_conf",
+                "anchor_score",
+                "source",
+                "line_source",
+                "stable_object_local_s",
+                "local_s_drift"
+              ]
+            },
+            "object_pose_init": {
+              "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose_init.csv",
+              "exists": true,
+              "columns": [
+                "frame",
+                "time",
+                "tx",
+                "ty",
+                "tz",
+                "qw",
+                "qx",
+                "qy",
+                "qz",
+                "radius_m",
+                "coord_frame",
+                "u_obs",
+                "v_obs",
+                "u_proj",
+                "v_proj",
+                "bottom_proj_v",
+                "floor_v",
+                "u_ref_obs",
+                "v_ref_obs",
+                "support_v_obs",
+                "depth_prior_m",
+                "contact_depth_offset_m",
+                "contact_frame",
+                "audio_contact_frame",
+                "source",
+                "se3_schema",
+                "object_pixel_len",
+                "z_from_geometry_len_m",
+                "generic_geometry_pose_prior",
+                "geometry_pose_prior_source",
+                "u_contact_lock",
+                "v_contact_lock",
+                "contact_lock_pixel_len",
+                "contact_lock_angle_rad",
+                "blend_visible_weight",
+                "visible_len_px",
+                "contact_len_px",
+                "angle_gap_deg",
+                "center_gap_px",
+                "mean_palm_to_visible_line_px",
+                "left_local_s_source",
+                "right_local_s_source",
+                "left_local_s_used",
+                "right_local_s_used",
+                "blend_reason",
+                "depth_anchor_source",
+                "depth_anchor_z",
+                "depth_anchor_sides",
+                "depth_anchor_mean_dist_px",
+                "line_contact_se3_refined",
+                "line_contact_se3_cost",
+                "line_contact_se3_overlay_err_px",
+                "line_contact_se3_max_gap_m",
+                "line_contact_se3_anchor_count",
+                "line_contact_se3_local_s_adjustments",
+                "z_from_pixel_len_m",
+                "line_contact_pose_prior",
+                "line_contact_se3_reason"
+              ]
+            },
+            "object_pose": {
+              "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+              "exists": true,
+              "columns": [
+                "frame",
+                "time",
+                "tx",
+                "ty",
+                "tz",
+                "qw",
+                "qx",
+                "qy",
+                "qz",
+                "radius_m",
+                "coord_frame",
+                "u_obs",
+                "v_obs",
+                "u_proj",
+                "v_proj",
+                "bottom_proj_v",
+                "floor_v",
+                "u_ref_obs",
+                "v_ref_obs",
+                "support_v_obs",
+                "depth_prior_m",
+                "contact_depth_offset_m",
+                "contact_frame",
+                "audio_contact_frame",
+                "source",
+                "se3_schema",
+                "object_pixel_len",
+                "z_from_geometry_len_m",
+                "generic_geometry_pose_prior",
+                "geometry_pose_prior_source",
+                "u_contact_lock",
+                "v_contact_lock",
+                "contact_lock_pixel_len",
+                "contact_lock_angle_rad",
+                "blend_visible_weight",
+                "visible_len_px",
+                "contact_len_px",
+                "angle_gap_deg",
+                "center_gap_px",
+                "mean_palm_to_visible_line_px",
+                "left_local_s_source",
+                "right_local_s_source",
+                "left_local_s_used",
+                "right_local_s_used",
+                "blend_reason",
+                "depth_anchor_source",
+                "depth_anchor_z",
+                "depth_anchor_sides",
+                "depth_anchor_mean_dist_px",
+                "line_contact_se3_refined",
+                "line_contact_se3_cost",
+                "line_contact_se3_overlay_err_px",
+                "line_contact_se3_max_gap_m",
+                "line_contact_se3_anchor_count",
+                "line_contact_se3_local_s_adjustments",
+                "z_from_pixel_len_m",
+                "line_contact_pose_prior",
+                "line_contact_se3_reason"
+              ]
+            },
+            "object_contact_points": {
+              "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+              "exists": true,
+              "columns": [
+                "frame",
+                "time",
+                "contact_active",
+                "human_part",
+                "human_side",
+                "object_part",
+                "object_local_id",
+                "object_local_s",
+                "contact_u",
+                "contact_v",
+                "palm_u",
+                "palm_v",
+                "palm_x",
+                "palm_y",
+                "palm_z",
+                "anchor_z_m",
+                "palm_to_line_px",
+                "hand_joint_min_line_px",
+                "hand_joint_median_line_px",
+                "hand_joint_near_count_25px",
+                "fingertip_min_line_px",
+                "fingertip_median_line_px",
+                "contact_depth_offset_m",
+                "contact_conf",
+                "anchor_score",
+                "source",
+                "line_source",
+                "stable_object_local_s",
+                "local_s_drift"
+              ]
+            },
+            "object_phase": {
+              "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_phase.csv",
+              "exists": false,
+              "columns": []
+            }
+          },
+          "baseline_path_status": {},
+          "migration_note": "v1 keeps solved baselines only for regression comparison and explicit provenance snapshots. baseline_reader components would copy solved artifacts, but current four case profiles should not use any. external_runner_on_generic_inputs components would run old stable scripts on generic stage files, but current four case profiles should not use any. generic_solver_external_env components are generic-owned code but intentionally run in a non-base conda env for dependency isolation. clean_from_verified_intermediate components rebuild outputs from trusted intermediate artifacts. preserved_provenance_snapshot components use explicit generic_pipeline_v1/provenance_snapshots files where the historical upstream chain is no longer fully present. clean_from_raw_or_stage_inputs components do not declare solved-artifact dependencies. Each step should be migrated leftward and validated with stage6_compare before replacing the old path."
+        },
+        "migration_audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/migration_audit.csv"
+      },
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "stick",
+        "stage": "stage6",
+        "decision": "unclear",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 2,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [
+          "rerun_stage_with_lower_trust"
+        ],
+        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage6/stage_audit_gates.csv",
+        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage6/llm_audit_queries.json",
+        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage6/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage6.5",
+      "result": {
+        "stage": "stage6.5_llm_csv_audit",
+        "case_name": "stick",
+        "queries": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/llm_csv_audit_queries.json",
+        "results": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/llm_csv_audit_results.json",
+        "summary": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/llm_csv_audit_summary.md",
+        "failures": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/llm_csv_audit_failures.csv",
+        "failure_count": 0,
+        "blocking_count": 0
+      },
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "stick",
+        "stage": "stage6.5",
+        "decision": "pass",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 2,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [
+          "no_effective_vlm_gate"
+        ],
+        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage6.5/stage_audit_gates.csv",
+        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage6.5/llm_audit_queries.json",
+        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage6.5/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage7",
+      "result": {
+        "stage": "stage7_loss_and_related_work_proxy",
+        "case_name": "stick",
+        "loss_analysis": {
+          "case_name": "stick",
+          "mode": "non_invasive_loss_audit",
+          "per_frame_residuals": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/loss_analysis/per_frame_residuals.csv",
+          "stage7_loss_residuals": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage7_loss_residuals.csv",
+          "loss_trace": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/loss_analysis/loss_trace.csv",
+          "plots": [
+            "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/loss_analysis/E_total.png",
+            "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/loss_analysis/E_support.png",
+            "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/loss_analysis/E_smooth.png",
+            "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/loss_analysis/E_reg.png"
+          ],
+          "active_terms": [
+            "E_total",
+            "E_mask",
+            "E_support",
+            "E_smooth",
+            "E_reg"
+          ],
+          "note": "This audit computes comparable residual terms from existing generic outputs. It does not replace the optimizer internals yet."
+        },
+        "related_work_proxy": {
+          "case_name": "stick",
+          "summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/related_work_proxy_summary.csv",
+          "summary_md": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/related_work_proxy_report.md",
+          "variants": [
+            "video_only_tracking",
+            "mesh_only_alignment",
+            "human_only_contact",
+            "no_audio_event",
+            "no_vlm_gate",
+            "no_llm_prior",
+            "no_contact_refine",
+            "ours_full"
+          ]
+        }
+      },
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "stick",
+        "stage": "stage7",
+        "decision": "pass",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 2,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [],
+        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage7/stage_audit_gates.csv",
+        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage7/llm_audit_queries.json",
+        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage7/llm_audit_results.csv"
+      }
+    }
+  ],
+  "generic_se3_mainline": {
+    "enabled": true,
+    "contract": "fixed_preprocess_observation_contact_anchor_se3_init_sequence_optimizer",
+    "object_family": "rigid_staff",
+    "legacy_yaml_selectors": {
+      "observation_model": "mask_track_center",
+      "contact_policy": "persistent_two_palm_line",
+      "pose_model": "translation3",
+      "refinement_policy": [
+        "line_contact_lock",
+        "backproject_xy"
+      ],
+      "role": "stage1-3 are normalized through generic contracts; refinement_policy is ignored by Stage4 except the generic sequence optimizer marker"
+    },
+    "artifacts": {
+      "stage0_inputs_manifest": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage0_inputs_manifest.json",
+        "exists": true,
+        "rows": 99
+      },
+      "object_observations": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_observations.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_correspondence": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_correspondence.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_surface_points": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_surface_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "object_semantic_points": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_semantic_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "line_correspondence": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "line_observations": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_observations.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "contact_candidates": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_candidates.csv",
+        "exists": true,
+        "rows": 480
+      },
+      "anchor_state": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/anchor_state.csv",
+        "exists": true,
+        "rows": 480
+      },
+      "object_pose_init": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose_init.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_pose_pre_smooth": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "motion_regime": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/motion_regime.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "physical_smooth_residuals": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "pose_jump_audit": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "optimizer_decisions": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_pose": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_contact_points": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv",
+        "exists": true,
+        "rows": 480
+      },
+      "stage_audit_gates": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage_audit_gates.csv",
+        "exists": true,
+        "rows": 36
+      },
+      "stage_audit_latest": {
+        "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/stage_audit/stage_audit_latest.json",
+        "exists": true,
+        "rows": 14
+      }
+    },
+    "pose_jump_audit": {
+      "visual_spike_frames": [],
+      "contact_spike_frames": [],
+      "smoothness_spike_frames": [],
+      "propagated_frames": []
+    },
+    "residual_switches": {
+      "visual_enabled_rows": 0,
+      "contact_enabled_rows": 0,
+      "smooth_enabled_rows": 0,
+      "propagated_rows": 0
+    }
+  },
+  "post_run": {
+    "vlm_trace": {
+      "case_name": "stick",
+      "result_name": "benchmark_vlm_qwen",
+      "trace_root": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace",
+      "directories": {
+        "00_input": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/00_input",
+        "01_observation": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation",
+        "02_contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates",
+        "03_vlm_reasoning": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/03_vlm_reasoning",
+        "04_gating": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/04_gating",
+        "05_optimization": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/05_optimization",
+        "06_evaluation": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/06_evaluation"
+      },
+      "artifacts": {
+        "input_video": {
+          "stage": "",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/video.mp4",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/00_input/video.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "sampled_frames": {
+          "stage": "00_input",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/segmentation/sam2_jpg_frames",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames",
+          "exists": true,
+          "rows": 8,
+          "storage_mode": "relative_symlink_or_copy"
+        },
+        "object_mask_overlay": {
+          "stage": "01_observation",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/with_human/overlay_vlm_masked.mp4",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_mask_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "generated"
+        },
+        "human_pose_overlay": {
+          "stage": "01_observation",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/human_pose_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "generated"
+        },
+        "depth_overlay": {
+          "stage": "01_observation",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "generated"
+        },
+        "contact_candidate_overlay": {
+          "stage": "02_contact_candidates",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "generated"
+        },
+        "before_after_overlay": {
+          "stage": "05_optimization",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/05_optimization/before_after_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "generated"
+        },
+        "object_observations": {
+          "stage": "01_observation",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_observations.csv",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_observations.csv",
+          "exists": true,
+          "rows": 240,
+          "storage_mode": "relative_symlink"
+        },
+        "object_correspondence": {
+          "stage": "01_observation",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_correspondence.csv",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_correspondence.csv",
+          "exists": true,
+          "rows": 240,
+          "storage_mode": "relative_symlink"
+        },
+        "object_surface_points": {
+          "stage": "01_observation",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_surface_points.csv",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_surface_points.csv",
+          "exists": true,
+          "rows": 0,
+          "storage_mode": "relative_symlink"
+        },
+        "object_semantic_points": {
+          "stage": "01_observation",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_semantic_points.csv",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_semantic_points.csv",
+          "exists": true,
+          "rows": 0,
+          "storage_mode": "relative_symlink"
+        },
+        "line_correspondence": {
+          "stage": "01_observation",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/line_correspondence.csv",
+          "exists": true,
+          "rows": 240,
+          "storage_mode": "relative_symlink"
+        },
+        "line_observations": {
+          "stage": "01_observation",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_observations.csv",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/line_observations.csv",
+          "exists": true,
+          "rows": 240,
+          "storage_mode": "relative_symlink"
+        },
+        "contact_candidates": {
+          "stage": "02_contact_candidates",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_candidates.csv",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidates.csv",
+          "exists": true,
+          "rows": 480,
+          "storage_mode": "relative_symlink"
+        },
+        "gate_timeline_png": {
+          "stage": "04_gating",
+          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
+          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
+          "exists": true,
+          "rows": ""
+        }
+      },
+      "trace_completeness": {
+        "required_count": 13,
+        "present_count": 13,
+        "missing_required": [],
+        "items": {
+          "input_video": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/00_input/video.mp4",
+            "stage": ""
+          },
+          "sampled_frames": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames",
+            "stage": "00_input"
+          },
+          "object_observations": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_observations.csv",
+            "stage": "01_observation"
+          },
+          "object_correspondence": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_correspondence.csv",
+            "stage": "01_observation"
+          },
+          "object_surface_points": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_surface_points.csv",
+            "stage": "01_observation"
+          },
+          "object_semantic_points": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_semantic_points.csv",
+            "stage": "01_observation"
+          },
+          "contact_candidates": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidates.csv",
+            "stage": "02_contact_candidates"
+          },
+          "object_mask_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_mask_overlay.mp4",
+            "stage": "01_observation"
+          },
+          "human_pose_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/human_pose_overlay.mp4",
+            "stage": "01_observation"
+          },
+          "depth_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
+            "stage": "01_observation"
+          },
+          "contact_candidate_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+            "stage": "02_contact_candidates"
+          },
+          "before_after_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/05_optimization/before_after_overlay.mp4",
+            "stage": "05_optimization"
+          },
+          "gate_timeline_png": {
+            "required": true,
+            "exists": true,
+            "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
+            "stage": "04_gating"
+          }
+        }
+      }
+    },
+    "final_evaluator": {
+      "case": "stick",
+      "method": "vlm_gated",
+      "result_name": "benchmark_vlm_qwen",
+      "method_status": "ok",
+      "final_pass": false,
+      "metrics": {
+        "overlay_error_px_mean": 0.0,
+        "mask_iou_mean": 0.8666666666666667,
+        "overlay_proxy_score": 1.0,
+        "contact_precision": null,
+        "contact_recall": null,
+        "contact_f1": null,
+        "contact_label_status": "needs_manual_labels",
+        "contact_proxy_score": 0.8638203541666667,
+        "anchor_drift_m_mean": 0.08219014583333331,
+        "anchor_drift_m_max": 0.652714,
+        "penetration_rate": 0.0,
+        "floating_rate": 0.0,
+        "velocity_spike_count": 0,
+        "acceleration_spike_count": 0,
+        "jump_count": 0,
+        "static_tail_drift_m_max": 0.0,
+        "geometry_length_spread_m": 0.0,
+        "gt_contact_available": false
+      },
+      "failure_flags": {
+        "overlay_fail": false,
+        "contact_fail": false,
+        "anchor_drift_fail": true,
+        "penetration_fail": false,
+        "floating_fail": false,
+        "jump_fail": false,
+        "static_tail_fail": false,
+        "geometry_fail": false,
+        "failure_count": 1
+      },
+      "vlm_score": {
+        "mode": "dry-run_metric_grounded",
+        "score": 1.0,
+        "checklist_count": 20,
+        "pipeline_vlm_gate_score": {
+          "mode": "existing_vlm_artifacts",
+          "score": 0.8698347107438017,
+          "checklist_count": 1452,
+          "pass_count": 1076,
+          "unclear_count": 374,
+          "reject_count": 2,
+          "note": "Scored from existing VLM gate artifacts; no pose coordinates are generated here."
+        },
+        "pipeline_vlm_gate_framewise_count": 1452,
+        "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+      },
+      "llm_audit_summary": "pass",
+      "failure_stage_hint": "stage2_contact",
+      "vlm_eval_summary": {
+        "mode": "dry-run_metric_grounded",
+        "query_count": 3,
+        "mean_overall_plausibility": 5.0,
+        "failure_stage_hint": "stage2_contact",
+        "scores": {
+          "visibility": 5,
+          "contact_correctness": 4,
+          "support_consistency": 5,
+          "penetration_absence": 5,
+          "temporal_plausibility": 5,
+          "overall_plausibility": 5,
+          "short_reason": "metric-grounded final evaluator checklist; replace source with Qwen final judge when available",
+          "failure_stage_hint": "stage2_contact"
+        },
+        "vlm_pipeline_score": {
+          "mode": "dry-run_metric_grounded",
+          "score": 1.0,
+          "checklist_count": 20,
+          "pipeline_vlm_gate_score": {
+            "mode": "existing_vlm_artifacts",
+            "score": 0.8698347107438017,
+            "checklist_count": 1452,
+            "pass_count": 1076,
+            "unclear_count": 374,
+            "reject_count": 2,
+            "note": "Scored from existing VLM gate artifacts; no pose coordinates are generated here."
+          },
+          "pipeline_vlm_gate_framewise_count": 1452,
+          "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+        },
+        "framewise_pipeline_judgment_count": 20
+      }
+    }
+  }
+}

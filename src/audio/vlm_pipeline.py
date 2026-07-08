@@ -15,24 +15,49 @@ import csv
 from pathlib import Path
 
 from . import vlm
-from .extract import extract_wav, load_wav
+from .extract import detect_fps, extract_wav, load_wav
 from .pipeline import run_sample
+from .visual_context import _PARTS, _load_object_uv, _load_vitpose
 
 _COLS = ["frame", "refined_frame", "time", "refined_time", "evidence", "audio_support",
          "fused_event_type", "interaction_mode", "contact_quality", "contact_target",
-         "target_entity", "vlm_relevant", "vlm_interaction", "vlm_impact", "vlm_entities",
-         "vlm_confidence", "vlm_hand_side", "vlm_object_part", "vlm_object_region",
+         "target_entity", "fuse_target_entity", "vlm_relevant", "vlm_interaction", "vlm_impact",
+         "vlm_entities", "vlm_confidence", "vlm_hand_side", "vlm_object_part", "vlm_object_region",
          "vlm_grasp_type", "vlm_primary_finger", "vlm_fingers",
          "manip_gamma", "manip_weight", "promote_anchor", "vlm_description", "window_png"]
 
+_BODY_PARTS = ("left_hand", "right_hand", "left_foot", "right_foot")
+
 
 def run_vlm(sample_dir: Path, *, classifier: str = "rule", backend: str = "heuristic",
-            model_path: str | None = None, fps: float = 24.0, write: bool = True):
+            model_path: str | None = None, fps: float = 0.0, write: bool = True):
     sample_dir = Path(sample_dir)
+    fps = fps or detect_fps(sample_dir)
     records = run_sample(sample_dir, classifier=classifier, fps=fps, write=False)
     sr, x = load_wav(extract_wav(sample_dir))
     be = vlm.get_backend(backend, model_path)
     win_dir = sample_dir / "results" / "audio_semantics" / "vlm_windows"
+
+    # geometry check for the VLM's part naming: pixel distance object ↔ named part
+    import numpy as np
+    kpts = _load_vitpose(sample_dir)
+    obj_uv_all = _load_object_uv(sample_dir, len(kpts)) if kpts is not None else None
+
+    def _part_dist_px(frame: int, part: str, halfwin: int = 3) -> float:
+        """Min object↔part distance over ±halfwin frames (audio onsets sit a few
+        frames off the visual contact, so a single-frame check misses the strike)."""
+        if kpts is None or obj_uv_all is None or part not in _PARTS:
+            return float("nan")
+        best = float("nan")
+        for fr in range(frame - halfwin, frame + halfwin + 1):
+            i = int(min(max(fr - 1, 0), len(obj_uv_all) - 1))
+            xy, conf = kpts[i, _PARTS[part], :2], kpts[i, _PARTS[part], 2]
+            if conf <= 0.3:
+                continue
+            d = float(np.hypot(*(xy - obj_uv_all[i])))
+            if best != best or d < best:
+                best = d
+        return best
 
     rows = []
     for fe, feat, vc in records:
@@ -53,13 +78,32 @@ def run_vlm(sample_dir: Path, *, classifier: str = "rule", backend: str = "heuri
         relevant = bool(an.relevant and not (
             fe.source == "audio" and vc.visual_cue == "none" and support < 0.10))
 
+        # VLM anchor reasoning: the backend names the contacting body part; when it does,
+        # that overrides the fuse heuristic's nearest-part attribution (fuse prefers a
+        # near hand, which mislabels e.g. a kick where the hand dangles nearer in 2D
+        # than the striking foot). The override must survive a geometry check — the
+        # named part has to actually be near the object at the event frame — so a
+        # hallucinated part (VLM calling a dribble "left_foot") cannot displace fuse.
+        # With no tracking data the check is vacuous and the VLM is trusted as-is.
+        target_entity, contact_target, promote = fe.target_entity, fe.contact_target, fe.promote_anchor
+        vlm_parts = [e for e in an.entities if e in _BODY_PARTS]
+        if (relevant and vlm_parts and an.confidence >= 0.5
+                and fe.contact_target == "part"          # part-vs-part correction only; a
+                and vlm_parts[0] != fe.target_entity):   # vel-reversal "support" verdict stands
+            dpart = _part_dist_px(fe.frame, vlm_parts[0])
+            if dpart != dpart or dpart < 140.0:  # NaN → nothing to refute with
+                target_entity = vlm_parts[0]
+                contact_target = "part"
+                promote = bool(fe.contact_constraint == "point" and fe.contact_quality == "hard")
+
         rows.append({
             "frame": fe.frame, "refined_frame": refined_frame,
             "time": round(fe.time, 4), "refined_time": round(rtime, 4),
             "evidence": fe.source, "audio_support": round(support, 3),
             "fused_event_type": fe.fused_event_type, "interaction_mode": fe.interaction_mode,
-            "contact_quality": fe.contact_quality, "contact_target": fe.contact_target,
-            "target_entity": fe.target_entity, "vlm_relevant": int(relevant),
+            "contact_quality": fe.contact_quality, "contact_target": contact_target,
+            "target_entity": target_entity, "fuse_target_entity": fe.target_entity,
+            "vlm_relevant": int(relevant),
             "vlm_interaction": an.interaction, "vlm_impact": an.impact,
             "vlm_entities": "|".join(an.entities), "vlm_confidence": round(an.confidence, 3),
             "vlm_hand_side": an.extra.get("hand_side", ""), "vlm_object_part": an.extra.get("object_part", ""),
@@ -67,7 +111,7 @@ def run_vlm(sample_dir: Path, *, classifier: str = "rule", backend: str = "heuri
             "vlm_primary_finger": an.extra.get("primary_finger", ""),
             "vlm_fingers": "|".join(an.extra.get("contact_fingers", []) or []),
             "manip_gamma": fe.manip_gamma, "manip_weight": fe.manip_weight,
-            "promote_anchor": int(fe.promote_anchor), "vlm_description": an.description,
+            "promote_anchor": int(promote), "vlm_description": an.description,
             "window_png": str(png.relative_to(sample_dir)),
         })
 
@@ -111,7 +155,7 @@ def main() -> None:
     ap.add_argument("--classifier", default="rule")
     ap.add_argument("--backend", default="heuristic", help="heuristic | moondream")
     ap.add_argument("--vlm-model", default=None, help="local model path for the VLM backend")
-    ap.add_argument("--fps", type=float, default=24.0)
+    ap.add_argument("--fps", type=float, default=0.0, help="0 = auto-detect from video.mp4")
     args = ap.parse_args()
     run_vlm(args.sample_dir, classifier=args.classifier, backend=args.backend,
             model_path=args.vlm_model, fps=args.fps)

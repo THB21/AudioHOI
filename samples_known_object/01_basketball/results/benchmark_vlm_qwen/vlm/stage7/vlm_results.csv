@@ -1,0 +1,6 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+basketball,stage7,50,loss_diagnostic_check,normal,pass,accept_candidate,0,0,1
+basketball,stage7,51,loss_diagnostic_check,normal,pass,accept_candidate,0,0,1
+basketball,stage7,49,loss_diagnostic_check,normal,pass,accept_candidate,0,0,1
+basketball,stage7,1,loss_diagnostic_check,contact_spike,reject,mark_for_report_only,0,0,1
+basketball,stage7,97,loss_diagnostic_check,normal,pass,accept_candidate,0,0,1

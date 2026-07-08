@@ -1,0 +1,15 @@
+{
+  "case_name": "chair",
+  "stage": "stage1",
+  "gate_rows": 6,
+  "effective_rows": 6,
+  "blocked_frames": [],
+  "unclear_frames": [],
+  "accepted_contact_frames": [],
+  "accepted_anchor_frames": [
+    1,
+    97,
+    192
+  ],
+  "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage1/vlm_gates.csv"
+}

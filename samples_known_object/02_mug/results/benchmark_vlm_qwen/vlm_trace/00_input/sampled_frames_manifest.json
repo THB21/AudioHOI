@@ -1,0 +1,68 @@
+{
+  "frames": [
+    {
+      "stage": "",
+      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage0/evidence/frame00001_target_mask_check.png",
+      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/frame00001_target_mask_check.png",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage1/evidence/frame00001_keypart_identity_check.png",
+      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/frame00001_keypart_identity_check.png",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage1/evidence/frame00001_track_stability_check.png",
+      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/frame00001_track_stability_check.png",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage1/evidence/frame00121_keypart_identity_check.png",
+      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/frame00121_keypart_identity_check.png",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage1/evidence/frame00121_track_stability_check.png",
+      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/frame00121_track_stability_check.png",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage1/evidence/frame00240_keypart_identity_check.png",
+      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/frame00240_keypart_identity_check.png",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage1/evidence/frame00240_track_stability_check.png",
+      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/frame00240_track_stability_check.png",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage2/evidence/frame00001_contact_relation_check.png",
+      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/frame00001_contact_relation_check.png",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    }
+  ]
+}

@@ -309,6 +309,11 @@ def build_rows(
         }
 
         for name in ["center", "left", "right", "top", "bottom"]:
+            if name == "center" and math.isnan(points["center_x"]):
+                # no tracked center point: keep the fused center written above —
+                # this loop shares the center_x/center_y column names and would
+                # otherwise blank them for mask-only samples
+                continue
             row[f"{name}_x"] = f"{points[f'{name}_x']:.3f}" if not math.isnan(points[f"{name}_x"]) else ""
             row[f"{name}_y"] = f"{points[f'{name}_y']:.3f}" if not math.isnan(points[f"{name}_y"]) else ""
             row[f"{name}_visible"] = f"{points[f'{name}_visible']:.6f}" if not math.isnan(points[f"{name}_visible"]) else ""

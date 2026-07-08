@@ -1,0 +1,8 @@
+{
+  "id": 11,
+  "name": "stick",
+  "image": "video_sample/11_stick.jpg",
+  "video": "video_sample/11_stick_video.mp4",
+  "prompt": "Generate an 8-second realistic video from this image. The person performs a short martial arts staff routine using the same long wooden staff. The sequence should include several natural staff movements such as swinging, turning, and changing stance. During the routine, the staff should lightly tap the ground one or two times as part of the movement. Keep the camera static in a wide shot, with the full body and the staff visible throughout most of the sequence. Add realistic synchronized audio: soft whooshing sounds during the staff swings, subtle footsteps, and one or two clear wooden staff-to-floor tapping sounds when the staff touches the ground. No music, no speech.",
+  "detection_text": "long wooden staff. martial arts staff. bo staff. stick."
+}

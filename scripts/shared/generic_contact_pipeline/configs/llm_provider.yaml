@@ -1,0 +1,26 @@
+default_provider: mistral_api
+providers:
+  mistral_api:
+    kind: mistral_chat_completions
+    api_key_env: MISTRAL_API_KEY
+    model_id_env: MISTRAL_MODEL_ID
+    model_id: mistral-small-latest
+    base_url_env: MISTRAL_BASE_URL
+    base_url: https://api.mistral.ai/v1
+    temperature: 0.0
+    max_new_tokens: 900
+    timeout_seconds: 120
+    mode: schema_guarded_seed_fallback
+    note: >
+      Text-only LLM provider for Stage -1 HOI semantic priors. The response is
+      schema validated and may only define discrete semantic parts, interaction
+      edges, support/motion priors, and VLM query policies.
+  qwen_local:
+    kind: qwen_text_or_vl
+    python: /home/yang/miniconda3/envs/qwen-vl/bin/python
+    mode: schema_guarded_seed_fallback
+    note: >
+      The first v2 implementation uses deterministic seed profiles. Local Qwen
+      may be connected later, but every generated HOI profile must pass
+      core.hoi_profile validation and must never emit pose, coordinates, or
+      continuous loss weights.

@@ -1,0 +1,19 @@
+{
+  "rows": 36,
+  "labels": [
+    "aligned",
+    "front_leg",
+    "left_palm_on_top_rail",
+    "left_top_rail_endpoint",
+    "no_change",
+    "no_regression",
+    "pass",
+    "right_palm_grasp_seat_edge",
+    "right_palm_on_top_rail",
+    "seat",
+    "stable",
+    "unclear",
+    "visual_spike",
+    "yes"
+  ]
+}

@@ -1,0 +1,886 @@
+{
+  "flags": [
+    {
+      "frame": 1,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 1,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 1,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 2,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 2,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 2,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 3,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 3,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 3,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 4,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 4,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 4,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 5,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 5,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 5,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 6,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 6,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 6,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 7,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 7,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 7,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 8,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 8,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 8,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 9,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 9,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 9,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 10,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 10,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 10,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 11,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 11,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 11,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 12,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 12,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 12,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 13,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 13,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 13,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 14,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 14,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 14,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 15,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 15,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 15,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 16,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 16,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 16,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 17,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 17,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 17,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 18,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 18,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 18,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 19,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 19,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 19,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 20,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 20,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 20,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 21,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 21,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 21,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 22,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 22,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 22,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 23,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 23,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 23,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 24,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 24,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 24,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 25,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 25,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 25,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 26,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 26,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 26,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 27,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 27,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 27,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 28,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 28,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 28,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 29,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 29,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 29,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 30,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 30,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 30,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 31,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 31,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 31,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 32,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 32,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 32,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 33,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 33,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 33,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 34,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 34,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 34,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 35,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 35,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 35,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 36,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 36,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 36,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 37,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 37,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 37,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 38,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 38,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 38,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 39,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 39,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 39,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 208,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 208,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 208,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 209,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 209,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 209,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 210,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 210,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 210,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 211,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 211,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 211,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 212,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 212,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 212,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 213,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 213,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 213,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 214,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 214,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 214,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 215,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 215,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 215,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 216,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 216,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 216,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 217,
+      "field": "tx",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 217,
+      "field": "ty",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    },
+    {
+      "frame": 217,
+      "field": "tz",
+      "issue": "ball behind/far from player (no contact) - implausible",
+      "suggested_action": "clamp"
+    }
+  ]
+}

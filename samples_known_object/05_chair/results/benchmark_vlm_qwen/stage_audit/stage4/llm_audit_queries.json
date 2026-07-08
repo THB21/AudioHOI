@@ -1,0 +1,36 @@
+{
+  "case_name": "chair",
+  "stage": "stage4",
+  "llm_mode": "mistral",
+  "note": "LLM audit operates on CSV/metrics evidence and may only emit discrete gates/actions.",
+  "queries": [
+    {
+      "case_name": "chair",
+      "stage": "stage4",
+      "object_family": "articulated_support_object",
+      "role": "CSV/metrics LLM audit gate; labels only, no coordinates or pose generation",
+      "query_id": "sequence_optimizer_contract",
+      "question": "Did the fixed sequence SE3 optimizer run and emit residual, regime, jump, and decision artifacts?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "stage_inconsistent",
+        "unclear"
+      ]
+    },
+    {
+      "case_name": "chair",
+      "stage": "stage4",
+      "object_family": "articulated_support_object",
+      "role": "CSV/metrics LLM audit gate; labels only, no coordinates or pose generation",
+      "query_id": "pose_jump_audit",
+      "question": "Do pose/contact/smoothness spike metrics require reweighting and optimizer rerun?",
+      "allowed_labels": [
+        "pass",
+        "rotation_jump",
+        "static_drift",
+        "unclear"
+      ]
+    }
+  ]
+}

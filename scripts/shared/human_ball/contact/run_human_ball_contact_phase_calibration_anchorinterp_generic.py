@@ -15,6 +15,7 @@ import torch
 
 from contact_part_utils import (
     build_contact_identity,
+    build_contact_part_centers,
     choose_active_contact_relation,
     event_frames_by_type,
     human_event_frames_generic,
@@ -193,6 +194,8 @@ def audio_fields_from_records(records_csv: Path, frames: np.ndarray, radius: int
     scale = np.ones(n)
     promote = np.zeros(n, dtype=bool)
     event_type = np.array(["" for _ in frames], dtype=object)
+    part_label = np.array(["" for _ in frames], dtype=object)
+    event_time = np.full(n, np.nan)
     best = np.zeros(n)
     for r in rows:
         if not int(float(r.get("relevant", 1) or 0)):
@@ -222,8 +225,50 @@ def audio_fields_from_records(records_csv: Path, frames: np.ndarray, radius: int
                 scale[j] = w
         promote[ev_i] = (r.get("contact_target") == "part") and bool(int(float(r.get("promote_anchor", 0) or 0)))
         event_type[ev_i] = r.get("event_type", "")
+        # sub-frame timing: audio pins the contact instant far more precisely than
+        # the frame grid; keep the refined (fractional-frame) event time so the
+        # anchor value can be evaluated at the true contact moment
+        event_time[ev_i] = float(r.get("refined_time", r.get("time", "nan")) or "nan")
+        # VLM anchor reasoning: the record names WHICH body part contacts (target_entity,
+        # VLM-reconciled upstream); expose it so the anchor pins to that part's depth
+        tgt = str(r.get("target_entity", "") or "")
+        if r.get("contact_target") == "part" and tgt in {"left_hand", "right_hand", "left_foot", "right_foot"}:
+            part_label[ev_i] = tgt
     return {"support": support, "gamma": gamma, "w_audio_scale": scale,
-            "promote": promote, "event_type": event_type}
+            "promote": promote, "event_type": event_type, "part_label": part_label,
+            "event_time": event_time}
+
+
+def build_anchor_segment_reference(
+    z_init: np.ndarray,
+    anchor_mask: np.ndarray,
+    anchor_values: np.ndarray,
+) -> np.ndarray:
+    """Piecewise-linear depth reference through the contact anchors.
+
+    Between consecutive anchors the reference interpolates the anchor depths;
+    before the first / after the last anchor it holds the boundary anchor value
+    constant. This replaces the global-shift reference (z_init + median delta),
+    which inherits any drift/collapse of the initial depth estimate — most
+    visibly at the clip edges, where a bad global shift pushes the object far
+    off (the football begin/end failure).
+    """
+    anchor_idx = np.flatnonzero(anchor_mask)
+    if len(anchor_idx) == 0:
+        raise RuntimeError("No anchors available for segmented reference")
+    z_ref = np.asarray(z_init, dtype=np.float64).copy()
+    first = int(anchor_idx[0])
+    last = int(anchor_idx[-1])
+    z_ref[: first + 1] = float(anchor_values[first])
+    for left, right in zip(anchor_idx[:-1], anchor_idx[1:]):
+        left = int(left)
+        right = int(right)
+        if right <= left:
+            continue
+        alpha = np.linspace(0.0, 1.0, right - left + 1, dtype=np.float64)
+        z_ref[left : right + 1] = (1.0 - alpha) * float(anchor_values[left]) + alpha * float(anchor_values[right])
+    z_ref[last:] = float(anchor_values[last])
+    return np.maximum(z_ref, 0.20)
 
 
 def solve_anchor_interpolation(
@@ -237,6 +282,21 @@ def solve_anchor_interpolation(
     w_audio: float = 0.0,
     audio_accel_relax: float | np.ndarray = 0.0,
     w_audio_scale: np.ndarray | None = None,
+    impulse_mode: str = "relax",
+    kappa_budget: float = 0.05,
+    u_obs: np.ndarray | None = None,
+    v_obs: np.ndarray | None = None,
+    K: np.ndarray | None = None,
+    times: np.ndarray | None = None,
+    flight_mask: np.ndarray | None = None,
+    w_phys_xz: float = 0.0,
+    w_phys_y: float = 0.0,
+    gravity_mps2: float = 9.81,
+    pen_centers: np.ndarray | None = None,
+    pen_clearance: float = 0.0,
+    w_pen: float = 0.0,
+    vis_conf: np.ndarray | None = None,
+    audio_vis_coupling: float = 0.0,
 ) -> np.ndarray:
     """Refine ball depth between contact anchors.
 
@@ -254,6 +314,32 @@ def solve_anchor_interpolation(
       * a local relaxation of the acceleration regularizer (``audio_accel_relax``) so a
         real bounce/placement velocity kink is not smoothed away.
     With all-zero ``audio_support`` both terms vanish and the solve is unchanged.
+
+    ``impulse_mode`` selects how the smoothness term treats audio onsets:
+      * ``"relax"`` (default): multiplicative down-weighting
+        ``w_temp * (1 - gamma_t * A_t) * d2z`` — the historical behaviour.
+      * ``"budget"``: amplitude-modulated impulse budget. Near an onset the residual
+        becomes a one-sided hinge ``w_temp * max(0, |d2z| - b_t)`` with per-frame
+        budget ``b_t = kappa_budget * A_t^(5/6)`` — Hertzian contact predicts the
+        velocity change scales with impact amplitude as dv ~ A^(5/6), so a loud
+        impact is *allowed* (not merely less-penalized) a proportionally larger
+        depth kink, while any kink beyond the budget is penalized at full weight.
+        Off-onset frames (A_t = 0) keep the plain quadratic residual. The hinge is
+        continuous in z, which is all scipy's trf least_squares needs.
+
+    Optional flight-phase physics (``w_phys_xz`` / ``w_phys_y`` > 0, off by default):
+    on 3-frame windows where the object is in contact with nothing (``flight_mask``),
+    penalize X/Z acceleration (constant velocity) and pull Y acceleration toward
+    gravity. This is still object-agnostic — free flight is free flight regardless of
+    shape — but it does assume the contact states are trustworthy, so it stays opt-in;
+    the default solve keeps the pure no-physics smoothness prior.
+
+    Penetration correction (``w_pen`` > 0, on by default): the object center must
+    stay at least ``pen_clearance`` (proxy radius + margin) away from every human
+    part center in ``pen_centers`` [P, N, 3] (palms, feet, body joints) on free
+    frames — a hinge penalty, zero unless the object sits inside the human. Since
+    only depth is optimized, the correction resolves penetration by sliding the
+    object along its camera ray.
     """
     free_idx = np.flatnonzero(~anchor_mask)
     anchor_idx = np.flatnonzero(anchor_mask)
@@ -268,6 +354,21 @@ def solve_anchor_interpolation(
     relax = np.broadcast_to(np.asarray(audio_accel_relax, dtype=np.float64), (n,))
     pull_scale = np.ones(n) if w_audio_scale is None else np.asarray(w_audio_scale, dtype=np.float64)
 
+    phys_on = (w_phys_xz > 0.0 or w_phys_y > 0.0) and flight_mask is not None and n >= 3
+    pen_on = w_pen > 0.0 and pen_centers is not None and pen_clearance > 0.0
+    if (phys_on or pen_on) and (u_obs is None or v_obs is None or K is None):
+        raise RuntimeError("Physics/penetration terms need u_obs/v_obs/K to reconstruct XY from depth")
+    free_mask = ~anchor_mask  # penetration acts on free frames only (anchors are pinned)
+    flight_triplet = np.zeros(n, dtype=bool)
+    if phys_on:
+        flight_triplet[1:-1] = flight_mask[:-2] & flight_mask[1:-1] & flight_mask[2:]
+        phys_on = bool(np.any(flight_triplet))
+    if times is not None and len(times) >= 2:
+        dt_mean = float(np.mean(np.diff(times)))
+    else:
+        dt_mean = 1.0 / 30.0
+    g_dt2 = gravity_mps2 * (dt_mean ** 2)
+
     def unpack_z(free_values: np.ndarray) -> np.ndarray:
         z = np.asarray(z_ref, dtype=np.float64).copy()
         z[anchor_idx] = anchor_values[anchor_idx]
@@ -279,13 +380,19 @@ def solve_anchor_interpolation(
         residual_list = [w_ref * (z[free_idx] - z_ref[free_idx])]
 
         # audio-weighted soft contact anchor: at impact moments pull free-frame depth
-        # toward the contacting part's depth, with confidence ~ audio onset strength
+        # toward the contacting part's depth, with confidence ~ audio onset strength.
+        # Inverse-confidence coupling: where visual depth confidence collapses
+        # (occlusion, motion blur at impact — exactly when contact happens), the
+        # audio term takes over: coef *= 1 + kappa * (1 - vis_conf).
         if w_audio > 0.0 and audio_anchor_target is not None:
             a_free = audio_support[free_idx]
             tgt = np.asarray(audio_anchor_target, dtype=np.float64)[free_idx]
             valid = (a_free > 0.0) & np.isfinite(tgt)
             if np.any(valid):
                 coef = w_audio * pull_scale[free_idx][valid] * a_free[valid]
+                if audio_vis_coupling > 0.0 and vis_conf is not None:
+                    c_free = np.clip(np.asarray(vis_conf, dtype=np.float64)[free_idx][valid], 0.0, 1.0)
+                    coef = coef * (1.0 + audio_vis_coupling * (1.0 - c_free))
                 residual_list.append(coef * (z[free_idx][valid] - tgt[valid]))
 
         # penalize depth acceleration (second difference) on free frames - this is
@@ -296,8 +403,45 @@ def solve_anchor_interpolation(
             second_z = z[2:] - 2.0 * z[1:-1] + z[:-2]
             smooth_mask = ~anchor_mask[1:-1]
             if np.any(smooth_mask):
-                accel_w = np.clip(w_temp * (1.0 - relax[1:-1] * audio_support[1:-1]), 0.0, None)
-                residual_list.append((accel_w * second_z)[smooth_mask])
+                if impulse_mode == "budget":
+                    # Hertz-scaled impulse budget: near an onset (A_t > 0) allow a
+                    # depth kink of up to b_t = kappa * A_t^(5/6) for free, penalize
+                    # only the excess (one-sided hinge, continuous in z). Off-onset
+                    # frames keep the plain quadratic residual.
+                    a_mid = np.clip(audio_support[1:-1], 0.0, 1.0)
+                    budget = kappa_budget * np.power(a_mid, 5.0 / 6.0)
+                    onset = a_mid > 0.0
+                    smooth_res = np.where(
+                        onset,
+                        w_temp * np.maximum(0.0, np.abs(second_z) - budget),
+                        w_temp * second_z,
+                    )
+                    residual_list.append(smooth_res[smooth_mask])
+                else:
+                    accel_w = np.clip(w_temp * (1.0 - relax[1:-1] * audio_support[1:-1]), 0.0, None)
+                    residual_list.append((accel_w * second_z)[smooth_mask])
+
+            # flight-phase physics: constant velocity in X/Z, gravity in Y (camera
+            # frame, +Y down), evaluated only on all-flight triplets
+            if phys_on:
+                xyz = reconstruct_xyz_from_uvz(u_obs, v_obs, z, K)
+                x = xyz[:, 0]
+                y = xyz[:, 1]
+                phys_mask = flight_triplet[1:-1]
+                second_x = x[2:] - 2.0 * x[1:-1] + x[:-2]
+                second_y = y[2:] - 2.0 * y[1:-1] + y[:-2]
+                if w_phys_xz > 0.0:
+                    residual_list.append(w_phys_xz * second_x[phys_mask])
+                    residual_list.append(w_phys_xz * second_z[phys_mask])
+                if w_phys_y > 0.0:
+                    residual_list.append(w_phys_y * (second_y[phys_mask] - g_dt2))
+
+        # penetration hinge: clearance shortfall to each human part center, free frames only
+        if pen_on:
+            xyz = reconstruct_xyz_from_uvz(u_obs, v_obs, z, K)
+            dist = np.linalg.norm(xyz[None, :, :] - pen_centers, axis=2)  # [P, N]
+            shortfall = np.maximum(0.0, pen_clearance - dist) * free_mask[None, :]
+            residual_list.append(w_pen * shortfall.ravel())
 
         return np.concatenate([np.ravel(r) for r in residual_list]).astype(np.float64)
 
@@ -313,6 +457,50 @@ def solve_anchor_interpolation(
     return unpack_z(result.x)
 
 
+def resolve_ray_penetration(
+    z: np.ndarray,
+    u_obs: np.ndarray,
+    v_obs: np.ndarray,
+    K: np.ndarray,
+    pen_centers: np.ndarray,
+    clearance: float,
+    mask: np.ndarray,
+) -> np.ndarray:
+    """Minimally slide penetrating frames along their pixel ray to clear the body.
+
+    The boundary_constant clamp runs AFTER the least-squares solve, so clamped
+    frames bypass the soft penetration residual (e.g. the person walking into the
+    parked object past the last anchor). For each masked frame still violating the
+    clearance, pick the root of |ray·z - part|^2 = clearance^2 nearest the current
+    depth — the smallest depth change that resolves the overlap.
+    """
+    z = z.copy()
+    for i in np.flatnonzero(mask):
+        d = np.array([
+            (u_obs[i] - K[i, 0, 2]) / K[i, 0, 0],
+            (v_obs[i] - K[i, 1, 2]) / K[i, 1, 1],
+            1.0,
+        ])
+        zi = float(z[i])
+        for _ in range(8):
+            dists = np.linalg.norm(d[None, :] * zi - pen_centers[:, i, :], axis=1)
+            j = int(np.argmin(dists))
+            if dists[j] >= clearance:
+                break
+            p = pen_centers[j, i, :]
+            a = float(d @ d)
+            b = -2.0 * float(d @ p)
+            c = float(p @ p) - (clearance + 2e-3) ** 2  # overshoot so the result clears strictly
+            disc = b * b - 4.0 * a * c
+            if disc <= 0.0:
+                break
+            r1 = (-b - np.sqrt(disc)) / (2.0 * a)
+            r2 = (-b + np.sqrt(disc)) / (2.0 * a)
+            zi = float(r1 if abs(r1 - z[i]) <= abs(r2 - z[i]) else r2)
+        z[i] = max(0.20, zi)
+    return z
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Generic anchor-only z refinement for human-ball contact.")
     parser.add_argument("--sample-dir", type=Path, required=True)
@@ -326,10 +514,26 @@ def main(argv: list[str] | None = None) -> None:
                              "pose6d_sharedcam_depthv3 trajectory to refine DA3 depth).")
     parser.add_argument("--support-geometry-json", type=Path, default=None)
     parser.add_argument("--default-part", type=str, choices=["hand", "foot"], default=None)
-    parser.add_argument("--outside-window-mode", type=str, choices=["global_ref", "boundary_constant"], default="global_ref")
+    parser.add_argument("--outside-window-mode", type=str, choices=["global_ref", "boundary_constant"], default="boundary_constant",
+                        help="frames before the first / after the last anchor: hold the boundary anchor "
+                             "depth constant (default) or follow the globally shifted reference "
+                             "(global_ref extrapolates any reference error into the clip edges)")
+    parser.add_argument("--z-ref-mode", type=str, choices=["global_shift", "anchor_segment"], default="anchor_segment",
+                        help="free-frame depth reference: piecewise-linear between anchor depths "
+                             "(default; robust to bad initial depth) or z_init + global median shift")
     parser.add_argument("--delta-stat", type=str, choices=["median", "mean"], default="median")
     parser.add_argument("--w-ref", type=float, default=0.7, help="keep free frames near their prior depth")
     parser.add_argument("--w-temp", type=float, default=5.0, help="smoothness regularizer (depth acceleration)")
+    parser.add_argument("--w-phys-xz", type=float, default=0.0,
+                        help="flight-phase constant-velocity prior on X/Z (0 disables; teammate's football run used 1.5)")
+    parser.add_argument("--w-phys-y", type=float, default=0.0,
+                        help="flight-phase gravity prior on Y (0 disables; teammate's football run used 0.8)")
+    parser.add_argument("--gravity-mps2", type=float, default=9.81)
+    parser.add_argument("--w-pen", type=float, default=2.0,
+                        help="penetration correction: keep the object center >= radius+margin away from "
+                             "human part/joint centers on free frames (0 disables)")
+    parser.add_argument("--pen-margin-m", type=float, default=0.0,
+                        help="extra clearance in metres added to the object radius for the penetration term")
     parser.add_argument("--audio-events-csv", type=Path, default=None,
                         help="audio onset events (default results/events/audio_events.csv); drives "
                              "audio contact timing, soft contact pull, and acceleration relaxation")
@@ -337,6 +541,22 @@ def main(argv: list[str] | None = None) -> None:
                         help="weight of the soft audio-gated contact pull on free frames (0 disables)")
     parser.add_argument("--audio-accel-relax", type=float, default=0.8,
                         help="0..1: fraction by which to relax depth-acceleration smoothness at audio impacts")
+    parser.add_argument("--anchor-geometry", type=str, choices=["part_depth", "surface_gap"], default="surface_gap",
+                        help="anchor depth semantics: object center at joint depth (legacy, biased by up to "
+                             "one radius) or the depth where object SURFACE touches the part (|C-P|=r ray root)")
+    parser.add_argument("--impulse-mode", type=str, choices=["relax", "budget"], default="budget",
+                        help="how audio onsets modulate the smoothness residual: 'relax' "
+                             "(multiplicative down-weighting, default) or 'budget' (Hertz-scaled "
+                             "impulse budget: hinge max(0,|d2z|-kappa*A^(5/6)) at onsets)")
+    parser.add_argument("--kappa-budget", type=float, default=0.05,
+                        help="impulse budget scale in metres/frame^2 for --impulse-mode budget: a "
+                             "full-strength onset (A=1) allows this much depth kink for free")
+    parser.add_argument("--audio-flight-physics", action="store_true", default=False,
+                        help="audio as mode oracle: enable the flight-phase physics residuals ONLY "
+                             "on frames strictly between consecutive audio events < 40 frames apart "
+                             "(audio inter-onset intervals delimit ballistic segments between "
+                             "contacts), intersected with the visual flight state; uses "
+                             "w_phys_xz/w_phys_y = 1.0/1.0 when those flags are left at 0")
     parser.add_argument("--audio-new-anchors", dest="audio_new_anchors", action="store_true", default=True,
                         help="promote strong audio onsets to hard contact anchors (default on)")
     parser.add_argument("--no-audio-new-anchors", dest="audio_new_anchors", action="store_false")
@@ -350,6 +570,17 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--audio-records-csv", type=Path, default=None,
                         help="REPLACE the legacy audio_semantics path with the new src/audio "
                              "contact_records.csv (dual-modal, relevance-gated, VLM/feature-classified)")
+    parser.add_argument("--audio-vis-coupling", type=float, default=2.0,
+                        help="kappa: scale the audio contact pull by 1+kappa*(1-depth_conf) so audio "
+                             "takes over exactly where visual depth confidence collapses (0 disables; "
+                             "validated on football occlusion window f105-120: ball correctly moves to "
+                             "the body plane where blind interpolation floated 25 cm off)")
+    parser.add_argument("--object-depth-csv", type=Path, default=None,
+                        help="per-frame DA3 depth confidence source (default results/depth/object_depth.csv)")
+    parser.add_argument("--audio-subframe-anchors", dest="audio_subframe_anchors", action="store_true", default=True,
+                        help="evaluate audio-anchor depth at the refined fractional-frame contact time "
+                             "(audio is ms-precise; the frame grid is not) (default on)")
+    parser.add_argument("--no-audio-subframe-anchors", dest="audio_subframe_anchors", action="store_false")
     args = parser.parse_args(argv)
 
     sample_dir = args.sample_dir
@@ -416,12 +647,15 @@ def main(argv: list[str] | None = None) -> None:
 
     contact_labels =[normalize_contact_label(r, default_part=default_part, fallback_side="right") for r in state_rows]
     part_y, part_z, part_name = choose_active_contact_relation(joints, contact_labels, fallback_label=f"right_{default_part}")
-    if not np.any(human_event_mask):
-        raise RuntimeError("No human contact events found; cannot compute global Delta-Z")
-
-    deltas = part_z[human_event_mask] - z_init[human_event_mask]
-    global_z_shift = float(np.median(deltas) if args.delta_stat == "median" else np.mean(deltas))
-    z_ref = np.maximum(z_init + global_z_shift, 0.20)
+    if np.any(human_event_mask):
+        deltas = part_z[human_event_mask] - z_init[human_event_mask]
+        global_z_shift = float(np.median(deltas) if args.delta_stat == "median" else np.mean(deltas))
+    else:
+        # large/lateral objects (chair) can defeat the visual hand-contact probes;
+        # audio anchors alone can still carry the solve (checked after promotion)
+        print("WARNING: no visual human contact events; relying on audio anchors alone")
+        global_z_shift = 0.0
+    z_ref_global = np.maximum(z_init + global_z_shift, 0.20)
 
     # Audio contact timing: per-frame onset confidence over the ball frames.
     audio_csv = args.audio_events_csv or (results_dir / "events" / "audio_events.csv")
@@ -434,6 +668,7 @@ def main(argv: list[str] | None = None) -> None:
     w_audio_scale = None
     event_type_field = np.array(["" for _ in ball_frames], dtype=object)
     classified: list = []
+    sem = None
     audio_promote_mask = None
 
     # Audio semantics: prefer the NEW src/audio contact_records (replaces the legacy path);
@@ -446,6 +681,22 @@ def main(argv: list[str] | None = None) -> None:
         event_type_field = sem["event_type"]
         audio_promote_mask = sem["promote"]
         print(f"audio source: src/audio contact_records ({args.audio_records_csv})")
+        # VLM-reasoned contact parts override the geometric state labels at event
+        # frames, then the part depth relation + global shift are recomputed so
+        # anchors pin to the part the VLM identified (e.g. the kicking foot)
+        record_parts = sem["part_label"]
+        if np.any(record_parts != ""):
+            for i, lbl in enumerate(record_parts):
+                if lbl:
+                    contact_labels[i] = str(lbl)
+            part_y, part_z, part_name = choose_active_contact_relation(
+                joints, contact_labels, fallback_label=f"right_{default_part}")
+            if np.any(human_event_mask):
+                deltas = part_z[human_event_mask] - z_init[human_event_mask]
+                global_z_shift = float(np.median(deltas) if args.delta_stat == "median" else np.mean(deltas))
+                z_ref_global = np.maximum(z_init + global_z_shift, 0.20)
+            n_over = int(np.count_nonzero(record_parts != ""))
+            print(f"VLM part override applied on {n_over} event frames")
     elif args.audio_semantics and audio_rows:
         classified = audio_semantics.classify_audio_events(sample_dir / "audio.wav", audio_rows)
         if classified:
@@ -470,11 +721,119 @@ def main(argv: list[str] | None = None) -> None:
             promote = np.asarray([f in strong for f in ball_frames], dtype=bool)
         audio_anchor_mask = promote & np.isfinite(part_z) & ~human_event_mask
     anchor_mask = human_event_mask | audio_anchor_mask
+    if not np.any(anchor_mask):
+        raise RuntimeError("No anchors at all: no visual contact events and no promotable audio onsets")
+
+    times = np.asarray([r["time"] for r in ball_rows], dtype=np.float64)
+
+    # anchor depths: audio anchors are pinned to the part depth at the refined
+    # (sub-frame) contact time rather than the frame-grid time — audio timing is
+    # ms-precise while the frame grid quantizes to +-1/(2 fps)
+    anchor_values = part_z.copy()
+    if args.audio_subframe_anchors and sem is not None and "event_time" in sem:
+        finite_part = np.isfinite(part_z)
+        if np.any(finite_part):
+            for i in np.flatnonzero(audio_anchor_mask):
+                t_ev = sem["event_time"][i]
+                if np.isfinite(t_ev):
+                    anchor_values[i] = float(np.interp(t_ev, times[finite_part], part_z[finite_part]))
+
+    # surface-gap anchor geometry: audio says the SURFACES touched (|C - P| = r),
+    # not that the object center sits at the joint depth (z = part_z, which is
+    # biased by up to one radius along the ray). Solve |ray*z - P| = r for z and
+    # take the root nearest the part-depth value; if the ray never comes within r
+    # of the part (2D center off the part), use the closest-approach depth.
+    if args.anchor_geometry == "surface_gap":
+        radius_anchor = float(ball_rows[0]["radius_m"])
+        part_points = build_contact_part_centers(joints)
+        for i in np.flatnonzero(anchor_mask):
+            label = str(part_name[i])
+            if label not in part_points:
+                continue
+            P = part_points[label][i]
+            d = np.array([
+                (u_obs[i] - K[i, 0, 2]) / K[i, 0, 0],
+                (v_obs[i] - K[i, 1, 2]) / K[i, 1, 1],
+                1.0,
+            ])
+            a = float(d @ d)
+            b = -2.0 * float(d @ P)
+            c = float(P @ P) - radius_anchor ** 2
+            disc = b * b - 4.0 * a * c
+            if disc <= 0.0:
+                z_star = float((d @ P) / a)  # closest approach — touch not reachable on this ray
+            else:
+                r1 = (-b - np.sqrt(disc)) / (2.0 * a)
+                r2 = (-b + np.sqrt(disc)) / (2.0 * a)
+                z_star = float(r1 if abs(r1 - anchor_values[i]) <= abs(r2 - anchor_values[i]) else r2)
+            anchor_values[i] = max(0.20, z_star)
+
+    if args.z_ref_mode == "anchor_segment":
+        z_ref = build_anchor_segment_reference(z_init, anchor_mask, anchor_values)
+    else:
+        z_ref = z_ref_global
+
+    # flight = in contact with nothing (per contact states); gates the optional physics
+    flight_mask = ~(human_state_mask | floor_state_mask)
+
+    # Audio as mode oracle: contact-STATE detection is visually unreliable, but audio
+    # onsets pin the contact INSTANTS precisely — so between two consecutive audio
+    # events that are close in time (< 40 frames) the object is, with high
+    # confidence, in ballistic flight. Enable the physics residuals only on those
+    # inter-onset frames (strictly between events), intersected with the visual
+    # flight state so frames the states positively mark as in-contact stay exempt.
+    w_phys_xz = args.w_phys_xz
+    w_phys_y = args.w_phys_y
+    phys_flight_mask = flight_mask
+    if args.audio_flight_physics:
+        ev_idx = np.flatnonzero(np.asarray([str(e) not in ("", "none") for e in event_type_field], dtype=bool))
+        if len(ev_idx) == 0:
+            ev_idx = np.flatnonzero(audio_anchor_mask)
+        if len(ev_idx) == 0 and audio_rows:
+            ev_frames = {int(r["audio_frame"]) for r in audio_rows}
+            ev_idx = np.flatnonzero(np.asarray([f in ev_frames for f in ball_frames], dtype=bool))
+        interval_mask = np.zeros(len(ball_frames), dtype=bool)
+        for i_a, i_b in zip(ev_idx[:-1], ev_idx[1:]):
+            gap = int(ball_frames_arr[i_b]) - int(ball_frames_arr[i_a])
+            if 0 < gap < 40:
+                interval_mask[i_a + 1 : i_b] = True  # strictly between the two events
+        phys_flight_mask = interval_mask & flight_mask
+        if w_phys_xz <= 0.0:
+            w_phys_xz = 1.0
+        if w_phys_y <= 0.0:
+            w_phys_y = 1.0
+        print(f"audio-flight-physics: {len(ev_idx)} audio events -> "
+              f"{int(np.count_nonzero(interval_mask))} inter-onset frames, "
+              f"{int(np.count_nonzero(phys_flight_mask))} after flight-state intersection "
+              f"(w_phys_xz={w_phys_xz}, w_phys_y={w_phys_y})")
+
+    # per-frame visual depth confidence (DA3 affine-fit corr x extrapolation penalty);
+    # feeds the audio-visual inverse-confidence coupling
+    vis_conf = None
+    depth_csv = args.object_depth_csv or (results_dir / "depth" / "object_depth.csv")
+    if args.audio_vis_coupling > 0.0 and depth_csv.exists():
+        conf_by_frame = {}
+        with depth_csv.open() as f:
+            for row in csv.DictReader(f):
+                try:
+                    conf_by_frame[int(row["frame"])] = float(row.get("depth_conf", 1.0) or 1.0)
+                except (TypeError, ValueError):
+                    continue
+        vis_conf = np.asarray([conf_by_frame.get(f, 1.0) for f in ball_frames], dtype=np.float64)
+
+    # penetration correction: object center must clear palms/feet + body joints by radius+margin
+    radius_m = float(ball_rows[0]["radius_m"])
+    pen_clearance = radius_m + args.pen_margin_m
+    pen_centers = None
+    if args.w_pen > 0.0:
+        part_centers = build_contact_part_centers(joints)
+        body_joints = [joints[:, j, :] for j in range(min(22, joints.shape[1]))]
+        pen_centers = np.stack([*part_centers.values(), *body_joints], axis=0)
 
     z_final = solve_anchor_interpolation(
         z_ref=z_ref,
         anchor_mask=anchor_mask,
-        anchor_values=part_z,
+        anchor_values=anchor_values,
         w_ref=args.w_ref,
         w_temp=args.w_temp,
         audio_support=audio_support,
@@ -482,6 +841,21 @@ def main(argv: list[str] | None = None) -> None:
         w_audio=args.w_audio,
         audio_accel_relax=relax_field,
         w_audio_scale=w_audio_scale,
+        impulse_mode=args.impulse_mode,
+        kappa_budget=args.kappa_budget,
+        u_obs=u_obs,
+        v_obs=v_obs,
+        K=K,
+        times=times,
+        flight_mask=phys_flight_mask,
+        w_phys_xz=w_phys_xz,
+        w_phys_y=w_phys_y,
+        gravity_mps2=args.gravity_mps2,
+        pen_centers=pen_centers,
+        pen_clearance=pen_clearance,
+        w_pen=args.w_pen,
+        vis_conf=vis_conf,
+        audio_vis_coupling=args.audio_vis_coupling,
     )
     if args.outside_window_mode == "boundary_constant":
         anchor_idx = np.flatnonzero(anchor_mask)
@@ -492,9 +866,18 @@ def main(argv: list[str] | None = None) -> None:
         if interp_end + 1 < len(z_final):
             z_final[interp_end + 1:] = max(0.20, float(z_final[interp_end]))
 
+    # the clamp bypasses the in-solve penetration residual — clean up any frames
+    # (typically the constant tails) where the human walks into the parked object
+    if pen_centers is not None:
+        z_final = resolve_ray_penetration(z_final, u_obs, v_obs, K, pen_centers, pen_clearance, ~anchor_mask)
+
     xyz_final = reconstruct_xyz_from_uvz(u_obs, v_obs, z_final, K)
-    radius_m = float(ball_rows[0]["radius_m"])
     r_proj, bottom_proj = project_ball(xyz_final, K, radius_m)
+
+    pen_frames_final = 0
+    if pen_centers is not None:
+        dist_final = np.linalg.norm(xyz_final[None, :, :] - pen_centers, axis=2)
+        pen_frames_final = int(np.count_nonzero((dist_final < pen_clearance).any(axis=0) & ~anchor_mask))
 
     out_rows = []
     reproj_rows = []
@@ -539,8 +922,22 @@ def main(argv: list[str] | None = None) -> None:
         f.write("Generic anchor interpolation z refinement for human-ball contact.\n")
         f.write(f"default_part: {default_part}\n")
         f.write(f"outside_window_mode: {args.outside_window_mode}\n")
+        f.write(f"z_ref_mode: {args.z_ref_mode}\n")
         f.write(f"w_ref: {args.w_ref:.6f}\n")
         f.write(f"w_temp: {args.w_temp:.6f}\n")
+        f.write(f"w_phys_xz: {w_phys_xz:.6f}\n")
+        f.write(f"w_phys_y: {w_phys_y:.6f}\n")
+        f.write(f"audio_flight_physics: {bool(args.audio_flight_physics)}\n")
+        if args.audio_flight_physics:
+            f.write(f"num_audio_flight_frames: {int(np.count_nonzero(phys_flight_mask))}\n")
+        f.write(f"impulse_mode: {args.impulse_mode}\n")
+        f.write(f"kappa_budget: {args.kappa_budget:.6f}\n")
+        f.write(f"gravity_mps2: {args.gravity_mps2:.6f}\n")
+        f.write(f"w_pen: {args.w_pen:.6f}\n")
+        f.write(f"pen_clearance_m: {pen_clearance:.6f}\n")
+        f.write(f"audio_vis_coupling: {args.audio_vis_coupling:.6f}\n")
+        f.write(f"audio_subframe_anchors: {bool(args.audio_subframe_anchors and sem is not None)}\n")
+        f.write(f"num_penetrating_free_frames_after_solve: {pen_frames_final}\n")
         f.write(f"w_audio: {args.w_audio:.6f}\n")
         f.write(f"audio_accel_relax: {args.audio_accel_relax:.6f}\n")
         f.write(f"audio_events_csv: {audio_csv}\n")

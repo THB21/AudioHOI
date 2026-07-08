@@ -1,0 +1,15 @@
+{
+  "stage_label": "stage3_translation3_init",
+  "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/ball_stage3_translation3_residuals.csv",
+  "rows": 242,
+  "terms": {
+    "E_total": 11.815675350000003,
+    "E_visual": 0.0,
+    "E_depth": 0.0,
+    "E_support": 0.0,
+    "E_contact": 0.0,
+    "E_smooth": 11.815675350000003,
+    "E_reg": 0.0
+  },
+  "note": "Optimizer-style normalized ball residuals mirroring the radius-free center/support/contact/smooth/reg construction; report only, does not alter pose."
+}

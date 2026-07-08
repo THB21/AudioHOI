@@ -1,0 +1,5 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+stick,stage3,artifact:object_pose_init,pass,keep_outputs,0,1,0,object_pose_init exists
+stick,stage3,se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+stick,stage3,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+stick,stage3,llm_csv:se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema

@@ -1,0 +1,16 @@
+{
+  "object": "01",
+  "contact_parts_generic": [
+    "hand"
+  ],
+  "contact_parts_concrete": [
+    "index_tip",
+    "middle_tip",
+    "palm",
+    "pinky_tip",
+    "ring_tip",
+    "thumb_tip"
+  ],
+  "source": "claude_analysis",
+  "prompt": ""
+}

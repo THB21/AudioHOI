@@ -1,0 +1,5 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+chair,stage1,artifact:object_observations,pass,keep_outputs,0,1,0,object_observations exists
+chair,stage1,artifact:object_correspondence,pass,keep_outputs,0,1,0,object_correspondence exists
+chair,stage1,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+chair,stage1,llm_csv:observation_contract,pass,keep_outputs,0,1,0,object_observations=192 object_correspondence=192

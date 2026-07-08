@@ -1,0 +1,18 @@
+{
+  "case_name": "mug",
+  "mode": "non_invasive_loss_audit",
+  "per_frame_residuals": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/per_frame_residuals.csv",
+  "stage7_loss_residuals": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage7_loss_residuals.csv",
+  "loss_trace": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/loss_trace.csv",
+  "plots": [
+    "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/E_total.png",
+    "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/E_smooth.png",
+    "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/E_reg.png"
+  ],
+  "active_terms": [
+    "E_total",
+    "E_smooth",
+    "E_reg"
+  ],
+  "note": "This audit computes comparable residual terms from existing generic outputs. It does not replace the optimizer internals yet."
+}

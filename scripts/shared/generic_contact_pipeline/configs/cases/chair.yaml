@@ -1,0 +1,40 @@
+case_name: chair
+sample_dir: samples_known_object/05_chair
+object_family: articulated_support_object
+geometry_model: articraft_chair_urdf
+observation_model: semantic_graph_tracks
+contact_policy: two_hand_toprail_endpoint
+pose_model: semantic_graph_6d
+refinement_policy:
+  - small_se3
+  - anchor_propagate_freeze
+  - sequence_se3_optimizer
+sequence_se3_optimizer:
+  anchor_type: stable_grasp_contact
+  prior_w: 0.34
+  smooth_w: 0.95
+  accel_w: 4.2
+render_backend: urdf_solid_mesh
+result_name: generic_pipeline_v1
+articraft_model_py: samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/revisions/rev_000001/model.py
+vlm:
+  target: chair
+  parts: [front_leg, rear_leg, seat, backrest, top_rail, stretcher, hole, background, unclear]
+  contacts: [left_palm, right_palm, both_hands, body, floor, nothing_nearby, unclear]
+  stable_refs: [front_leg, top_rail_endpoint, seat_edge, backrest_hole, stretcher, unclear]
+contact_window:
+  start_frame: 20
+  end_frame: 144
+  source: audio_place_frame_no_object_motion_gate
+camera:
+  fx: 1468.604736328125
+  fy: 1468.604736328125
+  cx: 640.0
+  cy: 360.0
+baseline:
+  final_pose_csv: samples_known_object/05_chair/results/mainline_0425/object_pose.csv
+  final_contact_csv: samples_known_object/05_chair/results/mainline_0425/object_contact_points.csv
+  final_phase_csv: samples_known_object/05_chair/results/mainline_0425/object_phase.csv
+  semantic_observations_csv: samples_known_object/05_chair/results/chair_semantic_observations/chair_semantic_observations.csv
+  physical6d_seed_csv: samples_known_object/05_chair/results/mainline_0425/physical6d_seed/physical6d_pose.csv
+  render_dir: samples_known_object/05_chair/results/renders/mainline_0425

@@ -267,11 +267,14 @@ def read_alignment_frames(path: Path) -> list[int]:
     return frames
 
 
-def read_object_depth(path: Path) -> dict[int, float]:
-    """Per-frame metric object depth (aligned) from run_depth_anything_v3."""
+def read_object_depth(path: Path) -> tuple[dict[int, float], dict[int, float]]:
+    """Per-frame metric object depth (aligned) + per-frame confidence from
+    run_depth_anything_v3. depth_conf folds in fit corr + extrapolation, so unreliable
+    frames (e.g. the football ball extrapolating past the body) get ~0 weight."""
     depth: dict[int, float] = {}
+    conf: dict[int, float] = {}
     if not path.exists():
-        return depth
+        return depth, conf
     with path.open() as f:
         for row in csv.DictReader(f):
             val = row.get("object_z_aligned_m", "")
@@ -282,8 +285,13 @@ def read_object_depth(path: Path) -> dict[int, float]:
             except ValueError:
                 continue
             if np.isfinite(z):
-                depth[int(row["frame"])] = z
-    return depth
+                fid = int(row["frame"])
+                depth[fid] = z
+                try:
+                    conf[fid] = float(row.get("depth_conf", "") or 0.0)
+                except ValueError:
+                    conf[fid] = 0.0
+    return depth, conf
 
 
 def read_gvhmr_camera(path: Path) -> CameraModel:
@@ -390,6 +398,7 @@ def pose_residuals(
     size_weight: float,
     depth_obs: np.ndarray | None = None,
     depth_weight: float = 0.0,
+    depth_conf: np.ndarray | None = None,
 ) -> np.ndarray:
     t, ab = unpack_state(flat_state, len(obs_rows), segments)
     residuals: list[float] = []
@@ -416,8 +425,11 @@ def pose_residuals(
             residuals.append(size_weight * ((pred["area_px"] - row["mask_area"]) / 1000.0))
 
         # Per-frame metric depth observation (Depth Anything 3, aligned to GVHMR).
+        # Scaled by per-frame depth_conf so low-confidence frames (anti-correlated fit or
+        # object extrapolating past the body range) barely pull the depth.
         if depth_weight > 0.0 and depth_obs is not None and np.isfinite(depth_obs[idx]):
-            residuals.append(depth_weight * (t[idx, 2] - float(depth_obs[idx])))
+            w = depth_weight * (float(depth_conf[idx]) if depth_conf is not None else 1.0)
+            residuals.append(w * (t[idx, 2] - float(depth_obs[idx])))
 
         if idx in contact_indices:
             residuals.append(contact_weight * ((pred["bottom_v"] - camera.floor_v) / 20.0))
@@ -536,8 +548,7 @@ def main() -> None:
 
     object_obs_csv = args.object_observation_csv or (results_dir / "object_observations" / "object_observations.csv")
     radius_est_csv = args.radius_estimates_csv or (results_dir / "object_observations" / "radius_estimates.csv")
-    
-    # Load radius estimates if available
+
     radius_estimates = read_radius_estimates(radius_est_csv)
     if radius_estimates:
         print(f"Loaded {len(radius_estimates)} radius estimates from {radius_est_csv}")
@@ -587,21 +598,25 @@ def main() -> None:
     depth_weight = 0.0
     if args.depth_source == "depthv3":
         depth_csv = args.depth_csv or (results_dir / "depth" / "object_depth.csv")
-        depth_by_frame = read_object_depth(depth_csv)
+        depth_by_frame, conf_by_frame = read_object_depth(depth_csv)
         if not depth_by_frame:
             raise RuntimeError(
                 f"--depth-source depthv3 but no usable depth in {depth_csv}. "
                 "Run scripts.shared.depth.run_depth_anything_v3 first."
             )
         depth_obs = np.array([depth_by_frame.get(int(r["frame"]), np.nan) for r in obs_rows], dtype=np.float64)
+        # per-frame confidence (fit corr x extrapolation penalty); unreliable depth -> ~0 weight
+        depth_conf_obs = np.array([conf_by_frame.get(int(r["frame"]), 0.0) for r in obs_rows], dtype=np.float64)
         n_have = int(np.isfinite(depth_obs).sum())
+        mean_conf = float(np.nanmean(depth_conf_obs[np.isfinite(depth_obs)])) if n_have else 0.0
         # Disable sphere-specific terms; rely on DA3 depth + center + smoothness + contact.
         mask_weight = 0.0
         size_weight = 0.0
         depth_weight = args.depth_weight
         print(f"depth_source: depthv3  ({n_have}/{len(obs_rows)} frames with metric depth, "
-              f"depth_weight={depth_weight})")
+              f"depth_weight={depth_weight}, mean_conf={mean_conf:.3f})")
     else:
+        depth_conf_obs = None
         print("depth_source: sphere (Z = f*R/r)")
 
     init_t = build_init_translations(obs_rows, camera, shape, depth_obs=depth_obs)
@@ -633,6 +648,7 @@ def main() -> None:
             size_weight,
             depth_obs,
             depth_weight,
+            depth_conf_obs,
         ),
     )
 

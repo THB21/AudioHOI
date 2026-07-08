@@ -1,0 +1,97 @@
+{
+  "sample_dir": "samples/football_10",
+  "trajectory_csv": "samples/football_10/results/pose6d_sharedcam_contactphase_depthv3/ball_pose6d_sharedcam_contactphase_trajectory.csv",
+  "verdict": "WARN",
+  "reason": "3 finding(s): depth_outlier, audio_visual_mismatch, low_conf_unsupported",
+  "corrections": [
+    {
+      "issue": "depth_outlier",
+      "frames": [
+        53,
+        54
+      ],
+      "recipe": {
+        "type": "rerun_solver",
+        "flags": {
+          "--w-temp": 8.0
+        }
+      }
+    },
+    {
+      "issue": "audio_visual_mismatch",
+      "frames": [
+        57,
+        205
+      ],
+      "recipe": {
+        "type": "visual_review",
+        "frames": [
+          57,
+          205
+        ]
+      }
+    },
+    {
+      "issue": "low_conf_unsupported",
+      "frames": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86
+      ],
+      "recipe": {
+        "type": "visual_review",
+        "frames": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86
+        ]
+      }
+    }
+  ]
+}

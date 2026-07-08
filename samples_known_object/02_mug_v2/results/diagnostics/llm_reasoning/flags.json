@@ -1,0 +1,16 @@
+{
+  "flags": [
+    {
+      "frame": 23,
+      "field": "yaw",
+      "issue": "yaw ramps ~pi (-pi -> -2pi over f19-25) with no coupled translation change; violates rigid-body orientation continuity -> branch-flip artifact",
+      "suggested_action": "level_align"
+    },
+    {
+      "frame": 115,
+      "field": "yaw",
+      "issue": "yaw reverts ~pi (-2pi -> -pi over f112-118); a 180-deg flip-and-return is non-physical for a smoothly translating object -> confirms artifact excursion",
+      "suggested_action": "level_align"
+    }
+  ]
+}

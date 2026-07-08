@@ -1,0 +1,17 @@
+{
+  "case_name": "football",
+  "stage": "stage4",
+  "gate_rows": 10,
+  "effective_rows": 10,
+  "blocked_frames": [],
+  "unclear_frames": [
+    1,
+    2,
+    46,
+    122,
+    242
+  ],
+  "accepted_contact_frames": [],
+  "accepted_anchor_frames": [],
+  "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm/stage4/vlm_gates.csv"
+}

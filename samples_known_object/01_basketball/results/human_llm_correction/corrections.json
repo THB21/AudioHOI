@@ -1,0 +1,49 @@
+{
+  "sample_dir": "samples/basketball_01",
+  "trajectory_csv": "samples/basketball_01/results/pose6d_sharedcam_contactphase_depthv3/ball_pose6d_sharedcam_contactphase_trajectory.csv",
+  "verdict": "WARN",
+  "reason": "2 finding(s): boundary_drift, audio_visual_mismatch",
+  "corrections": [
+    {
+      "issue": "boundary_drift",
+      "frames": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "recipe": {
+        "type": "rerun_solver",
+        "flags": {
+          "--w-temp": 8.0
+        }
+      }
+    },
+    {
+      "issue": "audio_visual_mismatch",
+      "frames": [
+        24,
+        37,
+        77,
+        138,
+        174
+      ],
+      "recipe": {
+        "type": "visual_review",
+        "frames": [
+          24,
+          37,
+          77,
+          138,
+          174
+        ]
+      }
+    }
+  ]
+}

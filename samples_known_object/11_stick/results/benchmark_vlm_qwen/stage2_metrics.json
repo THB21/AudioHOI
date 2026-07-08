@@ -1,0 +1,86 @@
+{
+  "component": "generic_contact_anchor_mainline",
+  "case_name": "stick",
+  "adapter": {
+    "component": "persistent_two_palm_line",
+    "generic_pattern": "stable_line_grasp_anchor",
+    "reused_pipeline_patterns": [
+      "mug stable-grasp-anchor: keep persistent object-local hand anchors across frames",
+      "chair line/segment observation: represent elongated rigid parts by semantic line coordinates"
+    ],
+    "rows": 480,
+    "active_rows": 463,
+    "inactive_rows": 17,
+    "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_candidates.csv",
+    "contact_state": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_state_frames.csv",
+    "line_source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
+    "stable_object_local_s": {
+      "left": 0.638407,
+      "right": 0.4633735
+    },
+    "median_palm_to_line_px": 6.552,
+    "p95_palm_to_line_px": 81.95664999999994,
+    "median_local_s_drift": 0.085026,
+    "stable_anchor_update_rule": "mug-style: estimate persistent local palm anchors from low palm-to-line distance frames only; outlier visible line frames keep stable anchor and do not update it",
+    "policy": "persistent two-palm contact candidates for elongated rigid objects; records fixed local line coordinate per palm for later contact residuals",
+    "adapter_component": "persistent_two_palm_line",
+    "generic_anchor_state": {
+      "component": "generic_anchor_state",
+      "enabled": true,
+      "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/anchor_state.csv",
+      "rows": 480,
+      "anchor_updates": 325,
+      "pose_anchor_rows": 435,
+      "vlm_disabled_contact_frames": [],
+      "vlm_disabled_anchor_frames": [],
+      "policy": "mainline stable contact anchor propagation; untrusted/occluded frames propagate but do not update"
+    }
+  },
+  "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_candidates.csv",
+  "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/anchor_state.csv",
+  "anchor_rows": 480,
+  "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only",
+  "generic_contact_anchor_mainline": {
+    "component": "generic_contact_anchor_mainline",
+    "case_name": "stick",
+    "adapter": {
+      "component": "persistent_two_palm_line",
+      "generic_pattern": "stable_line_grasp_anchor",
+      "reused_pipeline_patterns": [
+        "mug stable-grasp-anchor: keep persistent object-local hand anchors across frames",
+        "chair line/segment observation: represent elongated rigid parts by semantic line coordinates"
+      ],
+      "rows": 480,
+      "active_rows": 463,
+      "inactive_rows": 17,
+      "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_candidates.csv",
+      "contact_state": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_state_frames.csv",
+      "line_source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
+      "stable_object_local_s": {
+        "left": 0.638407,
+        "right": 0.4633735
+      },
+      "median_palm_to_line_px": 6.552,
+      "p95_palm_to_line_px": 81.95664999999994,
+      "median_local_s_drift": 0.085026,
+      "stable_anchor_update_rule": "mug-style: estimate persistent local palm anchors from low palm-to-line distance frames only; outlier visible line frames keep stable anchor and do not update it",
+      "policy": "persistent two-palm contact candidates for elongated rigid objects; records fixed local line coordinate per palm for later contact residuals",
+      "adapter_component": "persistent_two_palm_line",
+      "generic_anchor_state": {
+        "component": "generic_anchor_state",
+        "enabled": true,
+        "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/anchor_state.csv",
+        "rows": 480,
+        "anchor_updates": 325,
+        "pose_anchor_rows": 435,
+        "vlm_disabled_contact_frames": [],
+        "vlm_disabled_anchor_frames": [],
+        "policy": "mainline stable contact anchor propagation; untrusted/occluded frames propagate but do not update"
+      }
+    },
+    "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/contact_candidates.csv",
+    "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/anchor_state.csv",
+    "anchor_rows": 480,
+    "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only"
+  }
+}

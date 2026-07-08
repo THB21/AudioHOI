@@ -35,6 +35,24 @@ def extract_wav(sample_dir: Path, *, force: bool = False) -> Path:
     return wav
 
 
+def detect_fps(sample_dir: Path, fallback: float = 24.0) -> float:
+    """Frame rate of ``video.mp4``, or ``fallback`` when unavailable.
+
+    Onset times are converted to frame indices with this — a hardcoded rate puts
+    every event on the wrong frame for clips at a different fps (a 30 fps clip with
+    fps=24 lands events at 0.8x their true frame).
+    """
+    import cv2
+
+    video = Path(sample_dir) / "video.mp4"
+    if not video.exists():
+        return fallback
+    cap = cv2.VideoCapture(str(video))
+    fps = cap.get(cv2.CAP_PROP_FPS) if cap.isOpened() else 0.0
+    cap.release()
+    return float(fps) if fps and fps > 1.0 else fallback
+
+
 def load_wav(path: Path, sr: int = TARGET_SR) -> tuple[int, np.ndarray]:
     """Load + resample to ``sr``, mono, peak-normalized float64 in [-1, 1]."""
     import librosa

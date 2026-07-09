@@ -1,0 +1,23 @@
+{
+  "case": "chair",
+  "trajectory": "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose.csv",
+  "human_params": "contact_refine",
+  "object_type": "mesh",
+  "n_frames": 192,
+  "pen_frame_ratio": 0.2292,
+  "non_collision_ratio": 0.7708,
+  "pen_depth_mean_mm": 5.69,
+  "pen_depth_max_mm": 8.91,
+  "contact_frame_ratio": 0.8542,
+  "expected_contact_frames": 3,
+  "contact_gap_mm": 3.68,
+  "part_named_frames": 3,
+  "part_correct_ratio": 0.667,
+  "object_jerk": 1e-06,
+  "grasp_stability_mm": null,
+  "audio_events": 3,
+  "contact_ratio_audio_windows": 1.0,
+  "accel_at_events": 0.00079,
+  "accel_in_flight": 0.00053,
+  "mdev_star_mm": null
+}

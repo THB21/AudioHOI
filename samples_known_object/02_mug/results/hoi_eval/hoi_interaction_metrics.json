@@ -1,0 +1,23 @@
+{
+  "case": "mug",
+  "trajectory": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+  "human_params": "contact_refine",
+  "object_type": "sphere",
+  "n_frames": 240,
+  "pen_frame_ratio": 0.0,
+  "non_collision_ratio": 1.0,
+  "pen_depth_mean_mm": 0.0,
+  "pen_depth_max_mm": 0.0,
+  "contact_frame_ratio": 0.4667,
+  "expected_contact_frames": 7,
+  "contact_gap_mm": 15.78,
+  "part_named_frames": 7,
+  "part_correct_ratio": 1.0,
+  "object_jerk": 1e-06,
+  "grasp_stability_mm": null,
+  "audio_events": 7,
+  "contact_ratio_audio_windows": 0.571,
+  "accel_at_events": 0.00032,
+  "accel_in_flight": 0.00059,
+  "mdev_star_mm": null
+}

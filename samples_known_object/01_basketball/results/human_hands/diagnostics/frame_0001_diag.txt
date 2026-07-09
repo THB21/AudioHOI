@@ -1,0 +1,33 @@
+# Frame 1 HaMeR diagnostic
+
+## left hand
+hand_visible_in_image: True
+gvhmr_wrist_2d: (747.6, 329.8)
+bbox_xyxy: (646.8, 229.0, 848.4, 430.6)
+crop_size_px (input bbox edge): 201.6
+bbox_final_size (after rescale x2.0): 403.2
+patch_size (HaMeR ViT IMAGE_SIZE): 256
+downsampling factor (bbox_final / patch_size): 1.575
+  ↳ >1 means crop is downscaled into the patch (large bbox)
+  ↳ <1 means crop is upscaled into the patch (tiny hand → risky)
+ball_overlap_frac (of crop area): n/a
+hamer_wrist_2d_patch (on 256x256): (127.2, 124.1)
+hamer_wrist_2d_full (HaMeR's own depth, mapped to full image): (745.9, 321.6)
+stitched_wrist_2d (= gvhmr_wrist projected): (747.6, 329.8)
+pred_cam_t (HaMeR translation, crop frame): (-0.1005, -0.0258, 24.6405)
+
+## right hand
+hand_visible_in_image: True
+gvhmr_wrist_2d: (516.4, 325.5)
+bbox_xyxy: (415.6, 224.7, 617.2, 426.3)
+crop_size_px (input bbox edge): 201.6
+bbox_final_size (after rescale x2.0): 403.2
+patch_size (HaMeR ViT IMAGE_SIZE): 256
+downsampling factor (bbox_final / patch_size): 1.575
+  ↳ >1 means crop is downscaled into the patch (large bbox)
+  ↳ <1 means crop is upscaled into the patch (tiny hand → risky)
+ball_overlap_frac (of crop area): n/a
+hamer_wrist_2d_patch (on 256x256): (128.4, 125.5)
+hamer_wrist_2d_full (HaMeR's own depth, mapped to full image): (517.2, 320.2)
+stitched_wrist_2d (= gvhmr_wrist projected): (516.4, 325.5)
+pred_cam_t (HaMeR translation, crop frame): (-0.0947, -0.0187, 24.2290)

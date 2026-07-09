@@ -1,0 +1,23 @@
+{
+  "case": "stick",
+  "trajectory": "samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+  "human_params": "contact_refine",
+  "object_type": "capsule",
+  "n_frames": 240,
+  "pen_frame_ratio": 0.0333,
+  "non_collision_ratio": 0.9667,
+  "pen_depth_mean_mm": 4.42,
+  "pen_depth_max_mm": 7.44,
+  "contact_frame_ratio": 0.3708,
+  "expected_contact_frames": 8,
+  "contact_gap_mm": 54.22,
+  "part_named_frames": 8,
+  "part_correct_ratio": 0.875,
+  "object_jerk": 0.000888,
+  "grasp_stability_mm": null,
+  "audio_events": 8,
+  "contact_ratio_audio_windows": 0.5,
+  "accel_at_events": 0.02333,
+  "accel_in_flight": 0.01436,
+  "mdev_star_mm": null
+}

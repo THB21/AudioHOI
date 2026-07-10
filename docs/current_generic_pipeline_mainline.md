@@ -2,9 +2,11 @@
 
 This file records the cleaned-up convention after the July 6, 2026 result sweep.
 
-## Kept Result Directories
+## Kept / Pushed Result Directories
 
-For each active case under `samples_known_object/*/results`, the cleaned result set keeps:
+For each active case under `samples_known_object/*/results`, the clean pushed
+result set keeps the compact final/ablation result directories and final render
+directories:
 
 - `benchmark_baseline_no_vlm`: baseline result with VLM/LLM disabled.
 - `benchmark_vlm_qwen`: final VLM-gated result with Qwen evidence gates.
@@ -13,8 +15,22 @@ For each active case under `samples_known_object/*/results`, the cleaned result 
 - `benchmark_audio_enabled`: audio-enabled comparison result.
 - `benchmark_no_audio`: no-audio comparison result.
 - `benchmark_no_anchor`: anchor ablation comparison result.
-- `segmentation`, `tracking`, `da3`, `gvhmr`, `events`: reusable preprocessing artifacts.
 - `renders/benchmark_baseline_no_vlm` and `renders/benchmark_vlm_qwen`: render outputs for the baseline and final visual result.
+
+Dense preprocessing artifacts are local/regenerable caches, not clean pushed
+artifacts:
+
+- extracted `frames/`
+- `segmentation/` SAM2 frame/mask caches
+- `tracking/` probe tracks
+- `da3/` dense depth tensors
+- `gvhmr/` and hand detector blobs
+- per-frame VLM evidence images
+- per-frame evaluator `render_masks/`
+
+The pushed result should contain the derived compact CSV/JSON/MD summaries,
+manifests, and final videos needed to inspect the outcome without uploading
+every intermediate frame.
 
 The final cross-case report is:
 
@@ -90,4 +106,8 @@ The exact delete/keep plan for this cleanup is stored at:
 
 - `cleanup_audit_20260706.json`
 
-Removed items were old experiment outputs, duplicate render directories, old report directories, and Python `__pycache__` directories. Source code and reusable preprocessing artifacts were not removed.
+Removed items were old experiment outputs, duplicate render directories, old
+report directories, Python `__pycache__` directories, extracted frame caches,
+SAM2/DA3/tracking/GVHMR dense caches, and per-frame evidence images. Source code,
+compact result CSV/JSON/MD artifacts, final videos, final previews, and
+regeneration scripts are kept.

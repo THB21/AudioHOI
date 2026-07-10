@@ -39,13 +39,17 @@ Do not upload meeting slide HTML exports.
 
 ## Upload: Final Evaluation Summary
 
-Upload the final-only summary table and machine-readable manifest:
+Historical note: this file originally referenced the legacy object-only
+`final_result_evaluation_summary.*` outputs. Those files have been superseded by
+the current HOI final evaluator outputs below:
 
-- `samples_known_object/final_result_evaluation/final_result_evaluation_summary.csv`
-- `samples_known_object/final_result_evaluation/final_result_evaluation_summary.md`
-- `samples_known_object/final_result_evaluation/final_result_evaluation_summary_manifest.json`
+- `samples_known_object/final_result_evaluation/final_evaluation_human_readable.md`
+- `samples_known_object/final_result_evaluation/final_evaluation_detailed.csv`
+- `samples_known_object/final_result_evaluation/final_evaluation_summary_manifest.json`
 
-The HTML preview is local-only and ignored by `.gitignore`.
+The old object-only summary can still be regenerated with `run_final_summary.py`
+if compatibility is needed, but it is not part of the current pushed final
+result set.
 
 ## Upload: Stick Final Result Core Artifacts
 
@@ -133,10 +137,10 @@ git add docs/current_generic_pipeline_mainline.md \
   docs/final_result_evaluation_method_en.md \
   docs/push_scope_20260706.md
 
-# Final-only evaluate summary, no HTML preview
-git add samples_known_object/final_result_evaluation/final_result_evaluation_summary.csv \
-  samples_known_object/final_result_evaluation/final_result_evaluation_summary.md \
-  samples_known_object/final_result_evaluation/final_result_evaluation_summary_manifest.json
+# Final HOI evaluate summary
+git add samples_known_object/final_result_evaluation/final_evaluation_human_readable.md \
+  samples_known_object/final_result_evaluation/final_evaluation_detailed.csv \
+  samples_known_object/final_result_evaluation/final_evaluation_summary_manifest.json
 
 # Stick sample metadata, Articraft asset, final qwen artifacts and final render.
 # Heavy VLM evidence images / sampled frames are ignored by .gitignore.

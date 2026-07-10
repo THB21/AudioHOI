@@ -138,20 +138,10 @@ artifact. The distilled plan is already in docs/evalute Markdown files.
 
 ### Legacy object-only summary files
 
-```text
-samples_known_object/final_result_evaluation/final_result_evaluation_summary.csv
-samples_known_object/final_result_evaluation/final_result_evaluation_summary.html
-samples_known_object/final_result_evaluation/final_result_evaluation_summary.md
-samples_known_object/final_result_evaluation/final_result_evaluation_summary_manifest.json
-```
-
-Reason:
-
-```text
-These are legacy object-only summaries. Keep them only if compatibility is
-needed; the current final HOI table is `final_evaluation_human_readable.md` and
-`final_evaluation_detailed.csv`.
-```
+`final_result_evaluation_summary.*` is not part of the current pushed final
+result set. It can be regenerated through `run_final_summary.py` only for
+compatibility, but the current final HOI reporting table is
+`final_evaluation_human_readable.md` and `final_evaluation_detailed.csv`.
 
 ## Pre-Push Verification Commands
 

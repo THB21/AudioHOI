@@ -377,7 +377,7 @@ Per-case human/HOI notes:
 samples_known_object/<case>/results/HUMAN_RESULTS_README.md
 ```
 
-Current unified final HOI evaluation:
+Canonical current unified final HOI evaluation:
 
 ```text
 samples_known_object/final_result_evaluation/final_evaluation_human_readable.md
@@ -385,13 +385,10 @@ samples_known_object/final_result_evaluation/final_evaluation_detailed.csv
 samples_known_object/final_result_evaluation/final_evaluation_summary_manifest.json
 ```
 
-Legacy object-only summary:
-
-```text
-samples_known_object/final_result_evaluation/final_result_evaluation_summary.md
-samples_known_object/final_result_evaluation/final_result_evaluation_summary.csv
-samples_known_object/final_result_evaluation/final_result_evaluation_summary.html
-```
+Legacy object-only `final_result_evaluation_summary.*` files are not part of
+the current final result folder. They can be regenerated from
+`run_final_summary.py` only for compatibility, but the current report should use
+the HOI files above.
 
 HOI-level interaction summary:
 

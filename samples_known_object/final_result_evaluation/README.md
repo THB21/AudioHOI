@@ -1,6 +1,6 @@
 # Final Result Evaluation Folder
 
-Current reporting files:
+Canonical current reporting files:
 
 - `final_evaluation_human_readable.md`: six-column human-readable final HOI table.
 - `final_evaluation_detailed.csv`: detailed hard metrics for the current final result of each case.
@@ -15,11 +15,9 @@ Current command:
   --output-dir samples_known_object/final_result_evaluation
 ```
 
-Legacy object-only files:
+Legacy object-only note:
 
-- `final_result_evaluation_summary.md`
-- `final_result_evaluation_summary.csv`
-- `final_result_evaluation_summary.html`
-- `final_result_evaluation_summary_manifest.json`
-
-The legacy files are kept for compatibility only. Do not use them as the current final HOI reporting table.
+`run_final_summary.py` can regenerate `final_result_evaluation_summary.*` for
+compatibility, but those files are intentionally not kept in this final result
+folder. They use an older object-only metric view and should not be used as the
+current final HOI reporting table.

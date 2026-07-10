@@ -230,9 +230,11 @@ samples_known_object/*/results/hands/
 samples_known_object/*/results/human_hands/
 samples_known_object/*/results/human_audio_semantics/
 samples_known_object/*/results/tracking/
+samples_known_object/*/frames/
 samples_known_object/*/annotations/
 samples_known_object/*/keyframes/
 samples_known_object/*/keyframes_pose_fit/
+samples_baseline_results/*/frames/
 samples_baseline_results/*/results/segmentation/
 samples_baseline_results/*/results/sam2_jpg_frames/
 samples_baseline_results/*/results/masks/

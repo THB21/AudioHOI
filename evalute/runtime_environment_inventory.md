@@ -35,6 +35,50 @@ Only the AudioHOI-related environments below are part of the current pipeline ma
 
 Use explicit Python paths. Do not rely on the activated shell environment.
 
+The current Codex shell does not expose `MISTRAL_API_KEY` or Qwen/HF tokens in
+`env`. That is a launcher/shell issue, not a conda-package issue. If a real
+LLM/VLM run needs secrets, start Codex or the terminal from a shell that exports
+the key, or pass the provider key through the configured environment variable.
+Never infer that a key exists just because the package environment exists.
+
+## Environment Selection Matrix
+
+This is the practical decision table. If a command belongs to multiple rows,
+start with the row closest to the actual executable, not the artifact it reads.
+
+| Runtime need | Use env | Why this env | Do not use |
+| --- | --- | --- | --- |
+| Generic pipeline orchestration, Stage1-4, SE3 optimization, render/eval glue | `audiohoi` | Has the pipeline's numpy/OpenCV/torch/SAM2/trimesh/scipy/pandas stack. | `qwen-vl`, `da3`, `gvhmr`, `hamer` |
+| Final result evaluator and ablation evaluator | `audiohoi` | Evaluator code imports generic pipeline schemas, OpenCV metrics, trimesh, pandas, scipy. | `qwen-vl`, `da3`, `hamer` |
+| DINO/SAM2 object mask propagation and mask-based CoTracker seeds | `audiohoi` | `sam2`, torch CUDA, OpenCV, transformers are present together. | `qwen-vl` because it lacks SAM2/geometry packages. |
+| Local Qwen-VL visual judge only | `qwen-vl` | Has Qwen/transformers/4bit CUDA stack and intentionally avoids heavy geometry deps. | `audiohoi` for large Qwen runs unless explicitly verified. |
+| Text LLM CSV audit via Mistral API | `audiohoi` | The client/evaluator code lives in the main pipeline environment; key must come from shell env. | Any env without the repo pipeline dependencies. |
+| DA3 depth generation / scene depth utilities | `da3` | Has Open3D and moviepy plus DA3-friendly geometry dependencies. | `audiohoi` for DA3 generation because Open3D/moviepy are missing there. |
+| GVHMR body reconstruction | `gvhmr` | Has GVHMR-compatible torch 2.3, SMPL-X, imageio, trimesh. | `audiohoi` for generation; use `audiohoi` only to consume produced artifacts. |
+| HaMeR hand reconstruction / pyrender hand diagnostics | `hamer` | Has `hamer` and `pyrender`; the main env does not. | `audiohoi`, `gvhmr` |
+| Optional body-render experiments | `bodyrender` | Narrow body-render env with torch/smplx/scipy/matplotlib. | Main pipeline/evaluator, because pandas/yaml/trimesh are missing. |
+| Articraft asset wrapper check | `articraft-py312` | Python 3.12 wrapper placeholder only. | Do not run geometry/eval here; key packages are missing. |
+| Optional SAM3D/Open3D object experiments | `sam3d-objects-inference` | Has Open3D, torch, trimesh for SAM3D-style experiments. | Generic pipeline/evaluator or Qwen-VL judge. |
+
+## Live Probe Summary
+
+Checked by importing packages with each env's own Python executable on
+2026-07-10. `ok` means the import succeeded; missing entries are intentional
+unless the row says otherwise.
+
+| Env | Python | CUDA/Torch | Main strengths | Key missing packages / warnings |
+| --- | --- | --- | --- | --- |
+| `audiohoi` | 3.10.20 | CUDA yes, torch 2.4.1+cu121 | Main pipeline, SAM2, optimization, render/eval, CSV/JSON metrics | No `pyrender`, `hamer`, `open3d`, `moviepy`, `pytest`; use base pytest for tests. |
+| `qwen-vl` | 3.10.20 | CUDA yes, torch 2.5.1+cu121 | Qwen-VL judge, transformers, qwen_vl_utils, 4bit stack | No `trimesh`, `scipy`, `matplotlib`, `smplx`, `sam2`, `imageio`; not a pipeline env. |
+| `da3` | 3.10.20 | CUDA yes, torch 2.4.1+cu121 | Open3D, moviepy, DA3/depth preprocessing | No transformers/Qwen/SAM2/SMPL-X; not for VLM or final eval. |
+| `gvhmr` | 3.10.20 | CUDA yes, torch 2.3.0+cu121 | GVHMR/SMPL-X body outputs, trimesh, imageio | No Qwen/SAM2/HaMeR/Open3D; generation env only. |
+| `hamer` | 3.10.20 | CUDA yes, torch 2.4.1+cu121 | HaMeR, pyrender, SMPL-X hand/body diagnostics | No Qwen/SAM2/Open3D; do not use for main eval. |
+| `bodyrender` | 3.10.20 | CUDA yes, torch 2.4.1+cu121 | Optional body render experiments | Missing pandas/yaml/trimesh/qwen/SAM2/pyrender; narrow use only. |
+| `articraft-py312` | 3.12.13 | torch missing | Articraft wrapper placeholder | Most packages missing, including numpy/torch/trimesh/pandas; not ready for geometry/eval. |
+| `sam3d-objects-inference` | 3.11.0 | CUDA yes, torch 2.5.1+cu121 | SAM3D/Open3D object experiments | No Qwen/SAM2/SMPL-X/moviepy; optional only. |
+
+## Exact Python Commands
+
 | Task | Environment | Python |
 | --- | --- | --- |
 | Main generic pipeline | `audiohoi` | `/home/yang/miniconda3/envs/audiohoi/bin/python` |

@@ -3,24 +3,193 @@ envs:
   audiohoi:
     python: /home/yang/miniconda3/envs/audiohoi/bin/python
     purpose: core AudioHOI optimization and lightweight render scripts
+    use_for:
+      - generic pipeline orchestration
+      - final HOI evaluation
+      - ablation evaluation
+      - SAM2 mask propagation and mask consumption
+      - SE3 pose optimization
+      - lightweight OpenCV/trimesh render metrics
+    required_imports:
+      - numpy
+      - cv2
+      - torch
+      - torchvision
+      - transformers
+      - qwen_vl_utils
+      - trimesh
+      - scipy
+      - pandas
+      - smplx
+      - sam2
+    missing_is_ok:
+      - pyrender
+      - hamer
+      - open3d
+      - moviepy
+      - pytest
+    do_not_use_for:
+      - HaMeR hand reconstruction
+      - DA3 depth generation
+      - local large Qwen-VL judge unless explicitly verified
   qwen_vl:
     python: /home/yang/miniconda3/envs/qwen-vl/bin/python
     purpose: local Qwen-VL conservative verification
+    use_for:
+      - local Qwen-VL visual judge
+      - VLM stage audit
+      - VLM final visual judge
+    required_imports:
+      - torch
+      - torchvision
+      - transformers
+      - qwen_vl_utils
+      - accelerate
+      - bitsandbytes
+      - cv2
+      - pandas
+    missing_is_ok:
+      - trimesh
+      - scipy
+      - smplx
+      - sam2
+      - imageio
+    do_not_use_for:
+      - generic pipeline orchestration
+      - final evaluator metrics
+      - geometry optimization
   bodyrender:
     python: /home/yang/miniconda3/envs/bodyrender/bin/python
     purpose: optional body/mesh render tools
+    use_for:
+      - optional body-render experiments
+    required_imports:
+      - torch
+      - torchvision
+      - cv2
+      - scipy
+      - matplotlib
+      - smplx
+    missing_is_ok:
+      - pandas
+      - yaml
+      - trimesh
+      - pyrender
+      - qwen_vl_utils
+    do_not_use_for:
+      - main pipeline
+      - final evaluator
   da3:
     python: /home/yang/miniconda3/envs/da3/bin/python
     purpose: DA3 depth/point-cloud preprocessing and scene-depth utilities
+    use_for:
+      - DA3 depth generation
+      - scene depth utilities
+      - point-cloud preprocessing
+    required_imports:
+      - torch
+      - torchvision
+      - cv2
+      - trimesh
+      - scipy
+      - pandas
+      - open3d
+      - moviepy
+    missing_is_ok:
+      - transformers
+      - qwen_vl_utils
+      - smplx
+      - sam2
+    do_not_use_for:
+      - Qwen-VL judge
+      - final evaluator
+      - GVHMR or HaMeR generation
   gvhmr:
     python: /home/yang/miniconda3/envs/gvhmr/bin/python
     purpose: GVHMR human body reconstruction and SMPL-X body outputs
+    use_for:
+      - GVHMR human body reconstruction
+      - SMPL-X body output generation
+    required_imports:
+      - torch
+      - torchvision
+      - cv2
+      - trimesh
+      - scipy
+      - pandas
+      - smplx
+      - imageio
+    missing_is_ok:
+      - qwen_vl_utils
+      - sam2
+      - hamer
+      - open3d
+    do_not_use_for:
+      - generic pipeline orchestration
+      - Qwen-VL judge
+      - HaMeR hand reconstruction
   hamer:
     python: /home/yang/miniconda3/envs/hamer/bin/python
     purpose: HaMeR hand reconstruction, hand diagnostics, and pyrender hand/body overlays
+    use_for:
+      - HaMeR hand reconstruction
+      - hand overlay diagnostics
+      - pyrender-based hand/body checks
+    required_imports:
+      - torch
+      - torchvision
+      - cv2
+      - trimesh
+      - pyrender
+      - scipy
+      - pandas
+      - smplx
+      - hamer
+    missing_is_ok:
+      - qwen_vl_utils
+      - sam2
+      - open3d
+    do_not_use_for:
+      - Qwen-VL judge
+      - DA3 generation
+      - main final evaluator
   articraft:
     python: /home/yang/miniconda3/envs/articraft-py312/bin/python
     purpose: Articraft asset generation wrapper only; verify project-local dependencies before use
+    use_for:
+      - Articraft wrapper or asset-generation checks only
+    required_imports: []
+    missing_is_ok:
+      - numpy
+      - torch
+      - trimesh
+      - pandas
+      - cv2
+    do_not_use_for:
+      - generic pipeline
+      - final evaluator
+      - geometry optimization
   sam3d_objects:
     python: /home/yang/miniconda3/envs/sam3d-objects-inference/bin/python
     purpose: optional SAM3D object inference experiments and Open3D object geometry utilities
+    use_for:
+      - optional SAM3D object inference experiments
+      - Open3D object geometry utilities
+    required_imports:
+      - torch
+      - torchvision
+      - cv2
+      - trimesh
+      - scipy
+      - pandas
+      - open3d
+    missing_is_ok:
+      - transformers
+      - qwen_vl_utils
+      - smplx
+      - sam2
+      - moviepy
+    do_not_use_for:
+      - generic pipeline
+      - Qwen-VL judge
+      - final evaluator

@@ -1,5 +1,0 @@
-frame,time,handle_visible,visibility,visible_side,occlusion_reason,hand_contact_visible,hand_contact_part,confidence,short_reason
-33,1.333333,False,hidden,unknown,far_side,True,body,0.95,"Hand grips mug body, handle is on far side and occluded."
-69,2.833333,False,hidden,unknown,far_side,True,body,0.95,"The handle is on the far side of the mug, hidden from view by the mug body itself."
-90,3.708333,True,visible,right,none,True,handle,0.95,"Handle is clearly visible on the right side of the mug, with a hand gripping it."
-132,5.458333,True,visible,left,none,True,handle,0.95,"Hand is gripping the left handle of the mug, making it clearly visible."

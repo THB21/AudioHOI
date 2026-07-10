@@ -1,9 +1,0 @@
-{
-  "smooth_window": 7,
-  "num_prior_frames": 242,
-  "scene_depth_dir": "samples/football_10/results/da3/scene_depth",
-  "video_hw": [
-    1920,
-    1080
-  ]
-}

@@ -123,6 +123,37 @@ overlay_mask_metrics.csv/json instead. The masks are reproducible by rerunning
 the final HOI evaluator.
 ```
 
+### Dense preprocessing / audit working caches
+
+```text
+samples_known_object/*/results/segmentation/
+samples_known_object/*/results/da3/
+samples_known_object/*/results/gvhmr/
+samples_known_object/*/results/hands/
+samples_known_object/*/results/human_hands/
+samples_known_object/*/results/human_audio_semantics/
+samples_known_object/*/results/tracking/
+samples_known_object/*/annotations/
+samples_known_object/*/keyframes/
+samples_known_object/*/keyframes_pose_fit/
+samples_baseline_results/*/results/segmentation/
+samples_baseline_results/*/results/sam2_jpg_frames/
+samples_baseline_results/*/results/masks/
+samples_baseline_results/*/results/da3/
+samples_baseline_results/*/results/tracking/
+```
+
+Reason:
+
+```text
+These are dense intermediate caches: extracted SAM2 frames/masks, DA3 tensors,
+GVHMR blobs, hand detector outputs, tracking probes, VLM crop sheets, and
+manual/debug keyframes. They are useful locally for debugging but should not be
+uploaded as the current clean integration artifact. The pushed result should
+contain final renders, final compact CSV/JSON summaries, QA summaries, manifests,
+and the code/docs needed to regenerate these caches.
+```
+
 ### Meeting transcript working file
 
 ```text

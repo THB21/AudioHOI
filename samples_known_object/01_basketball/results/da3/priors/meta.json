@@ -1,9 +1,0 @@
-{
-  "smooth_window": 7,
-  "num_prior_frames": 192,
-  "scene_depth_dir": "/mnt/hdd/AudioHOI/samples/basketball_01/results/da3/scene_depth",
-  "video_hw": [
-    1280,
-    720
-  ]
-}

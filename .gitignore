@@ -219,6 +219,26 @@ __marimo__/
 # Archived experiment branches/results
 scripts/shared/human_ball/contact/archive_experiments/
 
+# AudioHOI generated intermediate artifacts.
+# Keep final reports, final renders, and compact CSV/JSON summaries tracked;
+# keep dense preprocessing frames, masks, depth tensors, and ad-hoc annotation
+# crops local unless explicitly curated.
+samples_known_object/*/results/segmentation/
+samples_known_object/*/results/da3/
+samples_known_object/*/results/gvhmr/
+samples_known_object/*/results/hands/
+samples_known_object/*/results/human_hands/
+samples_known_object/*/results/human_audio_semantics/
+samples_known_object/*/results/tracking/
+samples_known_object/*/annotations/
+samples_known_object/*/keyframes/
+samples_known_object/*/keyframes_pose_fit/
+samples_baseline_results/*/results/segmentation/
+samples_baseline_results/*/results/sam2_jpg_frames/
+samples_baseline_results/*/results/masks/
+samples_baseline_results/*/results/da3/
+samples_baseline_results/*/results/tracking/
+
 # AudioHOI local evaluation caches
 samples_known_object/*/results/*/evaluation/render_masks/
 

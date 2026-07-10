@@ -6,6 +6,27 @@ import math
 from pathlib import Path
 from typing import Iterable, Any
 
+from ...base.io import REPO, repo_relative_value
+
+
+def repo_rel(path: str | Path) -> str:
+    """Return a stable repo-relative artifact path when possible."""
+    original = str(path)
+    candidate = Path(original)
+    try:
+        resolved = candidate.resolve() if candidate.is_absolute() else (REPO / candidate).resolve()
+        return resolved.relative_to(REPO).as_posix()
+    except Exception:
+        repo_prefix = REPO.as_posix().rstrip("/") + "/"
+        if original.startswith(repo_prefix):
+            return original[len(repo_prefix) :]
+        return original
+
+
+def normalize_artifact_value(value: Any) -> Any:
+    """Normalize artifact payloads so shareable outputs avoid local absolute paths."""
+    return repo_relative_value(value)
+
 
 def read_rows(path: Path) -> list[dict[str, str]]:
     if not path.exists():
@@ -25,16 +46,16 @@ def write_rows(path: Path, rows: list[dict[str, Any]], fields: Iterable[str] | N
         fields = ordered
     fields = list(fields)
     with path.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
+        writer = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         for row in rows:
-            writer.writerow({key: row.get(key, "") for key in fields})
+            writer.writerow({key: normalize_artifact_value(row.get(key, "")) for key in fields})
     return path
 
 
 def write_json(path: Path, data: Any) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    path.write_text(json.dumps(normalize_artifact_value(data), indent=2, ensure_ascii=False) + "\n")
     return path
 
 

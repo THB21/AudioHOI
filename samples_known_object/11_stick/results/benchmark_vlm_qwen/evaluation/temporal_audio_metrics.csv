@@ -1,2 +1,2 @@
 object_jerk,accel_at_events,accel_in_flight,contact_ratio_audio_windows,audio_events,source
-0.000888,0.02333,0.01436,0.5,8.0,/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/hoi_eval/hoi_interaction_metrics.json
+0.000888,0.02333,0.01436,0.5,8.0,samples_known_object/11_stick/results/hoi_eval/hoi_interaction_metrics.json

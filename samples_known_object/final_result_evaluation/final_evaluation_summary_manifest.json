@@ -7,57 +7,57 @@
     {
       "case": "basketball",
       "result_name": "benchmark_vlm_qwen",
-      "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen",
-      "evaluation_dir": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/evaluation",
-      "evaluation_summary_json": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
-      "detailed_csv": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
-      "qa_dir": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation",
-      "pipeline_qa_summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
-      "qa_audit_report_html": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
+      "result_dir": "samples_known_object/01_basketball/results/benchmark_vlm_qwen",
+      "evaluation_dir": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/evaluation",
+      "evaluation_summary_json": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
+      "detailed_csv": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
+      "qa_dir": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation",
+      "pipeline_qa_summary_csv": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+      "qa_audit_report_html": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
     },
     {
       "case": "football",
       "result_name": "benchmark_vlm_qwen",
-      "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen",
-      "evaluation_dir": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation",
-      "evaluation_summary_json": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
-      "detailed_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
-      "qa_dir": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/06_evaluation",
-      "pipeline_qa_summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
-      "qa_audit_report_html": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
+      "result_dir": "samples_known_object/10_football/results/benchmark_vlm_qwen",
+      "evaluation_dir": "samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation",
+      "evaluation_summary_json": "samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
+      "detailed_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
+      "qa_dir": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/06_evaluation",
+      "pipeline_qa_summary_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+      "qa_audit_report_html": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
     },
     {
       "case": "mug",
       "result_name": "benchmark_vlm_qwen",
-      "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen",
-      "evaluation_dir": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation",
-      "evaluation_summary_json": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
-      "detailed_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
-      "qa_dir": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation",
-      "pipeline_qa_summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
-      "qa_audit_report_html": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
+      "result_dir": "samples_known_object/02_mug/results/benchmark_vlm_qwen",
+      "evaluation_dir": "samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation",
+      "evaluation_summary_json": "samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
+      "detailed_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
+      "qa_dir": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation",
+      "pipeline_qa_summary_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+      "qa_audit_report_html": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
     },
     {
       "case": "chair",
       "result_name": "benchmark_vlm_qwen",
-      "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen",
-      "evaluation_dir": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/evaluation",
-      "evaluation_summary_json": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
-      "detailed_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
-      "qa_dir": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm_trace/06_evaluation",
-      "pipeline_qa_summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
-      "qa_audit_report_html": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
+      "result_dir": "samples_known_object/05_chair/results/benchmark_vlm_qwen",
+      "evaluation_dir": "samples_known_object/05_chair/results/benchmark_vlm_qwen/evaluation",
+      "evaluation_summary_json": "samples_known_object/05_chair/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
+      "detailed_csv": "samples_known_object/05_chair/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
+      "qa_dir": "samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm_trace/06_evaluation",
+      "pipeline_qa_summary_csv": "samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+      "qa_audit_report_html": "samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
     },
     {
       "case": "stick",
       "result_name": "benchmark_vlm_qwen",
-      "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen",
-      "evaluation_dir": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/evaluation",
-      "evaluation_summary_json": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
-      "detailed_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
-      "qa_dir": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/06_evaluation",
-      "pipeline_qa_summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
-      "qa_audit_report_html": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
+      "result_dir": "samples_known_object/11_stick/results/benchmark_vlm_qwen",
+      "evaluation_dir": "samples_known_object/11_stick/results/benchmark_vlm_qwen/evaluation",
+      "evaluation_summary_json": "samples_known_object/11_stick/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
+      "detailed_csv": "samples_known_object/11_stick/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
+      "qa_dir": "samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/06_evaluation",
+      "pipeline_qa_summary_csv": "samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+      "qa_audit_report_html": "samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
     }
   ],
   "principle": "hard metrics first; VLM is secondary for perceptual ambiguity"

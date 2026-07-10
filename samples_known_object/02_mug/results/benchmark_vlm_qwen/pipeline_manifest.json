@@ -59,8 +59,8 @@
       "render_dir": "samples_known_object/02_mug/results/renders/final_result"
     }
   },
-  "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen",
-  "render_dir": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/benchmark_vlm_qwen",
+  "result_dir": "samples_known_object/02_mug/results/benchmark_vlm_qwen",
+  "render_dir": "samples_known_object/02_mug/results/renders/benchmark_vlm_qwen",
   "from_stage": "stage-1",
   "to_stage": "stage7",
   "vlm_mode": "qwen",
@@ -73,10 +73,10 @@
         "stage": "stage_minus1_llm_prior",
         "case_name": "mug",
         "llm_mode": "mistral",
-        "hoi_profile": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/hoi_profile.json",
-        "hoi_profile_resolved": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/hoi_profile_resolved.yaml",
-        "llm_prior_trace": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/llm_prior_trace.json",
-        "prompt_context": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/prompt_context.json",
+        "hoi_profile": "samples_known_object/02_mug/results/benchmark_vlm_qwen/hoi_profile.json",
+        "hoi_profile_resolved": "samples_known_object/02_mug/results/benchmark_vlm_qwen/hoi_profile_resolved.yaml",
+        "llm_prior_trace": "samples_known_object/02_mug/results/benchmark_vlm_qwen/llm_prior_trace.json",
+        "prompt_context": "samples_known_object/02_mug/results/benchmark_vlm_qwen/prompt_context.json",
         "object_parts": [
           "cup_body",
           "handle",
@@ -128,9 +128,9 @@
         "repair_actions": [
           "no_effective_vlm_gate"
         ],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage-1/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage-1/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage-1/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage-1/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage-1/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage-1/llm_audit_results.csv"
       }
     },
     {
@@ -163,7 +163,7 @@
         "artifacts": {
           "sam2_masks": {
             "kind": "directory",
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/segmentation/masks",
+            "path": "samples_known_object/02_mug/results/segmentation/masks",
             "exists": true,
             "status": "reused",
             "runner": "run_sam2_object.py",
@@ -172,7 +172,7 @@
           },
           "sam2_trajectory": {
             "kind": "csv",
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/tracking/object_trajectory.csv",
+            "path": "samples_known_object/02_mug/results/tracking/object_trajectory.csv",
             "exists": false,
             "status": "missing",
             "runner": "run_sam2_object.py",
@@ -181,7 +181,7 @@
           },
           "cotracker_center": {
             "kind": "csv",
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/tracking/object_center_trajectory.csv",
+            "path": "samples_known_object/02_mug/results/tracking/object_center_trajectory.csv",
             "exists": false,
             "status": "missing",
             "runner": "run_cotracker_object_points.py",
@@ -190,7 +190,7 @@
           },
           "cotracker_points": {
             "kind": "csv",
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/tracking/object_points.csv",
+            "path": "samples_known_object/02_mug/results/tracking/object_points.csv",
             "exists": false,
             "status": "missing",
             "runner": "run_cotracker_object_points.py",
@@ -199,7 +199,7 @@
           },
           "cotracker_mesh_tracks": {
             "kind": "csv",
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/tracking/object_mesh_tracks_test.csv",
+            "path": "samples_known_object/02_mug/results/tracking/object_mesh_tracks_test.csv",
             "exists": true,
             "status": "reused",
             "runner": "run_cotracker_object_points.py",
@@ -208,7 +208,7 @@
           },
           "da3_scene_depth": {
             "kind": "csv",
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/da3/scene_depth/index.csv",
+            "path": "samples_known_object/02_mug/results/da3/scene_depth/index.csv",
             "exists": true,
             "status": "reused",
             "runner": "external_da3_required",
@@ -217,7 +217,7 @@
           },
           "audio_events": {
             "kind": "csv",
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/events/audio_events.csv",
+            "path": "samples_known_object/02_mug/results/events/audio_events.csv",
             "exists": true,
             "status": "reused",
             "runner": "external_audio_events_required",
@@ -226,7 +226,7 @@
           },
           "gvhmr": {
             "kind": "pkl",
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/gvhmr/result.pkl",
+            "path": "samples_known_object/02_mug/results/gvhmr/result.pkl",
             "exists": true,
             "status": "reused",
             "runner": "external_gvhmr_required",
@@ -285,7 +285,7 @@
         "unclear_frames": [],
         "accepted_contact_frames": [],
         "accepted_anchor_frames": [],
-        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage0/vlm_gates.csv"
+        "gate_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage0/vlm_gates.csv"
       },
       "stage_audit": {
         "case_name": "mug",
@@ -298,9 +298,9 @@
         "rerun_stage": false,
         "residual_reweight": false,
         "repair_actions": [],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage0/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage0/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage0/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage0/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage0/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage0/llm_audit_results.csv"
       }
     },
     {
@@ -311,33 +311,33 @@
         "adapter": {
           "component": "rigid_body_plus_parts",
           "observation_rows": 240,
-          "object_observations": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv",
-          "object_local_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
-          "object_local_points_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/mug_articraft_contact_points_internal/mug_articraft_contact_points.csv",
-          "object_local_points_exporter": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/observation/solvers/export_mug_articraft_contact_points.py",
-          "object_proxy_observations": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_proxy_observations_internal/object_proxy_observations.csv",
-          "object_proxy_builder": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/observation/solvers/build_object_proxy_observations.py",
-          "observation_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/object_observations/object_observations.csv",
-          "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
+          "object_observations": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv",
+          "object_local_points": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
+          "object_local_points_source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/mug_articraft_contact_points_internal/mug_articraft_contact_points.csv",
+          "object_local_points_exporter": "scripts/shared/generic_contact_pipeline/components/observation/solvers/export_mug_articraft_contact_points.py",
+          "object_proxy_observations": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_proxy_observations_internal/object_proxy_observations.csv",
+          "object_proxy_builder": "scripts/shared/generic_contact_pipeline/components/observation/solvers/build_object_proxy_observations.py",
+          "observation_source": "samples_known_object/02_mug/results/object_observations/object_observations.csv",
+          "phase_source": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
           "phase_reconstruction": {
             "policy": "fallback_final_phase_csv",
-            "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
-            "recovered_m15_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
-            "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py",
+            "phase_source": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
+            "recovered_m15_csv": "samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+            "solver": "scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py",
             "snapshot_fallback_used": true,
             "missing_preferred_phase_sources": [
-              "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
-              "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/provenance_snapshots/mug_m17_handle_phase.csv",
-              "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv"
+              "samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+              "samples_known_object/02_mug/results/benchmark_vlm_qwen/provenance_snapshots/mug_m17_handle_phase.csv",
+              "samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv"
             ]
           },
           "handle_visibility_from_phase": true,
           "adapter_component": "rigid_body_plus_parts"
         },
-        "object_observations": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv",
-        "object_correspondence": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_correspondence.csv",
-        "object_surface_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_surface_points.csv",
-        "object_semantic_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_semantic_points.csv",
+        "object_observations": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv",
+        "object_correspondence": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_correspondence.csv",
+        "object_surface_points": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_surface_points.csv",
+        "object_semantic_points": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_semantic_points.csv",
         "rows": 240,
         "correspondence_rows": 240,
         "surface_rows": 240,
@@ -406,7 +406,7 @@
           121,
           240
         ],
-        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage1/vlm_gates.csv"
+        "gate_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage1/vlm_gates.csv"
       },
       "stage_audit": {
         "case_name": "mug",
@@ -419,9 +419,9 @@
         "rerun_stage": false,
         "residual_reweight": false,
         "repair_actions": [],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage1/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage1/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage1/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage1/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage1/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage1/llm_audit_results.csv"
       }
     },
     {
@@ -432,12 +432,12 @@
         "adapter": {
           "component": "palm_handle",
           "rows": 240,
-          "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
-          "source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
+          "contact_candidates": "samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
+          "source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
           "adapter_component": "palm_handle_rim_body"
         },
-        "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
-        "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
+        "contact_candidates": "samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
+        "anchor_state": "samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
         "anchor_rows": 240,
         "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only",
         "generic_contact_anchor_mainline": {
@@ -446,12 +446,12 @@
           "adapter": {
             "component": "palm_handle",
             "rows": 240,
-            "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
-            "source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
+            "contact_candidates": "samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
+            "source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
             "adapter_component": "palm_handle_rim_body"
           },
-          "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
-          "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
+          "contact_candidates": "samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
+          "anchor_state": "samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
           "anchor_rows": 240,
           "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only"
         }
@@ -522,7 +522,7 @@
           121,
           240
         ],
-        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage2/vlm_gates.csv"
+        "gate_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage2/vlm_gates.csv"
       },
       "stage_audit": {
         "case_name": "mug",
@@ -535,9 +535,9 @@
         "rerun_stage": false,
         "residual_reweight": false,
         "repair_actions": [],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage2/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage2/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage2/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage2/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage2/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage2/llm_audit_results.csv"
       }
     },
     {
@@ -547,29 +547,29 @@
         "case_name": "mug",
         "adapter": {
           "component": "rigid6_plus_phase",
-          "object_pose_init": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv",
-          "body_pose_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/m18_opening_2d_video_correction_internal/mug_m18_opening_2d_video_pose.csv",
-          "body_pose_seed": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/mug_m18_opening_2d_video_correction/mug_m18_opening_2d_video_pose.csv",
-          "body_pose_solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_opening_2d_pose_correction.py",
-          "body_pose_report": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/m18_opening_2d_video_correction_internal/mug_m18_opening_2d_video_report.csv",
-          "body_pose_trajectory": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/m18_opening_2d_video_correction_internal/mug_m18_opening_2d_video_trajectory.csv",
-          "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
+          "object_pose_init": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv",
+          "body_pose_source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/m18_opening_2d_video_correction_internal/mug_m18_opening_2d_video_pose.csv",
+          "body_pose_seed": "samples_known_object/02_mug/results/mug_m18_opening_2d_video_correction/mug_m18_opening_2d_video_pose.csv",
+          "body_pose_solver": "scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_opening_2d_pose_correction.py",
+          "body_pose_report": "samples_known_object/02_mug/results/benchmark_vlm_qwen/m18_opening_2d_video_correction_internal/mug_m18_opening_2d_video_report.csv",
+          "body_pose_trajectory": "samples_known_object/02_mug/results/benchmark_vlm_qwen/m18_opening_2d_video_correction_internal/mug_m18_opening_2d_video_trajectory.csv",
+          "phase_source": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
           "phase_reconstruction": {
             "policy": "fallback_final_phase_csv",
-            "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
-            "recovered_m15_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
-            "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py",
+            "phase_source": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
+            "recovered_m15_csv": "samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+            "solver": "scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py",
             "snapshot_fallback_used": true,
             "missing_preferred_phase_sources": [
-              "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
-              "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/provenance_snapshots/mug_m17_handle_phase.csv",
-              "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv"
+              "samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+              "samples_known_object/02_mug/results/benchmark_vlm_qwen/provenance_snapshots/mug_m17_handle_phase.csv",
+              "samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv"
             ]
           },
           "rows": 240,
           "adapter_component": "rigid6_plus_phase"
         },
-        "object_pose_init": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv",
+        "object_pose_init": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv",
         "rows": 240,
         "se3_fields": [
           "frame",
@@ -650,7 +650,7 @@
         "unclear_frames": [],
         "accepted_contact_frames": [],
         "accepted_anchor_frames": [],
-        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage3/vlm_gates.csv"
+        "gate_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage3/vlm_gates.csv"
       },
       "stage_audit": {
         "case_name": "mug",
@@ -663,9 +663,9 @@
         "rerun_stage": false,
         "residual_reweight": false,
         "repair_actions": [],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage3/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage3/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage3/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage3/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage3/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage3/llm_audit_results.csv"
       }
     },
     {
@@ -679,10 +679,10 @@
             "enabled": true,
             "report": {
               "component": "stable_grasp_anchor",
-              "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
-              "object_phase": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_phase.csv",
-              "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
-              "object_contact_points_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/mug_grasp_anchor_state_internal/mug_grasp_anchor_state.csv",
+              "object_pose": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+              "object_phase": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_phase.csv",
+              "object_contact_points": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
+              "object_contact_points_source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/mug_grasp_anchor_state_internal/mug_grasp_anchor_state.csv",
               "object_contact_points_builder": "generic_contact_pipeline/components/contact/build_mug_grasp_anchor_state.py",
               "hidden_handle_policy": "keep_previous_stable_grasp_anchor",
               "pose_policy": "m18_rotation_slerp_table_freeze_clean_python",
@@ -692,29 +692,29 @@
                 "rotation_detection": "auto_rotation_jump jump=61 step=32.913 threshold=12.000",
                 "static_frame": 160,
                 "static_detection": "auto_table_static support_conf>=0.99 support_gap>=-10.0 run=8",
-                "pose_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv"
+                "pose_source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv"
               },
               "phase_policy": "m17_phase_pchip_smooth_entry_no_hide_clean_python",
               "phase_info": {
                 "anchors": 30,
                 "max_abs_velocity_deg": 7.0,
-                "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
+                "phase_source": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
                 "phase_reconstruction": {
                   "policy": "fallback_final_phase_csv",
-                  "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
-                  "recovered_m15_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
-                  "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py",
+                  "phase_source": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
+                  "recovered_m15_csv": "samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+                  "solver": "scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py",
                   "snapshot_fallback_used": true,
                   "missing_preferred_phase_sources": [
-                    "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
-                    "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/provenance_snapshots/mug_m17_handle_phase.csv",
-                    "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv"
+                    "samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+                    "samples_known_object/02_mug/results/benchmark_vlm_qwen/provenance_snapshots/mug_m17_handle_phase.csv",
+                    "samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv"
                   ]
                 }
               },
               "grasp_anchor_summary": {
-                "input_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
-                "vlm_keyframe_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/annotations/vlm_mug_contact_keyframes/mug_contact_keyframe_annotations.csv",
+                "input_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
+                "vlm_keyframe_csv": "samples_known_object/02_mug/annotations/vlm_mug_contact_keyframes/mug_contact_keyframe_annotations.csv",
                 "n_frames": 240,
                 "mode_counts": {
                   "direct_grasp_anchor": 13,
@@ -806,7 +806,7 @@
             "report": {
               "component": "anchor_depth",
               "policy": "no_op_for_non_translation_pose_model",
-              "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv"
+              "object_pose": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv"
             }
           },
           {
@@ -830,13 +830,13 @@
           "enabled": false,
           "reason": "not_line_object"
         },
-        "object_pose_pre_smooth": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
-        "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
-        "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
-        "motion_regime": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/motion_regime.csv",
-        "physical_smooth_residuals": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
-        "pose_jump_audit": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/pose_jump_audit.csv",
-        "optimizer_decisions": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+        "object_pose_pre_smooth": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+        "object_pose": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+        "object_contact_points": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
+        "motion_regime": "samples_known_object/02_mug/results/benchmark_vlm_qwen/motion_regime.csv",
+        "physical_smooth_residuals": "samples_known_object/02_mug/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+        "pose_jump_audit": "samples_known_object/02_mug/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+        "optimizer_decisions": "samples_known_object/02_mug/results/benchmark_vlm_qwen/optimizer_decisions.csv",
         "rows": 240,
         "smoothed_rows": 239,
         "pose_lock_reason": "",
@@ -857,7 +857,7 @@
           "enabled": false,
           "constraints": 0,
           "skipped_rows": 240,
-          "source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
+          "source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
           "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
         },
         "anchor_pose_prior": {
@@ -885,10 +885,10 @@
                 "enabled": true,
                 "report": {
                   "component": "stable_grasp_anchor",
-                  "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
-                  "object_phase": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_phase.csv",
-                  "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
-                  "object_contact_points_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/mug_grasp_anchor_state_internal/mug_grasp_anchor_state.csv",
+                  "object_pose": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+                  "object_phase": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_phase.csv",
+                  "object_contact_points": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
+                  "object_contact_points_source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/mug_grasp_anchor_state_internal/mug_grasp_anchor_state.csv",
                   "object_contact_points_builder": "generic_contact_pipeline/components/contact/build_mug_grasp_anchor_state.py",
                   "hidden_handle_policy": "keep_previous_stable_grasp_anchor",
                   "pose_policy": "m18_rotation_slerp_table_freeze_clean_python",
@@ -898,29 +898,29 @@
                     "rotation_detection": "auto_rotation_jump jump=61 step=32.913 threshold=12.000",
                     "static_frame": 160,
                     "static_detection": "auto_table_static support_conf>=0.99 support_gap>=-10.0 run=8",
-                    "pose_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv"
+                    "pose_source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv"
                   },
                   "phase_policy": "m17_phase_pchip_smooth_entry_no_hide_clean_python",
                   "phase_info": {
                     "anchors": 30,
                     "max_abs_velocity_deg": 7.0,
-                    "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
+                    "phase_source": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
                     "phase_reconstruction": {
                       "policy": "fallback_final_phase_csv",
-                      "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
-                      "recovered_m15_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
-                      "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py",
+                      "phase_source": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
+                      "recovered_m15_csv": "samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+                      "solver": "scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py",
                       "snapshot_fallback_used": true,
                       "missing_preferred_phase_sources": [
-                        "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
-                        "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/provenance_snapshots/mug_m17_handle_phase.csv",
-                        "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv"
+                        "samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+                        "samples_known_object/02_mug/results/benchmark_vlm_qwen/provenance_snapshots/mug_m17_handle_phase.csv",
+                        "samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv"
                       ]
                     }
                   },
                   "grasp_anchor_summary": {
-                    "input_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
-                    "vlm_keyframe_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/annotations/vlm_mug_contact_keyframes/mug_contact_keyframe_annotations.csv",
+                    "input_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
+                    "vlm_keyframe_csv": "samples_known_object/02_mug/annotations/vlm_mug_contact_keyframes/mug_contact_keyframe_annotations.csv",
                     "n_frames": 240,
                     "mode_counts": {
                       "direct_grasp_anchor": 13,
@@ -1012,7 +1012,7 @@
                 "report": {
                   "component": "anchor_depth",
                   "policy": "no_op_for_non_translation_pose_model",
-                  "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv"
+                  "object_pose": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv"
                 }
               },
               {
@@ -1036,13 +1036,13 @@
               "enabled": false,
               "reason": "not_line_object"
             },
-            "object_pose_pre_smooth": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
-            "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
-            "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
-            "motion_regime": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/motion_regime.csv",
-            "physical_smooth_residuals": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
-            "pose_jump_audit": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/pose_jump_audit.csv",
-            "optimizer_decisions": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+            "object_pose_pre_smooth": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+            "object_pose": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+            "object_contact_points": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
+            "motion_regime": "samples_known_object/02_mug/results/benchmark_vlm_qwen/motion_regime.csv",
+            "physical_smooth_residuals": "samples_known_object/02_mug/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+            "pose_jump_audit": "samples_known_object/02_mug/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+            "optimizer_decisions": "samples_known_object/02_mug/results/benchmark_vlm_qwen/optimizer_decisions.csv",
             "rows": 240,
             "smoothed_rows": 239,
             "pose_lock_reason": "",
@@ -1063,7 +1063,7 @@
               "enabled": false,
               "constraints": 0,
               "skipped_rows": 240,
-              "source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
+              "source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
               "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
             },
             "anchor_pose_prior": {
@@ -1092,10 +1092,10 @@
               "enabled": true,
               "report": {
                 "component": "stable_grasp_anchor",
-                "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
-                "object_phase": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_phase.csv",
-                "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
-                "object_contact_points_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/mug_grasp_anchor_state_internal/mug_grasp_anchor_state.csv",
+                "object_pose": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+                "object_phase": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_phase.csv",
+                "object_contact_points": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
+                "object_contact_points_source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/mug_grasp_anchor_state_internal/mug_grasp_anchor_state.csv",
                 "object_contact_points_builder": "generic_contact_pipeline/components/contact/build_mug_grasp_anchor_state.py",
                 "hidden_handle_policy": "keep_previous_stable_grasp_anchor",
                 "pose_policy": "m18_rotation_slerp_table_freeze_clean_python",
@@ -1105,29 +1105,29 @@
                   "rotation_detection": "auto_rotation_jump jump=61 step=32.913 threshold=12.000",
                   "static_frame": 160,
                   "static_detection": "auto_table_static support_conf>=0.99 support_gap>=-10.0 run=8",
-                  "pose_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv"
+                  "pose_source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv"
                 },
                 "phase_policy": "m17_phase_pchip_smooth_entry_no_hide_clean_python",
                 "phase_info": {
                   "anchors": 30,
                   "max_abs_velocity_deg": 7.0,
-                  "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
+                  "phase_source": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
                   "phase_reconstruction": {
                     "policy": "fallback_final_phase_csv",
-                    "phase_source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
-                    "recovered_m15_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
-                    "solver": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py",
+                    "phase_source": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
+                    "recovered_m15_csv": "samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+                    "solver": "scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_handle_phase_correction.py",
                     "snapshot_fallback_used": true,
                     "missing_preferred_phase_sources": [
-                      "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
-                      "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/provenance_snapshots/mug_m17_handle_phase.csv",
-                      "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv"
+                      "samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+                      "samples_known_object/02_mug/results/benchmark_vlm_qwen/provenance_snapshots/mug_m17_handle_phase.csv",
+                      "samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv"
                     ]
                   }
                 },
                 "grasp_anchor_summary": {
-                  "input_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
-                  "vlm_keyframe_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/annotations/vlm_mug_contact_keyframes/mug_contact_keyframe_annotations.csv",
+                  "input_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
+                  "vlm_keyframe_csv": "samples_known_object/02_mug/annotations/vlm_mug_contact_keyframes/mug_contact_keyframe_annotations.csv",
                   "n_frames": 240,
                   "mode_counts": {
                     "direct_grasp_anchor": 13,
@@ -1219,7 +1219,7 @@
               "report": {
                 "component": "anchor_depth",
                 "policy": "no_op_for_non_translation_pose_model",
-                "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv"
+                "object_pose": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv"
               }
             },
             {
@@ -1243,13 +1243,13 @@
             "enabled": false,
             "reason": "not_line_object"
           },
-          "object_pose_pre_smooth": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
-          "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
-          "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
-          "motion_regime": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/motion_regime.csv",
-          "physical_smooth_residuals": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
-          "pose_jump_audit": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/pose_jump_audit.csv",
-          "optimizer_decisions": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+          "object_pose_pre_smooth": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+          "object_pose": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+          "object_contact_points": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
+          "motion_regime": "samples_known_object/02_mug/results/benchmark_vlm_qwen/motion_regime.csv",
+          "physical_smooth_residuals": "samples_known_object/02_mug/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+          "pose_jump_audit": "samples_known_object/02_mug/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+          "optimizer_decisions": "samples_known_object/02_mug/results/benchmark_vlm_qwen/optimizer_decisions.csv",
           "rows": 240,
           "smoothed_rows": 239,
           "pose_lock_reason": "",
@@ -1270,7 +1270,7 @@
             "enabled": false,
             "constraints": 0,
             "skipped_rows": 240,
-            "source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
+            "source": "samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
             "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
           },
           "anchor_pose_prior": {
@@ -1352,7 +1352,7 @@
         ],
         "accepted_contact_frames": [],
         "accepted_anchor_frames": [],
-        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage4/vlm_gates.csv"
+        "gate_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage4/vlm_gates.csv"
       },
       "stage_audit": {
         "case_name": "mug",
@@ -1367,9 +1367,9 @@
         "repair_actions": [
           "rerun_stage_with_lower_trust"
         ],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage4/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage4/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage4/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage4/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage4/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage4/llm_audit_results.csv"
       }
     },
     {
@@ -1377,12 +1377,12 @@
       "result": {
         "backend": "articraft_mesh",
         "outputs": {
-          "object_only/overlay.mp4": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/object_only/overlay.mp4",
-          "object_only/camera3d.mp4": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/object_only/camera3d.mp4",
-          "object_only/side_yz.mp4": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/object_only/side_yz.mp4",
-          "with_human/overlay.mp4": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
-          "with_human/camera3d.mp4": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/camera3d.mp4",
-          "with_human/side_yz.mp4": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/side_yz.mp4"
+          "object_only/overlay.mp4": "samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/object_only/overlay.mp4",
+          "object_only/camera3d.mp4": "samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/object_only/camera3d.mp4",
+          "object_only/side_yz.mp4": "samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/object_only/side_yz.mp4",
+          "with_human/overlay.mp4": "samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+          "with_human/camera3d.mp4": "samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/camera3d.mp4",
+          "with_human/side_yz.mp4": "samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/side_yz.mp4"
         },
         "required": [
           "object_only/overlay.mp4",
@@ -1395,7 +1395,7 @@
         "policy": "rerender real Articraft mug mesh with generic articraft_mug_scene; compact Articraft-ratio side_yz",
         "renderer": {
           "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
-          "script": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/render/scenes/articraft_mug_scene.py"
+          "script": "scripts/shared/generic_contact_pipeline/components/render/scenes/articraft_mug_scene.py"
         }
       },
       "vlm_verification": {
@@ -1455,7 +1455,7 @@
         "unclear_frames": [],
         "accepted_contact_frames": [],
         "accepted_anchor_frames": [],
-        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage5/vlm_gates.csv"
+        "gate_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage5/vlm_gates.csv"
       },
       "stage_audit": {
         "case_name": "mug",
@@ -1468,17 +1468,17 @@
         "rerun_stage": false,
         "residual_reweight": false,
         "repair_actions": [],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage5/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage5/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage5/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage5/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage5/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage5/llm_audit_results.csv"
       }
     },
     {
       "stage": "stage6",
       "result": {
         "case_name": "mug",
-        "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen",
-        "render_dir": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/benchmark_vlm_qwen",
+        "result_dir": "samples_known_object/02_mug/results/benchmark_vlm_qwen",
+        "render_dir": "samples_known_object/02_mug/results/renders/benchmark_vlm_qwen",
         "checks": {
           "required_csvs": {
             "object_observations": {
@@ -1667,7 +1667,7 @@
           },
           "runtime_coupling_components": {},
           "old_script_reference_scan": {
-            "root": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline",
+            "root": "scripts/shared/generic_contact_pipeline",
             "patterns": [
               "scripts.shared.radius_free_proxy",
               "scripts/shared/radius_free_proxy",
@@ -1682,7 +1682,7 @@
           },
           "schema_status": {
             "object_observations": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv",
+              "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv",
               "exists": true,
               "columns": [
                 "frame",
@@ -1766,7 +1766,7 @@
               ]
             },
             "object_local_points": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
+              "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv",
               "exists": true,
               "columns": [
                 "frame",
@@ -1820,12 +1820,12 @@
               ]
             },
             "object_local_segments": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_segments.csv",
+              "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_segments.csv",
               "exists": false,
               "columns": []
             },
             "contact_candidates": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
+              "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
               "exists": true,
               "columns": [
                 "frame",
@@ -1849,7 +1849,7 @@
               ]
             },
             "object_pose_init": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv",
+              "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv",
               "exists": true,
               "columns": [
                 "frame",
@@ -1879,7 +1879,7 @@
               ]
             },
             "object_pose": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+              "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
               "exists": true,
               "columns": [
                 "frame",
@@ -1916,7 +1916,7 @@
               ]
             },
             "object_contact_points": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
+              "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
               "exists": true,
               "columns": [
                 "frame",
@@ -1940,7 +1940,7 @@
               ]
             },
             "object_phase": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_phase.csv",
+              "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_phase.csv",
               "exists": true,
               "columns": [
                 "frame",
@@ -1964,54 +1964,54 @@
           },
           "baseline_path_status": {
             "final_pose_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/object_pose.csv",
+              "path": "samples_known_object/02_mug/results/final_result/object_pose.csv",
               "exists": true,
               "is_dir": false
             },
             "final_phase_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/final_result/handle_phase.csv",
+              "path": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
               "exists": true,
               "is_dir": false
             },
             "m15_recovered_phase_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
+              "path": "samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv",
               "exists": false,
               "is_dir": false
             },
             "m17_phase_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv",
+              "path": "samples_known_object/02_mug/results/renders/M17_phase_corrected/corrected_handle_phase.csv",
               "exists": false,
               "is_dir": false
             },
             "m18_pose_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/mug_m18_opening_2d_video_correction/mug_m18_opening_2d_video_pose.csv",
+              "path": "samples_known_object/02_mug/results/mug_m18_opening_2d_video_correction/mug_m18_opening_2d_video_pose.csv",
               "exists": true,
               "is_dir": false
             },
             "contact_state_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/contact_candidates_object_proxy/contact_state_frames.csv",
+              "path": "samples_known_object/02_mug/results/contact_candidates_object_proxy/contact_state_frames.csv",
               "exists": true,
               "is_dir": false
             },
             "object_local_points_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/mug_articraft_contact_points/mug_articraft_contact_points.csv",
+              "path": "samples_known_object/02_mug/results/mug_articraft_contact_points/mug_articraft_contact_points.csv",
               "exists": true,
               "is_dir": false
             },
             "grasp_anchor_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/mug_grasp_anchor_state/mug_grasp_anchor_state.csv",
+              "path": "samples_known_object/02_mug/results/mug_grasp_anchor_state/mug_grasp_anchor_state.csv",
               "exists": true,
               "is_dir": false
             },
             "render_dir": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/final_result",
+              "path": "samples_known_object/02_mug/results/renders/final_result",
               "exists": true,
               "is_dir": true
             }
           },
           "migration_note": "v1 keeps solved baselines only for regression comparison and explicit provenance snapshots. baseline_reader components would copy solved artifacts, but current four case profiles should not use any. external_runner_on_generic_inputs components would run old stable scripts on generic stage files, but current four case profiles should not use any. generic_solver_external_env components are generic-owned code but intentionally run in a non-base conda env for dependency isolation. clean_from_verified_intermediate components rebuild outputs from trusted intermediate artifacts. preserved_provenance_snapshot components use explicit generic_pipeline_v1/provenance_snapshots files where the historical upstream chain is no longer fully present. clean_from_raw_or_stage_inputs components do not declare solved-artifact dependencies. Each step should be migrated leftward and validated with stage6_compare before replacing the old path."
         },
-        "migration_audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/migration_audit.csv"
+        "migration_audit_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/migration_audit.csv"
       },
       "vlm_verification": {
         "case_name": "mug",
@@ -2074,7 +2074,7 @@
         ],
         "accepted_contact_frames": [],
         "accepted_anchor_frames": [],
-        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage6/vlm_gates.csv"
+        "gate_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage6/vlm_gates.csv"
       },
       "stage_audit": {
         "case_name": "mug",
@@ -2089,9 +2089,9 @@
         "repair_actions": [
           "rerun_stage_with_lower_trust"
         ],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage6/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage6/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage6/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage6/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage6/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage6/llm_audit_results.csv"
       }
     },
     {
@@ -2099,10 +2099,10 @@
       "result": {
         "stage": "stage6.5_llm_csv_audit",
         "case_name": "mug",
-        "queries": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/llm_csv_audit_queries.json",
-        "results": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/llm_csv_audit_results.json",
-        "summary": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/llm_csv_audit_summary.md",
-        "failures": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/llm_csv_audit_failures.csv",
+        "queries": "samples_known_object/02_mug/results/benchmark_vlm_qwen/llm_csv_audit_queries.json",
+        "results": "samples_known_object/02_mug/results/benchmark_vlm_qwen/llm_csv_audit_results.json",
+        "summary": "samples_known_object/02_mug/results/benchmark_vlm_qwen/llm_csv_audit_summary.md",
+        "failures": "samples_known_object/02_mug/results/benchmark_vlm_qwen/llm_csv_audit_failures.csv",
         "failure_count": 0,
         "blocking_count": 0
       },
@@ -2121,9 +2121,9 @@
         "repair_actions": [
           "no_effective_vlm_gate"
         ],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage6.5/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage6.5/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage6.5/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage6.5/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage6.5/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage6.5/llm_audit_results.csv"
       }
     },
     {
@@ -2134,13 +2134,13 @@
         "loss_analysis": {
           "case_name": "mug",
           "mode": "non_invasive_loss_audit",
-          "per_frame_residuals": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/per_frame_residuals.csv",
-          "stage7_loss_residuals": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage7_loss_residuals.csv",
-          "loss_trace": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/loss_trace.csv",
+          "per_frame_residuals": "samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/per_frame_residuals.csv",
+          "stage7_loss_residuals": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage7_loss_residuals.csv",
+          "loss_trace": "samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/loss_trace.csv",
           "plots": [
-            "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/E_total.png",
-            "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/E_smooth.png",
-            "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/E_reg.png"
+            "samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/E_total.png",
+            "samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/E_smooth.png",
+            "samples_known_object/02_mug/results/benchmark_vlm_qwen/loss_analysis/E_reg.png"
           ],
           "active_terms": [
             "E_total",
@@ -2151,8 +2151,8 @@
         },
         "related_work_proxy": {
           "case_name": "mug",
-          "summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/related_work_proxy_summary.csv",
-          "summary_md": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/related_work_proxy_report.md",
+          "summary_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/related_work_proxy_summary.csv",
+          "summary_md": "samples_known_object/02_mug/results/benchmark_vlm_qwen/related_work_proxy_report.md",
           "variants": [
             "video_only_tracking",
             "mesh_only_alignment",
@@ -2281,7 +2281,7 @@
         "unclear_frames": [],
         "accepted_contact_frames": [],
         "accepted_anchor_frames": [],
-        "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage7/vlm_gates.csv"
+        "gate_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage7/vlm_gates.csv"
       },
       "stage_audit": {
         "case_name": "mug",
@@ -2294,9 +2294,9 @@
         "rerun_stage": false,
         "residual_reweight": false,
         "repair_actions": [],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage7/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage7/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage7/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage7/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage7/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage7/llm_audit_results.csv"
       }
     }
   ],
@@ -2317,97 +2317,97 @@
     },
     "artifacts": {
       "stage0_inputs_manifest": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage0_inputs_manifest.json",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage0_inputs_manifest.json",
         "exists": true,
         "rows": 99
       },
       "object_observations": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv",
         "exists": true,
         "rows": 240
       },
       "object_correspondence": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_correspondence.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_correspondence.csv",
         "exists": true,
         "rows": 240
       },
       "object_surface_points": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_surface_points.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_surface_points.csv",
         "exists": true,
         "rows": 240
       },
       "object_semantic_points": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_semantic_points.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_semantic_points.csv",
         "exists": true,
         "rows": 0
       },
       "line_correspondence": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/line_correspondence.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/line_correspondence.csv",
         "exists": false,
         "rows": 0
       },
       "line_observations": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/line_observations.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/line_observations.csv",
         "exists": false,
         "rows": 0
       },
       "contact_candidates": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
         "exists": true,
         "rows": 240
       },
       "anchor_state": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/anchor_state.csv",
         "exists": true,
         "rows": 240
       },
       "object_pose_init": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv",
         "exists": true,
         "rows": 240
       },
       "object_pose_pre_smooth": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
         "exists": true,
         "rows": 240
       },
       "motion_regime": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/motion_regime.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/motion_regime.csv",
         "exists": true,
         "rows": 240
       },
       "physical_smooth_residuals": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
         "exists": true,
         "rows": 240
       },
       "pose_jump_audit": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/pose_jump_audit.csv",
         "exists": true,
         "rows": 240
       },
       "optimizer_decisions": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/optimizer_decisions.csv",
         "exists": true,
         "rows": 240
       },
       "object_pose": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
         "exists": true,
         "rows": 240
       },
       "object_contact_points": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_contact_points.csv",
         "exists": true,
         "rows": 240
       },
       "stage_audit_gates": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage_audit_gates.csv",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage_audit_gates.csv",
         "exists": true,
         "rows": 36
       },
       "stage_audit_latest": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage_audit_latest.json",
+        "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit/stage_audit_latest.json",
         "exists": true,
         "rows": 14
       }
@@ -2581,133 +2581,133 @@
     "vlm_trace": {
       "case_name": "mug",
       "result_name": "benchmark_vlm_qwen",
-      "trace_root": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace",
+      "trace_root": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace",
       "directories": {
-        "00_input": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input",
-        "01_observation": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation",
-        "02_contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates",
-        "03_vlm_reasoning": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/03_vlm_reasoning",
-        "04_gating": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/04_gating",
-        "05_optimization": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/05_optimization",
-        "06_evaluation": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation"
+        "00_input": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input",
+        "01_observation": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation",
+        "02_contact_candidates": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates",
+        "03_vlm_reasoning": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/03_vlm_reasoning",
+        "04_gating": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/04_gating",
+        "05_optimization": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/05_optimization",
+        "06_evaluation": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation"
       },
       "artifacts": {
         "input_video": {
           "stage": "",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/video.mp4",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/video.mp4",
+          "source_path": "samples_known_object/02_mug/video.mp4",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/video.mp4",
           "exists": true,
           "rows": "",
           "storage_mode": "relative_symlink"
         },
         "sampled_frames": {
           "stage": "00_input",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage0/evidence",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames",
+          "source_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm/stage0/evidence",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames",
           "exists": true,
           "rows": 8,
           "storage_mode": "relative_symlink_or_copy"
         },
         "object_mask_overlay": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/object_only/overlay.mp4",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_mask_overlay.mp4",
+          "source_path": "samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/object_only/overlay.mp4",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_mask_overlay.mp4",
           "exists": true,
           "rows": "",
           "storage_mode": "relative_symlink"
         },
         "human_pose_overlay": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/human_pose_overlay.mp4",
+          "source_path": "samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/human_pose_overlay.mp4",
           "exists": true,
           "rows": "",
           "storage_mode": "relative_symlink"
         },
         "depth_overlay": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
+          "source_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
           "exists": true,
           "rows": "",
           "storage_mode": "generated"
         },
         "contact_candidate_overlay": {
           "stage": "02_contact_candidates",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+          "source_path": "samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
           "exists": true,
           "rows": "",
           "storage_mode": "relative_symlink"
         },
         "before_after_overlay": {
           "stage": "05_optimization",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/05_optimization/before_after_overlay.mp4",
+          "source_path": "samples_known_object/02_mug/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/05_optimization/before_after_overlay.mp4",
           "exists": true,
           "rows": "",
           "storage_mode": "relative_symlink"
         },
         "object_observations": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_observations.csv",
+          "source_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_observations.csv",
           "exists": true,
           "rows": 240,
           "storage_mode": "relative_symlink"
         },
         "object_correspondence": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_correspondence.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_correspondence.csv",
+          "source_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_correspondence.csv",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_correspondence.csv",
           "exists": true,
           "rows": 240,
           "storage_mode": "relative_symlink"
         },
         "object_surface_points": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_surface_points.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_surface_points.csv",
+          "source_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_surface_points.csv",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_surface_points.csv",
           "exists": true,
           "rows": 240,
           "storage_mode": "relative_symlink"
         },
         "object_semantic_points": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_semantic_points.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_semantic_points.csv",
+          "source_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_semantic_points.csv",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_semantic_points.csv",
           "exists": true,
           "rows": 0,
           "storage_mode": "relative_symlink"
         },
         "line_correspondence": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/line_correspondence.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/line_correspondence.csv",
+          "source_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/line_correspondence.csv",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/line_correspondence.csv",
           "exists": false,
           "rows": "",
           "storage_mode": "missing"
         },
         "line_observations": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/line_observations.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/line_observations.csv",
+          "source_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/line_observations.csv",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/line_observations.csv",
           "exists": false,
           "rows": "",
           "storage_mode": "missing"
         },
         "contact_candidates": {
           "stage": "02_contact_candidates",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidates.csv",
+          "source_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/contact_candidates.csv",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidates.csv",
           "exists": true,
           "rows": 240,
           "storage_mode": "relative_symlink"
         },
         "gate_timeline_png": {
           "stage": "04_gating",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
+          "source_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
+          "target_path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
           "exists": true,
           "rows": ""
         }
@@ -2720,79 +2720,79 @@
           "input_video": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/video.mp4",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/video.mp4",
             "stage": ""
           },
           "sampled_frames": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames",
             "stage": "00_input"
           },
           "object_observations": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_observations.csv",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_observations.csv",
             "stage": "01_observation"
           },
           "object_correspondence": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_correspondence.csv",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_correspondence.csv",
             "stage": "01_observation"
           },
           "object_surface_points": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_surface_points.csv",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_surface_points.csv",
             "stage": "01_observation"
           },
           "object_semantic_points": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_semantic_points.csv",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_semantic_points.csv",
             "stage": "01_observation"
           },
           "contact_candidates": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidates.csv",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidates.csv",
             "stage": "02_contact_candidates"
           },
           "object_mask_overlay": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_mask_overlay.mp4",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_mask_overlay.mp4",
             "stage": "01_observation"
           },
           "human_pose_overlay": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/human_pose_overlay.mp4",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/human_pose_overlay.mp4",
             "stage": "01_observation"
           },
           "depth_overlay": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
             "stage": "01_observation"
           },
           "contact_candidate_overlay": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
             "stage": "02_contact_candidates"
           },
           "before_after_overlay": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/05_optimization/before_after_overlay.mp4",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/05_optimization/before_after_overlay.mp4",
             "stage": "05_optimization"
           },
           "gate_timeline_png": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
             "stage": "04_gating"
           }
         }
@@ -2877,15 +2877,15 @@
   "case": "mug",
   "result_name": "benchmark_vlm_qwen",
   "final_hoi_evaluation": {
-    "summary_json": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
-    "detailed_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
-    "object_6d_metrics_json": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/object_6d_metrics.json",
-    "overlay_metrics_json": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/overlay_metrics.json",
-    "hoi_contact_metrics_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/hoi_contact_metrics.csv",
-    "part_metrics_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/part_metrics.csv",
-    "penetration_floating_metrics_json": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/penetration_floating_metrics.json",
-    "temporal_audio_metrics_json": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/temporal_audio_metrics.json",
-    "pipeline_qa_summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
-    "qa_audit_report_html": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
+    "summary_json": "samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
+    "detailed_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
+    "object_6d_metrics_json": "samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/object_6d_metrics.json",
+    "overlay_metrics_json": "samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/overlay_metrics.json",
+    "hoi_contact_metrics_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/hoi_contact_metrics.csv",
+    "part_metrics_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/part_metrics.csv",
+    "penetration_floating_metrics_json": "samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/penetration_floating_metrics.json",
+    "temporal_audio_metrics_json": "samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/temporal_audio_metrics.json",
+    "pipeline_qa_summary_csv": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+    "qa_audit_report_html": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
   }
 }

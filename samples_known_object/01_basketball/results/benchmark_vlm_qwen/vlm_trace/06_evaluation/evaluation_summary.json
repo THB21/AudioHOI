@@ -88,8 +88,8 @@
   },
   "pipeline_qa_summary": {
     "rows": 48,
-    "csv": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
-    "json": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.json",
-    "markdown": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.md"
+    "csv": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+    "json": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.json",
+    "markdown": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.md"
   }
 }

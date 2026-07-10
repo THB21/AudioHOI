@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Iterable
 
 from ..base.config import CaseProfile
-from ..base.io import float_or_none, read_csv, write_csv, write_json
+from ..base.io import float_or_none, read_csv, repo_relative_value, write_csv, write_json
 from ..base.schema import stage_paths
 from .llm_csv_audit import run_llm_csv_audit
 from .vlm_trace import export_vlm_trace
@@ -553,6 +553,9 @@ def _write_final_eval_qa(
             "changed_optimizer_behavior": "0",
             **scores,
         }
+        query = repo_relative_value(query)
+        parsed = repo_relative_value(parsed)
+        raw_answer = repo_relative_value(raw_answer)
         queries.append(query)
         parsed_rows.append(parsed)
         raw_lines.append(json.dumps({"query": query, "raw_answer": raw_answer}, sort_keys=True))
@@ -575,7 +578,7 @@ def _write_final_eval_qa(
         f"- Mode: {llm_report.get('mode', 'deterministic_csv_audit')}",
         f"- Summary: {llm_report.get('summary', '')}",
         f"- Failure stage hint: {scores['failure_stage_hint']}",
-        f"- Missing inputs: {', '.join(llm_report.get('missing_inputs', []) or [])}",
+        f"- Missing inputs: {', '.join(llm_report.get('missing_inputs', []) or []) or 'none'}",
         "",
         "The audit reads CSV/metric artifacts and reports whether gate, anchor, smooth, and static-tail evidence is consistent. It does not generate pose.",
     ]

@@ -1,2 +1,2 @@
 contact_frame_ratio,contact_gap_mm,contact_proxy,contact_proxy_source,part_correct_ratio,contact_ratio_audio_windows,grasp_stability_mm,mdev_star_mm,hoi_contact_pair_rows,hoi_contact_interval_count,hoi_observed_contact_rows,hoi_persistent_contact_rows,contact_anchor_drift_mean,contact_anchor_drift_max,source
-0.3708,54.22,0.3381045878007376,contact_gap_mm_exp_decay_sigma_50,0.875,0.5,,,480,4,463,0,0.10820582937365007,0.638407,/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/hoi_eval/hoi_interaction_metrics.json
+0.3708,54.22,0.3381045878007376,contact_gap_mm_exp_decay_sigma_50,0.875,0.5,,,480,4,463,0,0.10820582937365007,0.638407,samples_known_object/11_stick/results/hoi_eval/hoi_interaction_metrics.json

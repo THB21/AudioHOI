@@ -1,6 +1,6 @@
 {
   "object_pose_pre_smooth": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+    "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
     "exists": true,
     "rows": 242,
     "columns": [
@@ -199,7 +199,7 @@
     ]
   },
   "object_pose": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
+    "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
     "exists": true,
     "rows": 242,
     "columns": [
@@ -402,7 +402,7 @@
     ]
   },
   "physical_smooth_residuals": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+    "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
     "exists": true,
     "rows": 242,
     "columns": [
@@ -481,7 +481,7 @@
     ]
   },
   "pose_jump_audit": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+    "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/pose_jump_audit.csv",
     "exists": true,
     "rows": 242,
     "columns": [

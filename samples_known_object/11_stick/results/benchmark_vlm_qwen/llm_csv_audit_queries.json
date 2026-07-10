@@ -437,7 +437,7 @@
           "contact_conf": "0.941531",
           "anchor_score": "0.941531",
           "source": "persistent_two_palm_line_from_gvhmr_palm_projection",
-          "line_source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
+          "line_source": "samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
           "stable_object_local_s": "0.638407",
           "local_s_drift": "0.043572"
         },
@@ -468,7 +468,7 @@
           "contact_conf": "0.890768",
           "anchor_score": "0.890768",
           "source": "persistent_two_palm_line_from_gvhmr_palm_projection",
-          "line_source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
+          "line_source": "samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
           "stable_object_local_s": "0.463373",
           "local_s_drift": "0.174210"
         },
@@ -499,7 +499,7 @@
           "contact_conf": "0.925266",
           "anchor_score": "0.925266",
           "source": "persistent_two_palm_line_from_gvhmr_palm_projection",
-          "line_source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
+          "line_source": "samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
           "stable_object_local_s": "0.638407",
           "local_s_drift": "0.040710"
         }
@@ -1259,7 +1259,7 @@
           "contact_conf": "0.941531",
           "anchor_score": "0.941531",
           "source": "persistent_two_palm_line_from_gvhmr_palm_projection",
-          "line_source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
+          "line_source": "samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
           "stable_object_local_s": "0.638407",
           "local_s_drift": "0.043572"
         },
@@ -1290,7 +1290,7 @@
           "contact_conf": "0.890768",
           "anchor_score": "0.890768",
           "source": "persistent_two_palm_line_from_gvhmr_palm_projection",
-          "line_source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
+          "line_source": "samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
           "stable_object_local_s": "0.463373",
           "local_s_drift": "0.174210"
         },
@@ -1321,7 +1321,7 @@
           "contact_conf": "0.925266",
           "anchor_score": "0.925266",
           "source": "persistent_two_palm_line_from_gvhmr_palm_projection",
-          "line_source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
+          "line_source": "samples_known_object/11_stick/results/benchmark_vlm_qwen/line_correspondence.csv",
           "stable_object_local_s": "0.638407",
           "local_s_drift": "0.040710"
         }

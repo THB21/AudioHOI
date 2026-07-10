@@ -3,6 +3,6 @@
 - Mode: deterministic_csv_audit
 - Summary: review_required
 - Failure stage hint: stage2_contact
-- Missing inputs:
+- Missing inputs: none
 
 The audit reads CSV/metric artifacts and reports whether gate, anchor, smooth, and static-tail evidence is consistent. It does not generate pose.

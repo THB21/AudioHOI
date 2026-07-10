@@ -2,64 +2,64 @@
   "frames": [
     {
       "stage": "",
-      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00000.jpg",
-      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00000.jpg",
+      "source_path": "samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00000.jpg",
+      "target_path": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00000.jpg",
       "exists": true,
       "rows": "",
       "storage_mode": "relative_symlink"
     },
     {
       "stage": "",
-      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00001.jpg",
-      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00001.jpg",
+      "source_path": "samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00001.jpg",
+      "target_path": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00001.jpg",
       "exists": true,
       "rows": "",
       "storage_mode": "relative_symlink"
     },
     {
       "stage": "",
-      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00002.jpg",
-      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00002.jpg",
+      "source_path": "samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00002.jpg",
+      "target_path": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00002.jpg",
       "exists": true,
       "rows": "",
       "storage_mode": "relative_symlink"
     },
     {
       "stage": "",
-      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00003.jpg",
-      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00003.jpg",
+      "source_path": "samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00003.jpg",
+      "target_path": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00003.jpg",
       "exists": true,
       "rows": "",
       "storage_mode": "relative_symlink"
     },
     {
       "stage": "",
-      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00004.jpg",
-      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00004.jpg",
+      "source_path": "samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00004.jpg",
+      "target_path": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00004.jpg",
       "exists": true,
       "rows": "",
       "storage_mode": "relative_symlink"
     },
     {
       "stage": "",
-      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00005.jpg",
-      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00005.jpg",
+      "source_path": "samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00005.jpg",
+      "target_path": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00005.jpg",
       "exists": true,
       "rows": "",
       "storage_mode": "relative_symlink"
     },
     {
       "stage": "",
-      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00006.jpg",
-      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00006.jpg",
+      "source_path": "samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00006.jpg",
+      "target_path": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00006.jpg",
       "exists": true,
       "rows": "",
       "storage_mode": "relative_symlink"
     },
     {
       "stage": "",
-      "source_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00007.jpg",
-      "target_path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00007.jpg",
+      "source_path": "samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames/00007.jpg",
+      "target_path": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames/00007.jpg",
       "exists": true,
       "rows": "",
       "storage_mode": "relative_symlink"

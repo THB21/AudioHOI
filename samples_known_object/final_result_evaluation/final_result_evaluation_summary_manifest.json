@@ -4,7 +4,7 @@
   "method": "final_vlm_gated",
   "llm_mode": "seed",
   "rows": 5,
-  "table": "/mnt/hdd/AudioHOI/samples_known_object/final_result_evaluation/final_result_evaluation_summary.csv",
+  "table": "samples_known_object/final_result_evaluation/final_result_evaluation_summary.csv",
   "markdown": "samples_known_object/final_result_evaluation/final_result_evaluation_summary.md",
   "html": "samples_known_object/final_result_evaluation/final_result_evaluation_summary.html",
   "note": "Final-only summary. It intentionally does not compare benchmark methods."

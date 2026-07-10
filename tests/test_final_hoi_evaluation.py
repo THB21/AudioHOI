@@ -27,10 +27,24 @@ from scripts.shared.generic_contact_pipeline.core.evaluation.final_hoi.summary_w
     write_unified_final_summary,
     run_unified_final_evaluation,
 )
+from scripts.shared.generic_contact_pipeline.core.evaluation.final_hoi.utils import normalize_artifact_value, repo_rel
 from scripts.shared.generic_contact_pipeline.tools.run_ablation_evaluation import DEFAULT_METHODS
 
 
 class FinalHoiEvaluationTest(unittest.TestCase):
+    def test_final_hoi_artifact_paths_are_repo_relative(self) -> None:
+        repo_root = Path(__file__).resolve().parents[1]
+        absolute = repo_root / "samples_known_object" / "11_stick" / "results" / "benchmark_vlm_qwen" / "object_pose.csv"
+
+        self.assertEqual(
+            repo_rel(absolute),
+            "samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+        )
+        self.assertEqual(
+            normalize_artifact_value({"path": str(absolute), "items": [absolute]})["items"][0],
+            "samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+        )
+
     def _profile(self, tmp: str, *, case_name: str = "stick", result_name: str = "benchmark_vlm_qwen") -> SimpleNamespace:
         root = Path(tmp)
         sample = root / "sample"

@@ -5,7 +5,7 @@ from html import escape
 from pathlib import Path
 
 from ..base.config import CaseProfile, with_runtime_overrides
-from ..base.io import read_csv, write_csv, write_json
+from ..base.io import read_csv, repo_relative_value, write_csv, write_json
 from ..base.schema import stage_paths
 from .final_evaluator import run_final_evaluator
 
@@ -37,6 +37,7 @@ FINAL_SUMMARY_FIELDS = [
 
 
 def _fmt(value: object, *, digits: int = 6) -> str:
+    value = repo_relative_value(value)
     if value is None:
         return ""
     if isinstance(value, bool):

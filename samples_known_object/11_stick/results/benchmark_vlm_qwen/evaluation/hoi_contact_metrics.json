@@ -13,5 +13,5 @@
   "hoi_persistent_contact_rows": 0,
   "contact_anchor_drift_mean": 0.10820582937365007,
   "contact_anchor_drift_max": 0.638407,
-  "source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/hoi_eval/hoi_interaction_metrics.json"
+  "source": "samples_known_object/11_stick/results/hoi_eval/hoi_interaction_metrics.json"
 }

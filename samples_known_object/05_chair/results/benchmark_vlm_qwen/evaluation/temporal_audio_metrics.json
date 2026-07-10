@@ -4,5 +4,5 @@
   "accel_in_flight": 0.00053,
   "contact_ratio_audio_windows": 1.0,
   "audio_events": 3.0,
-  "source": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/hoi_eval/hoi_interaction_metrics.json"
+  "source": "samples_known_object/05_chair/results/hoi_eval/hoi_interaction_metrics.json"
 }

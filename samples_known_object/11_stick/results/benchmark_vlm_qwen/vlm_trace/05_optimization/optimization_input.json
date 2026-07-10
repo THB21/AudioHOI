@@ -1,6 +1,6 @@
 {
   "object_pose_init": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose_init.csv",
+    "path": "samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose_init.csv",
     "exists": true,
     "rows": 240,
     "columns": [
@@ -247,7 +247,7 @@
     ]
   },
   "anchor_state": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/anchor_state.csv",
+    "path": "samples_known_object/11_stick/results/benchmark_vlm_qwen/anchor_state.csv",
     "exists": true,
     "rows": 480,
     "columns": [
@@ -350,7 +350,7 @@
     ]
   },
   "optimizer_decisions": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+    "path": "samples_known_object/11_stick/results/benchmark_vlm_qwen/optimizer_decisions.csv",
     "exists": true,
     "rows": 240,
     "columns": [

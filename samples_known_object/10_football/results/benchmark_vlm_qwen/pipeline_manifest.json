@@ -53,8 +53,8 @@
       "render_dir": "samples_known_object/10_football/results/renders/pose6d_object_proxy_anchor_refined"
     }
   },
-  "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen",
-  "render_dir": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen",
+  "result_dir": "samples_known_object/10_football/results/benchmark_vlm_qwen",
+  "render_dir": "samples_known_object/10_football/results/renders/benchmark_vlm_qwen",
   "from_stage": "stage4",
   "to_stage": "stage7",
   "vlm_mode": "none",
@@ -72,23 +72,23 @@
             "enabled": true,
             "report": {
               "component": "anchor_depth",
-              "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
-              "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
+              "object_pose": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
+              "object_contact_points": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
               "anchors_used": 0,
               "policy": "exact_radius_free_anchor_refinement_audiohoi_env_using_stage2_contact_proxy",
               "exact_optimizer": {
                 "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
-                "script": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/refinement/solvers/anchor_depth_solver.py",
-                "out_dir": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/exact_anchor_depth_reference",
-                "pose_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_trajectory.csv",
-                "summary_txt": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_summary.txt"
+                "script": "scripts/shared/generic_contact_pipeline/components/refinement/solvers/anchor_depth_solver.py",
+                "out_dir": "samples_known_object/10_football/results/benchmark_vlm_qwen/exact_anchor_depth_reference",
+                "pose_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_trajectory.csv",
+                "summary_txt": "samples_known_object/10_football/results/benchmark_vlm_qwen/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_summary.txt"
               },
-              "raw_debug_pose": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_anchor_raw_debug.csv",
+              "raw_debug_pose": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_anchor_raw_debug.csv",
               "raw_debug_policy": "pre-optimization anchor-segment reference only; final uses original least_squares logic",
               "raw_vs_final_max_abs_z_m": 6.147206,
               "optimizer_style_residual_report": {
                 "stage_label": "stage4_anchor_depth_final",
-                "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/ball_stage4_anchor_depth_residuals.csv",
+                "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/ball_stage4_anchor_depth_residuals.csv",
                 "rows": 242,
                 "terms": {
                   "E_total": 2469.5526219599997,
@@ -113,8 +113,8 @@
             "report": {
               "component": "backproject_xy",
               "case_name": "football",
-              "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
-              "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
+              "object_pose": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
+              "object_contact_points": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
               "policy": "generic pass-through from Stage3 backprojected pose when no stronger refinement has produced object_pose"
             }
           }
@@ -129,13 +129,13 @@
           "enabled": false,
           "reason": "not_line_object"
         },
-        "object_pose_pre_smooth": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
-        "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
-        "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
-        "motion_regime": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/motion_regime.csv",
-        "physical_smooth_residuals": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
-        "pose_jump_audit": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/pose_jump_audit.csv",
-        "optimizer_decisions": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+        "object_pose_pre_smooth": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+        "object_pose": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
+        "object_contact_points": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
+        "motion_regime": "samples_known_object/10_football/results/benchmark_vlm_qwen/motion_regime.csv",
+        "physical_smooth_residuals": "samples_known_object/10_football/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+        "pose_jump_audit": "samples_known_object/10_football/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+        "optimizer_decisions": "samples_known_object/10_football/results/benchmark_vlm_qwen/optimizer_decisions.csv",
         "rows": 242,
         "smoothed_rows": 242,
         "pose_lock_reason": "",
@@ -156,7 +156,7 @@
           "enabled": false,
           "constraints": 0,
           "skipped_rows": 67,
-          "source": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/anchor_state.csv",
+          "source": "samples_known_object/10_football/results/benchmark_vlm_qwen/anchor_state.csv",
           "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
         },
         "anchor_pose_prior": {
@@ -277,23 +277,23 @@
               "enabled": true,
               "report": {
                 "component": "anchor_depth",
-                "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
-                "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
+                "object_pose": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
+                "object_contact_points": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
                 "anchors_used": 0,
                 "policy": "exact_radius_free_anchor_refinement_audiohoi_env_using_stage2_contact_proxy",
                 "exact_optimizer": {
                   "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
-                  "script": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/refinement/solvers/anchor_depth_solver.py",
-                  "out_dir": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/exact_anchor_depth_reference",
-                  "pose_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_trajectory.csv",
-                  "summary_txt": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_summary.txt"
+                  "script": "scripts/shared/generic_contact_pipeline/components/refinement/solvers/anchor_depth_solver.py",
+                  "out_dir": "samples_known_object/10_football/results/benchmark_vlm_qwen/exact_anchor_depth_reference",
+                  "pose_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_trajectory.csv",
+                  "summary_txt": "samples_known_object/10_football/results/benchmark_vlm_qwen/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_summary.txt"
                 },
-                "raw_debug_pose": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_anchor_raw_debug.csv",
+                "raw_debug_pose": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_anchor_raw_debug.csv",
                 "raw_debug_policy": "pre-optimization anchor-segment reference only; final uses original least_squares logic",
                 "raw_vs_final_max_abs_z_m": 6.147206,
                 "optimizer_style_residual_report": {
                   "stage_label": "stage4_anchor_depth_final",
-                  "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/ball_stage4_anchor_depth_residuals.csv",
+                  "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/ball_stage4_anchor_depth_residuals.csv",
                   "rows": 242,
                   "terms": {
                     "E_total": 2469.5526219599997,
@@ -318,8 +318,8 @@
               "report": {
                 "component": "backproject_xy",
                 "case_name": "football",
-                "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
-                "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
+                "object_pose": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
+                "object_contact_points": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
                 "policy": "generic pass-through from Stage3 backprojected pose when no stronger refinement has produced object_pose"
               }
             }
@@ -334,13 +334,13 @@
             "enabled": false,
             "reason": "not_line_object"
           },
-          "object_pose_pre_smooth": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
-          "object_pose": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
-          "object_contact_points": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
-          "motion_regime": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/motion_regime.csv",
-          "physical_smooth_residuals": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
-          "pose_jump_audit": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/pose_jump_audit.csv",
-          "optimizer_decisions": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+          "object_pose_pre_smooth": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+          "object_pose": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
+          "object_contact_points": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
+          "motion_regime": "samples_known_object/10_football/results/benchmark_vlm_qwen/motion_regime.csv",
+          "physical_smooth_residuals": "samples_known_object/10_football/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+          "pose_jump_audit": "samples_known_object/10_football/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+          "optimizer_decisions": "samples_known_object/10_football/results/benchmark_vlm_qwen/optimizer_decisions.csv",
           "rows": 242,
           "smoothed_rows": 242,
           "pose_lock_reason": "",
@@ -361,7 +361,7 @@
             "enabled": false,
             "constraints": 0,
             "skipped_rows": 67,
-            "source": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/anchor_state.csv",
+            "source": "samples_known_object/10_football/results/benchmark_vlm_qwen/anchor_state.csv",
             "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
           },
           "anchor_pose_prior": {
@@ -469,9 +469,9 @@
         "repair_actions": [
           "rerun_stage_with_lower_trust"
         ],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage4/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage4/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage4/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage4/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage4/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage4/llm_audit_results.csv"
       }
     },
     {
@@ -479,12 +479,12 @@
       "result": {
         "backend": "proxy_sphere",
         "outputs": {
-          "object_only/overlay.mp4": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/object_only/overlay.mp4",
-          "object_only/camera3d.mp4": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/object_only/camera3d.mp4",
-          "object_only/side_yz.mp4": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/object_only/side_yz.mp4",
-          "with_human/overlay.mp4": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
-          "with_human/camera3d.mp4": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/camera3d.mp4",
-          "with_human/side_yz.mp4": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/side_yz.mp4"
+          "object_only/overlay.mp4": "samples_known_object/10_football/results/renders/benchmark_vlm_qwen/object_only/overlay.mp4",
+          "object_only/camera3d.mp4": "samples_known_object/10_football/results/renders/benchmark_vlm_qwen/object_only/camera3d.mp4",
+          "object_only/side_yz.mp4": "samples_known_object/10_football/results/renders/benchmark_vlm_qwen/object_only/side_yz.mp4",
+          "with_human/overlay.mp4": "samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+          "with_human/camera3d.mp4": "samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/camera3d.mp4",
+          "with_human/side_yz.mp4": "samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/side_yz.mp4"
         },
         "required": [
           "object_only/overlay.mp4",
@@ -497,7 +497,7 @@
         "policy": "rerendered with generic proxy_sphere_scene using generic object_pose.csv and automatic h264 finalize",
         "renderer": {
           "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
-          "script": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline/components/render/scenes/proxy_sphere_scene.py"
+          "script": "scripts/shared/generic_contact_pipeline/components/render/scenes/proxy_sphere_scene.py"
         }
       },
       "vlm_verification": null,
@@ -513,17 +513,17 @@
         "rerun_stage": false,
         "residual_reweight": false,
         "repair_actions": [],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage5/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage5/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage5/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage5/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage5/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage5/llm_audit_results.csv"
       }
     },
     {
       "stage": "stage6",
       "result": {
         "case_name": "football",
-        "result_dir": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen",
-        "render_dir": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen",
+        "result_dir": "samples_known_object/10_football/results/benchmark_vlm_qwen",
+        "render_dir": "samples_known_object/10_football/results/renders/benchmark_vlm_qwen",
         "checks": {
           "required_csvs": {
             "object_observations": {
@@ -691,7 +691,7 @@
           },
           "runtime_coupling_components": {},
           "old_script_reference_scan": {
-            "root": "/mnt/hdd/AudioHOI/scripts/shared/generic_contact_pipeline",
+            "root": "scripts/shared/generic_contact_pipeline",
             "patterns": [
               "scripts.shared.radius_free_proxy",
               "scripts/shared/radius_free_proxy",
@@ -706,7 +706,7 @@
           },
           "schema_status": {
             "object_observations": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_observations.csv",
+              "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_observations.csv",
               "exists": true,
               "columns": [
                 "frame",
@@ -759,7 +759,7 @@
               ]
             },
             "object_local_points": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_local_points.csv",
+              "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_local_points.csv",
               "exists": true,
               "columns": [
                 "point_id",
@@ -772,12 +772,12 @@
               ]
             },
             "object_local_segments": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_local_segments.csv",
+              "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_local_segments.csv",
               "exists": false,
               "columns": []
             },
             "contact_candidates": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/contact_candidates.csv",
+              "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/contact_candidates.csv",
               "exists": true,
               "columns": [
                 "frame",
@@ -796,7 +796,7 @@
               ]
             },
             "object_pose_init": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_init.csv",
+              "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_init.csv",
               "exists": true,
               "columns": [
                 "frame",
@@ -828,7 +828,7 @@
               ]
             },
             "object_pose": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
+              "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
               "exists": true,
               "columns": [
                 "frame",
@@ -881,7 +881,7 @@
               ]
             },
             "object_contact_points": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
+              "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
               "exists": true,
               "columns": [
                 "frame",
@@ -900,51 +900,51 @@
               ]
             },
             "object_phase": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_phase.csv",
+              "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_phase.csv",
               "exists": false,
               "columns": []
             }
           },
           "baseline_path_status": {
             "final_pose_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv",
+              "path": "samples_known_object/10_football/results/pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv",
               "exists": true,
               "is_dir": false
             },
             "init_pose_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/pose6d_object_proxy_da3_init/object_pose6d_sharedcam_trajectory.csv",
+              "path": "samples_known_object/10_football/results/pose6d_object_proxy_da3_init/object_pose6d_sharedcam_trajectory.csv",
               "exists": true,
               "is_dir": false
             },
             "object_observations_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/object_observations/object_observations.csv",
+              "path": "samples_known_object/10_football/results/object_observations/object_observations.csv",
               "exists": true,
               "is_dir": false
             },
             "object_proxy_observations_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/object_proxy_observations/object_proxy_observations.csv",
+              "path": "samples_known_object/10_football/results/object_proxy_observations/object_proxy_observations.csv",
               "exists": true,
               "is_dir": false
             },
             "contact_candidates_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/contact_candidates_object_proxy/anchor_contact_candidates.csv",
+              "path": "samples_known_object/10_football/results/contact_candidates_object_proxy/anchor_contact_candidates.csv",
               "exists": true,
               "is_dir": false
             },
             "contact_state_csv": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/contact_candidates_object_proxy/contact_state_frames.csv",
+              "path": "samples_known_object/10_football/results/contact_candidates_object_proxy/contact_state_frames.csv",
               "exists": true,
               "is_dir": false
             },
             "render_dir": {
-              "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/pose6d_object_proxy_anchor_refined",
+              "path": "samples_known_object/10_football/results/renders/pose6d_object_proxy_anchor_refined",
               "exists": true,
               "is_dir": true
             }
           },
           "migration_note": "v1 keeps solved baselines only for regression comparison and explicit provenance snapshots. baseline_reader components would copy solved artifacts, but current four case profiles should not use any. external_runner_on_generic_inputs components would run old stable scripts on generic stage files, but current four case profiles should not use any. generic_solver_external_env components are generic-owned code but intentionally run in a non-base conda env for dependency isolation. clean_from_verified_intermediate components rebuild outputs from trusted intermediate artifacts. preserved_provenance_snapshot components use explicit generic_pipeline_v1/provenance_snapshots files where the historical upstream chain is no longer fully present. clean_from_raw_or_stage_inputs components do not declare solved-artifact dependencies. Each step should be migrated leftward and validated with stage6_compare before replacing the old path."
         },
-        "migration_audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/migration_audit.csv"
+        "migration_audit_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/migration_audit.csv"
       },
       "vlm_verification": null,
       "vlm_gate": null,
@@ -961,9 +961,9 @@
         "repair_actions": [
           "rerun_stage_with_lower_trust"
         ],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage6/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage6/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage6/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage6/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage6/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage6/llm_audit_results.csv"
       }
     },
     {
@@ -971,10 +971,10 @@
       "result": {
         "stage": "stage6.5_llm_csv_audit",
         "case_name": "football",
-        "queries": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/llm_csv_audit_queries.json",
-        "results": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/llm_csv_audit_results.json",
-        "summary": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/llm_csv_audit_summary.md",
-        "failures": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/llm_csv_audit_failures.csv",
+        "queries": "samples_known_object/10_football/results/benchmark_vlm_qwen/llm_csv_audit_queries.json",
+        "results": "samples_known_object/10_football/results/benchmark_vlm_qwen/llm_csv_audit_results.json",
+        "summary": "samples_known_object/10_football/results/benchmark_vlm_qwen/llm_csv_audit_summary.md",
+        "failures": "samples_known_object/10_football/results/benchmark_vlm_qwen/llm_csv_audit_failures.csv",
         "failure_count": 0,
         "blocking_count": 0
       },
@@ -993,9 +993,9 @@
         "repair_actions": [
           "no_effective_vlm_gate"
         ],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage6.5/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage6.5/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage6.5/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage6.5/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage6.5/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage6.5/llm_audit_results.csv"
       }
     },
     {
@@ -1006,16 +1006,16 @@
         "loss_analysis": {
           "case_name": "football",
           "mode": "non_invasive_loss_audit",
-          "per_frame_residuals": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/per_frame_residuals.csv",
-          "stage7_loss_residuals": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage7_loss_residuals.csv",
-          "loss_trace": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/loss_trace.csv",
+          "per_frame_residuals": "samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/per_frame_residuals.csv",
+          "stage7_loss_residuals": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage7_loss_residuals.csv",
+          "loss_trace": "samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/loss_trace.csv",
           "plots": [
-            "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/E_total.png",
-            "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/E_visual.png",
-            "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/E_contact.png",
-            "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/E_support.png",
-            "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/E_smooth.png",
-            "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/E_reg.png"
+            "samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/E_total.png",
+            "samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/E_visual.png",
+            "samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/E_contact.png",
+            "samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/E_support.png",
+            "samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/E_smooth.png",
+            "samples_known_object/10_football/results/benchmark_vlm_qwen/loss_analysis/E_reg.png"
           ],
           "active_terms": [
             "E_total",
@@ -1030,8 +1030,8 @@
         },
         "related_work_proxy": {
           "case_name": "football",
-          "summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/related_work_proxy_summary.csv",
-          "summary_md": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/related_work_proxy_report.md",
+          "summary_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/related_work_proxy_summary.csv",
+          "summary_md": "samples_known_object/10_football/results/benchmark_vlm_qwen/related_work_proxy_report.md",
           "variants": [
             "video_only_tracking",
             "mesh_only_alignment",
@@ -1059,9 +1059,9 @@
         "repair_actions": [
           "rerun_stage_with_lower_trust"
         ],
-        "audit_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage7/stage_audit_gates.csv",
-        "llm_audit_queries": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage7/llm_audit_queries.json",
-        "llm_audit_results": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage7/llm_audit_results.csv"
+        "audit_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage7/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage7/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage7/llm_audit_results.csv"
       }
     }
   ],
@@ -1081,97 +1081,97 @@
     },
     "artifacts": {
       "stage0_inputs_manifest": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage0_inputs_manifest.json",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage0_inputs_manifest.json",
         "exists": true,
         "rows": 99
       },
       "object_observations": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_observations.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_observations.csv",
         "exists": true,
         "rows": 242
       },
       "object_correspondence": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_correspondence.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_correspondence.csv",
         "exists": true,
         "rows": 242
       },
       "object_surface_points": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_surface_points.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_surface_points.csv",
         "exists": true,
         "rows": 0
       },
       "object_semantic_points": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_semantic_points.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_semantic_points.csv",
         "exists": true,
         "rows": 0
       },
       "line_correspondence": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/line_correspondence.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/line_correspondence.csv",
         "exists": false,
         "rows": 0
       },
       "line_observations": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/line_observations.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/line_observations.csv",
         "exists": false,
         "rows": 0
       },
       "contact_candidates": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/contact_candidates.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/contact_candidates.csv",
         "exists": true,
         "rows": 242
       },
       "anchor_state": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/anchor_state.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/anchor_state.csv",
         "exists": true,
         "rows": 242
       },
       "object_pose_init": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_init.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_init.csv",
         "exists": true,
         "rows": 242
       },
       "object_pose_pre_smooth": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
         "exists": true,
         "rows": 242
       },
       "motion_regime": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/motion_regime.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/motion_regime.csv",
         "exists": true,
         "rows": 242
       },
       "physical_smooth_residuals": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
         "exists": true,
         "rows": 242
       },
       "pose_jump_audit": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/pose_jump_audit.csv",
         "exists": true,
         "rows": 242
       },
       "optimizer_decisions": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/optimizer_decisions.csv",
         "exists": true,
         "rows": 242
       },
       "object_pose": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
         "exists": true,
         "rows": 242
       },
       "object_contact_points": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_contact_points.csv",
         "exists": true,
         "rows": 242
       },
       "stage_audit_gates": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage_audit_gates.csv",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage_audit_gates.csv",
         "exists": true,
         "rows": 36
       },
       "stage_audit_latest": {
-        "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage_audit_latest.json",
+        "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/stage_audit/stage_audit_latest.json",
         "exists": true,
         "rows": 16
       }
@@ -1345,133 +1345,133 @@
     "vlm_trace": {
       "case_name": "football",
       "result_name": "benchmark_vlm_qwen",
-      "trace_root": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace",
+      "trace_root": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace",
       "directories": {
-        "00_input": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/00_input",
-        "01_observation": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation",
-        "02_contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates",
-        "03_vlm_reasoning": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/03_vlm_reasoning",
-        "04_gating": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/04_gating",
-        "05_optimization": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/05_optimization",
-        "06_evaluation": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/06_evaluation"
+        "00_input": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/00_input",
+        "01_observation": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation",
+        "02_contact_candidates": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates",
+        "03_vlm_reasoning": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/03_vlm_reasoning",
+        "04_gating": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/04_gating",
+        "05_optimization": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/05_optimization",
+        "06_evaluation": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/06_evaluation"
       },
       "artifacts": {
         "input_video": {
           "stage": "",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/video.mp4",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/00_input/video.mp4",
+          "source_path": "samples_known_object/10_football/video.mp4",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/00_input/video.mp4",
           "exists": true,
           "rows": "",
           "storage_mode": "relative_symlink"
         },
         "sampled_frames": {
           "stage": "00_input",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm/stage0/evidence",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames",
+          "source_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm/stage0/evidence",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames",
           "exists": true,
           "rows": 8,
           "storage_mode": "relative_symlink_or_copy"
         },
         "object_mask_overlay": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/object_only/overlay.mp4",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_mask_overlay.mp4",
+          "source_path": "samples_known_object/10_football/results/renders/benchmark_vlm_qwen/object_only/overlay.mp4",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_mask_overlay.mp4",
           "exists": true,
           "rows": "",
           "storage_mode": "generated"
         },
         "human_pose_overlay": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/human_pose_overlay.mp4",
+          "source_path": "samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/human_pose_overlay.mp4",
           "exists": true,
           "rows": "",
           "storage_mode": "generated"
         },
         "depth_overlay": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
+          "source_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
           "exists": true,
           "rows": "",
           "storage_mode": "generated"
         },
         "contact_candidate_overlay": {
           "stage": "02_contact_candidates",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+          "source_path": "samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
           "exists": true,
           "rows": "",
           "storage_mode": "generated"
         },
         "before_after_overlay": {
           "stage": "05_optimization",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/05_optimization/before_after_overlay.mp4",
+          "source_path": "samples_known_object/10_football/results/renders/benchmark_vlm_qwen/with_human/overlay.mp4",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/05_optimization/before_after_overlay.mp4",
           "exists": true,
           "rows": "",
           "storage_mode": "generated"
         },
         "object_observations": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_observations.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_observations.csv",
+          "source_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_observations.csv",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_observations.csv",
           "exists": true,
           "rows": 242,
           "storage_mode": "relative_symlink"
         },
         "object_correspondence": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_correspondence.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_correspondence.csv",
+          "source_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_correspondence.csv",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_correspondence.csv",
           "exists": true,
           "rows": 242,
           "storage_mode": "relative_symlink"
         },
         "object_surface_points": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_surface_points.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_surface_points.csv",
+          "source_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_surface_points.csv",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_surface_points.csv",
           "exists": true,
           "rows": 0,
           "storage_mode": "relative_symlink"
         },
         "object_semantic_points": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/object_semantic_points.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_semantic_points.csv",
+          "source_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/object_semantic_points.csv",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_semantic_points.csv",
           "exists": true,
           "rows": 0,
           "storage_mode": "relative_symlink"
         },
         "line_correspondence": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/line_correspondence.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/line_correspondence.csv",
+          "source_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/line_correspondence.csv",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/line_correspondence.csv",
           "exists": false,
           "rows": "",
           "storage_mode": "missing"
         },
         "line_observations": {
           "stage": "01_observation",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/line_observations.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/line_observations.csv",
+          "source_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/line_observations.csv",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/line_observations.csv",
           "exists": false,
           "rows": "",
           "storage_mode": "missing"
         },
         "contact_candidates": {
           "stage": "02_contact_candidates",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/contact_candidates.csv",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidates.csv",
+          "source_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/contact_candidates.csv",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidates.csv",
           "exists": true,
           "rows": 242,
           "storage_mode": "relative_symlink"
         },
         "gate_timeline_png": {
           "stage": "04_gating",
-          "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
-          "target_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
+          "source_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
+          "target_path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
           "exists": true,
           "rows": ""
         }
@@ -1484,79 +1484,79 @@
           "input_video": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/00_input/video.mp4",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/00_input/video.mp4",
             "stage": ""
           },
           "sampled_frames": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/00_input/sampled_frames",
             "stage": "00_input"
           },
           "object_observations": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_observations.csv",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_observations.csv",
             "stage": "01_observation"
           },
           "object_correspondence": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_correspondence.csv",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_correspondence.csv",
             "stage": "01_observation"
           },
           "object_surface_points": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_surface_points.csv",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_surface_points.csv",
             "stage": "01_observation"
           },
           "object_semantic_points": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_semantic_points.csv",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_semantic_points.csv",
             "stage": "01_observation"
           },
           "contact_candidates": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidates.csv",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidates.csv",
             "stage": "02_contact_candidates"
           },
           "object_mask_overlay": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_mask_overlay.mp4",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/object_mask_overlay.mp4",
             "stage": "01_observation"
           },
           "human_pose_overlay": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/human_pose_overlay.mp4",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/human_pose_overlay.mp4",
             "stage": "01_observation"
           },
           "depth_overlay": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/01_observation/depth_overlay.mp4",
             "stage": "01_observation"
           },
           "contact_candidate_overlay": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
             "stage": "02_contact_candidates"
           },
           "before_after_overlay": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/05_optimization/before_after_overlay.mp4",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/05_optimization/before_after_overlay.mp4",
             "stage": "05_optimization"
           },
           "gate_timeline_png": {
             "required": true,
             "exists": true,
-            "path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.png",
             "stage": "04_gating"
           }
         }
@@ -1655,15 +1655,15 @@
   "case": "football",
   "result_name": "benchmark_vlm_qwen",
   "final_hoi_evaluation": {
-    "summary_json": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
-    "detailed_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
-    "object_6d_metrics_json": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/object_6d_metrics.json",
-    "overlay_metrics_json": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/overlay_metrics.json",
-    "hoi_contact_metrics_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/hoi_contact_metrics.csv",
-    "part_metrics_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/part_metrics.csv",
-    "penetration_floating_metrics_json": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/penetration_floating_metrics.json",
-    "temporal_audio_metrics_json": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/temporal_audio_metrics.json",
-    "pipeline_qa_summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
-    "qa_audit_report_html": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
+    "summary_json": "samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
+    "detailed_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
+    "object_6d_metrics_json": "samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/object_6d_metrics.json",
+    "overlay_metrics_json": "samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/overlay_metrics.json",
+    "hoi_contact_metrics_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/hoi_contact_metrics.csv",
+    "part_metrics_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/part_metrics.csv",
+    "penetration_floating_metrics_json": "samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/penetration_floating_metrics.json",
+    "temporal_audio_metrics_json": "samples_known_object/10_football/results/benchmark_vlm_qwen/evaluation/temporal_audio_metrics.json",
+    "pipeline_qa_summary_csv": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+    "qa_audit_report_html": "samples_known_object/10_football/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
   }
 }

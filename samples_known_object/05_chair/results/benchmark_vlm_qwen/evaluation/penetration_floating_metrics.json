@@ -6,5 +6,5 @@
   "floating_rate": null,
   "floating_gap_mean_mm": null,
   "tradeoff_score": 0.7252056566556262,
-  "source": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/hoi_eval/hoi_interaction_metrics.json"
+  "source": "samples_known_object/05_chair/results/hoi_eval/hoi_interaction_metrics.json"
 }

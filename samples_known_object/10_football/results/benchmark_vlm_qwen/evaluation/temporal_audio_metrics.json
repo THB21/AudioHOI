@@ -4,5 +4,5 @@
   "accel_in_flight": 0.02511,
   "contact_ratio_audio_windows": 0.455,
   "audio_events": 11.0,
-  "source": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/hoi_eval/hoi_interaction_metrics.json"
+  "source": "samples_known_object/10_football/results/hoi_eval/hoi_interaction_metrics.json"
 }

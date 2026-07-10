@@ -1,2 +1,2 @@
 penetration_frame_ratio,penetration_depth_mean_mm,penetration_depth_max_mm,non_collision_ratio,floating_rate,floating_gap_mean_mm,tradeoff_score,source
-0.2292,5.69,8.91,0.7708,,,0.7252056566556262,/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/hoi_eval/hoi_interaction_metrics.json
+0.2292,5.69,8.91,0.7708,,,0.7252056566556262,samples_known_object/05_chair/results/hoi_eval/hoi_interaction_metrics.json

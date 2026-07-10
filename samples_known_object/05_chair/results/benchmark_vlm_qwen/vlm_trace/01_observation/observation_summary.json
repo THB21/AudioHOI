@@ -1,6 +1,6 @@
 {
   "object_observations": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_observations.csv",
+    "path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_observations.csv",
     "exists": true,
     "rows": 192,
     "columns": [
@@ -339,7 +339,7 @@
     ]
   },
   "object_correspondence": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_correspondence.csv",
+    "path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_correspondence.csv",
     "exists": true,
     "rows": 192,
     "columns": [
@@ -390,7 +390,7 @@
     ]
   },
   "object_surface_points": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_surface_points.csv",
+    "path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_surface_points.csv",
     "exists": true,
     "rows": 46,
     "columns": [
@@ -437,7 +437,7 @@
     ]
   },
   "object_semantic_points": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_semantic_points.csv",
+    "path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_semantic_points.csv",
     "exists": true,
     "rows": 21,
     "columns": [
@@ -504,14 +504,14 @@
     ]
   },
   "line_correspondence": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/line_correspondence.csv",
+    "path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/line_correspondence.csv",
     "exists": false,
     "rows": 0,
     "columns": [],
     "sample": []
   },
   "line_observations": {
-    "path": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/line_observations.csv",
+    "path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/line_observations.csv",
     "exists": false,
     "rows": 0,
     "columns": [],

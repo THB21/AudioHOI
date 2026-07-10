@@ -6,5 +6,5 @@
   "floating_rate": null,
   "floating_gap_mean_mm": null,
   "tradeoff_score": 0.8155439215018592,
-  "source": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/hoi_eval/hoi_interaction_metrics.json"
+  "source": "samples_known_object/01_basketball/results/hoi_eval/hoi_interaction_metrics.json"
 }

@@ -1,0 +1,4 @@
+part,raw_parts,available,surface_point_rows,contact_evidence_rows,source
+shaft,main_body,1,0,463,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+grip_region,contact_region,0,0,0,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+support_region,support_region,0,0,0,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization

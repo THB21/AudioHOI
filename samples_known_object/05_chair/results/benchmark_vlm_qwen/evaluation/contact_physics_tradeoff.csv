@@ -1,0 +1,2 @@
+contact_gap_mm,penetration_depth_mean_mm,tradeoff_score,interpretation
+3.68,5.69,0.7252056566556262,balances floating/contact gap against penetration depth

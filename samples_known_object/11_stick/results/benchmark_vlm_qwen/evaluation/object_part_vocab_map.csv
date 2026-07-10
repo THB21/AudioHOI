@@ -1,0 +1,4 @@
+raw_part,canonical_part,source
+contact_region,grip_region,case_config
+main_body,shaft,case_config+hoi_contact_pairs
+support_region,support_region,case_config

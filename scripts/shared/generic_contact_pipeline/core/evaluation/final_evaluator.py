@@ -612,6 +612,164 @@ def _write_final_eval_qa(
     return summary
 
 
+def _qa_key(row: dict[str, str]) -> tuple[str, str, str]:
+    return (
+        str(row.get("query_id") or row.get("check_id") or ""),
+        str(row.get("frame") or ""),
+        str(row.get("query_type") or row.get("check_type") or ""),
+    )
+
+
+def _stage_dirs(base: Path) -> list[Path]:
+    return sorted(path for path in base.glob("stage*") if path.is_dir())
+
+
+def _changed_by_gate(row: dict[str, str]) -> str:
+    keys = [
+        "is_effective",
+        "allow_anchor_update",
+        "allow_contact_residual",
+        "allow_pose_refine",
+        "changed_optimizer_behavior",
+    ]
+    return "1" if any(str(row.get(key, "")).strip() in {"1", "1.0", "true", "True", "yes"} for key in keys) else "0"
+
+
+def _affected_constraint_from_row(row: dict[str, str]) -> str:
+    explicit = str(row.get("affected_constraint", "")).strip()
+    if explicit:
+        return explicit
+    query_type = str(row.get("query_type") or row.get("check_type") or "").lower()
+    if "contact" in query_type:
+        return "contact_anchor_residual"
+    if "overlay" in query_type or "mask" in query_type or "track" in query_type:
+        return "visual_overlay_residual"
+    if "temporal" in query_type or "motion" in query_type or "optimizer" in query_type:
+        return "sequence_optimizer"
+    if "render" in query_type:
+        return "render_acceptance_gate"
+    return "audit_report"
+
+
+def _write_pipeline_qa_summary(profile: CaseProfile, eval_dir: Path) -> dict[str, object]:
+    paths = stage_paths(profile)
+    rows: list[dict[str, object]] = []
+    for stage_dir in _stage_dirs(paths["vlm_dir"]):
+        stage = stage_dir.name
+        queries = _rows(stage_dir / "vlm_queries.csv")
+        results = {_qa_key(row): row for row in _rows(stage_dir / "vlm_results.csv")}
+        gates = {_qa_key(row): row for row in _rows(stage_dir / "vlm_gates.csv")}
+        for query in queries:
+            key = _qa_key(query)
+            result = results.get(key, {})
+            gate = gates.get(key, {})
+            merged = {**query, **result, **gate}
+            evidence = (
+                merged.get("input_render_path")
+                or merged.get("input_image_path")
+                or merged.get("evidence_path")
+                or merged.get("image_path")
+                or ""
+            )
+            rows.append(
+                {
+                    "source_type": "vlm",
+                    "stage": stage,
+                    "frame": merged.get("frame", ""),
+                    "query_id": merged.get("query_id", ""),
+                    "query_type": merged.get("query_type", ""),
+                    "question": merged.get("question", merged.get("query_type", "")),
+                    "evidence_path": evidence,
+                    "raw_answer": merged.get("raw_response", merged.get("raw_text", "")),
+                    "parsed_label": merged.get("normalized_label", merged.get("answer_label", merged.get("label", ""))),
+                    "confidence": merged.get("confidence", ""),
+                    "pass_gate": merged.get("pass_gate", ""),
+                    "repair_action": merged.get("repair_action", ""),
+                    "affected_constraint": _affected_constraint_from_row(merged),
+                    "changed_optimizer_behavior": _changed_by_gate(merged),
+                }
+            )
+    for stage_dir in _stage_dirs(paths["stage_audit_dir"]):
+        stage = stage_dir.name
+        for row in _rows(stage_dir / "llm_audit_results.csv"):
+            rows.append(
+                {
+                    "source_type": "llm",
+                    "stage": row.get("stage", stage),
+                    "frame": row.get("frame", ""),
+                    "query_id": row.get("check_id", row.get("query_id", "")),
+                    "query_type": row.get("check_type", row.get("query_type", "llm_csv_audit")),
+                    "question": row.get("question", row.get("check_type", "llm_csv_audit")),
+                    "evidence_path": row.get("evidence_path", row.get("artifact_path", "")),
+                    "raw_answer": row.get("raw_answer", row.get("reason", row.get("summary", ""))),
+                    "parsed_label": row.get("parsed_label", row.get("label", row.get("pass_gate", ""))),
+                    "confidence": row.get("confidence", ""),
+                    "pass_gate": row.get("pass_gate", ""),
+                    "repair_action": row.get("repair_action", ""),
+                    "affected_constraint": _affected_constraint_from_row(row),
+                    "changed_optimizer_behavior": _changed_by_gate(row),
+                }
+            )
+    fields = [
+        "source_type",
+        "stage",
+        "frame",
+        "query_id",
+        "query_type",
+        "question",
+        "evidence_path",
+        "raw_answer",
+        "parsed_label",
+        "confidence",
+        "pass_gate",
+        "repair_action",
+        "affected_constraint",
+        "changed_optimizer_behavior",
+    ]
+    csv_path = eval_dir / "pipeline_qa_summary.csv"
+    json_path = eval_dir / "pipeline_qa_summary.json"
+    md_path = eval_dir / "pipeline_qa_summary.md"
+    write_csv(csv_path, rows, fields)
+    write_json(
+        json_path,
+        {
+            "rows": len(rows),
+            "vlm_rows": sum(1 for row in rows if row.get("source_type") == "vlm"),
+            "llm_rows": sum(1 for row in rows if row.get("source_type") == "llm"),
+            "changed_optimizer_behavior_rows": sum(1 for row in rows if str(row.get("changed_optimizer_behavior")) == "1"),
+            "items": rows,
+        },
+    )
+    lines = [
+        "# Pipeline VLM/LLM QA Summary",
+        "",
+        "This report aggregates pipeline-stage VLM/LLM questions, answers, gates, and affected constraints.",
+        "",
+        "| source | stage | frame | question | parsed | gate | affected constraint | changed optimizer |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for row in rows:
+        lines.append(
+            "| "
+            + " | ".join(
+                str(row.get(key, "")).replace("|", "\\|")
+                for key in (
+                    "source_type",
+                    "stage",
+                    "frame",
+                    "question",
+                    "parsed_label",
+                    "pass_gate",
+                    "affected_constraint",
+                    "changed_optimizer_behavior",
+                )
+            )
+            + " |"
+        )
+    md_path.write_text("\n".join(lines) + "\n")
+    return {"rows": len(rows), "csv": str(csv_path), "json": str(json_path), "markdown": str(md_path)}
+
+
 def run_final_evaluator(profile: CaseProfile, *, method: str = "vlm_gated", llm_mode: str = "seed") -> dict[str, object]:
     export_vlm_trace(profile)
     eval_dir = profile.result_dir / "vlm_trace" / "06_evaluation"
@@ -621,6 +779,7 @@ def run_final_evaluator(profile: CaseProfile, *, method: str = "vlm_gated", llm_
     vlm_score, framewise = _vlm_visual_judgment(profile, metrics, flags)
     llm_report = _llm_csv_audit(profile, metrics, flags, llm_mode=llm_mode)
     qa_summary = _write_final_eval_qa(profile, metrics, flags, vlm_score, framewise, llm_report)
+    pipeline_qa_summary = _write_pipeline_qa_summary(profile, eval_dir)
     final_pass = not any(value is True for value in flags.values())
     summary = {
         "case": profile.case_name,
@@ -634,6 +793,7 @@ def run_final_evaluator(profile: CaseProfile, *, method: str = "vlm_gated", llm_
         "llm_audit_summary": llm_report["summary"],
         "failure_stage_hint": qa_summary.get("failure_stage_hint", _failure_stage_hint(flags)),
         "vlm_eval_summary": qa_summary,
+        "pipeline_qa_summary": pipeline_qa_summary,
     }
     write_json(eval_dir / "metric_scores.json", metrics)
     write_json(eval_dir / "failure_flags.json", flags)

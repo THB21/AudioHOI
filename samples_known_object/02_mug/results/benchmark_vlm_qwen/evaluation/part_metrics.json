@@ -1,0 +1,8 @@
+{
+  "human_part_count": 9,
+  "human_part_available_count": 9,
+  "human_part_contact_coverage": 0.5,
+  "object_part_count": 4,
+  "object_part_available_count": 3,
+  "object_part_contact_coverage": 0.75
+}

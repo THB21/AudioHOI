@@ -1,0 +1,16 @@
+{
+  "se3_valid": true,
+  "n_frames": 192,
+  "translation_valid_rate": 1.0,
+  "rotation_valid_rate": 1.0,
+  "quat_norm_error_mean": 0.0,
+  "translation_velocity_mean": 0.018578093781939385,
+  "translation_velocity_max": 0.06457378671721208,
+  "translation_acceleration_mean": 0.0047947098916045075,
+  "rotation_velocity_mean": 0.0,
+  "rotation_velocity_max": 0.0,
+  "rotation_acceleration_mean": 0.0,
+  "jump_count": 0,
+  "static_tail_drift_m": 0.0,
+  "geometry_spread_m": null
+}

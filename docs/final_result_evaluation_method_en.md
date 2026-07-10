@@ -157,17 +157,21 @@ The LLM also does not output coordinates or poses. It only outputs audit conclus
 Generate the final-only summary table with:
 
 ```bash
-python scripts/shared/generic_contact_pipeline/tools/run_final_summary.py
+/home/yang/miniconda3/envs/audiohoi/bin/python \
+  scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py \
+  --result-name benchmark_vlm_qwen \
+  --output-dir samples_known_object/final_result_evaluation
 ```
 
 Default outputs:
 
-- `samples_known_object/final_result_evaluation/final_result_evaluation_summary.csv`
-- `samples_known_object/final_result_evaluation/final_result_evaluation_summary.md`
-- `samples_known_object/final_result_evaluation/final_result_evaluation_summary.html`
-- `samples_known_object/final_result_evaluation/final_result_evaluation_summary_manifest.json`
+- `samples_known_object/final_result_evaluation/final_evaluation_detailed.csv`
+- `samples_known_object/final_result_evaluation/final_evaluation_human_readable.md`
+- `samples_known_object/final_result_evaluation/final_evaluation_summary_manifest.json`
 
 Each row evaluates one case's current final result only. It does not include baselines or ablations. Use the benchmark report only when comparing method contributions.
+
+The older `run_final_summary.py` / `final_result_evaluation_summary.*` outputs are legacy object-only summaries. They remain for compatibility, but they are not the current final HOI reporting table.
 
 ## Acceptance Criteria
 

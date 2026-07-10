@@ -1,0 +1,17 @@
+{
+  "contact_frame_ratio": 0.4667,
+  "contact_gap_mm": 15.78,
+  "contact_proxy": 0.7293511322802243,
+  "contact_proxy_source": "contact_gap_mm_exp_decay_sigma_50",
+  "part_correct_ratio": 1.0,
+  "contact_ratio_audio_windows": 0.571,
+  "grasp_stability_mm": null,
+  "mdev_star_mm": null,
+  "hoi_contact_pair_rows": 240,
+  "hoi_contact_interval_count": 18,
+  "hoi_observed_contact_rows": 240,
+  "hoi_persistent_contact_rows": 236,
+  "contact_anchor_drift_mean": null,
+  "contact_anchor_drift_max": null,
+  "source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/hoi_eval/hoi_interaction_metrics.json"
+}

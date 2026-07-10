@@ -1,0 +1,3 @@
+human_part,human_side,object_part,start_frame,end_frame,n_frames,mean_contact_confidence,mean_surface_gap_m,mean_anchor_drift,source
+palm,left_hand,top_rail,20,144,125,7.294056,,,two_hand_endpoint_from_gvhmr_qwen_left_to_right_observed_toprail_endpoint
+palm,right_hand,top_rail,20,144,125,11.396664000000005,,,two_hand_endpoint_from_gvhmr_qwen_right_to_left_observed_toprail_endpoint

@@ -1,0 +1,8 @@
+{
+  "object_jerk": 0.000888,
+  "accel_at_events": 0.02333,
+  "accel_in_flight": 0.01436,
+  "contact_ratio_audio_windows": 0.5,
+  "audio_events": 8.0,
+  "source": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/hoi_eval/hoi_interaction_metrics.json"
+}

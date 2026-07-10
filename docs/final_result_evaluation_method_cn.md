@@ -157,17 +157,21 @@ LLM 同样不输出坐标或 pose，只输出审计结论。
 最终汇总表由以下命令生成：
 
 ```bash
-python scripts/shared/generic_contact_pipeline/tools/run_final_summary.py
+/home/yang/miniconda3/envs/audiohoi/bin/python \
+  scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py \
+  --result-name benchmark_vlm_qwen \
+  --output-dir samples_known_object/final_result_evaluation
 ```
 
 默认输出：
 
-- `samples_known_object/final_result_evaluation/final_result_evaluation_summary.csv`
-- `samples_known_object/final_result_evaluation/final_result_evaluation_summary.md`
-- `samples_known_object/final_result_evaluation/final_result_evaluation_summary.html`
-- `samples_known_object/final_result_evaluation/final_result_evaluation_summary_manifest.json`
+- `samples_known_object/final_result_evaluation/final_evaluation_detailed.csv`
+- `samples_known_object/final_result_evaluation/final_evaluation_human_readable.md`
+- `samples_known_object/final_result_evaluation/final_evaluation_summary_manifest.json`
 
 表中每一行只有一个 case 的当前最终结果，不包含 baseline 或 ablation。若要比较方法贡献，应另看 benchmark report。
+
+旧的 `run_final_summary.py` / `final_result_evaluation_summary.*` 是 object-only legacy summary，保留用于兼容，但不作为当前最终 HOI 汇报主表。
 
 ## 通过标准
 

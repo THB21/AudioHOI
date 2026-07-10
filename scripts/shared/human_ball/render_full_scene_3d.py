@@ -256,9 +256,10 @@ def main():
                     help="body_surface_contacts.csv — draws a red marker at the surface "
                          "contact point (hand/finger or foot) on contact frames")
     ap.add_argument("--object-pose-csv", type=Path, default=None,
-                    help="6DOF object pose (frame,tx,ty,tz,yaw,pitch,roll,scale) — places "
-                         "--object-mesh with full rotation (Articraft mug), matching the "
-                         "teammate convention; overrides translation-only placement")
+                    help="6DOF object pose. Supports the generic SE3 schema "
+                         "(frame,tx,ty,tz,qw,qx,qy,qz) and the legacy mug schema "
+                         "(frame,tx,ty,tz,yaw,pitch,roll,scale); overrides "
+                         "translation-only placement")
     ap.add_argument("--object-trajectory", type=Path, default=None,
                     help="override the auto-picked trajectory csv")
     ap.add_argument("--object-mesh", type=Path, default=None,
@@ -336,27 +337,44 @@ def main():
     if has_rot:
         print("object rotation: applying per-frame trajectory quaternions")
 
-    # Optional 6DOF object pose (Articraft mug): per-frame yaw/pitch/roll/scale around the
-    # canonical object-local mesh, using the teammate's exact transform convention.
+    # Optional 6DOF object pose. Generic-mainline SE3 drives any object mesh by
+    # quaternion + translation. The legacy mug yaw/pitch/roll/scale path remains
+    # supported for older Articraft mug CSVs.
     obj_params = None
+    obj_pose_schema = None
+    _transform6d = None
     if args.object_pose_csv is not None and args.object_pose_csv.exists():
-        _stage1 = Path(__file__).resolve().parents[1] / "radius_free_proxy" / "stage1_observation"
-        sys.path.insert(0, str(_stage1))
-        import fit_mug_articraft_keyframe_pose as _base  # noqa: E402
         pose_by_frame = {}
         with args.object_pose_csv.open() as f:
             for r in csv.DictReader(f):
-                pose_by_frame[int(r["frame"])] = np.array(
-                    [float(r["tx"]), float(r["ty"]), float(r["tz"]),
-                     float(r["yaw"]), float(r["pitch"]), float(r["roll"]), float(r["scale"])])
+                frame = int(r["frame"])
+                if all(k in r and r[k] not in ("", None) for k in ("qw", "qx", "qy", "qz")):
+                    pose_by_frame[frame] = {
+                        "t": np.array([float(r["tx"]), float(r["ty"]), float(r["tz"])], dtype=np.float64),
+                        "R": quat_wxyz_to_mat(float(r["qw"]), float(r["qx"]), float(r["qy"]), float(r["qz"])),
+                    }
+                    obj_pose_schema = "se3_quaternion"
+                elif all(k in r and r[k] not in ("", None) for k in ("yaw", "pitch", "roll", "scale")):
+                    pose_by_frame[frame] = np.array(
+                        [float(r["tx"]), float(r["ty"]), float(r["tz"]),
+                         float(r["yaw"]), float(r["pitch"]), float(r["roll"]), float(r["scale"])])
+                    obj_pose_schema = "legacy_mug_euler_scale"
+                else:
+                    raise RuntimeError(
+                        f"{args.object_pose_csv} must contain either qw/qx/qy/qz or yaw/pitch/roll/scale"
+                    )
+        if obj_pose_schema == "legacy_mug_euler_scale":
+            _stage1 = Path(__file__).resolve().parents[1] / "radius_free_proxy" / "stage1_observation"
+            sys.path.insert(0, str(_stage1))
+            import fit_mug_articraft_keyframe_pose as _base  # noqa: E402
+            _transform6d = _base.transform
         last_p = pose_by_frame[min(pose_by_frame)]
         obj_params = []
         for fn in frame_nums:
             if fn in pose_by_frame:
                 last_p = pose_by_frame[fn]
-            obj_params.append(last_p.copy())
-        _transform6d = _base.transform
-        print(f"object: 6DOF Articraft mug pose ({len(pose_by_frame)} frames)")
+            obj_params.append(last_p.copy() if hasattr(last_p, "copy") else dict(last_p))
+        print(f"object: 6DOF pose ({obj_pose_schema}, {len(pose_by_frame)} frames)")
 
     # Frame the orbit around everything the body+ball cover over the whole clip,
     # so the camera doesn't have to chase anything.
@@ -399,7 +417,11 @@ def main():
         # for 6DOF, pre-transform the object mesh to camera space and place at origin
         if obj_params is not None:
             obj_mesh = ball_tri.copy()
-            obj_mesh.vertices = _transform6d(obj_params[i], np.asarray(ball_tri.vertices))
+            if obj_pose_schema == "legacy_mug_euler_scale":
+                obj_mesh.vertices = _transform6d(obj_params[i], np.asarray(ball_tri.vertices))
+            else:
+                pose = obj_params[i]
+                obj_mesh.vertices = np.asarray(ball_tri.vertices) @ pose["R"].T + pose["t"]
             obj_center = np.zeros(3)
         elif has_rot:
             # rotate the (origin-centered) mesh about the object center in the CV

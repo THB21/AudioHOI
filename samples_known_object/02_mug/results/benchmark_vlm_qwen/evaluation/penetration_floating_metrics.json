@@ -1,0 +1,10 @@
+{
+  "penetration_frame_ratio": 0.0,
+  "penetration_depth_mean_mm": 0.0,
+  "penetration_depth_max_mm": 0.0,
+  "non_collision_ratio": 1.0,
+  "floating_rate": null,
+  "floating_gap_mean_mm": null,
+  "tradeoff_score": 0.8540205690030096,
+  "source": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/hoi_eval/hoi_interaction_metrics.json"
+}

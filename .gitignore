@@ -195,9 +195,9 @@ cython_debug/
 .abstra/
 
 # Visual Studio Code
-#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
+#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore
 #   that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#   and can be added to the global gitignore or merged into this file. However, if you prefer, 
+#   and can be added to the global gitignore or merged into this file. However, if you prefer,
 #   you could uncomment the following to ignore the entire vscode folder
 # .vscode/
 # Temporary file for partial code execution
@@ -218,6 +218,12 @@ __marimo__/
 .streamlit/secrets.toml
 # Archived experiment branches/results
 scripts/shared/human_ball/contact/archive_experiments/
+
+# AudioHOI local evaluation caches
+samples_known_object/*/results/*/evaluation/render_masks/
+
+# Local meeting transcripts / uploaded working notes
+*转写结果.docx
 samples/basketball_01/results/archive_experiments/
 samples/basketball_01/results/renders/archive_experiments/
 
@@ -300,6 +306,8 @@ samples_known_object/11_stick/results/renders/benchmark_baseline_no_vlm/
 !samples_known_object/*/results/benchmark_vlm_qwen/**/*.jsonl
 
 # Re-ignore heavy final-run evidence/media after the compact-artifact exceptions above.
+samples_known_object/*/results/benchmark_vlm_qwen/evaluation/render_masks/
+samples_known_object/*/results/benchmark_vlm_qwen/evaluation/render_masks/**
 samples_known_object/*/results/benchmark_vlm_qwen/vlm/**/evidence/
 samples_known_object/*/results/benchmark_vlm_qwen/vlm/**/evidence/**
 samples_known_object/*/results/benchmark_vlm_qwen/loss_analysis/*.png

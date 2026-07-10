@@ -1,0 +1,2 @@
+penetration_frame_ratio,penetration_depth_mean_mm,penetration_depth_max_mm,non_collision_ratio,floating_rate,floating_gap_mean_mm,tradeoff_score,source
+0.0333,4.42,7.44,0.9667,,,0.4661722863435435,/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/hoi_eval/hoi_interaction_metrics.json

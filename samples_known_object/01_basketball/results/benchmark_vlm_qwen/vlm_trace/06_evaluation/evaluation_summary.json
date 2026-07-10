@@ -1,6 +1,6 @@
 {
   "case": "basketball",
-  "method": "final_vlm_gated",
+  "method": "final_hoi",
   "result_name": "benchmark_vlm_qwen",
   "method_status": "ok",
   "final_pass": false,
@@ -51,7 +51,7 @@
     "pipeline_vlm_gate_framewise_count": 36,
     "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
   },
-  "llm_audit_summary": "pass",
+  "llm_audit_summary": "review_required",
   "failure_stage_hint": "stage2_contact",
   "vlm_eval_summary": {
     "mode": "dry-run_metric_grounded",
@@ -85,5 +85,11 @@
       "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
     },
     "framewise_pipeline_judgment_count": 20
+  },
+  "pipeline_qa_summary": {
+    "rows": 48,
+    "csv": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+    "json": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.json",
+    "markdown": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.md"
   }
 }

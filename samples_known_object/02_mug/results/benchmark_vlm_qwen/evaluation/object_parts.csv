@@ -1,0 +1,5 @@
+part,raw_parts,available,surface_point_rows,contact_evidence_rows,source
+handle,handle|handle_loop,1,0,175,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+cup_body,body_shell|body_shell_or_occluded_handle_region|cup_body,1,0,60,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+rim,rim|rim_ring,1,0,5,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+bottom,bottom,0,0,0,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization

@@ -1,0 +1,2 @@
+object_jerk,accel_at_events,accel_in_flight,contact_ratio_audio_windows,audio_events,source
+1e-06,0.00079,0.00053,1.0,3.0,/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/hoi_eval/hoi_interaction_metrics.json

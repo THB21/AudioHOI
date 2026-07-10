@@ -1,63 +1,30 @@
 {
   "mode": "deterministic_csv_audit",
-  "source_path": "/mnt/hdd/AudioHOI/samples_known_object/10_football/results/benchmark_vlm_qwen/llm_csv_audit_results.json",
-  "failure_count": 0,
-  "blocking_count": 0,
-  "summary": "pass",
-  "results": [
-    {
-      "query_id": "schema_completeness",
-      "label": "pass",
-      "blocking": false,
-      "evidence": {
-        "missing": []
-      },
-      "short_reason": "required schemas are present"
-    },
-    {
-      "query_id": "stage_consistency",
-      "label": "pass",
-      "blocking": false,
-      "evidence": {
-        "contact_candidates_rows": 242,
-        "object_contact_points_rows": 242,
-        "vlm_gates_rows": 36,
-        "optimizer_decision_rows": 242,
-        "motion_regime_rows": 242,
-        "ignored_rejected_frames": [],
-        "failures": []
-      },
-      "short_reason": "stage outputs are mutually consistent"
-    },
-    {
-      "query_id": "object_specific_rules",
-      "label": "pass",
-      "blocking": false,
-      "evidence": {
-        "failures": [],
-        "max_depth_step_m": 0.021016
-      },
-      "short_reason": "case-specific rules pass"
-    },
-    {
-      "query_id": "failure_range_summary",
-      "label": "pass",
-      "blocking": false,
-      "evidence": {
-        "depth_jump_frames": [],
-        "contact_frame_min": 1,
-        "contact_frame_max": 242,
-        "contact_frame_count": 242,
-        "pose_jump_audit_frames": [],
-        "trusted_solved_pose_lock": false,
-        "report_only_pose_jump_frames": [],
-        "low_trust_optimizer_frames": []
-      },
-      "short_reason": "no obvious numeric jump range found"
-    }
+  "missing_inputs": [],
+  "failure_sources": [
+    "stage2_contact_anchor",
+    "stage4_sequence_optimizer"
   ],
-  "llm_trace": {
-    "mode": "seed",
-    "used": false
-  }
+  "gate_effectiveness_checked": true,
+  "summary": "review_required",
+  "metrics_used": [
+    "acceleration_spike_count",
+    "anchor_drift_m_max",
+    "anchor_drift_m_mean",
+    "contact_f1",
+    "contact_label_status",
+    "contact_precision",
+    "contact_proxy_score",
+    "contact_recall",
+    "floating_rate",
+    "geometry_length_spread_m",
+    "gt_contact_available",
+    "jump_count",
+    "mask_iou_mean",
+    "overlay_error_px_mean",
+    "overlay_proxy_score",
+    "penetration_rate",
+    "static_tail_drift_m_max",
+    "velocity_spike_count"
+  ]
 }

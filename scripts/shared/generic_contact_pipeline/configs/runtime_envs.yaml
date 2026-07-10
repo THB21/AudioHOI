@@ -9,3 +9,18 @@ envs:
   bodyrender:
     python: /home/yang/miniconda3/envs/bodyrender/bin/python
     purpose: optional body/mesh render tools
+  da3:
+    python: /home/yang/miniconda3/envs/da3/bin/python
+    purpose: DA3 depth/point-cloud preprocessing and scene-depth utilities
+  gvhmr:
+    python: /home/yang/miniconda3/envs/gvhmr/bin/python
+    purpose: GVHMR human body reconstruction and SMPL-X body outputs
+  hamer:
+    python: /home/yang/miniconda3/envs/hamer/bin/python
+    purpose: HaMeR hand reconstruction, hand diagnostics, and pyrender hand/body overlays
+  articraft:
+    python: /home/yang/miniconda3/envs/articraft-py312/bin/python
+    purpose: Articraft asset generation wrapper only; verify project-local dependencies before use
+  sam3d_objects:
+    python: /home/yang/miniconda3/envs/sam3d-objects-inference/bin/python
+    purpose: optional SAM3D object inference experiments and Open3D object geometry utilities

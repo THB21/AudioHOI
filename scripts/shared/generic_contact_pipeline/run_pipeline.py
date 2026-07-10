@@ -18,7 +18,9 @@ from scripts.shared.generic_contact_pipeline.core.base.config import available_c
 from scripts.shared.generic_contact_pipeline.core.base.io import read_csv, write_json  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.base.schema import stage_paths  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.evaluation.benchmark import run_benchmark as run_result_benchmark  # noqa: E402
-from scripts.shared.generic_contact_pipeline.core.evaluation.final_evaluator import run_final_evaluator  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.evaluation.final_hoi.ablation_registry import MATERIALIZED_DEFAULT_VARIANTS  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.evaluation.final_hoi.ablation_runner import run_ablation_evaluation  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.evaluation.final_hoi.summary_writer import run_unified_final_evaluation  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.evaluation.vlm_trace import export_vlm_trace  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.stage_audit import write_stage_audit  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_provider import load_vlm_provider  # noqa: E402
@@ -134,6 +136,32 @@ def _csv_count(path: Path) -> int:
     return len(read_csv(path)) if path.exists() else 0
 
 
+def _stage_artifact_summary(root: Path) -> dict[str, object]:
+    stages: dict[str, dict[str, object]] = {}
+    total_files = 0
+    total_rows = 0
+    for stage_dir in sorted([p for p in root.iterdir() if p.is_dir()]) if root.exists() else []:
+        item: dict[str, object] = {"files": 0, "csv_rows": {}}
+        for path in sorted(stage_dir.rglob("*")):
+            if not path.is_file():
+                continue
+            total_files += 1
+            item["files"] = int(item["files"]) + 1
+            if path.suffix.lower() == ".csv":
+                rows = _csv_count(path)
+                total_rows += rows
+                item["csv_rows"][path.name] = rows  # type: ignore[index]
+        stages[stage_dir.name] = item
+    return {
+        "exists": root.exists(),
+        "path": str(root),
+        "stage_count": len(stages),
+        "file_count": total_files,
+        "csv_row_count": total_rows,
+        "stages": stages,
+    }
+
+
 def _generic_mainline_manifest(profile) -> dict[str, object]:
     paths = stage_paths(profile)
     artifacts = {
@@ -172,6 +200,8 @@ def _generic_mainline_manifest(profile) -> dict[str, object]:
             name: {"path": str(path), "exists": path.exists(), "rows": _csv_count(path)}
             for name, path in artifacts.items()
         },
+        "actual_vlm_artifacts": _stage_artifact_summary(paths["vlm_dir"]),
+        "actual_stage_audit_artifacts": _stage_artifact_summary(paths["stage_audit_dir"]),
     }
     audit_path = paths["pose_jump_audit"]
     if audit_path.exists():
@@ -293,7 +323,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
     if getattr(args, "export_vlm_trace", False):
         post_run["vlm_trace"] = export_vlm_trace(profile)
     if getattr(args, "run_final_evaluator", False):
-        post_run["final_evaluator"] = run_final_evaluator(profile, method="vlm_gated")
+        post_run["final_hoi_evaluator"] = run_unified_final_evaluation(profile)
     if post_run:
         manifest["post_run"] = post_run
         write_json(stage_paths(profile)["pipeline_manifest"], manifest)
@@ -322,8 +352,9 @@ def main() -> None:
     ap.add_argument("--vlm-max-new-tokens", type=int, default=0)
     ap.add_argument("--vlm-resize-max", type=int, default=None)
     ap.add_argument("--export-vlm-trace", action="store_true", help="Export standard vlm_trace/00_input..06_evaluation artifacts after the run.")
-    ap.add_argument("--run-final-evaluator", action="store_true", help="Run hard metrics + VLM visual checklist + LLM CSV auditor after the run.")
-    ap.add_argument("--run-benchmark", action="store_true", help="Aggregate benchmark_table.csv/benchmark_report.md after successful case runs.")
+    ap.add_argument("--run-final-evaluator", action="store_true", help="Run the unified final HOI evaluator after the run.")
+    ap.add_argument("--run-ablation-evaluation", action="store_true", help="Run the current final HOI ablation evaluator over materialized benchmark_* variants.")
+    ap.add_argument("--run-benchmark", action="store_true", help="Legacy: aggregate benchmark_table.csv/benchmark_report.md after successful case runs.")
     ap.add_argument(
         "--benchmark-methods",
         nargs="+",
@@ -359,6 +390,13 @@ def main() -> None:
             method, result_name = item.split("=", 1)
             method_result_names[method] = result_name
         run_result_benchmark(successful_profiles, methods=args.benchmark_methods, method_result_names=method_result_names, llm_mode=args.llm_mode)
+    if args.run_ablation_evaluation and successful_profiles:
+        run_ablation_evaluation(
+            successful_profiles,
+            variants=MATERIALIZED_DEFAULT_VARIANTS,
+            output_dir=Path("samples_known_object/ablation_evaluation"),
+            require_existing=True,
+        )
     if failed:
         raise SystemExit(1)
 

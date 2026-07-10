@@ -1,0 +1,13 @@
+raw_part,canonical_part,source
+backrest,back,case_config
+backrest_board,back,object_surface_points
+feet,feet,object_surface_points
+front_leg,legs,case_config+object_surface_points
+front_stretcher,stretcher,object_surface_points
+hole,hole,case_config
+rear_leg,legs,case_config+object_surface_points
+rear_stretcher,stretcher,object_surface_points
+seat,seat,case_config+object_surface_points
+seat_slat,seat,object_surface_points
+stretcher,stretcher,case_config
+top_rail,top_rail,case_config+hoi_contact_pairs

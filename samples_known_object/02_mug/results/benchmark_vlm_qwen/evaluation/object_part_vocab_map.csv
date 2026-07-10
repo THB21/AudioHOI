@@ -1,0 +1,9 @@
+raw_part,canonical_part,source
+body_shell,cup_body,hoi_contact_pairs
+body_shell_or_occluded_handle_region,cup_body,hoi_contact_pairs
+bottom,bottom,case_config
+cup_body,cup_body,case_config
+handle,handle,case_config
+handle_loop,handle,hoi_contact_pairs
+rim,rim,case_config
+rim_ring,rim,hoi_contact_pairs

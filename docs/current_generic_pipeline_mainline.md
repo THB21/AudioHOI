@@ -54,7 +54,8 @@ The final pose is produced by the generic SE3 mainline. Old refinement policy fi
 - `components/mainline/sequence_refine.py`: runs the generic sequence SE3 smoothing/anchor/gate refinement.
 - `core/gates/stage_audit.py`: writes VLM/LLM audit decisions and gate signals.
 - `core/evaluation/final_evaluator.py`: final hard-metric, VLM judge, and LLM audit summary.
-- `core/evaluation/final_summary.py`: final-only cross-case summary for the selected final result of each case.
+- `core/evaluation/final_hoi/`: unified final HOI evaluator for object 6DoF, overlay, contact/anchor, physical, temporal, and QA artifacts.
+- `core/evaluation/final_summary.py`: legacy object-only final summary.
 - `core/evaluation/benchmark.py`: cross-case benchmark table/report generation.
 
 ## Reporting Entry Points
@@ -62,16 +63,21 @@ The final pose is produced by the generic SE3 mainline. Old refinement policy fi
 Use the final-only summary for reporting current results:
 
 ```bash
-python scripts/shared/generic_contact_pipeline/tools/run_final_summary.py
+/home/yang/miniconda3/envs/audiohoi/bin/python \
+  scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py \
+  --result-name benchmark_vlm_qwen \
+  --output-dir samples_known_object/final_result_evaluation
 ```
 
-Use benchmark only for comparing real method variants:
+Use the current ablation evaluator for comparing real materialized method variants:
 
 ```bash
-python scripts/shared/generic_contact_pipeline/tools/run_benchmark.py \
-  --cases basketball football mug chair stick \
-  --methods baseline_no_vlm vlm_gated no_llm llm_mistral no_audio audio_enabled no_anchor
+/home/yang/miniconda3/envs/audiohoi/bin/python \
+  scripts/shared/generic_contact_pipeline/tools/run_ablation_evaluation.py \
+  --output-dir samples_known_object/ablation_evaluation
 ```
+
+`run_benchmark.py` is legacy and should only be used for old benchmark diagnostics.
 
 Evaluation method documentation:
 

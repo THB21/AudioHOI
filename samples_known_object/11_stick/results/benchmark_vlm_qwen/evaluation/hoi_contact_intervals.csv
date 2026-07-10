@@ -1,0 +1,5 @@
+human_part,human_side,object_part,start_frame,end_frame,n_frames,mean_contact_confidence,mean_surface_gap_m,mean_anchor_drift,source
+palm,left,main_body,1,54,54,0.8863151851851854,0.0,0.08901270370370372,persistent_two_palm_line_from_gvhmr_palm_projection
+palm,left,main_body,59,67,9,0.47246344444444444,0.0,0.361593,persistent_two_palm_line_from_gvhmr_palm_projection
+palm,left,main_body,81,240,160,0.8981551875000002,0.0,0.10239449999999999,persistent_two_palm_line_from_gvhmr_palm_projection
+palm,right,main_body,1,240,240,0.9117322874999991,0.0,0.10689648333333322,persistent_two_palm_line_from_gvhmr_palm_projection

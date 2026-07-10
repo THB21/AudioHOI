@@ -1,0 +1,8 @@
+{
+  "object_jerk": 0.007007,
+  "accel_at_events": 0.0437,
+  "accel_in_flight": 0.05437,
+  "contact_ratio_audio_windows": 1.0,
+  "audio_events": 16.0,
+  "source": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/hoi_eval/hoi_interaction_metrics.json"
+}

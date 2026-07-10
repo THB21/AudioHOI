@@ -2423,6 +2423,158 @@
       "contact_enabled_rows": 0,
       "smooth_enabled_rows": 0,
       "propagated_rows": 0
+    },
+    "actual_vlm_artifacts": {
+      "exists": true,
+      "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm",
+      "stage_count": 8,
+      "file_count": 81,
+      "csv_row_count": 99,
+      "stages": {
+        "stage0": {
+          "files": 7,
+          "csv_rows": {
+            "vlm_gates.csv": 1,
+            "vlm_queries.csv": 1,
+            "vlm_results.csv": 1
+          }
+        },
+        "stage1": {
+          "files": 12,
+          "csv_rows": {
+            "vlm_gates.csv": 6,
+            "vlm_queries.csv": 6,
+            "vlm_results.csv": 6
+          }
+        },
+        "stage2": {
+          "files": 12,
+          "csv_rows": {
+            "vlm_gates.csv": 6,
+            "vlm_queries.csv": 6,
+            "vlm_results.csv": 6
+          }
+        },
+        "stage3": {
+          "files": 9,
+          "csv_rows": {
+            "vlm_gates.csv": 3,
+            "vlm_queries.csv": 3,
+            "vlm_results.csv": 3
+          }
+        },
+        "stage4": {
+          "files": 12,
+          "csv_rows": {
+            "vlm_gates.csv": 6,
+            "vlm_queries.csv": 6,
+            "vlm_results.csv": 6
+          }
+        },
+        "stage5": {
+          "files": 9,
+          "csv_rows": {
+            "vlm_gates.csv": 3,
+            "vlm_queries.csv": 3,
+            "vlm_results.csv": 3
+          }
+        },
+        "stage6": {
+          "files": 9,
+          "csv_rows": {
+            "vlm_gates.csv": 3,
+            "vlm_queries.csv": 3,
+            "vlm_results.csv": 3
+          }
+        },
+        "stage7": {
+          "files": 11,
+          "csv_rows": {
+            "vlm_gates.csv": 5,
+            "vlm_queries.csv": 5,
+            "vlm_results.csv": 5
+          }
+        }
+      }
+    },
+    "actual_stage_audit_artifacts": {
+      "exists": true,
+      "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage_audit",
+      "stage_count": 10,
+      "file_count": 40,
+      "csv_row_count": 48,
+      "stages": {
+        "stage-1": {
+          "files": 4,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 2
+          }
+        },
+        "stage0": {
+          "files": 4,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 3
+          }
+        },
+        "stage1": {
+          "files": 4,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 4
+          }
+        },
+        "stage2": {
+          "files": 4,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 4
+          }
+        },
+        "stage3": {
+          "files": 4,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 4
+          }
+        },
+        "stage4": {
+          "files": 4,
+          "csv_rows": {
+            "llm_audit_results.csv": 2,
+            "stage_audit_gates.csv": 9
+          }
+        },
+        "stage5": {
+          "files": 4,
+          "csv_rows": {
+            "llm_audit_results.csv": 2,
+            "stage_audit_gates.csv": 4
+          }
+        },
+        "stage6": {
+          "files": 4,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 2
+          }
+        },
+        "stage6.5": {
+          "files": 4,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 2
+          }
+        },
+        "stage7": {
+          "files": 4,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 2
+          }
+        }
+      }
     }
   },
   "post_run": {
@@ -2721,5 +2873,19 @@
         "framewise_pipeline_judgment_count": 33
       }
     }
+  },
+  "case": "mug",
+  "result_name": "benchmark_vlm_qwen",
+  "final_hoi_evaluation": {
+    "summary_json": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/final_evaluation_summary.json",
+    "detailed_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/final_evaluation_detailed.csv",
+    "object_6d_metrics_json": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/object_6d_metrics.json",
+    "overlay_metrics_json": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/overlay_metrics.json",
+    "hoi_contact_metrics_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/hoi_contact_metrics.csv",
+    "part_metrics_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/part_metrics.csv",
+    "penetration_floating_metrics_json": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/penetration_floating_metrics.json",
+    "temporal_audio_metrics_json": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/evaluation/temporal_audio_metrics.json",
+    "pipeline_qa_summary_csv": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+    "qa_audit_report_html": "/mnt/hdd/AudioHOI/samples_known_object/02_mug/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
   }
 }

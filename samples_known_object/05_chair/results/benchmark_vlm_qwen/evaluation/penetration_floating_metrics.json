@@ -1,0 +1,10 @@
+{
+  "penetration_frame_ratio": 0.2292,
+  "penetration_depth_mean_mm": 5.69,
+  "penetration_depth_max_mm": 8.91,
+  "non_collision_ratio": 0.7708,
+  "floating_rate": null,
+  "floating_gap_mean_mm": null,
+  "tradeoff_score": 0.7252056566556262,
+  "source": "/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/hoi_eval/hoi_interaction_metrics.json"
+}

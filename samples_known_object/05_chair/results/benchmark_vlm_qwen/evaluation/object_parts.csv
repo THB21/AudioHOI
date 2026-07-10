@@ -1,0 +1,8 @@
+part,raw_parts,available,surface_point_rows,contact_evidence_rows,source
+legs,front_leg|rear_leg,1,12,0,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+seat,seat|seat_slat,1,19,0,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+back,backrest|backrest_board,1,7,0,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+top_rail,top_rail,1,0,250,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+stretcher,front_stretcher|rear_stretcher|stretcher,1,4,0,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+hole,hole,0,0,0,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+feet,feet,1,4,0,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization

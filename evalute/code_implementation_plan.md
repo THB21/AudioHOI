@@ -478,7 +478,7 @@ CLI:
   scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py \
   --case stick \
   --result-name benchmark_vlm_qwen \
-  --output-dir samples_known_object/final_result_evaluation
+  --output-dir final_result/evaluation
 ```
 
 Cross-case:
@@ -487,15 +487,15 @@ Cross-case:
 /home/yang/miniconda3/envs/audiohoi/bin/python \
   scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py \
   --result-name benchmark_vlm_qwen \
-  --output-dir samples_known_object/final_result_evaluation
+  --output-dir final_result/evaluation
 ```
 
 Outputs:
 
 ```text
-samples_known_object/final_result_evaluation/final_evaluation_detailed.csv
-samples_known_object/final_result_evaluation/final_evaluation_human_readable.md
-samples_known_object/final_result_evaluation/final_evaluation_summary_manifest.json
+final_result/evaluation/final_evaluation_detailed.csv
+final_result/evaluation/final_evaluation_human_readable.md
+final_result/evaluation/final_evaluation_summary_manifest.json
 ```
 
 ## 13. Implementation order

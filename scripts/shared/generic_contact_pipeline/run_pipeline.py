@@ -394,7 +394,7 @@ def main() -> None:
         run_ablation_evaluation(
             successful_profiles,
             variants=MATERIALIZED_DEFAULT_VARIANTS,
-            output_dir=Path("samples_known_object/ablation_evaluation"),
+            output_dir=Path("final_result/evaluation/ablation"),
             require_existing=True,
         )
     if failed:

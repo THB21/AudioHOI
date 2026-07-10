@@ -1,0 +1,5 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+basketball,stage5,artifact:render_manifest,pass,keep_outputs,0,1,0,render_manifest exists
+basketball,stage5,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+basketball,stage5,llm_csv:render_manifest,pass,keep_outputs,0,1,0,render manifest exists and is accessible
+basketball,stage5,llm_csv:render_temporal_consistency,pass,keep_outputs,0,1,0,VLM gates and machine metrics show no temporal spikes or inconsistencies

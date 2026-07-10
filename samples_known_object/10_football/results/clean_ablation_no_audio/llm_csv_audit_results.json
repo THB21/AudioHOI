@@ -1,0 +1,93 @@
+{
+  "case_name": "football",
+  "mode": "mistral_csv_audit",
+  "llm_trace": {
+    "provider": {
+      "name": "mistral_api",
+      "kind": "mistral_chat_completions",
+      "api_key_env": "MISTRAL_API_KEY",
+      "api_key_present": true,
+      "model_id": "mistral-small-latest",
+      "base_url": "https://api.mistral.ai/v1",
+      "temperature": 0.0,
+      "max_new_tokens": 900,
+      "timeout_seconds": 120
+    },
+    "used": true,
+    "error": "",
+    "response_id": "d3653ce03f1b4e29b22ff15eddc9412a",
+    "usage": {
+      "prompt_tokens": 15103,
+      "total_tokens": 15517,
+      "completion_tokens": 414,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "raw_text": "{\n  \"results\": [\n    {\n      \"query_id\": \"schema_completeness\",\n      \"label\": \"pass\",\n      \"blocking\": false,\n      \"short_reason\": \"required schemas are present\",\n      \"evidence\": {\n        \"missing\": []\n      }\n    },\n    {\n      \"query_id\": \"stage_consistency\",\n      \"label\": \"pass\",\n      \"blocking\": false,\n      \"short_reason\": \"stage outputs are mutually consistent\",\n      \"evidence\": {\n        \"contact_candidates_rows\": 242,\n        \"object_contact_points_rows\": 242,\n        \"vlm_gates_rows\": 31,\n        \"optimizer_decision_rows\": 242,\n        \"motion_regime_rows\": 242,\n        \"ignored_rejected_frames\": [],\n        \"failures\": []\n      }\n    },\n    {\n      \"query_id\": \"object_specific_rules\",\n      \"label\": \"pass\",\n      \"blocking\": false,\n      \"short_reason\": \"case-specific rules pass\",\n      \"evidence\": {\n        \"failures\": [],\n        \"max_depth_step_m\": 0.018921\n      }\n    },\n    {\n      \"query_id\": \"failure_range_summary\",\n      \"label\": \"rotation_jump\",\n      \"blocking\": false,\n      \"short_reason\": \"inspect listed frames\",\n      \"evidence\": {\n        \"depth_jump_frames\": [],\n        \"contact_frame_min\": 1,\n        \"contact_frame_max\": 242,\n        \"contact_frame_count\": 242,\n        \"pose_jump_audit_frames\": [203],\n        \"trusted_solved_pose_lock\": false,\n        \"report_only_pose_jump_frames\": [],\n        \"low_trust_optimizer_frames\": [1, 2, 44, 122, 242]\n      }\n    }\n  ]\n}"
+  },
+  "results": [
+    {
+      "query_id": "schema_completeness",
+      "label": "pass",
+      "blocking": false,
+      "evidence": {
+        "missing": []
+      },
+      "short_reason": "required schemas are present",
+      "llm_reviewed": true
+    },
+    {
+      "query_id": "stage_consistency",
+      "label": "pass",
+      "blocking": false,
+      "evidence": {
+        "contact_candidates_rows": 242,
+        "object_contact_points_rows": 242,
+        "vlm_gates_rows": 31,
+        "optimizer_decision_rows": 242,
+        "motion_regime_rows": 242,
+        "ignored_rejected_frames": [],
+        "failures": []
+      },
+      "short_reason": "stage outputs are mutually consistent",
+      "llm_reviewed": true
+    },
+    {
+      "query_id": "object_specific_rules",
+      "label": "pass",
+      "blocking": false,
+      "evidence": {
+        "failures": [],
+        "max_depth_step_m": 0.018921
+      },
+      "short_reason": "case-specific rules pass",
+      "llm_reviewed": true
+    },
+    {
+      "query_id": "failure_range_summary",
+      "label": "rotation_jump",
+      "blocking": false,
+      "evidence": {
+        "depth_jump_frames": [],
+        "contact_frame_min": 1,
+        "contact_frame_max": 242,
+        "contact_frame_count": 242,
+        "pose_jump_audit_frames": [
+          203
+        ],
+        "trusted_solved_pose_lock": false,
+        "report_only_pose_jump_frames": [],
+        "low_trust_optimizer_frames": [
+          1,
+          2,
+          44,
+          122,
+          242
+        ]
+      },
+      "short_reason": "inspect listed frames",
+      "llm_reviewed": true
+    }
+  ]
+}

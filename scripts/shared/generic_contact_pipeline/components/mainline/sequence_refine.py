@@ -111,6 +111,27 @@ def _apply_vlm_trust_suppression(profile: CaseProfile, rows: list[dict[str, str]
     return out
 
 
+def _stage4_vlm_pose_refine_disabled_frames(profile: CaseProfile) -> set[int]:
+    gate_path = stage_paths(profile)["vlm_dir"] / "stage4" / "vlm_gates.csv"
+    disabled: set[int] = set()
+    if not gate_path.exists():
+        return disabled
+    for row in read_csv(gate_path):
+        if row.get("is_effective") != "1":
+            continue
+        if row.get("allow_pose_refine") != "0":
+            continue
+        if row.get("pass_gate") not in {"reject", "unclear"}:
+            continue
+        try:
+            fr = int(float(row.get("frame", "0") or 0))
+        except Exception:
+            continue
+        if fr >= 0:
+            disabled.add(fr)
+    return disabled
+
+
 def _quat(row: dict[str, str]) -> tuple[float, float, float, float]:
     return (
         float(row.get("qw", "1") or 1),
@@ -516,6 +537,24 @@ def _candidate_source_sets(sources: set[str]) -> list[set[str]]:
     return ordered
 
 
+def _score_degrades(candidate: tuple[int, int, float, float], reference: tuple[int, int, float, float]) -> bool:
+    """Return true only for clear hard-audit regressions, not tiny tie noise."""
+    if candidate[0] > reference[0]:
+        return True
+    if candidate[0] == reference[0] and candidate[1] > reference[1]:
+        return True
+    if candidate[0] == reference[0] and candidate[1] == reference[1] and candidate[2] > reference[2] + 1e-4:
+        return True
+    if (
+        candidate[0] == reference[0]
+        and candidate[1] == reference[1]
+        and abs(candidate[2] - reference[2]) <= 1e-4
+        and candidate[3] > reference[3] + 1e-4
+    ):
+        return True
+    return False
+
+
 def _line_seed_score(path: Path) -> tuple[int, int, float]:
     rows = read_csv(path) if path.exists() else []
     spike_count = 0
@@ -690,9 +729,16 @@ def _decision_rows(
     feedback_reweight_reason: str = "",
     visual_prior_reason: str = "",
     overlay_prior_reason: str = "",
+    vlm_pose_refine_disabled_frames: set[int] | None = None,
 ) -> list[dict[str, object]]:
     out: list[dict[str, object]] = []
+    disabled = vlm_pose_refine_disabled_frames or set()
     for i, (row, regime, weight) in enumerate(zip(rows, regime_rows, trust)):
+        try:
+            fr = int(float(row.get("frame", "0") or 0))
+        except Exception:
+            fr = -1
+        vlm_disabled = fr in disabled
         out.append(
             {
                 "frame": row.get("frame", ""),
@@ -715,6 +761,8 @@ def _decision_rows(
                 "visual_prior_reason": visual_prior_reason,
                 "overlay_prior_reason": overlay_prior_reason,
                 "pose_lock_reason": pose_lock_reason,
+                "vlm_pose_refine_disabled": "1" if vlm_disabled else "0",
+                "vlm_gate_optimizer_mode": "lower_trust_propagate" if vlm_disabled else "",
                 "decision_source": "generic_sequence_se3_mainline",
             }
         )
@@ -1026,6 +1074,9 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         accel_weight,
     )
     reweight_sources = _stage_audit_reweight_sources(profile)
+    vlm_pose_refine_disabled_frames = _stage4_vlm_pose_refine_disabled_frames(profile)
+    if vlm_pose_refine_disabled_frames:
+        reweight_sources.add("vlm")
     candidate_reports: list[dict[str, object]] = []
     best: tuple[
         tuple[int, int, float, float],
@@ -1074,10 +1125,13 @@ def apply(profile: CaseProfile) -> dict[str, object]:
                 "trust_first": f"{cand_trust[0]:.6f}" if cand_trust else "",
                 "smooth_first": f"{cand_smooth[0]:.6f}" if cand_smooth else "",
                 "accel_first": f"{cand_accel[0]:.6f}" if cand_accel else "",
+                "vlm_gate_frames": len(vlm_pose_refine_disabled_frames) if "vlm" in candidate_sources else 0,
             }
         )
         cand = (score, candidate_sources, cand_rows, cand_audit, cand_trust, cand_smooth, cand_accel, cand_reason, cand_jump_audit)
         if best is None or score < best[0] or (score == best[0] and len(candidate_sources) > len(best[1])):
+            best = cand
+        elif "vlm" in reweight_sources and "vlm" in candidate_sources and "vlm" not in best[1]:
             best = cand
     if best is None:
         out_rows, se3_audit = smooth_quaternion_pose_sequence(rows)
@@ -1102,6 +1156,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
             feedback_reweight_reason=feedback_reweight_reason,
             visual_prior_reason=visual_prior_reason,
             overlay_prior_reason=overlay_prior_reason,
+            vlm_pose_refine_disabled_frames=vlm_pose_refine_disabled_frames if "vlm" in selected_sources else set(),
         ),
     )
     contacts_path = _copy_contacts(profile)
@@ -1148,6 +1203,12 @@ def apply(profile: CaseProfile) -> dict[str, object]:
             "candidates": candidate_reports,
         },
         "feedback_reweight_reason": feedback_reweight_reason,
+        "vlm_pose_refine_disabled_frames": sorted(vlm_pose_refine_disabled_frames),
+        "vlm_gate_optimizer_mode": (
+            "lower_trust_propagate"
+            if "vlm" in selected_sources and vlm_pose_refine_disabled_frames
+            else "inactive"
+        ),
         "visual_prior_reason": visual_prior_reason,
         "overlay_prior_reason": overlay_prior_reason,
         "policy": "compatibility refinement policies run as seed/residual builders; line objects run generic_line_physical_smooth as seed/visual prior; final output is unified through smooth_quaternion_pose_sequence",

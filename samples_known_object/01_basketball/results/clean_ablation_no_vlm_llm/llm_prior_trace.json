@@ -1,0 +1,8 @@
+{
+  "case_name": "basketball",
+  "mode": "none",
+  "prompt_context": "samples_known_object/01_basketball/results/clean_ablation_no_vlm_llm/prompt_context.json",
+  "prompt_entry_count": 5,
+  "warnings": [],
+  "fallback_used": true
+}

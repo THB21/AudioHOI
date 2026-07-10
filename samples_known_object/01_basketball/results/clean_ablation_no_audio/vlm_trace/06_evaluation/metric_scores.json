@@ -1,0 +1,20 @@
+{
+  "overlay_error_px_mean": 0.0,
+  "mask_iou_mean": null,
+  "overlay_proxy_score": 1.0,
+  "contact_precision": null,
+  "contact_recall": null,
+  "contact_f1": null,
+  "contact_label_status": "needs_manual_labels",
+  "contact_proxy_score": 0.040812453125,
+  "anchor_drift_m_mean": 0.1787861979166667,
+  "anchor_drift_m_max": 3.841463,
+  "penetration_rate": 1.0,
+  "floating_rate": 0.9872611464968153,
+  "velocity_spike_count": 0,
+  "acceleration_spike_count": 0,
+  "jump_count": 0,
+  "static_tail_drift_m_max": 0.0,
+  "geometry_length_spread_m": null,
+  "gt_contact_available": false
+}

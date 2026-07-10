@@ -1,0 +1,79 @@
+{
+  "case": "football",
+  "method": "final_hoi",
+  "result_name": "clean_ablation_no_vlm_llm",
+  "method_status": "ok",
+  "final_pass": false,
+  "metrics": {
+    "overlay_error_px_mean": 0.0,
+    "mask_iou_mean": null,
+    "overlay_proxy_score": 1.0,
+    "contact_precision": null,
+    "contact_recall": null,
+    "contact_f1": null,
+    "contact_label_status": "needs_manual_labels",
+    "contact_proxy_score": 0.14487561570247937,
+    "anchor_drift_m_mean": 9.346087640495863,
+    "anchor_drift_m_max": 30.91914,
+    "penetration_rate": 0.9841269841269841,
+    "floating_rate": 0.9888268156424581,
+    "velocity_spike_count": 0,
+    "acceleration_spike_count": 0,
+    "jump_count": 0,
+    "static_tail_drift_m_max": 0.0,
+    "geometry_length_spread_m": null,
+    "gt_contact_available": false
+  },
+  "failure_flags": {
+    "overlay_fail": false,
+    "contact_fail": false,
+    "anchor_drift_fail": true,
+    "penetration_fail": true,
+    "floating_fail": true,
+    "jump_fail": false,
+    "static_tail_fail": false,
+    "geometry_fail": false,
+    "failure_count": 3
+  },
+  "vlm_score": {
+    "mode": "dry-run_metric_grounded",
+    "score": 0.75,
+    "checklist_count": 20,
+    "pipeline_vlm_gate_score": {},
+    "pipeline_vlm_gate_framewise_count": 0,
+    "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+  },
+  "llm_audit_summary": "review_required",
+  "failure_stage_hint": "stage2_contact",
+  "vlm_eval_summary": {
+    "mode": "dry-run_metric_grounded",
+    "query_count": 3,
+    "mean_overall_plausibility": 3.0,
+    "failure_stage_hint": "stage2_contact",
+    "scores": {
+      "visibility": 5,
+      "contact_correctness": 2,
+      "support_consistency": 1,
+      "penetration_absence": 1,
+      "temporal_plausibility": 5,
+      "overall_plausibility": 3,
+      "short_reason": "metric-grounded final evaluator checklist; replace source with Qwen final judge when available",
+      "failure_stage_hint": "stage2_contact"
+    },
+    "vlm_pipeline_score": {
+      "mode": "dry-run_metric_grounded",
+      "score": 0.75,
+      "checklist_count": 20,
+      "pipeline_vlm_gate_score": {},
+      "pipeline_vlm_gate_framewise_count": 0,
+      "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+    },
+    "framewise_pipeline_judgment_count": 20
+  },
+  "pipeline_qa_summary": {
+    "rows": 0,
+    "csv": "samples_known_object/10_football/results/clean_ablation_no_vlm_llm/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+    "json": "samples_known_object/10_football/results/clean_ablation_no_vlm_llm/vlm_trace/06_evaluation/pipeline_qa_summary.json",
+    "markdown": "samples_known_object/10_football/results/clean_ablation_no_vlm_llm/vlm_trace/06_evaluation/pipeline_qa_summary.md"
+  }
+}

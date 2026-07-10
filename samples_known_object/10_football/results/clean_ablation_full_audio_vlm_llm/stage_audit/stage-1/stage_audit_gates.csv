@@ -1,0 +1,3 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+football,stage-1,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+football,stage-1,llm_csv:stage_contract,reject,report_unclear_csv_audit,0,0,0,required artifact 'stage0_inputs_manifest.json' missing

@@ -2458,6 +2458,8 @@
     "part_metrics_csv": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/evaluation/part_metrics.csv",
     "penetration_floating_metrics_json": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/evaluation/penetration_floating_metrics.json",
     "temporal_audio_metrics_json": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/evaluation/temporal_audio_metrics.json",
+    "temporal_plausibility_metrics_json": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/evaluation/temporal_plausibility_metrics.json",
+    "gate_impact_metrics_json": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/evaluation/gate_impact_metrics.json",
     "pipeline_qa_summary_csv": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
     "qa_audit_report_html": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/vlm_trace/06_evaluation/qa_audit_report.html"
   }

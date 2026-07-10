@@ -1,0 +1,11 @@
+part,available,contact_evidence_rows,source
+back,1,0,body_or_hand_artifact+hoi_contact_pairs
+floor,1,51,body_or_hand_artifact+hoi_contact_pairs
+head,1,0,body_or_hand_artifact+hoi_contact_pairs
+hip,1,0,body_or_hand_artifact+hoi_contact_pairs
+left_foot,1,6,body_or_hand_artifact+hoi_contact_pairs
+left_hand,1,0,body_or_hand_artifact+hoi_contact_pairs
+mouth,1,0,body_or_hand_artifact+hoi_contact_pairs
+right_foot,1,6,body_or_hand_artifact+hoi_contact_pairs
+right_hand,1,0,body_or_hand_artifact+hoi_contact_pairs
+torso,1,0,body_or_hand_artifact+hoi_contact_pairs

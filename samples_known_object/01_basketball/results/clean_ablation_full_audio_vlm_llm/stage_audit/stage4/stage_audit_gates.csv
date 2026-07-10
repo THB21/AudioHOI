@@ -1,0 +1,10 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+basketball,stage4,artifact:object_pose,pass,keep_outputs,0,1,0,object_pose exists
+basketball,stage4,artifact:motion_regime,pass,keep_outputs,0,1,0,motion_regime exists
+basketball,stage4,artifact:optimizer_decisions,pass,keep_outputs,0,1,0,optimizer_decisions exists
+basketball,stage4,artifact:physical_smooth_residuals,pass,keep_outputs,0,1,0,physical_smooth_residuals exists
+basketball,stage4,artifact:pose_jump_audit,pass,keep_outputs,0,1,0,pose_jump_audit exists
+basketball,stage4,pose_jump_audit,pass,keep_outputs,0,1,0,no pose/contact/smoothness spike rows
+basketball,stage4,vlm_gate,unclear,rerun_stage_with_lower_trust,1,1,1,VLM marked 8 frame/query rows unclear
+basketball,stage4,llm_csv:sequence_optimizer_contract,pass,keep_outputs,0,1,0,sequence optimizer decisions artifact exists and is populated
+basketball,stage4,llm_csv:pose_jump_audit,pass,keep_outputs,0,1,0,no pose/contact/smoothness spikes detected

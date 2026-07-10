@@ -1,0 +1,4 @@
+part,raw_parts,available,surface_point_rows,contact_evidence_rows,source
+center,ball_center,0,0,0,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+surface,ball_boundary,0,0,0,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization
+support_region,ball_bottom|floor_support,1,0,15,case_config+object_surface_points+hoi_contact_pairs+vocabulary_normalization

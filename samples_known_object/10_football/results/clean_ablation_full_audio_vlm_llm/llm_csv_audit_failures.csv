@@ -1,0 +1,2 @@
+query_id,label,blocking,short_reason,evidence
+failure_range_summary,rotation_jump,False,Frames 203 and low-trust optimizer frames require inspection for rotation jumps.,"{""contact_frame_count"": 242, ""contact_frame_max"": 242, ""contact_frame_min"": 1, ""depth_jump_frames"": [], ""low_trust_optimizer_frames"": [1, 2, 46, 122, 242], ""pose_jump_audit_frames"": [203], ""rotation_jump_candidates"": [203], ""trusted_solved_pose_lock"": false}"

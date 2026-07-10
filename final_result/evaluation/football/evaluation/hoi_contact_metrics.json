@@ -1,0 +1,17 @@
+{
+  "contact_frame_ratio": 0.062,
+  "contact_gap_mm": 250.59,
+  "contact_proxy": 0.006658906480686168,
+  "contact_proxy_source": "contact_gap_mm_exp_decay_sigma_50",
+  "part_correct_ratio": 0.615,
+  "contact_ratio_audio_windows": 0.455,
+  "grasp_stability_mm": 54.37,
+  "mdev_star_mm": 74.14,
+  "hoi_contact_pair_rows": 242,
+  "hoi_contact_interval_count": 11,
+  "hoi_observed_contact_rows": 50,
+  "hoi_persistent_contact_rows": 0,
+  "contact_anchor_drift_mean": null,
+  "contact_anchor_drift_max": null,
+  "source": "samples_known_object/10_football/results/hoi_eval/hoi_interaction_metrics.json"
+}

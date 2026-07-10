@@ -1,0 +1,6 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+basketball,stage2,10,contact_relation_check,floor_support_ball_bottom,pass,accept_candidate,0,1,1,0,1
+basketball,stage2,99,contact_relation_check,floor_support_ball_bottom,pass,accept_candidate,0,1,1,0,1
+basketball,stage2,186,contact_relation_check,floor_support_ball_bottom,pass,accept_candidate,0,1,1,0,1
+basketball,stage2,1,contact_relation_check,hand_on_ball_boundary,pass,accept_candidate,0,1,1,0,1
+basketball,stage2,97,contact_relation_check,hand_on_ball_boundary,pass,accept_candidate,0,1,1,0,1

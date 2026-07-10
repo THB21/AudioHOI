@@ -1,0 +1,6 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+basketball,stage7,50,loss_diagnostic_check,normal,pass,accept_candidate,0,0,1,1,1
+basketball,stage7,51,loss_diagnostic_check,unclear,unclear,unclear_no_update,0,0,0,1,1
+basketball,stage7,49,loss_diagnostic_check,normal,pass,accept_candidate,0,0,1,1,1
+basketball,stage7,1,loss_diagnostic_check,normal,pass,accept_candidate,0,0,1,1,1
+basketball,stage7,97,loss_diagnostic_check,visual_spike,reject,mark_for_report_only,0,0,0,1,1

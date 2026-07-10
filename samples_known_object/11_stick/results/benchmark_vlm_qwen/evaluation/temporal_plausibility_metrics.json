@@ -1,0 +1,22 @@
+{
+  "temporal_metric_status": "ok",
+  "translation_spike_count": 12,
+  "rotation_spike_count": 12,
+  "event_aligned_spike_count": 0,
+  "non_event_spike_count": 20,
+  "translation_spike_threshold": 0.041604262639051176,
+  "rotation_spike_threshold_rad": 0.2446630085134583,
+  "translation_acceleration_max": 0.11990760099639886,
+  "rotation_acceleration_max": 0.9501537122415029,
+  "high_speed_event_windows": 0,
+  "high_speed_recall": null,
+  "oversmooth_rate": null,
+  "static_tail_drift_m": 0.0001587293293628545,
+  "temporal_failure_intervals": "[{\"start\":17,\"end\":20},{\"start\":26,\"end\":26},{\"start\":28,\"end\":29},{\"start\":32,\"end\":32},{\"start\":36,\"end\":36},{\"start\":41,\"end\":41},{\"start\":95,\"end\":95},{\"start\":113,\"end\":113},{\"start\":133,\"end\":133},{\"start\":136,\"end\":137},{\"start\":145,\"end\":145},{\"start\":149,\"end\":149},{\"start\":167,\"end\":167},{\"start\":186,\"end\":186},{\"start\":192,\"end\":192}]",
+  "event_frame_count": 0,
+  "event_window_frame_count": 0,
+  "temporal_accel_at_events": null,
+  "temporal_accel_in_flight": 0.010877281791603414,
+  "source_pose": "samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+  "source_events": "missing_audio_contact_csv"
+}

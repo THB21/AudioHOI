@@ -1,0 +1,5 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+football,stage5,artifact:render_manifest,pass,keep_outputs,0,1,0,render_manifest exists
+football,stage5,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+football,stage5,llm_csv:render_manifest,pass,keep_outputs,0,1,0,render manifest exists and is accessible
+football,stage5,llm_csv:render_temporal_consistency,unclear,report_unclear_csv_audit,0,1,0,no effective temporal VLM gate rows to compare against machine spike metrics

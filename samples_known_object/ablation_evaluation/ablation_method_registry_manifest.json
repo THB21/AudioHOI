@@ -1,6 +1,0 @@
-{
-  "rows": 30,
-  "table": "samples_known_object/ablation_evaluation/ablation_method_registry.csv",
-  "allow_same_result_debug": false,
-  "require_existing": true
-}

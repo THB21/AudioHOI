@@ -1,0 +1,2 @@
+query_id,label,blocking,rerun_stage,residual_reweight,short_reason,llm_reviewed
+se3_schema,pass,0,0,0,All frames in object_pose_init.csv contain se3_schema=1,1

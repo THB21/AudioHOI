@@ -23,7 +23,7 @@ def main() -> None:
     ap.add_argument("--result-name", default="benchmark_vlm_qwen")
     ap.add_argument("--method", default="final_vlm_gated")
     ap.add_argument("--llm-mode", default="seed", choices=["none", "seed", "mistral"])
-    ap.add_argument("--output-dir", default="samples_known_object/final_result_evaluation")
+    ap.add_argument("--output-dir", default="final_result/evaluation")
     ap.add_argument("--no-rerun-evaluator", action="store_true", help="Reuse existing evaluation_summary.json when present.")
     args = ap.parse_args()
 

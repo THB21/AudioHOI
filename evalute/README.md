@@ -26,8 +26,11 @@ Implemented first pass:
 Current implemented scope:
 
 1. Merge object SE3 metrics, hard overlay metrics, Tom HOI contact/penetration metrics, and audio-aware temporal fields into `evaluation/final_evaluation_summary.json`.
-2. Write cross-case `samples_known_object/final_result_evaluation/final_evaluation_detailed.csv`.
-3. Enforce ablation method/result-directory mapping and write `samples_known_object/ablation_evaluation/ablation_table.csv`.
+2. Write cross-case `final_result/evaluation/final_evaluation_detailed.csv`.
+   - current complete final-result scope is basketball and football only;
+   - mug/chair/stick are excluded from the final-result table until their final videos and paired object/human/contact/gate artifacts are complete and frame-aligned.
+3. Enforce ablation method/result-directory mapping and write `final_result/evaluation/ablation/ablation_table.csv`.
+   - ablation currently follows the same complete final-result scope: basketball and football only.
    - current default methods map to materialized `benchmark_*` result directories;
    - `ablation_table.csv` includes `pose_sha256`, `same_pose_as_baseline`, and `metrics_identical_to_baseline`;
    - `ablation_report.md` explains when a variant changes pose but not selected final metrics.
@@ -58,6 +61,14 @@ Current implemented scope:
    - `llm_eval_summary.md`
    - `qa_audit_report.html`
    These artifacts currently use the existing trace/evidence and a metric-grounded dry-run final judge unless a real Qwen final judge is explicitly run. They are audit outputs only and do not generate or overwrite pose.
+9. Export motion-regime-aware temporal metrics:
+   - `evaluation/temporal_plausibility_metrics.csv`
+   - `evaluation/temporal_plausibility_metrics.json`
+   These split coarse jump checking into translation spikes, rotation spikes, event-aligned spikes, non-event spikes, high-speed recall, oversmooth rate, static-tail drift, and temporal failure intervals.
+10. Export gate-impact metrics:
+   - `evaluation/gate_impact_metrics.csv`
+   - `evaluation/gate_impact_metrics.json`
+   These record whether gates changed residuals, anchor update permission, freeze/interpolation, feedback reweighting, and pre-smooth to final pose deltas. This is the ablation evidence for whether VLM/LLM/audio gates actually affected optimization.
 
 Still planned:
 
@@ -65,6 +76,7 @@ Still planned:
 2. Add observed-vs-stable local drift for all object families, not only stick/local-s contacts.
 3. Real Qwen final judge over selected evidence panels.
 4. Clean-room `eval_*` ablation reruns if we need results separate from the currently materialized `benchmark_*` directories.
+5. Add true paired full/no-audio/no-VLM/no-LLM final-result variants so gate impact and final hard metrics can both answer contribution size.
 
 ## Object Part Vocabulary Normalization
 

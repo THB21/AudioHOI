@@ -60,9 +60,28 @@ _RECORD_PARTS = {"left_hand", "right_hand", "left_foot", "right_foot"}
 
 
 def load_human_params(results_dir: Path, mode: str = "auto") -> tuple[dict, str]:
-    refined = results_dir / "contact_refine" / "contact_refined_smplx_params.pkl"
-    stitched = results_dir / "hands" / "stitched_smplx_params.pkl"
-    raw_pkl = results_dir / "gvhmr" / "result.pkl"
+    refined = next(
+        (path for path in [
+            results_dir / "contact_refine" / "contact_refined_smplx_params.pkl",
+            results_dir / "human_contact_refine" / "contact_refined_smplx_params.pkl",
+            results_dir / "human_contact_refine" / "contact_refine" / "contact_refined_smplx_params.pkl",
+        ] if path.exists()),
+        results_dir / "contact_refine" / "contact_refined_smplx_params.pkl",
+    )
+    stitched = next(
+        (path for path in [
+            results_dir / "hands" / "stitched_smplx_params.pkl",
+            results_dir / "human_hands" / "stitched_smplx_params.pkl",
+        ] if path.exists()),
+        results_dir / "hands" / "stitched_smplx_params.pkl",
+    )
+    raw_pkl = next(
+        (path for path in [
+            results_dir / "gvhmr" / "result.pkl",
+            results_dir / "human_gvhmr" / "result.pkl",
+        ] if path.exists()),
+        results_dir / "gvhmr" / "result.pkl",
+    )
     raw = pickle.load(raw_pkl.open("rb"))
     p = raw["smpl_params_incam"]
     params = {
@@ -133,7 +152,13 @@ def expected_contacts(rows: list[dict], sample_dir: Path, n: int) -> tuple[np.nd
         ap = str(r.get("active_part", "") or "")
         if ap:
             part[i] = ap
-    records = sample_dir / "results" / "audio_semantics" / "contact_records.csv"
+    records = next(
+        (path for path in [
+            sample_dir / "results" / "audio_semantics" / "contact_records.csv",
+            sample_dir / "results" / "human_audio_semantics" / "contact_records.csv",
+        ] if path.exists()),
+        sample_dir / "results" / "audio_semantics" / "contact_records.csv",
+    )
     if records.exists():
         with records.open() as f:
             for r in csv.DictReader(f):
@@ -171,7 +196,7 @@ def main() -> None:
     ap.add_argument("--object-mesh-path", type=str, default=None,
                     help="URDF-frame GLB for --object-type mesh (bake_urdf_to_glb --keep-origin)")
     ap.add_argument("--body-model-root", type=Path,
-                    default=Path("scripts/third-party/GVHMR/inputs/checkpoints/body_models"))
+                    default=Path("third-party/GVHMR/inputs/checkpoints/body_models"))
     ap.add_argument("--pen-eps-mm", type=float, default=3.0,
                     help="penetration counts only past this depth (mesh/skeleton slack)")
     ap.add_argument("--touch-band-mm", type=float, default=15.0,

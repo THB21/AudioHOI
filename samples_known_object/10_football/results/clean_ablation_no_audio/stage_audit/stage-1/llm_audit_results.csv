@@ -1,0 +1,2 @@
+query_id,label,blocking,rerun_stage,residual_reweight,short_reason,llm_reviewed
+stage_contract,schema_missing,1,0,0,required artifact 'stage0_inputs_manifest.json' missing,1

@@ -1,0 +1,18 @@
+{
+  "case": "basketball",
+  "result_name": "canonical_final_result",
+  "final_hoi_evaluation": {
+    "summary_json": "final_result/evaluation/basketball/evaluation/final_evaluation_summary.json",
+    "detailed_csv": "final_result/evaluation/basketball/evaluation/final_evaluation_detailed.csv",
+    "object_6d_metrics_json": "final_result/evaluation/basketball/evaluation/object_6d_metrics.json",
+    "overlay_metrics_json": "final_result/evaluation/basketball/evaluation/overlay_metrics.json",
+    "hoi_contact_metrics_csv": "final_result/evaluation/basketball/evaluation/hoi_contact_metrics.csv",
+    "part_metrics_csv": "final_result/evaluation/basketball/evaluation/part_metrics.csv",
+    "penetration_floating_metrics_json": "final_result/evaluation/basketball/evaluation/penetration_floating_metrics.json",
+    "temporal_audio_metrics_json": "final_result/evaluation/basketball/evaluation/temporal_audio_metrics.json",
+    "temporal_plausibility_metrics_json": "final_result/evaluation/basketball/evaluation/temporal_plausibility_metrics.json",
+    "gate_impact_metrics_json": "final_result/evaluation/basketball/evaluation/gate_impact_metrics.json",
+    "pipeline_qa_summary_csv": "final_result/evaluation/basketball/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+    "qa_audit_report_html": "final_result/evaluation/basketball/vlm_trace/06_evaluation/qa_audit_report.html"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "case_name": "basketball",
+  "stage": "stage4",
+  "decision": "unclear",
+  "llm_mode": "mistral",
+  "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+  "gate_rows": 9,
+  "blocking_count": 0,
+  "rerun_stage": true,
+  "residual_reweight": true,
+  "repair_actions": [
+    "rerun_stage_with_lower_trust"
+  ],
+  "audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage4/stage_audit_gates.csv",
+  "llm_audit_queries": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage4/llm_audit_queries.json",
+  "llm_audit_results": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage4/llm_audit_results.csv"
+}

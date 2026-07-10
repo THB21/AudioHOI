@@ -1,0 +1,2 @@
+se3_valid,n_frames,translation_valid_rate,rotation_valid_rate,quat_norm_error_mean,translation_velocity_mean,translation_velocity_max,translation_acceleration_mean,rotation_velocity_mean,rotation_velocity_max,rotation_acceleration_mean,jump_count,static_tail_drift_m,geometry_spread_m
+True,242,1.0,1.0,0.0,0.023616905408171247,0.151305756879902,0.0037200680927069055,0.0,0.0,0.0,1,,

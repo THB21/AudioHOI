@@ -1,0 +1,12 @@
+{
+  "case_name": "basketball",
+  "mode": "mistral",
+  "mistral_status": "ok",
+  "mistral_raw_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/llm_prior_mistral_raw.json",
+  "prompt_context": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/prompt_context.json",
+  "prompt_entry_count": 5,
+  "warnings": [],
+  "fallback_used": false,
+  "stdout": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/llm_prior_mistral_raw.json\n",
+  "stderr": ""
+}

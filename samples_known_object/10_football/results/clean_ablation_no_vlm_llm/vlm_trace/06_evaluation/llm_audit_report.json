@@ -1,0 +1,30 @@
+{
+  "mode": "deterministic_csv_audit",
+  "missing_inputs": [],
+  "failure_sources": [
+    "stage2_contact_anchor",
+    "stage4_sequence_optimizer"
+  ],
+  "gate_effectiveness_checked": true,
+  "summary": "review_required",
+  "metrics_used": [
+    "acceleration_spike_count",
+    "anchor_drift_m_max",
+    "anchor_drift_m_mean",
+    "contact_f1",
+    "contact_label_status",
+    "contact_precision",
+    "contact_proxy_score",
+    "contact_recall",
+    "floating_rate",
+    "geometry_length_spread_m",
+    "gt_contact_available",
+    "jump_count",
+    "mask_iou_mean",
+    "overlay_error_px_mean",
+    "overlay_proxy_score",
+    "penetration_rate",
+    "static_tail_drift_m_max",
+    "velocity_spike_count"
+  ]
+}

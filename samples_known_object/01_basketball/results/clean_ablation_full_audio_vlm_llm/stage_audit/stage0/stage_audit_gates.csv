@@ -1,0 +1,4 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+basketball,stage0,artifact:stage0_inputs_manifest,pass,keep_outputs,0,1,0,stage0_inputs_manifest exists
+basketball,stage0,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+basketball,stage0,llm_csv:stage0_inputs,pass,keep_outputs,0,1,0,stage0 input manifest exists

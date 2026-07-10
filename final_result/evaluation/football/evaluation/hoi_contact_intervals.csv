@@ -1,0 +1,12 @@
+human_part,human_side,object_part,start_frame,end_frame,n_frames,mean_contact_confidence,mean_surface_gap_m,mean_anchor_drift,source
+left_foot_heel,,surface,90,92,3,,,,tom_body_surface_contacts
+left_foot_heel,,surface,114,122,9,,,,tom_body_surface_contacts
+left_foot_heel,,surface,131,135,5,,,,tom_body_surface_contacts
+left_foot_heel,,surface,138,143,6,,,,tom_body_surface_contacts
+left_foot_heel,,surface,149,152,4,,,,tom_body_surface_contacts
+left_foot_heel,,surface,160,163,4,,,,tom_body_surface_contacts
+left_foot_toe,,surface,171,171,1,,,,tom_body_surface_contacts
+right_foot_heel,,surface,123,126,4,,,,tom_body_surface_contacts
+right_foot_heel,,surface,166,167,2,,,,tom_body_surface_contacts
+right_foot_heel,,surface,172,182,11,,,,tom_body_surface_contacts
+right_foot_toe,,surface,53,53,1,,,,tom_body_surface_contacts

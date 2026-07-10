@@ -19,7 +19,7 @@ from scripts.shared.generic_contact_pipeline.core.evaluation.final_hoi.ablation_
 from scripts.shared.generic_contact_pipeline.core.evaluation.final_hoi.ablation_runner import run_ablation_evaluation  # noqa: E402
 
 
-DEFAULT_CASES = ["basketball", "football", "mug", "chair", "stick"]
+DEFAULT_CASES = ["basketball", "football"]
 DEFAULT_METHODS = list(MATERIALIZED_DEFAULT_METHODS)
 
 
@@ -38,7 +38,7 @@ def main() -> None:
     ap.add_argument("--cases", nargs="+", default=DEFAULT_CASES)
     ap.add_argument("--methods", nargs="+", default=DEFAULT_METHODS)
     ap.add_argument("--method-result", action="append", default=[], metavar="METHOD=RESULT_NAME")
-    ap.add_argument("--output-dir", default="samples_known_object/ablation_evaluation")
+    ap.add_argument("--output-dir", default="final_result/evaluation/ablation")
     ap.add_argument("--allow-same-result-debug", action="store_true")
     ap.add_argument("--require-existing", action="store_true")
     args = ap.parse_args()

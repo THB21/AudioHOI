@@ -1,0 +1,11 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+football,stage4,2,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+football,stage4,46,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+football,stage4,242,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+football,stage4,1,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+football,stage4,122,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+football,stage4,2,temporal_motion_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+football,stage4,46,temporal_motion_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+football,stage4,242,temporal_motion_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+football,stage4,1,temporal_motion_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+football,stage4,122,temporal_motion_check,unclear,unclear,unclear_no_update,0,0,0,0,1

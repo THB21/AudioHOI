@@ -55,7 +55,7 @@ def _second_diff(values: list[float]) -> list[float]:
 
 
 def compute_object_6d_metrics(paths: EvaluationPaths) -> MetricBlock:
-    pose_path = paths.result_dir / "object_pose.csv"
+    pose_path = paths.object_pose_csv
     rows = read_rows(pose_path)
     fields = set(rows[0]) if rows else set()
     se3_valid = {"tx", "ty", "tz", "qw", "qx", "qy", "qz"}.issubset(fields)
@@ -67,12 +67,16 @@ def compute_object_6d_metrics(paths: EvaluationPaths) -> MetricBlock:
     r_steps = _rotation_steps(rows)
     length_values = [f(row.get("length_m"), f(row.get("object_length_m"), f(row.get("geometry_length_m")))) for row in rows]
     jumps = read_rows(paths.result_dir / "pose_jump_audit.csv")
-    jump_count = sum(
-        1
-        for row in jumps
-        if any(str(row.get(key, "")).lower() in {"1", "1.0", "true"} for key in ("visual_spike", "contact_spike", "smoothness_spike"))
+    jump_count = (
+        sum(
+            1
+            for row in jumps
+            if any(str(row.get(key, "")).lower() in {"1", "1.0", "true"} for key in ("visual_spike", "contact_spike", "smoothness_spike"))
+        )
+        if jumps
+        else None
     )
-    static_drift = max_or_none(f(row.get("static_tail_drift_m"), f(row.get("static_drift_m"))) for row in jumps) or 0.0
+    static_drift = max_or_none(f(row.get("static_tail_drift_m"), f(row.get("static_drift_m"))) for row in jumps) if jumps else None
     metrics = {
         "se3_valid": se3_valid,
         "n_frames": n,

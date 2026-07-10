@@ -1,0 +1,220 @@
+{
+  "case_name": "football",
+  "result_name": "clean_ablation_full_audio_vlm_llm",
+  "trace_root": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace",
+  "directories": {
+    "00_input": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/00_input",
+    "01_observation": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation",
+    "02_contact_candidates": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/02_contact_candidates",
+    "03_vlm_reasoning": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/03_vlm_reasoning",
+    "04_gating": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/04_gating",
+    "05_optimization": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/05_optimization",
+    "06_evaluation": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation"
+  },
+  "artifacts": {
+    "input_video": {
+      "stage": "",
+      "source_path": "samples_known_object/10_football/video.mp4",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/00_input/video.mp4",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    "sampled_frames": {
+      "stage": "00_input",
+      "source_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm/stage0/evidence",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/00_input/sampled_frames",
+      "exists": true,
+      "rows": 8,
+      "storage_mode": "relative_symlink_or_copy"
+    },
+    "object_mask_overlay": {
+      "stage": "01_observation",
+      "source_path": "samples_known_object/10_football/results/renders/clean_ablation_full_audio_vlm_llm/object_only/overlay.mp4",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_mask_overlay.mp4",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "generated"
+    },
+    "human_pose_overlay": {
+      "stage": "01_observation",
+      "source_path": "samples_known_object/10_football/results/renders/clean_ablation_full_audio_vlm_llm/with_human/overlay.mp4",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/human_pose_overlay.mp4",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "generated"
+    },
+    "depth_overlay": {
+      "stage": "01_observation",
+      "source_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/depth_overlay.mp4",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/depth_overlay.mp4",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "generated"
+    },
+    "contact_candidate_overlay": {
+      "stage": "02_contact_candidates",
+      "source_path": "samples_known_object/10_football/results/renders/clean_ablation_full_audio_vlm_llm/with_human/overlay.mp4",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "generated"
+    },
+    "before_after_overlay": {
+      "stage": "05_optimization",
+      "source_path": "samples_known_object/10_football/results/renders/clean_ablation_full_audio_vlm_llm/with_human/overlay.mp4",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/05_optimization/before_after_overlay.mp4",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "generated"
+    },
+    "object_observations": {
+      "stage": "01_observation",
+      "source_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/object_observations.csv",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_observations.csv",
+      "exists": true,
+      "rows": 242,
+      "storage_mode": "relative_symlink"
+    },
+    "object_correspondence": {
+      "stage": "01_observation",
+      "source_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/object_correspondence.csv",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_correspondence.csv",
+      "exists": true,
+      "rows": 242,
+      "storage_mode": "relative_symlink"
+    },
+    "object_surface_points": {
+      "stage": "01_observation",
+      "source_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/object_surface_points.csv",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_surface_points.csv",
+      "exists": true,
+      "rows": 0,
+      "storage_mode": "relative_symlink"
+    },
+    "object_semantic_points": {
+      "stage": "01_observation",
+      "source_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/object_semantic_points.csv",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_semantic_points.csv",
+      "exists": true,
+      "rows": 0,
+      "storage_mode": "relative_symlink"
+    },
+    "line_correspondence": {
+      "stage": "01_observation",
+      "source_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/line_correspondence.csv",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/line_correspondence.csv",
+      "exists": false,
+      "rows": "",
+      "storage_mode": "missing"
+    },
+    "line_observations": {
+      "stage": "01_observation",
+      "source_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/line_observations.csv",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/line_observations.csv",
+      "exists": false,
+      "rows": "",
+      "storage_mode": "missing"
+    },
+    "contact_candidates": {
+      "stage": "02_contact_candidates",
+      "source_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/contact_candidates.csv",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/02_contact_candidates/contact_candidates.csv",
+      "exists": true,
+      "rows": 242,
+      "storage_mode": "relative_symlink"
+    },
+    "gate_timeline_png": {
+      "stage": "04_gating",
+      "source_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/04_gating/gate_timeline.png",
+      "target_path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/04_gating/gate_timeline.png",
+      "exists": true,
+      "rows": ""
+    }
+  },
+  "trace_completeness": {
+    "required_count": 13,
+    "present_count": 13,
+    "missing_required": [],
+    "items": {
+      "input_video": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/00_input/video.mp4",
+        "stage": ""
+      },
+      "sampled_frames": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/00_input/sampled_frames",
+        "stage": "00_input"
+      },
+      "object_observations": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_observations.csv",
+        "stage": "01_observation"
+      },
+      "object_correspondence": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_correspondence.csv",
+        "stage": "01_observation"
+      },
+      "object_surface_points": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_surface_points.csv",
+        "stage": "01_observation"
+      },
+      "object_semantic_points": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_semantic_points.csv",
+        "stage": "01_observation"
+      },
+      "contact_candidates": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/02_contact_candidates/contact_candidates.csv",
+        "stage": "02_contact_candidates"
+      },
+      "object_mask_overlay": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_mask_overlay.mp4",
+        "stage": "01_observation"
+      },
+      "human_pose_overlay": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/human_pose_overlay.mp4",
+        "stage": "01_observation"
+      },
+      "depth_overlay": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/depth_overlay.mp4",
+        "stage": "01_observation"
+      },
+      "contact_candidate_overlay": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+        "stage": "02_contact_candidates"
+      },
+      "before_after_overlay": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/05_optimization/before_after_overlay.mp4",
+        "stage": "05_optimization"
+      },
+      "gate_timeline_png": {
+        "required": true,
+        "exists": true,
+        "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/vlm_trace/04_gating/gate_timeline.png",
+        "stage": "04_gating"
+      }
+    }
+  }
+}

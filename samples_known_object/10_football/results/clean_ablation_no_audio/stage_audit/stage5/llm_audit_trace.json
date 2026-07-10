@@ -1,0 +1,25 @@
+{
+  "provider": {
+    "name": "mistral_api",
+    "kind": "mistral_chat_completions",
+    "api_key_env": "MISTRAL_API_KEY",
+    "api_key_present": true,
+    "model_id": "mistral-small-latest",
+    "base_url": "https://api.mistral.ai/v1",
+    "temperature": 0.0,
+    "max_new_tokens": 900,
+    "timeout_seconds": 120
+  },
+  "used": true,
+  "error": "",
+  "response_id": "6ab855e45a03476ea4a385296174ecba",
+  "usage": {
+    "prompt_tokens": 2126,
+    "total_tokens": 2241,
+    "completion_tokens": 115,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "raw_text": "{\"results\": [{\"query_id\": \"render_manifest\", \"label\": \"pass\", \"blocking\": false, \"rerun_stage\": false, \"residual_reweight\": false, \"short_reason\": \"render manifest exists and is accessible\"}, {\"query_id\": \"render_temporal_consistency\", \"label\": \"unclear\", \"blocking\": false, \"rerun_stage\": false, \"residual_reweight\": false, \"short_reason\": \"no effective temporal VLM gate rows to compare against machine spike metrics\"}]}"
+}

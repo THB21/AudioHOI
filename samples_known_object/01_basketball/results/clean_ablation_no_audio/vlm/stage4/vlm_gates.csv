@@ -1,0 +1,11 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+basketball,stage4,10,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+basketball,stage4,99,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+basketball,stage4,186,anchor_update_check,no_change,pass,accept_candidate,1,0,1,0,1
+basketball,stage4,1,anchor_update_check,no_change,pass,accept_candidate,1,0,1,0,1
+basketball,stage4,97,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+basketball,stage4,10,temporal_motion_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+basketball,stage4,99,temporal_motion_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+basketball,stage4,186,temporal_motion_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+basketball,stage4,1,temporal_motion_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+basketball,stage4,97,temporal_motion_check,unclear,unclear,unclear_no_update,0,0,0,0,1

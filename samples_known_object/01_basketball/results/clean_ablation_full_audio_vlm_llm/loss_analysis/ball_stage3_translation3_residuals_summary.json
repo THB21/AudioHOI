@@ -1,0 +1,15 @@
+{
+  "stage_label": "stage3_translation3_init",
+  "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/ball_stage3_translation3_residuals.csv",
+  "rows": 192,
+  "terms": {
+    "E_total": 0.06120780099999999,
+    "E_visual": 0.0,
+    "E_depth": 0.0,
+    "E_support": 0.0,
+    "E_contact": 0.0,
+    "E_smooth": 0.06120780099999999,
+    "E_reg": 0.0
+  },
+  "note": "Optimizer-style normalized ball residuals mirroring the radius-free center/support/contact/smooth/reg construction; report only, does not alter pose."
+}

@@ -1,0 +1,5 @@
+raw_part,canonical_part,source
+ball_bottom,support_region,case_config
+ball_boundary,surface,case_config
+ball_center,center,case_config
+floor_support,support_region,hoi_contact_pairs

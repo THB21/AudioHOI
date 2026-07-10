@@ -1,0 +1,17 @@
+{
+  "case_name": "football",
+  "stage": "stage2",
+  "gate_rows": 5,
+  "effective_rows": 5,
+  "blocked_frames": [],
+  "unclear_frames": [],
+  "accepted_contact_frames": [
+    1,
+    2,
+    44,
+    122,
+    242
+  ],
+  "accepted_anchor_frames": [],
+  "gate_csv": "samples_known_object/10_football/results/clean_ablation_no_audio/vlm/stage2/vlm_gates.csv"
+}

@@ -426,10 +426,13 @@ Generate the final-only table:
 
 ```bash
 /home/yang/miniconda3/envs/audiohoi/bin/python \
-  scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py \
-  --result-name benchmark_vlm_qwen \
-  --output-dir samples_known_object/final_result_evaluation
+  scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py
 ```
+
+This default evaluates the frame-aligned deliverables declared in
+`final_result/evaluation_manifest.json` and writes `final_result/evaluation/`.
+Use `--source pipeline-result --result-name <name>` only for historical pipeline
+regression results.
 
 Pipeline post-run flags:
 

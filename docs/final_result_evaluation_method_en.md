@@ -1,6 +1,14 @@
 # Final Result Evaluation Method
 
-This document describes how the current generic HOI pipeline evaluates final results. A "final result" means the selected final result directory for each case, `benchmark_vlm_qwen` by default. This is not a benchmark comparison table and does not compare baseline, ablation, or oracle-contact variants.
+This document evaluates deliverables published under `final_result/`. The default source is
+`final_result/evaluation_manifest.json`. The current evaluated set contains basketball and
+football because both have frame-aligned final video, source video, object pose,
+contact-refined human parameters, and contact evidence. Historical `benchmark_vlm_qwen`
+results are pipeline regressions and require explicit `--source pipeline-result`.
+
+Every hard metric must use the exact data paired with the published video. A video without
+matching pose/human artifacts can receive visual review only; another run's CSV must not be
+substituted for 6DoF or physical metrics.
 
 ## Evaluated Target
 
@@ -44,22 +52,22 @@ Contact F1 = 2 * Precision * Recall / (Precision + Recall)
 
 When manual labels are missing, `Contact F1` is left blank. Proxy scores are not reported as F1.
 
-**Contact Proxy**:
+**Contact Proxy** uses the mean human-surface to object-surface gap on expected-contact frames:
 
 ```text
-Contact Proxy = mean_t( c_t if contact_observed_t = 1 else 0 )
+Contact Proxy = exp(-contact_gap_mm / 50)
 ```
 
-**Overlay Proxy** first uses mask, track, or line confidence:
+**Overlay** compares the source-video SAM2 mask with the object mask projected from the paired final pose:
 
 ```text
-Overlay Proxy = mean_t(clip(mask_iou_t or observation_conf_t or track_conf_t, 0, 1))
+Overlay = mean_t IoU(observed_object_mask_t, projected_object_mask_t)
 ```
 
-If direct confidence is unavailable, it is inferred from jitter:
+For a sphere, the projected radius is:
 
 ```text
-Overlay Proxy = mean_t( 1 / (1 + max(0, jitter_px_t) / 20) )
+r_px = fx * radius_m / tz
 ```
 
 **Anchor Drift**:
@@ -81,20 +89,11 @@ Anchor Drift Mean = mean_t(d_t)
 Anchor Drift Max = max_t(d_t)
 ```
 
-**Penetration Rate / Floating Rate**:
-
-When explicit residuals exist:
-
-```text
-Penetration Rate = mean_t(1[penetration_depth_t > 1e-4])
-Floating Rate = mean_t(1[floating_gap_t > 1e-3])
-```
-
-When explicit residuals are missing, the current evaluator derives a proxy from `contact_depth_offset_m`:
+**Penetration Rate** uses signed distance between contact-refined SMPL-X part vertices and
+the object surface with 3 mm mesh slack:
 
 ```text
-penetration proxy: contact_depth_offset_m < -1e-6
-floating proxy: contact_depth_offset_m > 1e-6
+Penetration Rate = #frames(any vertex depth > 3 mm) / #valid frames
 ```
 
 **Jump Count**:
@@ -105,6 +104,33 @@ Jump Count = Σ_t 1[
   or contact_spike_t = 1
   or smoothness_spike_t = 1
 ]
+```
+
+The current temporal evaluator also reports motion-regime-aware spikes:
+
+```text
+v_t = ||T_t - T_{t-1}||
+a_t = ||v_t - v_{t-1}||
+omega_t = angle(q_{t-1}^{-1} q_t)
+alpha_t = |omega_t - omega_{t-1}|
+
+translation_spike_t = 1[a_t > threshold_translation]
+rotation_spike_t = 1[alpha_t > threshold_rotation]
+threshold = max(floor, median(values) + 3 * MAD(values), percentile_95(values))
+```
+
+Audio/contact windows split spikes by expected motion regime:
+
+```text
+event_aligned_spike_count = Σ 1[spike_t and t in event_window]
+non_event_spike_count = Σ 1[spike_t and t not in event_window]
+```
+
+High-speed preservation and over-smoothing:
+
+```text
+high_speed_recall = #event windows with preserved acceleration peak / #event windows
+oversmooth_rate = #event windows with suppressed acceleration peak / #event windows
 ```
 
 **Static Drift**:
@@ -127,6 +153,20 @@ Primary inputs:
 - `anchor_state.csv`
 - `physical_smooth_residuals.csv`
 - `pose_jump_audit.csv`
+- `temporal_plausibility_metrics.csv`
+- `gate_impact_metrics.csv`
+
+**Gate Impact** is for ablation analysis. It does not judge visual quality directly;
+it answers whether VLM/LLM/audio gates actually affected optimization:
+
+```text
+gate_active_count = Σ active_gate
+optimizer_reweighted_frames = Σ 1[feedback_reweight_reason exists]
+anchor_update_blocked_count = Σ 1[anchor_update_allowed = 0]
+freeze_interpolation_frames = Σ 1[freeze/interpolation/static_tail residual enabled]
+pose_delta_translation_max = max_t ||T_final_t - T_pre_smooth_t||
+pose_delta_rotation_max = max_t angle(q_pre_smooth_t^{-1} q_final_t)
+```
 
 ### 2. VLM Visual Judge
 
@@ -158,10 +198,11 @@ Generate the final-only summary table with:
 
 ```bash
 /home/yang/miniconda3/envs/audiohoi/bin/python \
-  scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py \
-  --result-name benchmark_vlm_qwen \
-  --output-dir samples_known_object/final_result_evaluation
+  scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py
 ```
+
+Inspect `final_result/evaluation/source_validation.csv` first, then
+`final_result/evaluation/final_evaluation_detailed.csv`.
 
 Default outputs:
 

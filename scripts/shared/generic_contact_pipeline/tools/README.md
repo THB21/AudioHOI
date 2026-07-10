@@ -3,7 +3,7 @@
 Primary user-facing tools:
 
 - `run_final_hoi_evaluator.py`: writes the current HOI final evaluation summary, including object 6DoF, hard overlay, contact/anchor, physical, temporal, and QA artifacts.
-- `run_ablation_evaluation.py`: compares real materialized method variants such as `no_audio`, `no_vlm`, `no_llm`, and `no_contact_anchor`.
+- `run_ablation_evaluation.py`: compares the default materialized ablations: full, no-audio, and VLM+LLM-gate-off.
 - `run_final_summary.py`: legacy object-only summary. Keep it for compatibility, but do not use it as the main final result table.
 - `run_final_evaluator.py`: evaluates one result directory with hard metrics, VLM visual judge artifacts, and LLM CSV audit.
 - `run_benchmark.py`: compares multiple real method variants. Use this only for method comparison, not for reporting a single final result.
@@ -25,7 +25,7 @@ Current final-result command:
 /home/yang/miniconda3/envs/audiohoi/bin/python \
   scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py \
   --result-name benchmark_vlm_qwen \
-  --output-dir samples_known_object/final_result_evaluation
+  --output-dir final_result/evaluation
 ```
 
 Equivalent post-run pipeline flag:
@@ -43,7 +43,7 @@ Current ablation command:
 ```bash
 /home/yang/miniconda3/envs/audiohoi/bin/python \
   scripts/shared/generic_contact_pipeline/tools/run_ablation_evaluation.py \
-  --output-dir samples_known_object/ablation_evaluation
+  --output-dir final_result/evaluation/ablation
 ```
 
 Equivalent post-run pipeline flag:

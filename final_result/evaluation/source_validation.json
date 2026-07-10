@@ -1,0 +1,42 @@
+{
+  "entries": [
+    {
+      "case": "basketball",
+      "declared_status": "paired",
+      "final_video": "final_result/videos/1_basketball_3d.mp4",
+      "source_video": "video_sample/1_basketball_video.mp4",
+      "object_pose_csv": "samples_known_object/01_basketball/results/pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv",
+      "human_params": "samples_known_object/01_basketball/results/human_contact_refine/contact_refined_smplx_params.pkl",
+      "contact_points_csv": "samples_known_object/01_basketball/results/human_audio_semantics/body_surface_contacts.csv",
+      "gate_trace_result_dir": "samples_known_object/01_basketball/results/benchmark_vlm_qwen",
+      "gate_trace_ready": true,
+      "final_video_frames": 192,
+      "source_video_frames": 192,
+      "object_pose_frames": 192,
+      "final_pose_frame_aligned": true,
+      "source_pose_frame_aligned": true,
+      "hard_metrics_ready": true,
+      "missing_artifacts": [],
+      "note": ""
+    },
+    {
+      "case": "football",
+      "declared_status": "paired",
+      "final_video": "final_result/videos/2_football_3d.mp4",
+      "source_video": "video_sample/10_football_video.mp4",
+      "object_pose_csv": "samples_known_object/10_football/results/pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv",
+      "human_params": "samples_known_object/10_football/results/human_contact_refine/contact_refined_smplx_params.pkl",
+      "contact_points_csv": "samples_known_object/10_football/results/human_audio_semantics/body_surface_contacts.csv",
+      "gate_trace_result_dir": "samples_known_object/10_football/results/benchmark_vlm_qwen",
+      "gate_trace_ready": true,
+      "final_video_frames": 242,
+      "source_video_frames": 242,
+      "object_pose_frames": 242,
+      "final_pose_frame_aligned": true,
+      "source_pose_frame_aligned": true,
+      "hard_metrics_ready": true,
+      "missing_artifacts": [],
+      "note": ""
+    }
+  ]
+}

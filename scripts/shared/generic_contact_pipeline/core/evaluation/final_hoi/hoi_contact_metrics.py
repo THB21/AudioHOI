@@ -74,13 +74,13 @@ def _anchor_key(row: dict[str, str]) -> tuple[int, str, str, str]:
 
 def _anchor_index(paths: EvaluationPaths) -> dict[tuple[int, str, str, str], dict[str, str]]:
     anchors = {}
-    for row in read_rows(paths.result_dir / "anchor_state.csv"):
+    for row in read_rows(paths.anchor_state_csv):
         anchors[_anchor_key(row)] = row
     return anchors
 
 
 def _candidate_rows(paths: EvaluationPaths) -> list[dict[str, str]]:
-    rows = read_rows(paths.result_dir / "object_contact_points.csv")
+    rows = read_rows(paths.contact_points_csv)
     if rows:
         return rows
     return read_rows(paths.result_dir / "contact_candidates.csv")
@@ -106,13 +106,13 @@ def _anchor_for(row: dict[str, str], anchors: dict[tuple[int, str, str, str], di
 
 
 def _candidate_to_pair(row: dict[str, str], anchor: dict[str, str]) -> dict[str, Any]:
-    observed = _truth(row.get("contact_active")) or _truth(anchor.get("contact_observed"))
+    observed = _truth(row.get("contact_active")) or _truth(row.get("contact")) or _truth(anchor.get("contact_observed"))
     persistent = _truth(anchor.get("contact_persistent"))
     update_allowed = _truth(anchor.get("anchor_update_allowed"))
     pose_allowed = _truth(anchor.get("pose_anchor_allowed"))
-    human_part = row.get("human_part") or anchor.get("human_part") or ""
+    human_part = row.get("human_part") or row.get("contact_region") or row.get("contact_part") or anchor.get("human_part") or ""
     human_side = row.get("human_side") or anchor.get("human_side") or ""
-    object_part = row.get("object_part") or anchor.get("object_part") or ""
+    object_part = row.get("object_part") or anchor.get("object_part") or ("surface" if row.get("contact_region") else "")
     local_s_drift = f(row.get("local_s_drift"))
     if local_s_drift is None:
         stable_s = f(row.get("stable_object_local_s"), f(anchor.get("stable_local_s")))
@@ -163,7 +163,7 @@ def _candidate_to_pair(row: dict[str, str], anchor: dict[str, str]) -> dict[str,
         "contact_v": row.get("contact_v", ""),
         "contact_depth_offset_m": row.get("contact_depth_offset_m", ""),
         "local_s_drift": local_s_drift,
-        "source": row.get("source", anchor.get("source", "")),
+        "source": row.get("source", anchor.get("source", "tom_body_surface_contacts" if row.get("contact_region") else "")),
     }
 
 
@@ -171,9 +171,14 @@ def _build_pair_rows(paths: EvaluationPaths) -> list[dict[str, Any]]:
     anchors = _anchor_index(paths)
     pairs = []
     for row in _candidate_rows(paths):
-        human_part = str(row.get("human_part", ""))
+        human_part = str(row.get("human_part") or row.get("contact_region") or row.get("contact_part") or "")
         object_part = str(row.get("object_part", ""))
-        if human_part in {"", "none"} and object_part in {"", "none"} and not _truth(row.get("contact_active")):
+        if (
+            human_part in {"", "none"}
+            and object_part in {"", "none"}
+            and not _truth(row.get("contact_active"))
+            and not _truth(row.get("contact"))
+        ):
             continue
         pairs.append(_candidate_to_pair(row, _anchor_for(row, anchors)))
     return pairs

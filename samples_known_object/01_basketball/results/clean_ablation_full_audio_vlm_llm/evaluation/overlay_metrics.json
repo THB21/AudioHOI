@@ -1,0 +1,12 @@
+{
+  "overlay_hard_score": 0.8311871495000652,
+  "overlay_hard_metric_source": "generated_eval_proxy_render_mask_iou",
+  "overlay_mask_pair_count": 192,
+  "overlay_generated_render_mask_count": 192,
+  "overlay_generated_proxy_render_mask_count": 192,
+  "overlay_generated_full_geometry_mask_count": 0,
+  "overlay_mask_coverage": 0.9645562746537228,
+  "overlay_render_false_coverage": 0.1436232974902084,
+  "overlay_vlm_is_primary": false,
+  "overlay_conflict_flag": ""
+}

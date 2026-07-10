@@ -1,0 +1,31 @@
+{
+  "kind": "unified_final_hoi_summary",
+  "rows": 2,
+  "table": "final_result/evaluation/final_evaluation_detailed.csv",
+  "human_readable": "final_result/evaluation/final_evaluation_human_readable.md",
+  "cases": [
+    {
+      "case": "basketball",
+      "result_name": "canonical_final_result",
+      "result_dir": "final_result/evaluation/basketball",
+      "evaluation_dir": "final_result/evaluation/basketball/evaluation",
+      "evaluation_summary_json": "final_result/evaluation/basketball/evaluation/final_evaluation_summary.json",
+      "detailed_csv": "final_result/evaluation/basketball/evaluation/final_evaluation_detailed.csv",
+      "qa_dir": "final_result/evaluation/basketball/vlm_trace/06_evaluation",
+      "pipeline_qa_summary_csv": "final_result/evaluation/basketball/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+      "qa_audit_report_html": "final_result/evaluation/basketball/vlm_trace/06_evaluation/qa_audit_report.html"
+    },
+    {
+      "case": "football",
+      "result_name": "canonical_final_result",
+      "result_dir": "final_result/evaluation/football",
+      "evaluation_dir": "final_result/evaluation/football/evaluation",
+      "evaluation_summary_json": "final_result/evaluation/football/evaluation/final_evaluation_summary.json",
+      "detailed_csv": "final_result/evaluation/football/evaluation/final_evaluation_detailed.csv",
+      "qa_dir": "final_result/evaluation/football/vlm_trace/06_evaluation",
+      "pipeline_qa_summary_csv": "final_result/evaluation/football/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+      "qa_audit_report_html": "final_result/evaluation/football/vlm_trace/06_evaluation/qa_audit_report.html"
+    }
+  ],
+  "principle": "hard metrics first; VLM is secondary for perceptual ambiguity"
+}

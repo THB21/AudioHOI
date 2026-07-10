@@ -1,0 +1,2852 @@
+{
+  "case_name": "basketball",
+  "profile": {
+    "case_name": "basketball",
+    "sample_dir": "samples_known_object/01_basketball",
+    "object_family": "dynamic_ball",
+    "geometry_model": "sphere_proxy",
+    "observation_model": "mask_track_center",
+    "contact_policy": "hand_floor",
+    "pose_model": "translation3",
+    "refinement_policy": [
+      "anchor_depth",
+      "backproject_xy"
+    ],
+    "render_backend": "proxy_sphere",
+    "result_name": "clean_ablation_full_audio_vlm_llm",
+    "vlm": {
+      "target": "basketball",
+      "parts": [
+        "ball_center",
+        "ball_boundary",
+        "ball_bottom",
+        "background",
+        "unclear"
+      ],
+      "contacts": [
+        "hand",
+        "floor",
+        "body",
+        "nothing_nearby",
+        "unclear"
+      ],
+      "stable_refs": [
+        "center",
+        "bottom_support",
+        "boundary_point",
+        "unclear"
+      ]
+    },
+    "camera": {
+      "fx": 1468.604736328125,
+      "fy": 1468.604736328125,
+      "cx": 640.0,
+      "cy": 360.0
+    },
+    "baseline": {
+      "final_pose_csv": "samples_known_object/01_basketball/results/pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv",
+      "init_pose_csv": "samples_known_object/01_basketball/results/pose6d_object_proxy_da3_init/object_pose6d_sharedcam_trajectory.csv",
+      "object_observations_csv": "samples_known_object/01_basketball/results/object_observations/object_observations.csv",
+      "object_proxy_observations_csv": "samples_known_object/01_basketball/results/object_proxy_observations/object_proxy_observations.csv",
+      "contact_candidates_csv": "samples_known_object/01_basketball/results/contact_candidates_object_proxy/anchor_contact_candidates.csv",
+      "contact_state_csv": "samples_known_object/01_basketball/results/contact_candidates_object_proxy/contact_state_frames.csv",
+      "render_dir": "samples_known_object/01_basketball/results/renders/pose6d_object_proxy_anchor_refined"
+    }
+  },
+  "result_dir": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm",
+  "render_dir": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm",
+  "from_stage": "stage-1",
+  "to_stage": "stage7",
+  "vlm_mode": "qwen",
+  "llm_mode": "mistral",
+  "vlm_blocking": false,
+  "stage_results": [
+    {
+      "stage": "stage-1",
+      "result": {
+        "stage": "stage_minus1_llm_prior",
+        "case_name": "basketball",
+        "llm_mode": "mistral",
+        "hoi_profile": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/hoi_profile.json",
+        "hoi_profile_resolved": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/hoi_profile_resolved.yaml",
+        "llm_prior_trace": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/llm_prior_trace.json",
+        "prompt_context": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/prompt_context.json",
+        "object_parts": [
+          "ball_center",
+          "ball_boundary",
+          "ball_bottom"
+        ],
+        "human_parts": [
+          "hand",
+          "floor"
+        ],
+        "interaction_edges": [
+          {
+            "human_part": "hand",
+            "object_part": "ball_boundary",
+            "relation": "touch"
+          },
+          {
+            "human_part": "floor",
+            "object_part": "ball_bottom",
+            "relation": "support"
+          }
+        ],
+        "note": "LLM/seed prior defines discrete HOI semantics only; it does not output pose, coordinates, or loss weights.",
+        "stage_audit_repair": {
+          "component": "stage_audit_repair",
+          "enabled": false,
+          "reason": "no automatic repair registered for stage-1"
+        }
+      },
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "basketball",
+        "stage": "stage-1",
+        "decision": "reject",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 2,
+        "blocking_count": 1,
+        "rerun_stage": true,
+        "residual_reweight": false,
+        "repair_actions": [
+          "no_effective_vlm_gate",
+          "rerun_stage_with_llm_csv_gate"
+        ],
+        "audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage-1/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage-1/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage-1/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage0",
+      "result": {
+        "stage": "stage0_preprocess",
+        "case_name": "basketball",
+        "checks": {
+          "sample_dir": true,
+          "metadata": true,
+          "segmentation_masks": true,
+          "tracking_dir": true,
+          "da3_scene_depth": true,
+          "events_audio": true,
+          "events_audio_disabled": false,
+          "gvhmr_available": true
+        },
+        "baseline_paths_exist": {
+          "final_pose_csv": true,
+          "init_pose_csv": true,
+          "object_observations_csv": true,
+          "object_proxy_observations_csv": true,
+          "contact_candidates_csv": true,
+          "contact_state_csv": true,
+          "render_dir": false
+        },
+        "provenance_snapshots": {},
+        "artifacts": {
+          "sam2_masks": {
+            "kind": "directory",
+            "path": "samples_known_object/01_basketball/results/segmentation/masks",
+            "exists": true,
+            "status": "reused",
+            "runner": "run_sam2_object.py",
+            "frames": 192,
+            "error": ""
+          },
+          "sam2_trajectory": {
+            "kind": "csv",
+            "path": "samples_known_object/01_basketball/results/tracking/object_trajectory.csv",
+            "exists": false,
+            "status": "missing",
+            "runner": "run_sam2_object.py",
+            "frames": 192,
+            "error": ""
+          },
+          "cotracker_center": {
+            "kind": "csv",
+            "path": "samples_known_object/01_basketball/results/tracking/object_center_trajectory.csv",
+            "exists": false,
+            "status": "missing",
+            "runner": "run_cotracker_object_points.py",
+            "frames": 192,
+            "error": ""
+          },
+          "cotracker_points": {
+            "kind": "csv",
+            "path": "samples_known_object/01_basketball/results/tracking/object_points.csv",
+            "exists": false,
+            "status": "missing",
+            "runner": "run_cotracker_object_points.py",
+            "frames": 192,
+            "error": ""
+          },
+          "cotracker_mesh_tracks": {
+            "kind": "csv",
+            "path": "samples_known_object/01_basketball/results/tracking/object_mesh_tracks_test.csv",
+            "exists": true,
+            "status": "reused",
+            "runner": "run_cotracker_object_points.py",
+            "frames": 192,
+            "error": ""
+          },
+          "da3_scene_depth": {
+            "kind": "csv",
+            "path": "samples_known_object/01_basketball/results/da3/scene_depth/index.csv",
+            "exists": true,
+            "status": "reused",
+            "runner": "external_da3_required",
+            "frames": 192,
+            "error": ""
+          },
+          "audio_events": {
+            "kind": "csv",
+            "path": "samples_known_object/01_basketball/results/events/audio_events.csv",
+            "exists": true,
+            "status": "reused",
+            "runner": "external_audio_events_required",
+            "frames": 192,
+            "error": ""
+          },
+          "gvhmr": {
+            "kind": "pkl",
+            "path": "samples_known_object/01_basketball/results/gvhmr/result.pkl",
+            "exists": true,
+            "status": "reused",
+            "runner": "external_gvhmr_required",
+            "frames": 192,
+            "error": ""
+          }
+        },
+        "note": "Stage0 reuses existing artifacts and generates missing SAM2/CoTracker object artifacts with generic tools when possible."
+      },
+      "vlm_verification": {
+        "case_name": "basketball",
+        "stage": "stage0",
+        "mode": "qwen_vl",
+        "decision": "pass",
+        "blocking": false,
+        "query_count": 1,
+        "gate_counts": {
+          "pass": 1
+        },
+        "query_counts": {
+          "target_mask_check": 1
+        },
+        "accepted_frames": [
+          1
+        ],
+        "blocked_frames": [],
+        "report_only_reject_frames": [],
+        "unclear_frames": [],
+        "repair_actions_by_frame": {
+          "1": [
+            "accept_candidate"
+          ]
+        },
+        "rejected_results": [],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+      },
+      "vlm_gate": {
+        "case_name": "basketball",
+        "stage": "stage0",
+        "gate_rows": 1,
+        "effective_rows": 1,
+        "blocked_frames": [],
+        "unclear_frames": [],
+        "accepted_contact_frames": [],
+        "accepted_anchor_frames": [],
+        "gate_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm/stage0/vlm_gates.csv"
+      },
+      "stage_audit": {
+        "case_name": "basketball",
+        "stage": "stage0",
+        "decision": "pass",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 3,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [],
+        "audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage0/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage0/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage0/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage1",
+      "result": {
+        "component": "generic_observation_mainline",
+        "case_name": "basketball",
+        "adapter": {
+          "component": "mask_track_center",
+          "source": "samples_known_object/01_basketball/results/tracking/ball_trajectory.csv",
+          "center_source": "samples_known_object/01_basketball/results/tracking/cotracker_center_trajectory.csv",
+          "points_source": "samples_known_object/01_basketball/results/tracking/cotracker_points.csv",
+          "depth_source": "samples_known_object/01_basketball/results/da3/priors/ball_depth_prior.csv",
+          "object_observations": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_observations.csv",
+          "local_points": "none_for_center_proxy",
+          "rows": 192,
+          "policy": "generic mask/object center/radius + optional CoTracker/object bottom + DA3 depth only; contact fields are owned by Stage2",
+          "adapter_component": "mask_track_center"
+        },
+        "object_observations": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_observations.csv",
+        "object_correspondence": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_correspondence.csv",
+        "object_surface_points": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_surface_points.csv",
+        "object_semantic_points": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_semantic_points.csv",
+        "rows": 192,
+        "correspondence_rows": 192,
+        "surface_rows": 0,
+        "semantic_rows": 0,
+        "policy": "fixed generic observation contract; case-specific observation code is compatibility adapter only"
+      },
+      "vlm_verification": {
+        "case_name": "basketball",
+        "stage": "stage1",
+        "mode": "qwen_vl",
+        "decision": "pass",
+        "blocking": false,
+        "query_count": 6,
+        "gate_counts": {
+          "pass": 6
+        },
+        "query_counts": {
+          "keypart_identity_check": 3,
+          "track_stability_check": 3
+        },
+        "accepted_frames": [
+          1,
+          97,
+          192
+        ],
+        "blocked_frames": [],
+        "report_only_reject_frames": [],
+        "unclear_frames": [],
+        "repair_actions_by_frame": {
+          "1": [
+            "accept_candidate"
+          ],
+          "97": [
+            "accept_candidate"
+          ],
+          "192": [
+            "accept_candidate"
+          ]
+        },
+        "rejected_results": [],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+      },
+      "vlm_gate": {
+        "case_name": "basketball",
+        "stage": "stage1",
+        "gate_rows": 6,
+        "effective_rows": 6,
+        "blocked_frames": [],
+        "unclear_frames": [],
+        "accepted_contact_frames": [],
+        "accepted_anchor_frames": [
+          1,
+          97,
+          192
+        ],
+        "gate_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm/stage1/vlm_gates.csv"
+      },
+      "stage_audit": {
+        "case_name": "basketball",
+        "stage": "stage1",
+        "decision": "pass",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 4,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [],
+        "audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage1/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage1/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage1/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage2",
+      "result": {
+        "component": "generic_contact_anchor_mainline",
+        "case_name": "basketball",
+        "adapter": {
+          "component": "hand_floor_from_anchor_floor_candidates",
+          "rows": 192,
+          "contact_candidates": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_candidates.csv",
+          "contact_state": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_state_frames.csv",
+          "anchor_candidate_source": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_candidates_internal/anchor_contact_candidates.csv",
+          "floor_candidate_source": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_candidates_internal/floor_contact_candidates.csv",
+          "depth_offset_source": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/ball_proxy_depth.csv",
+          "policy": "generic fusion of generic anchor/floor candidate gates; generic ball_proxy_depth supplies GVHMR+mesh+DA3 contact-depth offsets",
+          "adapter_component": "hand_floor"
+        },
+        "contact_candidates": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_candidates.csv",
+        "anchor_state": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/anchor_state.csv",
+        "anchor_rows": 192,
+        "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only",
+        "generic_contact_anchor_mainline": {
+          "component": "generic_contact_anchor_mainline",
+          "case_name": "basketball",
+          "adapter": {
+            "component": "hand_floor_from_anchor_floor_candidates",
+            "rows": 192,
+            "contact_candidates": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_candidates.csv",
+            "contact_state": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_state_frames.csv",
+            "anchor_candidate_source": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_candidates_internal/anchor_contact_candidates.csv",
+            "floor_candidate_source": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_candidates_internal/floor_contact_candidates.csv",
+            "depth_offset_source": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/ball_proxy_depth.csv",
+            "policy": "generic fusion of generic anchor/floor candidate gates; generic ball_proxy_depth supplies GVHMR+mesh+DA3 contact-depth offsets",
+            "adapter_component": "hand_floor"
+          },
+          "contact_candidates": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_candidates.csv",
+          "anchor_state": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/anchor_state.csv",
+          "anchor_rows": 192,
+          "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only"
+        }
+      },
+      "vlm_verification": {
+        "case_name": "basketball",
+        "stage": "stage2",
+        "mode": "qwen_vl",
+        "decision": "pass",
+        "blocking": false,
+        "query_count": 5,
+        "gate_counts": {
+          "pass": 5
+        },
+        "query_counts": {
+          "contact_relation_check": 5
+        },
+        "accepted_frames": [
+          1,
+          2,
+          97,
+          103,
+          189
+        ],
+        "blocked_frames": [],
+        "report_only_reject_frames": [],
+        "unclear_frames": [],
+        "repair_actions_by_frame": {
+          "2": [
+            "accept_candidate"
+          ],
+          "103": [
+            "accept_candidate"
+          ],
+          "189": [
+            "accept_candidate"
+          ],
+          "1": [
+            "accept_candidate"
+          ],
+          "97": [
+            "accept_candidate"
+          ]
+        },
+        "rejected_results": [],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+      },
+      "vlm_gate": {
+        "case_name": "basketball",
+        "stage": "stage2",
+        "gate_rows": 5,
+        "effective_rows": 5,
+        "blocked_frames": [],
+        "unclear_frames": [],
+        "accepted_contact_frames": [
+          1,
+          2,
+          97,
+          103,
+          189
+        ],
+        "accepted_anchor_frames": [],
+        "gate_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm/stage2/vlm_gates.csv"
+      },
+      "stage_audit": {
+        "case_name": "basketball",
+        "stage": "stage2",
+        "decision": "pass",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 4,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [],
+        "audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage2/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage2/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage2/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage3",
+      "result": {
+        "component": "generic_se3_pose_init",
+        "case_name": "basketball",
+        "adapter": {
+          "component": "translation3",
+          "source": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_observations.csv",
+          "object_pose_init": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose_init.csv",
+          "rows": 192,
+          "line_orientation_frames": 0,
+          "policy": "clean backprojection from Stage1 object observation using K_fullimg; optional tip_a/tip_b tracks define camera-plane object orientation",
+          "optimizer_style_residual_report": {
+            "stage_label": "stage3_translation3_init",
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/ball_stage3_translation3_residuals.csv",
+            "rows": 192,
+            "terms": {
+              "E_total": 0.06120780099999999,
+              "E_visual": 0.0,
+              "E_depth": 0.0,
+              "E_support": 0.0,
+              "E_contact": 0.0,
+              "E_smooth": 0.06120780099999999,
+              "E_reg": 0.0
+            },
+            "note": "Optimizer-style normalized ball residuals mirroring the radius-free center/support/contact/smooth/reg construction; report only, does not alter pose."
+          },
+          "adapter_component": "translation3"
+        },
+        "object_pose_init": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose_init.csv",
+        "rows": 192,
+        "se3_fields": [
+          "frame",
+          "time",
+          "tx",
+          "ty",
+          "tz",
+          "qw",
+          "qx",
+          "qy",
+          "qz"
+        ],
+        "missing_se3_fields": [],
+        "geometry_pose_prior": {
+          "enabled": false,
+          "reason": "no line geometry prior inputs"
+        },
+        "line_contact_pose_prior": {
+          "enabled": false,
+          "reason": "not a line object"
+        },
+        "policy": "fixed SE3 pose schema; weak or unobserved rotations remain identity/low-weight instead of dropping quaternion fields"
+      },
+      "vlm_verification": {
+        "case_name": "basketball",
+        "stage": "stage3",
+        "mode": "qwen_vl",
+        "decision": "pass",
+        "blocking": false,
+        "query_count": 3,
+        "gate_counts": {
+          "pass": 3
+        },
+        "query_counts": {
+          "overlay_alignment_check": 3
+        },
+        "accepted_frames": [
+          1,
+          97,
+          192
+        ],
+        "blocked_frames": [],
+        "report_only_reject_frames": [],
+        "unclear_frames": [],
+        "repair_actions_by_frame": {
+          "1": [
+            "accept_candidate"
+          ],
+          "97": [
+            "accept_candidate"
+          ],
+          "192": [
+            "accept_candidate"
+          ]
+        },
+        "rejected_results": [],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+      },
+      "vlm_gate": {
+        "case_name": "basketball",
+        "stage": "stage3",
+        "gate_rows": 3,
+        "effective_rows": 3,
+        "blocked_frames": [],
+        "unclear_frames": [],
+        "accepted_contact_frames": [],
+        "accepted_anchor_frames": [],
+        "gate_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm/stage3/vlm_gates.csv"
+      },
+      "stage_audit": {
+        "case_name": "basketball",
+        "stage": "stage3",
+        "decision": "pass",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 4,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [],
+        "audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage3/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage3/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage3/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage4",
+      "result": {
+        "component": "generic_sequence_se3_mainline",
+        "case_name": "basketball",
+        "compatibility_adapters": [
+          {
+            "component": "anchor_depth",
+            "enabled": true,
+            "report": {
+              "component": "anchor_depth",
+              "object_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+              "object_contact_points": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_contact_points.csv",
+              "anchors_used": 0,
+              "policy": "exact_radius_free_anchor_refinement_audiohoi_env_using_stage2_contact_proxy",
+              "exact_optimizer": {
+                "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
+                "script": "scripts/shared/generic_contact_pipeline/components/refinement/solvers/anchor_depth_solver.py",
+                "out_dir": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/exact_anchor_depth_reference",
+                "pose_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_trajectory.csv",
+                "summary_txt": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_summary.txt"
+              },
+              "raw_debug_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose_anchor_raw_debug.csv",
+              "raw_debug_policy": "pre-optimization anchor-segment reference only; final uses original least_squares logic",
+              "raw_vs_final_max_abs_z_m": 1.4616069999999999,
+              "optimizer_style_residual_report": {
+                "stage_label": "stage4_anchor_depth_final",
+                "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/ball_stage4_anchor_depth_residuals.csv",
+                "rows": 192,
+                "terms": {
+                  "E_total": 860.2840057920002,
+                  "E_visual": 0.0,
+                  "E_depth": 828.654068893,
+                  "E_support": 0.0,
+                  "E_contact": 16.367537712,
+                  "E_smooth": 0.10353881499999994,
+                  "E_reg": 15.158860364999999
+                },
+                "note": "Optimizer-style normalized ball residuals mirroring the radius-free center/support/contact/smooth/reg construction; report only, does not alter pose."
+              },
+              "vlm_gate_summary": {
+                "vlm_contact_gate": "no_effective_disabled_frames",
+                "disabled_frames": []
+              }
+            }
+          },
+          {
+            "component": "backproject_xy",
+            "enabled": true,
+            "report": {
+              "component": "backproject_xy",
+              "case_name": "basketball",
+              "object_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+              "object_contact_points": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_contact_points.csv",
+              "policy": "generic pass-through from Stage3 backprojected pose when no stronger refinement has produced object_pose"
+            }
+          }
+        ],
+        "legacy_refinement_policies_ignored": [],
+        "legacy_refinement_policies_as_seed_builders": [
+          "anchor_depth",
+          "backproject_xy"
+        ],
+        "line_object_special_refinement": false,
+        "line_object_seed_builder": {
+          "enabled": false,
+          "reason": "not_line_object"
+        },
+        "object_pose_pre_smooth": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose_pre_smooth.csv",
+        "object_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+        "object_contact_points": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_contact_points.csv",
+        "motion_regime": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/motion_regime.csv",
+        "physical_smooth_residuals": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/physical_smooth_residuals.csv",
+        "pose_jump_audit": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/pose_jump_audit.csv",
+        "optimizer_decisions": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/optimizer_decisions.csv",
+        "rows": 192,
+        "smoothed_rows": 192,
+        "pose_lock_reason": "",
+        "residuals": {
+          "visual": true,
+          "contact_anchor": true,
+          "depth": true,
+          "geometry": true,
+          "velocity": true,
+          "acceleration": true,
+          "static_freeze": true,
+          "boundary_freeze_interpolation": true,
+          "static_tail_freeze": true,
+          "motion_regime_reweighting": true,
+          "feedback_reoptimization": true
+        },
+        "anchor_residual": {
+          "enabled": false,
+          "constraints": 0,
+          "skipped_rows": 63,
+          "source": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/anchor_state.csv",
+          "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
+        },
+        "anchor_pose_prior": {
+          "enabled": false,
+          "adjusted_rows": 0,
+          "median_before_m": "0.000000",
+          "median_after_m": "0.000000",
+          "policy": "generic per-frame rigid anchor pose prior before sequence smoothing"
+        },
+        "line_overlay_depth_stabilizer": {
+          "enabled": false,
+          "reason": "replaced_by_generic_line_physical_smooth_seed_builder"
+        },
+        "feedback_reweight_sources": [],
+        "requested_feedback_reweight_sources": [],
+        "rejected_feedback_sources": [],
+        "feedback_candidate_selection": {
+          "policy": "choose the candidate with the fewest hard pose_jump_audit spikes; ties prefer more accepted audit sources",
+          "candidates": [
+            {
+              "sources": [],
+              "feedback_reweight_reason": "",
+              "score": {
+                "spike_count": 0,
+                "smoothness_spike_count": 0,
+                "max_translation_jump_m": "0.040908",
+                "max_delta_rotation_rad": "0.000000"
+              },
+              "trust_first": "0.800000",
+              "smooth_first": "0.935000",
+              "accel_first": "1.326667",
+              "vlm_gate_frames": 0
+            }
+          ]
+        },
+        "feedback_reweight_reason": "",
+        "vlm_pose_refine_disabled_frames": [],
+        "vlm_gate_optimizer_mode": "inactive",
+        "visual_prior_reason": "",
+        "overlay_prior_reason": "",
+        "policy": "compatibility refinement policies run as seed/residual builders; line objects run generic_line_physical_smooth as seed/visual prior; final output is unified through smooth_quaternion_pose_sequence",
+        "components": [
+          {
+            "component": "generic_sequence_se3_mainline",
+            "case_name": "basketball",
+            "compatibility_adapters": [
+              {
+                "component": "anchor_depth",
+                "enabled": true,
+                "report": {
+                  "component": "anchor_depth",
+                  "object_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+                  "object_contact_points": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_contact_points.csv",
+                  "anchors_used": 0,
+                  "policy": "exact_radius_free_anchor_refinement_audiohoi_env_using_stage2_contact_proxy",
+                  "exact_optimizer": {
+                    "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
+                    "script": "scripts/shared/generic_contact_pipeline/components/refinement/solvers/anchor_depth_solver.py",
+                    "out_dir": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/exact_anchor_depth_reference",
+                    "pose_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_trajectory.csv",
+                    "summary_txt": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_summary.txt"
+                  },
+                  "raw_debug_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose_anchor_raw_debug.csv",
+                  "raw_debug_policy": "pre-optimization anchor-segment reference only; final uses original least_squares logic",
+                  "raw_vs_final_max_abs_z_m": 1.4616069999999999,
+                  "optimizer_style_residual_report": {
+                    "stage_label": "stage4_anchor_depth_final",
+                    "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/ball_stage4_anchor_depth_residuals.csv",
+                    "rows": 192,
+                    "terms": {
+                      "E_total": 860.2840057920002,
+                      "E_visual": 0.0,
+                      "E_depth": 828.654068893,
+                      "E_support": 0.0,
+                      "E_contact": 16.367537712,
+                      "E_smooth": 0.10353881499999994,
+                      "E_reg": 15.158860364999999
+                    },
+                    "note": "Optimizer-style normalized ball residuals mirroring the radius-free center/support/contact/smooth/reg construction; report only, does not alter pose."
+                  },
+                  "vlm_gate_summary": {
+                    "vlm_contact_gate": "no_effective_disabled_frames",
+                    "disabled_frames": []
+                  }
+                }
+              },
+              {
+                "component": "backproject_xy",
+                "enabled": true,
+                "report": {
+                  "component": "backproject_xy",
+                  "case_name": "basketball",
+                  "object_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+                  "object_contact_points": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_contact_points.csv",
+                  "policy": "generic pass-through from Stage3 backprojected pose when no stronger refinement has produced object_pose"
+                }
+              }
+            ],
+            "legacy_refinement_policies_ignored": [],
+            "legacy_refinement_policies_as_seed_builders": [
+              "anchor_depth",
+              "backproject_xy"
+            ],
+            "line_object_special_refinement": false,
+            "line_object_seed_builder": {
+              "enabled": false,
+              "reason": "not_line_object"
+            },
+            "object_pose_pre_smooth": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose_pre_smooth.csv",
+            "object_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+            "object_contact_points": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_contact_points.csv",
+            "motion_regime": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/motion_regime.csv",
+            "physical_smooth_residuals": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/physical_smooth_residuals.csv",
+            "pose_jump_audit": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/pose_jump_audit.csv",
+            "optimizer_decisions": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/optimizer_decisions.csv",
+            "rows": 192,
+            "smoothed_rows": 192,
+            "pose_lock_reason": "",
+            "residuals": {
+              "visual": true,
+              "contact_anchor": true,
+              "depth": true,
+              "geometry": true,
+              "velocity": true,
+              "acceleration": true,
+              "static_freeze": true,
+              "boundary_freeze_interpolation": true,
+              "static_tail_freeze": true,
+              "motion_regime_reweighting": true,
+              "feedback_reoptimization": true
+            },
+            "anchor_residual": {
+              "enabled": false,
+              "constraints": 0,
+              "skipped_rows": 63,
+              "source": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/anchor_state.csv",
+              "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
+            },
+            "anchor_pose_prior": {
+              "enabled": false,
+              "adjusted_rows": 0,
+              "median_before_m": "0.000000",
+              "median_after_m": "0.000000",
+              "policy": "generic per-frame rigid anchor pose prior before sequence smoothing"
+            },
+            "line_overlay_depth_stabilizer": {
+              "enabled": false,
+              "reason": "replaced_by_generic_line_physical_smooth_seed_builder"
+            },
+            "feedback_reweight_sources": [
+              "vlm"
+            ],
+            "requested_feedback_reweight_sources": [
+              "vlm"
+            ],
+            "rejected_feedback_sources": [],
+            "feedback_candidate_selection": {
+              "policy": "choose the candidate with the fewest hard pose_jump_audit spikes; ties prefer more accepted audit sources",
+              "candidates": [
+                {
+                  "sources": [],
+                  "feedback_reweight_reason": "",
+                  "score": {
+                    "spike_count": 0,
+                    "smoothness_spike_count": 0,
+                    "max_translation_jump_m": "0.040908",
+                    "max_delta_rotation_rad": "0.000000"
+                  },
+                  "trust_first": "0.800000",
+                  "smooth_first": "0.935000",
+                  "accel_first": "1.326667",
+                  "vlm_gate_frames": 0
+                },
+                {
+                  "sources": [
+                    "machine"
+                  ],
+                  "feedback_reweight_reason": "stage_audit_residual_reweight:machine",
+                  "score": {
+                    "spike_count": 0,
+                    "smoothness_spike_count": 0,
+                    "max_translation_jump_m": "0.064813",
+                    "max_delta_rotation_rad": "0.000000"
+                  },
+                  "trust_first": "0.656000",
+                  "smooth_first": "1.355750",
+                  "accel_first": "2.189000",
+                  "vlm_gate_frames": 0
+                },
+                {
+                  "sources": [
+                    "machine",
+                    "vlm"
+                  ],
+                  "feedback_reweight_reason": "stage_audit_residual_reweight:machine+vlm",
+                  "score": {
+                    "spike_count": 0,
+                    "smoothness_spike_count": 0,
+                    "max_translation_jump_m": "0.064090",
+                    "max_delta_rotation_rad": "0.000000"
+                  },
+                  "trust_first": "0.200000",
+                  "smooth_first": "1.626900",
+                  "accel_first": "2.736250",
+                  "vlm_gate_frames": 5
+                },
+                {
+                  "sources": [
+                    "vlm"
+                  ],
+                  "feedback_reweight_reason": "stage_audit_residual_reweight:vlm",
+                  "score": {
+                    "spike_count": 0,
+                    "smoothness_spike_count": 0,
+                    "max_translation_jump_m": "0.049121",
+                    "max_delta_rotation_rad": "0.000000"
+                  },
+                  "trust_first": "0.200000",
+                  "smooth_first": "1.122000",
+                  "accel_first": "1.658333",
+                  "vlm_gate_frames": 5
+                }
+              ]
+            },
+            "feedback_reweight_reason": "stage_audit_residual_reweight:vlm",
+            "vlm_pose_refine_disabled_frames": [
+              1,
+              2,
+              97,
+              103,
+              189
+            ],
+            "vlm_gate_optimizer_mode": "lower_trust_propagate",
+            "visual_prior_reason": "",
+            "overlay_prior_reason": "",
+            "policy": "compatibility refinement policies run as seed/residual builders; line objects run generic_line_physical_smooth as seed/visual prior; final output is unified through smooth_quaternion_pose_sequence"
+          }
+        ],
+        "stage_audit_repair": {
+          "component": "generic_sequence_se3_mainline",
+          "case_name": "basketball",
+          "compatibility_adapters": [
+            {
+              "component": "anchor_depth",
+              "enabled": true,
+              "report": {
+                "component": "anchor_depth",
+                "object_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+                "object_contact_points": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_contact_points.csv",
+                "anchors_used": 0,
+                "policy": "exact_radius_free_anchor_refinement_audiohoi_env_using_stage2_contact_proxy",
+                "exact_optimizer": {
+                  "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
+                  "script": "scripts/shared/generic_contact_pipeline/components/refinement/solvers/anchor_depth_solver.py",
+                  "out_dir": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/exact_anchor_depth_reference",
+                  "pose_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_trajectory.csv",
+                  "summary_txt": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/exact_anchor_depth_reference/object_pose6d_sharedcam_contactphase_summary.txt"
+                },
+                "raw_debug_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose_anchor_raw_debug.csv",
+                "raw_debug_policy": "pre-optimization anchor-segment reference only; final uses original least_squares logic",
+                "raw_vs_final_max_abs_z_m": 1.4616069999999999,
+                "optimizer_style_residual_report": {
+                  "stage_label": "stage4_anchor_depth_final",
+                  "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/ball_stage4_anchor_depth_residuals.csv",
+                  "rows": 192,
+                  "terms": {
+                    "E_total": 860.2840057920002,
+                    "E_visual": 0.0,
+                    "E_depth": 828.654068893,
+                    "E_support": 0.0,
+                    "E_contact": 16.367537712,
+                    "E_smooth": 0.10353881499999994,
+                    "E_reg": 15.158860364999999
+                  },
+                  "note": "Optimizer-style normalized ball residuals mirroring the radius-free center/support/contact/smooth/reg construction; report only, does not alter pose."
+                },
+                "vlm_gate_summary": {
+                  "vlm_contact_gate": "no_effective_disabled_frames",
+                  "disabled_frames": []
+                }
+              }
+            },
+            {
+              "component": "backproject_xy",
+              "enabled": true,
+              "report": {
+                "component": "backproject_xy",
+                "case_name": "basketball",
+                "object_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+                "object_contact_points": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_contact_points.csv",
+                "policy": "generic pass-through from Stage3 backprojected pose when no stronger refinement has produced object_pose"
+              }
+            }
+          ],
+          "legacy_refinement_policies_ignored": [],
+          "legacy_refinement_policies_as_seed_builders": [
+            "anchor_depth",
+            "backproject_xy"
+          ],
+          "line_object_special_refinement": false,
+          "line_object_seed_builder": {
+            "enabled": false,
+            "reason": "not_line_object"
+          },
+          "object_pose_pre_smooth": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose_pre_smooth.csv",
+          "object_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+          "object_contact_points": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_contact_points.csv",
+          "motion_regime": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/motion_regime.csv",
+          "physical_smooth_residuals": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/physical_smooth_residuals.csv",
+          "pose_jump_audit": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/pose_jump_audit.csv",
+          "optimizer_decisions": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/optimizer_decisions.csv",
+          "rows": 192,
+          "smoothed_rows": 192,
+          "pose_lock_reason": "",
+          "residuals": {
+            "visual": true,
+            "contact_anchor": true,
+            "depth": true,
+            "geometry": true,
+            "velocity": true,
+            "acceleration": true,
+            "static_freeze": true,
+            "boundary_freeze_interpolation": true,
+            "static_tail_freeze": true,
+            "motion_regime_reweighting": true,
+            "feedback_reoptimization": true
+          },
+          "anchor_residual": {
+            "enabled": false,
+            "constraints": 0,
+            "skipped_rows": 63,
+            "source": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/anchor_state.csv",
+            "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
+          },
+          "anchor_pose_prior": {
+            "enabled": false,
+            "adjusted_rows": 0,
+            "median_before_m": "0.000000",
+            "median_after_m": "0.000000",
+            "policy": "generic per-frame rigid anchor pose prior before sequence smoothing"
+          },
+          "line_overlay_depth_stabilizer": {
+            "enabled": false,
+            "reason": "replaced_by_generic_line_physical_smooth_seed_builder"
+          },
+          "feedback_reweight_sources": [
+            "vlm"
+          ],
+          "requested_feedback_reweight_sources": [
+            "vlm"
+          ],
+          "rejected_feedback_sources": [],
+          "feedback_candidate_selection": {
+            "policy": "choose the candidate with the fewest hard pose_jump_audit spikes; ties prefer more accepted audit sources",
+            "candidates": [
+              {
+                "sources": [],
+                "feedback_reweight_reason": "",
+                "score": {
+                  "spike_count": 0,
+                  "smoothness_spike_count": 0,
+                  "max_translation_jump_m": "0.040908",
+                  "max_delta_rotation_rad": "0.000000"
+                },
+                "trust_first": "0.800000",
+                "smooth_first": "0.935000",
+                "accel_first": "1.326667",
+                "vlm_gate_frames": 0
+              },
+              {
+                "sources": [
+                  "machine"
+                ],
+                "feedback_reweight_reason": "stage_audit_residual_reweight:machine",
+                "score": {
+                  "spike_count": 0,
+                  "smoothness_spike_count": 0,
+                  "max_translation_jump_m": "0.064813",
+                  "max_delta_rotation_rad": "0.000000"
+                },
+                "trust_first": "0.656000",
+                "smooth_first": "1.355750",
+                "accel_first": "2.189000",
+                "vlm_gate_frames": 0
+              },
+              {
+                "sources": [
+                  "machine",
+                  "vlm"
+                ],
+                "feedback_reweight_reason": "stage_audit_residual_reweight:machine+vlm",
+                "score": {
+                  "spike_count": 0,
+                  "smoothness_spike_count": 0,
+                  "max_translation_jump_m": "0.064090",
+                  "max_delta_rotation_rad": "0.000000"
+                },
+                "trust_first": "0.200000",
+                "smooth_first": "1.626900",
+                "accel_first": "2.736250",
+                "vlm_gate_frames": 5
+              },
+              {
+                "sources": [
+                  "vlm"
+                ],
+                "feedback_reweight_reason": "stage_audit_residual_reweight:vlm",
+                "score": {
+                  "spike_count": 0,
+                  "smoothness_spike_count": 0,
+                  "max_translation_jump_m": "0.049121",
+                  "max_delta_rotation_rad": "0.000000"
+                },
+                "trust_first": "0.200000",
+                "smooth_first": "1.122000",
+                "accel_first": "1.658333",
+                "vlm_gate_frames": 5
+              }
+            ]
+          },
+          "feedback_reweight_reason": "stage_audit_residual_reweight:vlm",
+          "vlm_pose_refine_disabled_frames": [
+            1,
+            2,
+            97,
+            103,
+            189
+          ],
+          "vlm_gate_optimizer_mode": "lower_trust_propagate",
+          "visual_prior_reason": "",
+          "overlay_prior_reason": "",
+          "policy": "compatibility refinement policies run as seed/residual builders; line objects run generic_line_physical_smooth as seed/visual prior; final output is unified through smooth_quaternion_pose_sequence"
+        }
+      },
+      "vlm_verification": {
+        "case_name": "basketball",
+        "stage": "stage4",
+        "mode": "qwen_vl",
+        "decision": "pass_with_unclear_frames",
+        "blocking": false,
+        "query_count": 10,
+        "gate_counts": {
+          "pass": 2,
+          "unclear": 8
+        },
+        "query_counts": {
+          "anchor_update_check": 5,
+          "temporal_motion_check": 5
+        },
+        "accepted_frames": [
+          1,
+          2
+        ],
+        "blocked_frames": [],
+        "report_only_reject_frames": [],
+        "unclear_frames": [
+          1,
+          2,
+          97,
+          103,
+          189
+        ],
+        "repair_actions_by_frame": {
+          "2": [
+            "accept_candidate",
+            "unclear_no_update"
+          ],
+          "103": [
+            "unclear_no_update"
+          ],
+          "189": [
+            "unclear_no_update"
+          ],
+          "1": [
+            "accept_candidate",
+            "unclear_no_update"
+          ],
+          "97": [
+            "unclear_no_update"
+          ]
+        },
+        "rejected_results": [],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+      },
+      "vlm_gate": {
+        "case_name": "basketball",
+        "stage": "stage4",
+        "gate_rows": 10,
+        "effective_rows": 10,
+        "blocked_frames": [],
+        "unclear_frames": [
+          1,
+          2,
+          97,
+          103,
+          189
+        ],
+        "accepted_contact_frames": [],
+        "accepted_anchor_frames": [
+          1,
+          2
+        ],
+        "gate_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm/stage4/vlm_gates.csv"
+      },
+      "stage_audit": {
+        "case_name": "basketball",
+        "stage": "stage4",
+        "decision": "unclear",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 9,
+        "blocking_count": 0,
+        "rerun_stage": true,
+        "residual_reweight": true,
+        "repair_actions": [
+          "rerun_stage_with_lower_trust"
+        ],
+        "audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage4/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage4/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage4/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage5",
+      "result": {
+        "backend": "proxy_sphere",
+        "outputs": {
+          "object_only/overlay.mp4": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm/object_only/overlay.mp4",
+          "object_only/camera3d.mp4": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm/object_only/camera3d.mp4",
+          "object_only/side_yz.mp4": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm/object_only/side_yz.mp4",
+          "with_human/overlay.mp4": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm/with_human/overlay.mp4",
+          "with_human/camera3d.mp4": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm/with_human/camera3d.mp4",
+          "with_human/side_yz.mp4": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm/with_human/side_yz.mp4"
+        },
+        "required": [
+          "object_only/overlay.mp4",
+          "object_only/camera3d.mp4",
+          "object_only/side_yz.mp4",
+          "with_human/overlay.mp4",
+          "with_human/camera3d.mp4",
+          "with_human/side_yz.mp4"
+        ],
+        "policy": "rerendered with generic proxy_sphere_scene using generic object_pose.csv and automatic h264 finalize",
+        "renderer": {
+          "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
+          "script": "scripts/shared/generic_contact_pipeline/components/render/scenes/proxy_sphere_scene.py"
+        }
+      },
+      "vlm_verification": {
+        "case_name": "basketball",
+        "stage": "stage5",
+        "mode": "qwen_vl",
+        "decision": "pass",
+        "blocking": false,
+        "query_count": 3,
+        "gate_counts": {
+          "pass": 3
+        },
+        "query_counts": {
+          "post_render_sanity_check": 3
+        },
+        "accepted_frames": [
+          1,
+          97,
+          192
+        ],
+        "blocked_frames": [],
+        "report_only_reject_frames": [],
+        "unclear_frames": [],
+        "repair_actions_by_frame": {
+          "1": [
+            "accept_candidate"
+          ],
+          "97": [
+            "accept_candidate"
+          ],
+          "192": [
+            "accept_candidate"
+          ]
+        },
+        "rejected_results": [],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+      },
+      "vlm_gate": {
+        "case_name": "basketball",
+        "stage": "stage5",
+        "gate_rows": 3,
+        "effective_rows": 3,
+        "blocked_frames": [],
+        "unclear_frames": [],
+        "accepted_contact_frames": [],
+        "accepted_anchor_frames": [],
+        "gate_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm/stage5/vlm_gates.csv"
+      },
+      "stage_audit": {
+        "case_name": "basketball",
+        "stage": "stage5",
+        "decision": "pass",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 4,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [],
+        "audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage5/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage5/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage5/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage6",
+      "result": {
+        "case_name": "basketball",
+        "result_dir": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm",
+        "render_dir": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm",
+        "checks": {
+          "required_csvs": {
+            "object_observations": {
+              "exists": true,
+              "rows": 192,
+              "pass": true
+            },
+            "contact_candidates": {
+              "exists": true,
+              "rows": 192,
+              "pass": true
+            },
+            "object_pose_init": {
+              "exists": true,
+              "rows": 192,
+              "pass": true
+            },
+            "object_pose": {
+              "exists": true,
+              "rows": 192,
+              "pass": true
+            },
+            "object_contact_points": {
+              "exists": true,
+              "rows": 192,
+              "pass": true
+            }
+          },
+          "required_csvs_pass": true,
+          "frame_count": {
+            "new": 192,
+            "baseline": 192,
+            "pass": true
+          },
+          "pose_delta": {
+            "comparable": true,
+            "keys": [
+              "tx",
+              "ty",
+              "tz",
+              "u_obs",
+              "v_obs",
+              "z_ref_anchor_segment"
+            ],
+            "median_abs_delta": 7.499999999938112e-06,
+            "p95_abs_delta": 0.135396,
+            "max_abs_delta": 0.2863649999999999
+          },
+          "pose_delta_pass": false,
+          "phase_delta": {
+            "comparable": true,
+            "reason": "no_phase_baseline"
+          },
+          "phase_delta_pass": true,
+          "renders": {
+            "object_only/overlay.mp4": {
+              "exists": true,
+              "bytes": 1013249,
+              "codec": "h264",
+              "width": 1280,
+              "height": 720,
+              "frames": 192,
+              "pass": true
+            },
+            "object_only/camera3d.mp4": {
+              "exists": true,
+              "bytes": 119137,
+              "codec": "h264",
+              "width": 1280,
+              "height": 720,
+              "frames": 192,
+              "pass": true
+            },
+            "object_only/side_yz.mp4": {
+              "exists": true,
+              "bytes": 94901,
+              "codec": "h264",
+              "width": 1280,
+              "height": 720,
+              "frames": 192,
+              "pass": true
+            },
+            "with_human/overlay.mp4": {
+              "exists": true,
+              "bytes": 1633924,
+              "codec": "h264",
+              "width": 1280,
+              "height": 720,
+              "frames": 192,
+              "pass": true
+            },
+            "with_human/camera3d.mp4": {
+              "exists": true,
+              "bytes": 304287,
+              "codec": "h264",
+              "width": 1280,
+              "height": 720,
+              "frames": 192,
+              "pass": true
+            },
+            "with_human/side_yz.mp4": {
+              "exists": true,
+              "bytes": 519170,
+              "codec": "h264",
+              "width": 1280,
+              "height": 720,
+              "frames": 192,
+              "pass": true
+            }
+          },
+          "required_renders_pass": true,
+          "overall_pass": false,
+          "old_script_reference_scan_pass": true
+        },
+        "migration_audit": {
+          "case_name": "basketball",
+          "result_name": "clean_ablation_full_audio_vlm_llm",
+          "component_status": {
+            "geometry_model": {
+              "component": "sphere_proxy",
+              "migration_status": "clean_from_raw_or_stage_inputs",
+              "migration_priority": "keep",
+              "note": "no solved artifact dependency declared"
+            },
+            "observation_model": {
+              "component": "mask_track_center",
+              "migration_status": "clean_from_raw_or_stage_inputs",
+              "migration_priority": "keep",
+              "note": "no solved artifact dependency declared"
+            },
+            "contact_policy": {
+              "component": "hand_floor",
+              "migration_status": "generic_solver_external_env",
+              "migration_priority": "keep_env_boundary_or_package_deps",
+              "note": "runs generic_contact_pipeline/components/contact/solvers/ball_proxy_depth_builder.py and ball_contact_candidate_builder.py in the audiohoi env; builds hand/floor gates from object mesh tracks + GVHMR + DA3 + audio"
+            },
+            "pose_model": {
+              "component": "translation3",
+              "migration_status": "clean_from_raw_or_stage_inputs",
+              "migration_priority": "keep",
+              "note": "no solved artifact dependency declared"
+            },
+            "render_backend": {
+              "component": "proxy_sphere",
+              "migration_status": "generic_solver_external_env",
+              "migration_priority": "keep_env_boundary_or_package_deps",
+              "note": "runs generic_contact_pipeline/components/render/proxy_sphere_scene.py in the audiohoi env because render deps are not in base Python"
+            },
+            "refinement_policy_0": {
+              "component": "anchor_depth",
+              "migration_status": "generic_solver_external_env",
+              "migration_priority": "keep_env_boundary_or_package_deps",
+              "note": "runs generic_contact_pipeline/components/refinement/anchor_depth_solver.py in the audiohoi env because solver deps are not in base Python"
+            },
+            "refinement_policy_1": {
+              "component": "backproject_xy",
+              "migration_status": "clean_from_raw_or_stage_inputs",
+              "migration_priority": "keep",
+              "note": "no solved artifact dependency declared"
+            }
+          },
+          "migration_status_counts": {
+            "clean_from_raw_or_stage_inputs": 4,
+            "generic_solver_external_env": 3
+          },
+          "runtime_coupling_components": {},
+          "old_script_reference_scan": {
+            "root": "scripts/shared/generic_contact_pipeline",
+            "patterns": [
+              "scripts.shared.radius_free_proxy",
+              "scripts/shared/radius_free_proxy",
+              "stage4_anchor_refinement/run_anchor_refinement.py",
+              "stage5_render/render_pose6d_scene.py",
+              "stage5_render/render_mug_articraft_fast_scene.py",
+              "stage5_render/render_chair_articraft_solid_3d_scene.py"
+            ],
+            "hit_count": 0,
+            "hits": [],
+            "pass": true
+          },
+          "schema_status": {
+            "object_observations": {
+              "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_observations.csv",
+              "exists": true,
+              "columns": [
+                "frame",
+                "time",
+                "ref_u",
+                "ref_v",
+                "ref_u_smooth",
+                "ref_v_smooth",
+                "ref_u_fit",
+                "ref_v_fit",
+                "ref_source",
+                "ref_type",
+                "support_u",
+                "support_v",
+                "support_v_raw",
+                "support_dv",
+                "support_dv_smooth",
+                "support_source",
+                "contact_u",
+                "contact_v",
+                "contact_source",
+                "object_ref_depth_m",
+                "contact_proxy_depth_m",
+                "contact_depth_offset_m",
+                "ref_conf",
+                "support_conf",
+                "contact_conf",
+                "depth_conf",
+                "observation_conf",
+                "proxy_conf",
+                "proxy_jitter_px",
+                "support_jitter_px",
+                "proxy_sigma_px",
+                "support_sigma_px",
+                "active_label",
+                "active_label_conf",
+                "active_part_u",
+                "active_part_v",
+                "active_part_z",
+                "contact_proxy_name",
+                "da3_depth_raw",
+                "da3_depth_smooth",
+                "object_depth_raw",
+                "object_depth_smooth",
+                "object_depth_confidence",
+                "support_gap_px",
+                "object_motion_score",
+                "audio_score",
+                "radius_px"
+              ]
+            },
+            "object_local_points": {
+              "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_local_points.csv",
+              "exists": true,
+              "columns": [
+                "point_id",
+                "part",
+                "role",
+                "local_x",
+                "local_y",
+                "local_z",
+                "source"
+              ]
+            },
+            "object_local_segments": {
+              "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_local_segments.csv",
+              "exists": false,
+              "columns": []
+            },
+            "contact_candidates": {
+              "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_candidates.csv",
+              "exists": true,
+              "columns": [
+                "frame",
+                "time",
+                "contact_active",
+                "human_part",
+                "human_side",
+                "object_part",
+                "object_local_id",
+                "contact_u",
+                "contact_v",
+                "contact_depth_offset_m",
+                "contact_conf",
+                "anchor_score",
+                "source"
+              ]
+            },
+            "object_pose_init": {
+              "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose_init.csv",
+              "exists": true,
+              "columns": [
+                "frame",
+                "time",
+                "tx",
+                "ty",
+                "tz",
+                "qw",
+                "qx",
+                "qy",
+                "qz",
+                "radius_m",
+                "coord_frame",
+                "u_obs",
+                "v_obs",
+                "u_proj",
+                "v_proj",
+                "bottom_proj_v",
+                "floor_v",
+                "u_ref_obs",
+                "v_ref_obs",
+                "support_v_obs",
+                "depth_prior_m",
+                "contact_depth_offset_m",
+                "contact_frame",
+                "audio_contact_frame",
+                "source",
+                "se3_schema"
+              ]
+            },
+            "object_pose": {
+              "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+              "exists": true,
+              "columns": [
+                "frame",
+                "time",
+                "tx",
+                "ty",
+                "tz",
+                "qw",
+                "qx",
+                "qy",
+                "qz",
+                "radius_m",
+                "coord_frame",
+                "u_obs",
+                "v_obs",
+                "radius_obs_px",
+                "u_proj",
+                "v_proj",
+                "radius_proj_px",
+                "bottom_proj_v",
+                "floor_v",
+                "support_type",
+                "support_source",
+                "support_confidence",
+                "residual_px",
+                "contact_frame",
+                "audio_contact_frame",
+                "human_contact_event",
+                "floor_contact_event",
+                "human_contact_state",
+                "floor_contact_state",
+                "contact_part",
+                "contact_side",
+                "contact_label",
+                "active_part",
+                "active_part_y",
+                "active_part_z",
+                "u_ref_obs",
+                "v_ref_obs",
+                "contact_u",
+                "contact_v",
+                "contact_depth_offset_m",
+                "contact_depth_offset_used_m",
+                "z_contact_final",
+                "global_z_ref",
+                "z_ref_global_shift",
+                "z_ref_anchor_segment",
+                "contact_depth_gap",
+                "source"
+              ]
+            },
+            "object_contact_points": {
+              "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_contact_points.csv",
+              "exists": true,
+              "columns": [
+                "frame",
+                "time",
+                "contact_active",
+                "human_part",
+                "human_side",
+                "object_part",
+                "object_local_id",
+                "contact_u",
+                "contact_v",
+                "contact_depth_offset_m",
+                "contact_conf",
+                "anchor_score",
+                "source"
+              ]
+            },
+            "object_phase": {
+              "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_phase.csv",
+              "exists": false,
+              "columns": []
+            }
+          },
+          "baseline_path_status": {
+            "final_pose_csv": {
+              "path": "samples_known_object/01_basketball/results/pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv",
+              "exists": true,
+              "is_dir": false
+            },
+            "init_pose_csv": {
+              "path": "samples_known_object/01_basketball/results/pose6d_object_proxy_da3_init/object_pose6d_sharedcam_trajectory.csv",
+              "exists": true,
+              "is_dir": false
+            },
+            "object_observations_csv": {
+              "path": "samples_known_object/01_basketball/results/object_observations/object_observations.csv",
+              "exists": true,
+              "is_dir": false
+            },
+            "object_proxy_observations_csv": {
+              "path": "samples_known_object/01_basketball/results/object_proxy_observations/object_proxy_observations.csv",
+              "exists": true,
+              "is_dir": false
+            },
+            "contact_candidates_csv": {
+              "path": "samples_known_object/01_basketball/results/contact_candidates_object_proxy/anchor_contact_candidates.csv",
+              "exists": true,
+              "is_dir": false
+            },
+            "contact_state_csv": {
+              "path": "samples_known_object/01_basketball/results/contact_candidates_object_proxy/contact_state_frames.csv",
+              "exists": true,
+              "is_dir": false
+            },
+            "render_dir": {
+              "path": "samples_known_object/01_basketball/results/renders/pose6d_object_proxy_anchor_refined",
+              "exists": false,
+              "is_dir": false
+            }
+          },
+          "migration_note": "v1 keeps solved baselines only for regression comparison and explicit provenance snapshots. baseline_reader components would copy solved artifacts, but current four case profiles should not use any. external_runner_on_generic_inputs components would run old stable scripts on generic stage files, but current four case profiles should not use any. generic_solver_external_env components are generic-owned code but intentionally run in a non-base conda env for dependency isolation. clean_from_verified_intermediate components rebuild outputs from trusted intermediate artifacts. preserved_provenance_snapshot components use explicit generic_pipeline_v1/provenance_snapshots files where the historical upstream chain is no longer fully present. clean_from_raw_or_stage_inputs components do not declare solved-artifact dependencies. Each step should be migrated leftward and validated with stage6_compare before replacing the old path."
+        },
+        "migration_audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/migration_audit.csv"
+      },
+      "vlm_verification": {
+        "case_name": "basketball",
+        "stage": "stage6",
+        "mode": "qwen_vl",
+        "decision": "pass_with_unclear_frames",
+        "blocking": false,
+        "query_count": 3,
+        "gate_counts": {
+          "unclear": 3
+        },
+        "query_counts": {
+          "baseline_regression_check": 3
+        },
+        "accepted_frames": [],
+        "blocked_frames": [],
+        "report_only_reject_frames": [],
+        "unclear_frames": [
+          1,
+          97,
+          192
+        ],
+        "repair_actions_by_frame": {
+          "1": [
+            "unclear_no_update"
+          ],
+          "97": [
+            "unclear_no_update"
+          ],
+          "192": [
+            "unclear_no_update"
+          ]
+        },
+        "rejected_results": [],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+      },
+      "vlm_gate": {
+        "case_name": "basketball",
+        "stage": "stage6",
+        "gate_rows": 3,
+        "effective_rows": 3,
+        "blocked_frames": [],
+        "unclear_frames": [
+          1,
+          97,
+          192
+        ],
+        "accepted_contact_frames": [],
+        "accepted_anchor_frames": [],
+        "gate_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm/stage6/vlm_gates.csv"
+      },
+      "stage_audit": {
+        "case_name": "basketball",
+        "stage": "stage6",
+        "decision": "unclear",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 2,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [
+          "rerun_stage_with_lower_trust"
+        ],
+        "audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage6/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage6/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage6/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage6.5",
+      "result": {
+        "stage": "stage6.5_llm_csv_audit",
+        "case_name": "basketball",
+        "queries": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/llm_csv_audit_queries.json",
+        "results": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/llm_csv_audit_results.json",
+        "summary": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/llm_csv_audit_summary.md",
+        "failures": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/llm_csv_audit_failures.csv",
+        "failure_count": 0,
+        "blocking_count": 0
+      },
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "basketball",
+        "stage": "stage6.5",
+        "decision": "pass",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 2,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [
+          "no_effective_vlm_gate"
+        ],
+        "audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage6.5/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage6.5/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage6.5/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage7",
+      "result": {
+        "stage": "stage7_loss_and_related_work_proxy",
+        "case_name": "basketball",
+        "loss_analysis": {
+          "case_name": "basketball",
+          "mode": "non_invasive_loss_audit",
+          "per_frame_residuals": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/per_frame_residuals.csv",
+          "stage7_loss_residuals": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage7_loss_residuals.csv",
+          "loss_trace": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/loss_trace.csv",
+          "plots": [
+            "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/E_total.png",
+            "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/E_visual.png",
+            "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/E_contact.png",
+            "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/E_support.png",
+            "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/E_smooth.png",
+            "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/loss_analysis/E_reg.png"
+          ],
+          "active_terms": [
+            "E_total",
+            "E_visual",
+            "E_mask",
+            "E_contact",
+            "E_support",
+            "E_smooth",
+            "E_reg"
+          ],
+          "note": "This audit computes comparable residual terms from existing generic outputs. It does not replace the optimizer internals yet."
+        },
+        "related_work_proxy": {
+          "case_name": "basketball",
+          "summary_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/related_work_proxy_summary.csv",
+          "summary_md": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/related_work_proxy_report.md",
+          "variants": [
+            "video_only_tracking",
+            "mesh_only_alignment",
+            "human_only_contact",
+            "no_audio_event",
+            "no_vlm_gate",
+            "no_llm_prior",
+            "no_contact_refine",
+            "ours_full"
+          ]
+        }
+      },
+      "vlm_verification": {
+        "case_name": "basketball",
+        "stage": "stage7",
+        "mode": "qwen_vl",
+        "decision": "pass_with_report_only_failures",
+        "blocking": false,
+        "query_count": 5,
+        "gate_counts": {
+          "pass": 3,
+          "unclear": 1,
+          "reject": 1
+        },
+        "query_counts": {
+          "loss_diagnostic_check": 5
+        },
+        "accepted_frames": [
+          1,
+          49,
+          50
+        ],
+        "blocked_frames": [],
+        "report_only_reject_frames": [
+          97
+        ],
+        "unclear_frames": [
+          51
+        ],
+        "repair_actions_by_frame": {
+          "50": [
+            "accept_candidate"
+          ],
+          "51": [
+            "unclear_no_update"
+          ],
+          "49": [
+            "accept_candidate"
+          ],
+          "1": [
+            "accept_candidate"
+          ],
+          "97": [
+            "mark_for_report_only"
+          ]
+        },
+        "rejected_results": [
+          {
+            "case_name": "basketball",
+            "stage": "stage7",
+            "frame": "97",
+            "query_type": "loss_diagnostic_check",
+            "normalized_label": "visual_spike",
+            "pass_gate": "reject",
+            "repair_action": "mark_for_report_only",
+            "used_for_anchor_update": "0",
+            "used_for_contact_residual": "0",
+            "used_for_report": "1"
+          }
+        ],
+        "allowed_repair_actions": [
+          "accept_candidate",
+          "reject_candidate",
+          "disable_contact_frame",
+          "keep_previous_anchor",
+          "downweight_correspondence",
+          "use_mask_fallback",
+          "retry_with_alternative_keypart",
+          "allow_small_se3_refine",
+          "freeze_before_after_contact",
+          "mark_for_report_only",
+          "unclear_no_update"
+        ],
+        "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+      },
+      "vlm_gate": {
+        "case_name": "basketball",
+        "stage": "stage7",
+        "gate_rows": 5,
+        "effective_rows": 5,
+        "blocked_frames": [],
+        "unclear_frames": [
+          51
+        ],
+        "accepted_contact_frames": [],
+        "accepted_anchor_frames": [],
+        "gate_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm/stage7/vlm_gates.csv"
+      },
+      "stage_audit": {
+        "case_name": "basketball",
+        "stage": "stage7",
+        "decision": "unclear",
+        "llm_mode": "mistral",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 2,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [
+          "rerun_stage_with_lower_trust"
+        ],
+        "audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage7/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage7/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage7/llm_audit_results.csv"
+      }
+    }
+  ],
+  "generic_se3_mainline": {
+    "enabled": true,
+    "contract": "fixed_preprocess_observation_contact_anchor_se3_init_sequence_optimizer",
+    "object_family": "dynamic_ball",
+    "legacy_yaml_selectors": {
+      "observation_model": "mask_track_center",
+      "contact_policy": "hand_floor",
+      "pose_model": "translation3",
+      "refinement_policy": [
+        "anchor_depth",
+        "backproject_xy"
+      ],
+      "role": "stage1-3 are normalized through generic contracts; refinement_policy is ignored by Stage4 except the generic sequence optimizer marker"
+    },
+    "artifacts": {
+      "stage0_inputs_manifest": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage0_inputs_manifest.json",
+        "exists": true,
+        "rows": 99
+      },
+      "object_observations": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_observations.csv",
+        "exists": true,
+        "rows": 192
+      },
+      "object_correspondence": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_correspondence.csv",
+        "exists": true,
+        "rows": 192
+      },
+      "object_surface_points": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_surface_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "object_semantic_points": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_semantic_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "line_correspondence": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/line_correspondence.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "line_observations": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/line_observations.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "contact_candidates": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_candidates.csv",
+        "exists": true,
+        "rows": 192
+      },
+      "anchor_state": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/anchor_state.csv",
+        "exists": true,
+        "rows": 192
+      },
+      "object_pose_init": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose_init.csv",
+        "exists": true,
+        "rows": 192
+      },
+      "object_pose_pre_smooth": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose_pre_smooth.csv",
+        "exists": true,
+        "rows": 192
+      },
+      "motion_regime": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/motion_regime.csv",
+        "exists": true,
+        "rows": 192
+      },
+      "physical_smooth_residuals": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/physical_smooth_residuals.csv",
+        "exists": true,
+        "rows": 192
+      },
+      "pose_jump_audit": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/pose_jump_audit.csv",
+        "exists": true,
+        "rows": 192
+      },
+      "optimizer_decisions": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/optimizer_decisions.csv",
+        "exists": true,
+        "rows": 192
+      },
+      "object_pose": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+        "exists": true,
+        "rows": 192
+      },
+      "object_contact_points": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_contact_points.csv",
+        "exists": true,
+        "rows": 192
+      },
+      "stage_audit_gates": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage_audit_gates.csv",
+        "exists": true,
+        "rows": 36
+      },
+      "stage_audit_latest": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage_audit_latest.json",
+        "exists": true,
+        "rows": 16
+      }
+    },
+    "actual_vlm_artifacts": {
+      "exists": true,
+      "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm",
+      "stage_count": 8,
+      "file_count": 84,
+      "csv_row_count": 108,
+      "stages": {
+        "stage0": {
+          "files": 7,
+          "csv_rows": {
+            "vlm_gates.csv": 1,
+            "vlm_queries.csv": 1,
+            "vlm_results.csv": 1
+          }
+        },
+        "stage1": {
+          "files": 12,
+          "csv_rows": {
+            "vlm_gates.csv": 6,
+            "vlm_queries.csv": 6,
+            "vlm_results.csv": 6
+          }
+        },
+        "stage2": {
+          "files": 11,
+          "csv_rows": {
+            "vlm_gates.csv": 5,
+            "vlm_queries.csv": 5,
+            "vlm_results.csv": 5
+          }
+        },
+        "stage3": {
+          "files": 9,
+          "csv_rows": {
+            "vlm_gates.csv": 3,
+            "vlm_queries.csv": 3,
+            "vlm_results.csv": 3
+          }
+        },
+        "stage4": {
+          "files": 16,
+          "csv_rows": {
+            "vlm_gates.csv": 10,
+            "vlm_queries.csv": 10,
+            "vlm_results.csv": 10
+          }
+        },
+        "stage5": {
+          "files": 9,
+          "csv_rows": {
+            "vlm_gates.csv": 3,
+            "vlm_queries.csv": 3,
+            "vlm_results.csv": 3
+          }
+        },
+        "stage6": {
+          "files": 9,
+          "csv_rows": {
+            "vlm_gates.csv": 3,
+            "vlm_queries.csv": 3,
+            "vlm_results.csv": 3
+          }
+        },
+        "stage7": {
+          "files": 11,
+          "csv_rows": {
+            "vlm_gates.csv": 5,
+            "vlm_queries.csv": 5,
+            "vlm_results.csv": 5
+          }
+        }
+      }
+    },
+    "actual_stage_audit_artifacts": {
+      "exists": true,
+      "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/stage_audit",
+      "stage_count": 10,
+      "file_count": 50,
+      "csv_row_count": 48,
+      "stages": {
+        "stage-1": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 2
+          }
+        },
+        "stage0": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 3
+          }
+        },
+        "stage1": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 4
+          }
+        },
+        "stage2": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 4
+          }
+        },
+        "stage3": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 4
+          }
+        },
+        "stage4": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 2,
+            "stage_audit_gates.csv": 9
+          }
+        },
+        "stage5": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 2,
+            "stage_audit_gates.csv": 4
+          }
+        },
+        "stage6": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 2
+          }
+        },
+        "stage6.5": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 2
+          }
+        },
+        "stage7": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 1,
+            "stage_audit_gates.csv": 2
+          }
+        }
+      }
+    },
+    "pose_jump_audit": {
+      "visual_spike_frames": [],
+      "contact_spike_frames": [],
+      "smoothness_spike_frames": [],
+      "propagated_frames": []
+    },
+    "residual_switches": {
+      "visual_enabled_rows": 0,
+      "contact_enabled_rows": 0,
+      "smooth_enabled_rows": 0,
+      "propagated_rows": 0
+    }
+  },
+  "post_run": {
+    "vlm_trace": {
+      "case_name": "basketball",
+      "result_name": "clean_ablation_full_audio_vlm_llm",
+      "trace_root": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace",
+      "directories": {
+        "00_input": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/00_input",
+        "01_observation": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation",
+        "02_contact_candidates": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/02_contact_candidates",
+        "03_vlm_reasoning": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/03_vlm_reasoning",
+        "04_gating": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/04_gating",
+        "05_optimization": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/05_optimization",
+        "06_evaluation": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation"
+      },
+      "artifacts": {
+        "input_video": {
+          "stage": "",
+          "source_path": "samples_known_object/01_basketball/video.mp4",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/00_input/video.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "sampled_frames": {
+          "stage": "00_input",
+          "source_path": "samples_known_object/01_basketball/results/segmentation/sam2_jpg_frames",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/00_input/sampled_frames",
+          "exists": true,
+          "rows": 8,
+          "storage_mode": "relative_symlink_or_copy"
+        },
+        "object_mask_overlay": {
+          "stage": "01_observation",
+          "source_path": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm/object_only/overlay.mp4",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_mask_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "human_pose_overlay": {
+          "stage": "01_observation",
+          "source_path": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm/with_human/overlay.mp4",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/human_pose_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "depth_overlay": {
+          "stage": "01_observation",
+          "source_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/depth_overlay.mp4",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/depth_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "generated"
+        },
+        "contact_candidate_overlay": {
+          "stage": "02_contact_candidates",
+          "source_path": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm/with_human/overlay.mp4",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "before_after_overlay": {
+          "stage": "05_optimization",
+          "source_path": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm/with_human/overlay.mp4",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/05_optimization/before_after_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "object_observations": {
+          "stage": "01_observation",
+          "source_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_observations.csv",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_observations.csv",
+          "exists": true,
+          "rows": 192,
+          "storage_mode": "relative_symlink"
+        },
+        "object_correspondence": {
+          "stage": "01_observation",
+          "source_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_correspondence.csv",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_correspondence.csv",
+          "exists": true,
+          "rows": 192,
+          "storage_mode": "relative_symlink"
+        },
+        "object_surface_points": {
+          "stage": "01_observation",
+          "source_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_surface_points.csv",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_surface_points.csv",
+          "exists": true,
+          "rows": 0,
+          "storage_mode": "relative_symlink"
+        },
+        "object_semantic_points": {
+          "stage": "01_observation",
+          "source_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_semantic_points.csv",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_semantic_points.csv",
+          "exists": true,
+          "rows": 0,
+          "storage_mode": "relative_symlink"
+        },
+        "line_correspondence": {
+          "stage": "01_observation",
+          "source_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/line_correspondence.csv",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/line_correspondence.csv",
+          "exists": false,
+          "rows": "",
+          "storage_mode": "missing"
+        },
+        "line_observations": {
+          "stage": "01_observation",
+          "source_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/line_observations.csv",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/line_observations.csv",
+          "exists": false,
+          "rows": "",
+          "storage_mode": "missing"
+        },
+        "contact_candidates": {
+          "stage": "02_contact_candidates",
+          "source_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_candidates.csv",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/02_contact_candidates/contact_candidates.csv",
+          "exists": true,
+          "rows": 192,
+          "storage_mode": "relative_symlink"
+        },
+        "gate_timeline_png": {
+          "stage": "04_gating",
+          "source_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/04_gating/gate_timeline.png",
+          "target_path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/04_gating/gate_timeline.png",
+          "exists": true,
+          "rows": ""
+        }
+      },
+      "trace_completeness": {
+        "required_count": 13,
+        "present_count": 13,
+        "missing_required": [],
+        "items": {
+          "input_video": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/00_input/video.mp4",
+            "stage": ""
+          },
+          "sampled_frames": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/00_input/sampled_frames",
+            "stage": "00_input"
+          },
+          "object_observations": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_observations.csv",
+            "stage": "01_observation"
+          },
+          "object_correspondence": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_correspondence.csv",
+            "stage": "01_observation"
+          },
+          "object_surface_points": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_surface_points.csv",
+            "stage": "01_observation"
+          },
+          "object_semantic_points": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_semantic_points.csv",
+            "stage": "01_observation"
+          },
+          "contact_candidates": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/02_contact_candidates/contact_candidates.csv",
+            "stage": "02_contact_candidates"
+          },
+          "object_mask_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/object_mask_overlay.mp4",
+            "stage": "01_observation"
+          },
+          "human_pose_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/human_pose_overlay.mp4",
+            "stage": "01_observation"
+          },
+          "depth_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/01_observation/depth_overlay.mp4",
+            "stage": "01_observation"
+          },
+          "contact_candidate_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+            "stage": "02_contact_candidates"
+          },
+          "before_after_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/05_optimization/before_after_overlay.mp4",
+            "stage": "05_optimization"
+          },
+          "gate_timeline_png": {
+            "required": true,
+            "exists": true,
+            "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/04_gating/gate_timeline.png",
+            "stage": "04_gating"
+          }
+        }
+      }
+    },
+    "final_hoi_evaluator": {
+      "case": "basketball",
+      "result_name": "clean_ablation_full_audio_vlm_llm",
+      "metrics": {
+        "se3_valid": true,
+        "n_frames": 192,
+        "translation_valid_rate": 1.0,
+        "rotation_valid_rate": 1.0,
+        "quat_norm_error_mean": 0.0,
+        "translation_velocity_mean": 0.011508821664761795,
+        "translation_velocity_max": 0.049121496689331426,
+        "translation_acceleration_mean": 0.0023484160265213813,
+        "rotation_velocity_mean": 0.0,
+        "rotation_velocity_max": 0.0,
+        "rotation_acceleration_mean": 0.0,
+        "jump_count": 0,
+        "static_tail_drift_m": 0.05995989613900274,
+        "geometry_spread_m": null,
+        "overlay_hard_score": 0.8311871495000652,
+        "overlay_hard_metric_source": "generated_eval_proxy_render_mask_iou",
+        "overlay_mask_pair_count": 192,
+        "overlay_generated_render_mask_count": 192,
+        "overlay_generated_proxy_render_mask_count": 192,
+        "overlay_generated_full_geometry_mask_count": 0,
+        "overlay_mask_coverage": 0.9645562746537228,
+        "overlay_render_false_coverage": 0.1436232974902084,
+        "overlay_vlm_is_primary": false,
+        "overlay_conflict_flag": "",
+        "contact_frame_ratio": 0.474,
+        "contact_gap_mm": 36.72,
+        "contact_proxy": 0.47979324857852645,
+        "contact_proxy_source": "contact_gap_mm_exp_decay_sigma_50",
+        "part_correct_ratio": 1.0,
+        "contact_ratio_audio_windows": 0.875,
+        "grasp_stability_mm": 47.43,
+        "mdev_star_mm": 42.42,
+        "hoi_contact_pair_rows": 63,
+        "hoi_contact_interval_count": 22,
+        "hoi_observed_contact_rows": 63,
+        "hoi_persistent_contact_rows": 61,
+        "contact_anchor_drift_mean": null,
+        "contact_anchor_drift_max": null,
+        "source": "samples_known_object/01_basketball/results/hoi_eval/hoi_interaction_metrics.json",
+        "human_part_count": 10,
+        "human_part_available_count": 10,
+        "human_part_contact_coverage": 0.6666666666666666,
+        "object_part_count": 3,
+        "object_part_available_count": 2,
+        "object_part_contact_coverage": 0.6666666666666666,
+        "penetration_frame_ratio": 0.2135,
+        "penetration_depth_mean_mm": 13.3,
+        "penetration_depth_max_mm": 49.01,
+        "non_collision_ratio": 0.7865,
+        "floating_rate": null,
+        "floating_gap_mean_mm": null,
+        "tradeoff_score": 0.3562224085795198,
+        "object_jerk": 0.004882,
+        "accel_at_events": 0.03135,
+        "accel_in_flight": 0.04948,
+        "audio_events": 16.0,
+        "temporal_metric_status": "ok",
+        "translation_spike_count": 4,
+        "rotation_spike_count": 0,
+        "event_aligned_spike_count": 3,
+        "non_event_spike_count": 1,
+        "translation_spike_threshold": 0.02,
+        "rotation_spike_threshold_rad": 0.05,
+        "translation_acceleration_max": 0.033737290285241056,
+        "rotation_acceleration_max": 0.0,
+        "high_speed_event_windows": 31,
+        "high_speed_recall": 0.8387096774193549,
+        "oversmooth_rate": 0.16129032258064516,
+        "temporal_failure_intervals": "[{\"start\":47,\"end\":47}]",
+        "event_frame_count": 31,
+        "event_window_frame_count": 183,
+        "temporal_accel_at_events": 0.0021975069246281064,
+        "temporal_accel_in_flight": 0.005383365742375028,
+        "source_pose": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+        "source_events": "samples_known_object/01_basketball/results/human_audio_semantics/contact_records.csv",
+        "gate_impact_status": "ok",
+        "gate_timeline_source": "frame_timeline",
+        "gate_event_count": 36,
+        "gate_active_count": 36,
+        "gate_reject_unclear_count": 13,
+        "gate_source_counts": "pass:23;reject:1;unclear:12",
+        "stage_audit_gate_count": 36,
+        "stage_residual_reweight_count": 1,
+        "optimizer_reoptimized_frames": 192,
+        "optimizer_reweighted_frames": 192,
+        "residual_enabled_total": 1723,
+        "anchor_update_allowed_count": 63,
+        "anchor_update_blocked_count": 129,
+        "pose_anchor_allowed_count": 63,
+        "anchor_residual_enabled_frames": 0,
+        "freeze_interpolation_frames": 192,
+        "pose_delta_translation_mean_m": 0.122507943132963,
+        "pose_delta_translation_max_m": 0.2898578335149836,
+        "pose_delta_rotation_mean_rad": 0.0,
+        "pose_delta_rotation_max_rad": 0.0,
+        "pose_delta_frame_count": 192,
+        "gate_trace_source": "",
+        "pose_delta_source": "gate_trace_pre_smooth_to_gate_trace_final",
+        "source_gate_timeline": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/04_gating/gate_timeline.csv",
+        "source_optimizer_decisions": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/optimizer_decisions.csv",
+        "case": "basketball",
+        "result_name": "clean_ablation_full_audio_vlm_llm",
+        "evaluation_source": "pipeline_result_directory",
+        "final_video": "",
+        "source_video": "",
+        "object_pose_source": "",
+        "final_pass": false
+      },
+      "metric_blocks": [
+        "object_6d",
+        "overlay",
+        "hoi_contact",
+        "part_metrics",
+        "penetration_floating",
+        "temporal_audio",
+        "temporal_plausibility",
+        "gate_impact"
+      ],
+      "artifacts": {
+        "object_6d.json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/object_6d_metrics.json",
+        "object_6d.csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/object_6d_metrics.csv",
+        "overlay.json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/overlay_metrics.json",
+        "overlay.csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/overlay_metrics.csv",
+        "overlay.mask_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/overlay_mask_metrics.csv",
+        "hoi_contact.json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/hoi_contact_metrics.json",
+        "hoi_contact.csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/hoi_contact_metrics.csv",
+        "hoi_contact.pairs_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/hoi_contact_pairs.csv",
+        "hoi_contact.intervals_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/hoi_contact_intervals.csv",
+        "part_metrics.human_parts_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/human_parts.csv",
+        "part_metrics.object_parts_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/object_parts.csv",
+        "part_metrics.object_part_vocab_map_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/object_part_vocab_map.csv",
+        "part_metrics.csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/part_metrics.csv",
+        "part_metrics.json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/part_metrics.json",
+        "penetration_floating.json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/penetration_floating_metrics.json",
+        "penetration_floating.csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/penetration_floating_metrics.csv",
+        "temporal_audio.json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/temporal_audio_metrics.json",
+        "temporal_audio.csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/temporal_audio_metrics.csv",
+        "temporal_plausibility.json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/temporal_plausibility_metrics.json",
+        "temporal_plausibility.csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/temporal_plausibility_metrics.csv",
+        "gate_impact.json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/gate_impact_metrics.json",
+        "gate_impact.csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/gate_impact_metrics.csv",
+        "qa.metric_scores_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/metric_scores.json",
+        "qa.failure_flags_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/failure_flags.json",
+        "qa.vlm_score_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/vlm_score.json",
+        "qa.vlm_framewise_judgment_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/vlm_framewise_judgment.csv",
+        "qa.llm_audit_report_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/llm_audit_report.json",
+        "qa.evaluation_summary_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/evaluation_summary.json",
+        "qa.vlm_eval_queries_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/vlm_eval_queries.csv",
+        "qa.vlm_eval_raw_responses_jsonl": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/vlm_eval_raw_responses.jsonl",
+        "qa.vlm_eval_parsed_scores_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/vlm_eval_parsed_scores.csv",
+        "qa.vlm_eval_summary_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/vlm_eval_summary.json",
+        "qa.llm_eval_summary_md": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/llm_eval_summary.md",
+        "qa.qa_audit_report_html": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/qa_audit_report.html",
+        "qa.pipeline_qa_summary_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+        "qa.pipeline_qa_summary_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/pipeline_qa_summary.json",
+        "qa.pipeline_qa_summary_md": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/pipeline_qa_summary.md"
+      },
+      "warnings": [],
+      "qa_summary": {
+        "case": "basketball",
+        "method": "final_hoi",
+        "result_name": "clean_ablation_full_audio_vlm_llm",
+        "method_status": "ok",
+        "final_pass": false,
+        "metrics": {
+          "overlay_error_px_mean": 0.0,
+          "mask_iou_mean": null,
+          "overlay_proxy_score": 1.0,
+          "contact_precision": null,
+          "contact_recall": null,
+          "contact_f1": null,
+          "contact_label_status": "needs_manual_labels",
+          "contact_proxy_score": 0.17666141666666665,
+          "anchor_drift_m_mean": 0.1787861979166667,
+          "anchor_drift_m_max": 3.841463,
+          "penetration_rate": 1.0,
+          "floating_rate": 0.9872611464968153,
+          "velocity_spike_count": 0,
+          "acceleration_spike_count": 0,
+          "jump_count": 0,
+          "static_tail_drift_m_max": 0.0,
+          "geometry_length_spread_m": null,
+          "gt_contact_available": false
+        },
+        "failure_flags": {
+          "overlay_fail": false,
+          "contact_fail": false,
+          "anchor_drift_fail": true,
+          "penetration_fail": true,
+          "floating_fail": true,
+          "jump_fail": false,
+          "static_tail_fail": false,
+          "geometry_fail": false,
+          "failure_count": 3
+        },
+        "vlm_score": {
+          "mode": "dry-run_metric_grounded",
+          "score": 0.75,
+          "checklist_count": 20,
+          "pipeline_vlm_gate_score": {
+            "mode": "existing_vlm_artifacts",
+            "score": 0.8055555555555556,
+            "checklist_count": 36,
+            "pass_count": 23,
+            "unclear_count": 12,
+            "reject_count": 1,
+            "note": "Scored from existing VLM gate artifacts; no pose coordinates are generated here."
+          },
+          "pipeline_vlm_gate_framewise_count": 36,
+          "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+        },
+        "llm_audit_summary": "review_required",
+        "failure_stage_hint": "stage2_contact",
+        "vlm_eval_summary": {
+          "mode": "dry-run_metric_grounded",
+          "query_count": 3,
+          "mean_overall_plausibility": 3.0,
+          "failure_stage_hint": "stage2_contact",
+          "scores": {
+            "visibility": 5,
+            "contact_correctness": 2,
+            "support_consistency": 1,
+            "penetration_absence": 1,
+            "temporal_plausibility": 5,
+            "overall_plausibility": 3,
+            "short_reason": "metric-grounded final evaluator checklist; replace source with Qwen final judge when available",
+            "failure_stage_hint": "stage2_contact"
+          },
+          "vlm_pipeline_score": {
+            "mode": "dry-run_metric_grounded",
+            "score": 0.75,
+            "checklist_count": 20,
+            "pipeline_vlm_gate_score": {
+              "mode": "existing_vlm_artifacts",
+              "score": 0.8055555555555556,
+              "checklist_count": 36,
+              "pass_count": 23,
+              "unclear_count": 12,
+              "reject_count": 1,
+              "note": "Scored from existing VLM gate artifacts; no pose coordinates are generated here."
+            },
+            "pipeline_vlm_gate_framewise_count": 36,
+            "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+          },
+          "framewise_pipeline_judgment_count": 20
+        },
+        "pipeline_qa_summary": {
+          "rows": 48,
+          "csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+          "json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/pipeline_qa_summary.json",
+          "markdown": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/pipeline_qa_summary.md"
+        }
+      },
+      "principle": "hard metrics first; VLM is secondary for perceptual ambiguity"
+    }
+  },
+  "case": "basketball",
+  "result_name": "clean_ablation_full_audio_vlm_llm",
+  "final_hoi_evaluation": {
+    "summary_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/final_evaluation_summary.json",
+    "detailed_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/final_evaluation_detailed.csv",
+    "object_6d_metrics_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/object_6d_metrics.json",
+    "overlay_metrics_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/overlay_metrics.json",
+    "hoi_contact_metrics_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/hoi_contact_metrics.csv",
+    "part_metrics_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/part_metrics.csv",
+    "penetration_floating_metrics_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/penetration_floating_metrics.json",
+    "temporal_audio_metrics_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/temporal_audio_metrics.json",
+    "temporal_plausibility_metrics_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/temporal_plausibility_metrics.json",
+    "gate_impact_metrics_json": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/evaluation/gate_impact_metrics.json",
+    "pipeline_qa_summary_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/pipeline_qa_summary.csv",
+    "qa_audit_report_html": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/vlm_trace/06_evaluation/qa_audit_report.html"
+  }
+}

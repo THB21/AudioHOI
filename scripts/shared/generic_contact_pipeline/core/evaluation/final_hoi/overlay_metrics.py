@@ -446,7 +446,7 @@ def _draw_line(mask: Mask, cx: float, cy: float, length: float, angle_rad: float
 
 
 def _pose_by_frame(paths: EvaluationPaths) -> dict[int, dict[str, str]]:
-    rows = read_rows(paths.result_dir / "object_pose.csv")
+    rows = read_rows(paths.object_pose_csv)
     obs_rows = read_rows(paths.result_dir / "object_observations.csv")
     obs_by_frame: dict[int, dict[str, str]] = {}
     for row in obs_rows:
@@ -476,7 +476,18 @@ def _pose_by_frame(paths: EvaluationPaths) -> dict[int, dict[str, str]]:
     return by_frame
 
 
-def _generate_mask_from_pose(row: dict[str, str], observed_shape: Mask) -> Mask | None:
+def _projected_radius(paths: EvaluationPaths, row: dict[str, str]) -> float | None:
+    radius = f(row.get("radius_proj_px"), f(row.get("radius_obs_px"), f(row.get("radius_px"))))
+    if radius is not None and radius > 0:
+        return radius
+    radius_m = f(row.get("radius_m"))
+    depth_m = f(row.get("tz"), f(row.get("z")))
+    if radius_m is None or depth_m is None or radius_m <= 0 or depth_m <= 1e-6:
+        return None
+    return float(paths.camera.get("fx", DEFAULT_CAMERA["fx"])) * radius_m / depth_m
+
+
+def _generate_mask_from_pose(paths: EvaluationPaths, row: dict[str, str], observed_shape: Mask) -> Mask | None:
     cx = f(row.get("u_proj"), f(row.get("u_obs"), f(row.get("ref_u"))))
     cy = f(row.get("v_proj"), f(row.get("v_obs"), f(row.get("ref_v"))))
     bbox = [f(row.get(key)) for key in ("mask_bbox_x1", "mask_bbox_y1", "mask_bbox_x2", "mask_bbox_y2")]
@@ -494,7 +505,7 @@ def _generate_mask_from_pose(row: dict[str, str], observed_shape: Mask) -> Mask 
             return out
         return None
     out = _blank_like(observed_shape)
-    radius = f(row.get("radius_proj_px"), f(row.get("radius_obs_px"), f(row.get("radius_px"))))
+    radius = _projected_radius(paths, row)
     if radius is not None and radius > 0:
         _draw_circle(out, cx, cy, radius)
         return out
@@ -507,7 +518,7 @@ def _generate_mask_from_pose(row: dict[str, str], observed_shape: Mask) -> Mask 
     return None
 
 
-def _generate_mask_array_from_pose(row: dict[str, str], observed_shape):
+def _generate_mask_array_from_pose(paths: EvaluationPaths, row: dict[str, str], observed_shape):
     try:
         import numpy as np  # type: ignore
 
@@ -525,7 +536,7 @@ def _generate_mask_array_from_pose(row: dict[str, str], observed_shape):
                 return out
             return None
         yy, xx = np.ogrid[:height, :width]
-        radius = f(row.get("radius_proj_px"), f(row.get("radius_obs_px"), f(row.get("radius_px"))))
+        radius = _projected_radius(paths, row)
         if radius is not None and radius > 0:
             return ((xx - cx) ** 2 + (yy - cy) ** 2) <= radius * radius
         line_len = f(row.get("object_pixel_len"), f(row.get("contact_lock_pixel_len"), f(row.get("visible_len_px"))))
@@ -574,7 +585,7 @@ def _generate_evaluation_render_masks(paths: EvaluationPaths, observed_masks: di
                 full_geometry_generated += 1
                 rendered_masks[frame] = target
                 continue
-            rendered_array = _generate_mask_array_from_pose(row, observed_array)
+            rendered_array = _generate_mask_array_from_pose(paths, row, observed_array)
             if rendered_array is not None:
                 target = out_dir / f"{frame:05d}_mask.pgm"
                 _write_mask_array_pgm(target, rendered_array)
@@ -584,7 +595,7 @@ def _generate_evaluation_render_masks(paths: EvaluationPaths, observed_masks: di
         observed = _read_image_mask(observed_path)
         if observed is None:
             continue
-        rendered = _generate_mask_from_pose(row, observed)
+        rendered = _generate_mask_from_pose(paths, row, observed)
         if rendered is None:
             continue
         target = out_dir / f"{frame:05d}_mask.pgm"
@@ -595,13 +606,7 @@ def _generate_evaluation_render_masks(paths: EvaluationPaths, observed_masks: di
 
 
 def _compute_mask_overlay_metrics(paths: EvaluationPaths) -> tuple[list[dict[str, object]], int, int]:
-    observed_masks = _collect_masks(
-        [
-            paths.sample_dir / "results" / "segmentation" / "masks",
-            paths.result_dir / "segmentation" / "masks",
-            paths.result_dir / "object_masks",
-        ]
-    )
+    observed_masks = _collect_masks(list(paths.observed_mask_dirs))
     rendered_masks = _collect_masks(
         [
             paths.render_dir / "object_masks",

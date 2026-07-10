@@ -1,0 +1,22 @@
+{
+  "temporal_metric_status": "ok",
+  "translation_spike_count": 9,
+  "rotation_spike_count": 0,
+  "event_aligned_spike_count": 9,
+  "non_event_spike_count": 0,
+  "translation_spike_threshold": 0.10173598390497537,
+  "rotation_spike_threshold_rad": 0.05,
+  "translation_acceleration_max": 0.1579485708746327,
+  "rotation_acceleration_max": 0.0,
+  "high_speed_event_windows": 31,
+  "high_speed_recall": 0.8709677419354839,
+  "oversmooth_rate": 0.12903225806451613,
+  "static_tail_drift_m": null,
+  "temporal_failure_intervals": "[]",
+  "event_frame_count": 31,
+  "event_window_frame_count": 183,
+  "temporal_accel_at_events": 0.03218434894075001,
+  "temporal_accel_in_flight": 0.026696687366945377,
+  "source_pose": "samples_known_object/01_basketball/results/pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv",
+  "source_events": "samples_known_object/01_basketball/results/human_audio_semantics/contact_records.csv"
+}

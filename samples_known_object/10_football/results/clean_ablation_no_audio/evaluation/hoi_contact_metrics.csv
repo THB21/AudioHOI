@@ -1,0 +1,2 @@
+contact_frame_ratio,contact_gap_mm,contact_proxy,contact_proxy_source,part_correct_ratio,contact_ratio_audio_windows,grasp_stability_mm,mdev_star_mm,hoi_contact_pair_rows,hoi_contact_interval_count,hoi_observed_contact_rows,hoi_persistent_contact_rows,contact_anchor_drift_mean,contact_anchor_drift_max,source
+0.062,250.59,0.006658906480686168,contact_gap_mm_exp_decay_sigma_50,0.615,0.455,54.37,74.14,63,16,63,60,,,samples_known_object/10_football/results/hoi_eval/hoi_interaction_metrics.json

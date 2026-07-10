@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "kind": "canonical_final_result_evaluation_sources",
+  "entries": [
+    {
+      "case": "basketball",
+      "evaluate": true,
+      "status": "paired",
+      "final_video": "final_result/videos/1_basketball_3d.mp4",
+      "source_video": "video_sample/1_basketball_video.mp4",
+      "sample_dir": "samples_known_object/01_basketball",
+      "object_pose_csv": "samples_known_object/01_basketball/results/pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv",
+      "human_params": "samples_known_object/01_basketball/results/human_contact_refine/contact_refined_smplx_params.pkl",
+      "contact_points_csv": "samples_known_object/01_basketball/results/human_audio_semantics/body_surface_contacts.csv",
+      "audio_contact_csv": "samples_known_object/01_basketball/results/human_audio_semantics/contact_records.csv",
+      "hoi_metrics_json": "samples_known_object/01_basketball/results/hoi_eval/hoi_interaction_metrics.json",
+      "observed_mask_dir": "samples_known_object/01_basketball/results/segmentation/masks",
+      "gate_trace_result_dir": "samples_known_object/01_basketball/results/benchmark_vlm_qwen"
+    },
+    {
+      "case": "football",
+      "evaluate": true,
+      "status": "paired",
+      "final_video": "final_result/videos/2_football_3d.mp4",
+      "source_video": "video_sample/10_football_video.mp4",
+      "sample_dir": "samples_known_object/10_football",
+      "object_pose_csv": "samples_known_object/10_football/results/pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv",
+      "human_params": "samples_known_object/10_football/results/human_contact_refine/contact_refined_smplx_params.pkl",
+      "contact_points_csv": "samples_known_object/10_football/results/human_audio_semantics/body_surface_contacts.csv",
+      "audio_contact_csv": "samples_known_object/10_football/results/human_audio_semantics/contact_records.csv",
+      "hoi_metrics_json": "samples_known_object/10_football/results/hoi_eval/hoi_interaction_metrics.json",
+      "observed_mask_dir": "samples_known_object/10_football/results/segmentation/masks",
+      "gate_trace_result_dir": "samples_known_object/10_football/results/benchmark_vlm_qwen"
+    },
+    {
+      "case": "mug",
+      "evaluate": false,
+      "status": "video_only_missing_paired_192_frame_data",
+      "final_video": "final_result/videos/3_mug_3d.mp4",
+      "world_video": "final_result/videos/3_mug_3d_world.mp4",
+      "source_video": null,
+      "sample_dir": "samples_known_object/02_mug",
+      "object_pose_csv": null,
+      "human_params": null,
+      "contact_points_csv": null,
+      "audio_contact_csv": null,
+      "hoi_metrics_json": null,
+      "observed_mask_dir": null,
+      "gate_trace_result_dir": null,
+      "note": "The published mug videos have 192 frames. The checked-in mug source video and object trajectory have 240 frames and must not be substituted."
+    }
+  ]
+}

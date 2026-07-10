@@ -1,0 +1,20 @@
+{
+  "case_name": "basketball",
+  "stage": "stage4",
+  "gate_rows": 10,
+  "effective_rows": 10,
+  "blocked_frames": [],
+  "unclear_frames": [
+    1,
+    10,
+    97,
+    99,
+    186
+  ],
+  "accepted_contact_frames": [],
+  "accepted_anchor_frames": [
+    1,
+    186
+  ],
+  "gate_csv": "samples_known_object/01_basketball/results/clean_ablation_no_audio/vlm/stage4/vlm_gates.csv"
+}

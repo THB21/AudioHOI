@@ -1,0 +1,2 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+basketball,stage6,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate

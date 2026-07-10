@@ -1,0 +1,25 @@
+{
+  "provider": {
+    "name": "mistral_api",
+    "kind": "mistral_chat_completions",
+    "api_key_env": "MISTRAL_API_KEY",
+    "api_key_present": true,
+    "model_id": "mistral-small-latest",
+    "base_url": "https://api.mistral.ai/v1",
+    "temperature": 0.0,
+    "max_new_tokens": 900,
+    "timeout_seconds": 120
+  },
+  "used": true,
+  "error": "",
+  "response_id": "fd3bc69fb08b4fa1a9967bd99c9fe197",
+  "usage": {
+    "prompt_tokens": 1697,
+    "total_tokens": 1755,
+    "completion_tokens": 58,
+    "prompt_tokens_details": {
+      "cached_tokens": 136
+    }
+  },
+  "raw_text": "{\"results\":[{\"query_id\":\"se3_schema\",\"label\":\"pass\",\"blocking\":false,\"rerun_stage\":false,\"residual_reweight\":false,\"short_reason\":\"All frames in object_pose_init.csv use SE3 schema (se3_schema=1)\"}]}"
+}

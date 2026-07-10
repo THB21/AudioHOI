@@ -6,6 +6,13 @@
 2. Tom human/audio/HOI layer 的最终数据与 `hoi_summary`；
 3. 会议转写里的要求：能直接算的 metric 必须直接算，VLM 只用于 perceptual / ambiguous check；评估要能证明 audio、vision、contact、penetration、smoothness 等 constraints 的实际贡献。
 
+当前已输出完整 final-result evaluation 的范围只包括两个球类：
+
+- `basketball`
+- `football`
+
+这两个 case 有对齐的 final video、source video、object 6DoF、human/contact、temporal/audio 和 paired gate-trace evidence。mug 当前先不纳入最终表；chair/stick 尚未作为 `final_result/videos/` 下的完整交付视频发布。本文后续仍保留 mug/chair/stick 的指标设计，因为它们是下一步扩展目标，不代表当前已经输出完整最终评估结果。
+
 核心原则：
 
 ```text
@@ -69,8 +76,7 @@ samples_known_object/<case>/results/renders/*human_full_scene_3d*
 跨 case 当前结果：
 
 ```text
-samples_known_object/final_result_evaluation/
-samples_known_object/hoi_interaction_evaluation/
+final_result/evaluation/
 ```
 
 ## 4. Layer 1: Object 6DoF and Video Fit Metrics
@@ -495,6 +501,34 @@ oversmooth_rate = #event windows where full method suppresses expected motion / 
 
 GT/proxy high-speed window 来自：audio events、visual velocity peaks、line/mask motion peaks。
 
+### 8.5 当前代码落地
+
+当前实现已经从单一 `jump_count` 升级到 motion-regime-aware temporal hard metrics：
+
+- `temporal_plausibility_metrics.csv/json`
+- `translation_spike_count`
+- `rotation_spike_count`
+- `event_aligned_spike_count`
+- `non_event_spike_count`
+- `high_speed_recall`
+- `oversmooth_rate`
+- `static_tail_drift_m`
+- `temporal_failure_intervals`
+
+其中 spike threshold 使用 per-sequence robust threshold，而不是固定常数：
+
+```text
+threshold = max(floor, median(values) + 3 * MAD(values), percentile_95(values))
+```
+
+event window 来自 `audio_contact_csv` / `contact_records.csv` 的 event frames。event 内 spike
+视为可能合理的 bounce/kick/impact；非 event spike 更可能是 temporal artifact。
+
+实现位置：
+
+- `scripts/shared/generic_contact_pipeline/core/evaluation/final_hoi/temporal_plausibility_metrics.py`
+- `final_result/evaluation/<case>/evaluation/temporal_plausibility_metrics.csv`
+
 ## 9. VLM / LLM Judge 的最终位置
 
 ### 9.1 VLM 不替代 hard metrics
@@ -594,7 +628,7 @@ changed_optimizer_behavior
 
 ### 10.1 Human-readable table
 
-只放这 6 个大类，给人快速读结论。Audio / VLM / LLM / anchor ablation 的差异放在 `samples_known_object/ablation_evaluation/ablation_table.csv` 和 `ablation_report.md`，不塞进最终人读表。
+只放这 6 个大类，给人快速读结论。Audio / VLM / LLM / anchor ablation 的差异放在 `final_result/evaluation/ablation/ablation_table.csv` 和 `ablation_report.md`，不塞进最终人读表。
 
 | Case | Object 6DoF | Visual Overlay | Contact/Anchor | Physical | Temporal |
 | --- | --- | --- | --- | --- | --- |
@@ -602,7 +636,7 @@ changed_optimizer_behavior
 当前产物：
 
 ```text
-samples_known_object/final_result_evaluation/final_evaluation_human_readable.md
+final_result/evaluation/final_evaluation_human_readable.md
 ```
 
 ### 10.2 Detailed CSV
@@ -644,6 +678,55 @@ object-level final_evaluator
 + new ablation delta metrics
 = final_evaluation_detailed.csv
 ```
+
+### 11.1 当前 handoff artifact 缺口与 TODO
+
+Tom 的结果不是没有接上前面的 object/contact/audio pipeline。当前 checked artifact 显示：
+
+- `pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv`
+  保留了最终 object SE3、support proxy、contact frame、audio contact frame 等字段；
+- `human_audio_semantics/contact_records.csv` 保留了 audio/visual contact events、contact target、contact state、manipulation weights；
+- `human_audio_semantics/body_surface_contacts.csv` 保留了 body surface contact point、contact part、contact region、surface distance；
+- `benchmark_vlm_qwen` 保留了 gate timeline、optimizer decisions、pre-smooth pose、residuals。
+
+但是这些还不足以让 final evaluator 计算下面三类 hard metrics：
+
+| Missing metric | 为什么当前不能硬算 | 需要新增/保留的 artifact |
+| --- | --- | --- |
+| `anchor_drift` | basketball/football 的 `anchor_state.csv` 有 anchor gate，但 `stable_local_x/y/z/s` 和 `observed_local_x/y/z/s` 为空。球类当前使用 surface-gap / center-depth anchor，不是 mug/stick 那种 object-local stable grasp point。 | `final_anchor_state.csv` |
+| `static_tail_drift` | final result 没有标注哪一段应该静止。basketball/football 也不一定有明确静止尾段，不能自动把最后几帧当 static tail。 | `final_motion_intervals.csv` |
+| `floating_rate` / support gap | Tom final HOI 有 penetration/contact surface distance，但没有 final 3D object-to-floor/support surface gap。pipeline trace 有 `support_gap_px/floor_v` 等 2D/proxy 字段，但不能冒充 final 3D floating hard metric。 | `final_support_state.csv` |
+
+因此当前人读表把这些项放在 Evidence Notes，而不是在主表里显示 `n/a`。这不是“没跑完”，而是 final-result handoff contract 还没把 evaluator 需要的三类证据物化出来。
+
+下一步 TODO：
+
+```text
+final_anchor_state.csv
+  frame,time,human_part,object_part,anchor_type,
+  stable_local_x,stable_local_y,stable_local_z,stable_local_s,
+  observed_local_x,observed_local_y,observed_local_z,observed_local_s,
+  surface_gap_m,anchor_drift_m,anchor_update_allowed,pose_anchor_allowed,source
+
+final_support_state.csv
+  frame,time,support_type,support_part,
+  object_bottom_x,object_bottom_y,object_bottom_z,
+  support_surface_x,support_surface_y,support_surface_z,
+  support_gap_m,floating_flag,penetration_flag,support_confidence,source
+
+final_motion_intervals.csv
+  interval_id,start_frame,end_frame,
+  motion_regime,expected_static,expected_high_speed,
+  contact_required,audio_event_aligned,reason,source
+```
+
+有了这三个 artifact 后，evaluator 才能把当前 unavailable 项升级为：
+
+- `contact_anchor_drift_mean/max`
+- `floating_rate`
+- `support_consistency`
+- `static_tail_drift_m`
+- `static_rotation_drift_rad`
 
 ## 12. Acceptance Criteria
 

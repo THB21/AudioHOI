@@ -1,0 +1,18 @@
+{
+  "case_name": "football",
+  "stage": "stage-1",
+  "decision": "reject",
+  "llm_mode": "mistral",
+  "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+  "gate_rows": 2,
+  "blocking_count": 1,
+  "rerun_stage": false,
+  "residual_reweight": false,
+  "repair_actions": [
+    "no_effective_vlm_gate",
+    "report_unclear_csv_audit"
+  ],
+  "audit_csv": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage-1/stage_audit_gates.csv",
+  "llm_audit_queries": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage-1/llm_audit_queries.json",
+  "llm_audit_results": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/stage_audit/stage-1/llm_audit_results.csv"
+}

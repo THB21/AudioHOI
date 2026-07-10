@@ -1,6 +1,12 @@
 # 最终结果评估方法说明
 
-本文档说明当前 generic HOI pipeline 如何评估最终结果。这里的“最终结果”指每个 case 当前选定的最终目录，默认是 `benchmark_vlm_qwen`。它不是 benchmark 对比表，不比较 baseline、ablation 或 oracle-contact。
+本文档说明如何评估已经发布到 `final_result/` 的最终成品。默认数据源是
+`final_result/evaluation_manifest.json`，当前只纳入拥有同帧数 final video、source video、
+object pose、contact-refined human 和 contact evidence 的 basketball 与 football。历史
+`benchmark_vlm_qwen` 仅用于 pipeline regression，必须显式使用 `--source pipeline-result`。
+
+每个 hard metric 都必须绑定生成成品视频的同一套数据。仅有 MP4 而没有配对 pose/human
+数据时，只允许做视频视觉评价，不能借用另一个 run 的 CSV 计算 6DoF 或物理指标。
 
 ## 评估对象
 
@@ -44,22 +50,22 @@ Contact F1 = 2 * Precision * Recall / (Precision + Recall)
 
 没有人工标签时，`Contact F1` 留空，不用 proxy 冒充。
 
-**Contact Proxy**：
+**Contact Proxy** 使用 expected-contact 帧上 human surface 到 object surface 的平均 gap：
 
 ```text
-Contact Proxy = mean_t( c_t if contact_observed_t = 1 else 0 )
+Contact Proxy = exp(-contact_gap_mm / 50)
 ```
 
-**Overlay Proxy** 优先使用 mask/track/line 可信度：
+**Overlay** 使用同帧 source-video SAM2 mask 与 final pose 投影得到的 object render mask：
 
 ```text
-Overlay Proxy = mean_t(clip(mask_iou_t or observation_conf_t or track_conf_t, 0, 1))
+Overlay = mean_t IoU(observed_object_mask_t, projected_object_mask_t)
 ```
 
-如果没有直接置信度，则用 jitter 反推：
+球体投影半径为：
 
 ```text
-Overlay Proxy = mean_t( 1 / (1 + max(0, jitter_px_t) / 20) )
+r_px = fx * radius_m / tz
 ```
 
 **Anchor Drift**：
@@ -81,20 +87,11 @@ Anchor Drift Mean = mean_t(d_t)
 Anchor Drift Max = max_t(d_t)
 ```
 
-**Penetration Rate / Floating Rate**：
-
-若有 residual：
-
-```text
-Penetration Rate = mean_t(1[penetration_depth_t > 1e-4])
-Floating Rate = mean_t(1[floating_gap_t > 1e-3])
-```
-
-若没有显式 residual，则当前 evaluator 会从 `contact_depth_offset_m` 生成 proxy：
+**Penetration Rate** 使用 contact-refined SMPL-X part vertices 与 object surface 的
+signed distance，并给予 3 mm mesh slack：
 
 ```text
-penetration proxy: contact_depth_offset_m < -1e-6
-floating proxy: contact_depth_offset_m > 1e-6
+Penetration Rate = #frames(any vertex depth > 3 mm) / #valid frames
 ```
 
 **Jump Count**：
@@ -105,6 +102,33 @@ Jump Count = Σ_t 1[
   or contact_spike_t = 1
   or smoothness_spike_t = 1
 ]
+```
+
+当前 temporal 评估还会输出 motion-regime-aware spike：
+
+```text
+v_t = ||T_t - T_{t-1}||
+a_t = ||v_t - v_{t-1}||
+omega_t = angle(q_{t-1}^{-1} q_t)
+alpha_t = |omega_t - omega_{t-1}|
+
+translation_spike_t = 1[a_t > threshold_translation]
+rotation_spike_t = 1[alpha_t > threshold_rotation]
+threshold = max(floor, median(values) + 3 * MAD(values), percentile_95(values))
+```
+
+根据 audio/contact event window 拆分：
+
+```text
+event_aligned_spike_count = Σ 1[spike_t and t in event_window]
+non_event_spike_count = Σ 1[spike_t and t not in event_window]
+```
+
+高速保留与过平滑：
+
+```text
+high_speed_recall = #event windows with preserved acceleration peak / #event windows
+oversmooth_rate = #event windows with suppressed acceleration peak / #event windows
 ```
 
 **Static Drift**：
@@ -127,6 +151,19 @@ Geometry Spread = max_t(length_t) - min_t(length_t)
 - `anchor_state.csv`
 - `physical_smooth_residuals.csv`
 - `pose_jump_audit.csv`
+- `temporal_plausibility_metrics.csv`
+- `gate_impact_metrics.csv`
+
+**Gate Impact** 用于 ablation，不直接评价视觉好坏，而是回答 VLM/LLM/audio gate 是否真的影响了优化：
+
+```text
+gate_active_count = Σ active_gate
+optimizer_reweighted_frames = Σ 1[feedback_reweight_reason exists]
+anchor_update_blocked_count = Σ 1[anchor_update_allowed = 0]
+freeze_interpolation_frames = Σ 1[freeze/interpolation/static_tail residual enabled]
+pose_delta_translation_max = max_t ||T_final_t - T_pre_smooth_t||
+pose_delta_rotation_max = max_t angle(q_pre_smooth_t^{-1} q_final_t)
+```
 
 ### 2. VLM Visual Judge
 
@@ -158,10 +195,11 @@ LLM 同样不输出坐标或 pose，只输出审计结论。
 
 ```bash
 /home/yang/miniconda3/envs/audiohoi/bin/python \
-  scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py \
-  --result-name benchmark_vlm_qwen \
-  --output-dir samples_known_object/final_result_evaluation
+  scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py
 ```
+
+来源一致性先看 `final_result/evaluation/source_validation.csv`，结果看
+`final_result/evaluation/final_evaluation_detailed.csv`。
 
 默认输出：
 

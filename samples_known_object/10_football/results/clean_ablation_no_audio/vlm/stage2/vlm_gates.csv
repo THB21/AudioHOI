@@ -1,0 +1,6 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+football,stage2,2,contact_relation_check,foot_kick_touch_ball_boundary,pass,accept_candidate,0,1,1,0,1
+football,stage2,44,contact_relation_check,foot_kick_touch_ball_boundary,pass,accept_candidate,0,1,1,0,1
+football,stage2,242,contact_relation_check,foot_kick_touch_ball_boundary,pass,accept_candidate,0,1,1,0,1
+football,stage2,1,contact_relation_check,foot_kick_touch_ball_boundary,pass,accept_candidate,0,1,1,0,1
+football,stage2,122,contact_relation_check,foot_kick_touch_ball_boundary,pass,accept_candidate,0,1,1,0,1

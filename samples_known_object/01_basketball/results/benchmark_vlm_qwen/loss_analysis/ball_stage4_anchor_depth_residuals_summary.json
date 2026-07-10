@@ -1,6 +1,6 @@
 {
   "stage_label": "stage4_anchor_depth_final",
-  "path": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/loss_analysis/ball_stage4_anchor_depth_residuals.csv",
+  "path": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/loss_analysis/ball_stage4_anchor_depth_residuals.csv",
   "rows": 192,
   "terms": {
     "E_total": 860.2840057920002,

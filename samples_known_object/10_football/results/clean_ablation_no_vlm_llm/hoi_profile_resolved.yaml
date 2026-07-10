@@ -1,0 +1,77 @@
+case_name: football
+object_category: football
+object_family: dynamic_ball
+object_parts:
+- name: ball_center
+  role: semantic_or_contact_candidate
+- name: ball_boundary
+  role: semantic_or_contact_candidate
+- name: ball_bottom
+  role: semantic_or_contact_candidate
+human_parts:
+- foot
+- hand_body
+interaction_edges:
+- human_part: foot
+  object_part: ball_center
+  relation: candidate_contact
+- human_part: hand_body
+  object_part: ball_center
+  relation: candidate_contact
+support_priors:
+- floor_support
+motion_priors:
+- smooth_temporal_motion
+vlm_query_policy:
+  stage0:
+  - target_mask_check
+  stage1:
+  - keypart_identity_check
+  - track_stability_check
+  stage2:
+  - contact_relation_check
+  stage3:
+  - overlay_alignment_check
+  stage4:
+  - anchor_update_check
+  - temporal_motion_check
+  stage5:
+  - post_render_sanity_check
+source: case_config_default
+schema_version: 1
+rules:
+  llm_outputs_pose: false
+  vlm_outputs_pose: false
+  vlm_outputs_loss_weights: false
+  optimizer_is_only_continuous_solver: true
+source_prompt_count: 5
+source_prompts:
+- kind: sample_metadata.prompt
+  path: samples_known_object/10_football/metadata.json
+  record_id: ''
+  text_preview: 'Generate an 8-second realistic video from this image. The soccer
+    player starts with the ball on the grass near one foot. The player first kicks
+    the ball upward with one foot, then keeps the ball close and performs a short
+    controlled juggling sequence using the feet. The ball should move naturally according
+    to the player’s foot contact and gravity, without floating or changing direction
+    by itself. Keep the camera static in a wide shot, with the full body and the soccer
+    ball visible for most of the sequence.Add realistic synchronized audio: a clear
+    foot-ball kick sound at the first kick, followed by light foot-ball contact sounds
+    during the juggling touches. The contact sounds should occur only when the ball
+    visibly touches the foot. No music, no speech.'
+- kind: sample_metadata.detection_text
+  path: samples_known_object/10_football/metadata.json
+  record_id: ''
+  text_preview: football.
+- kind: sample_metadata.name
+  path: samples_known_object/10_football/metadata.json
+  record_id: ''
+  text_preview: football
+- kind: sample_metadata.video
+  path: samples_known_object/10_football/metadata.json
+  record_id: ''
+  text_preview: video_sample/10_football_video.mp4
+- kind: sample_metadata.image
+  path: samples_known_object/10_football/metadata.json
+  record_id: ''
+  text_preview: video_sample/10_football.jpg

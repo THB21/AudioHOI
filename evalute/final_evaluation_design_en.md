@@ -2,6 +2,18 @@
 
 This document defines the next final-product evaluation protocol for AudioHOI. It is based on the current `benchmark_vlm_qwen` outputs, Tom's human/audio/HOI results, the meeting transcript, and the HOI-PAGE-style part-level evaluation perspective.
 
+The current complete final-result evaluation scope contains two ball cases only:
+
+- `basketball`
+- `football`
+
+These two cases have aligned final videos, source videos, object 6DoF trajectories,
+human/contact artifacts, temporal/audio artifacts, and paired gate-trace evidence.
+Mug is intentionally excluded for now; chair and stick are not yet published as
+complete deliverable videos under `final_result/videos/`. This document still keeps
+the mug/chair/stick metric design because they are the next expansion targets, not
+because they currently have complete final-result evaluation outputs.
+
 The core rule is:
 
 ```text
@@ -65,8 +77,7 @@ samples_known_object/<case>/results/renders/*human_full_scene_3d*
 Cross-case summaries:
 
 ```text
-samples_known_object/final_result_evaluation/
-samples_known_object/hoi_interaction_evaluation/
+final_result/evaluation/
 ```
 
 ## 4. Layer 1: Object 6DoF and video fit
@@ -383,6 +394,31 @@ accel_in_flight = mean acceleration outside event windows
 
 A bounce/kick spike near an audio/contact event is plausible. A spike away from events is likely an artifact.
 
+Current implementation now materializes the motion-regime-aware layer instead of relying on one coarse `jump_count`:
+
+- `temporal_plausibility_metrics.csv/json`
+- `translation_spike_count`
+- `rotation_spike_count`
+- `event_aligned_spike_count`
+- `non_event_spike_count`
+- `high_speed_recall`
+- `oversmooth_rate`
+- `static_tail_drift_m`
+- `temporal_failure_intervals`
+
+Spike thresholds are sequence-adaptive:
+
+```text
+threshold = max(floor, median(values) + 3 * MAD(values), percentile_95(values))
+```
+
+Event windows are read from `audio_contact_csv` / `contact_records.csv`. Spikes inside those windows are treated as possible impact motion; spikes outside them are reported as likely temporal artifacts.
+
+Implementation:
+
+- `scripts/shared/generic_contact_pipeline/core/evaluation/final_hoi/temporal_plausibility_metrics.py`
+- `final_result/evaluation/<case>/evaluation/temporal_plausibility_metrics.csv`
+
 ## 9. VLM / LLM final judge
 
 ### 9.1 VLM
@@ -473,7 +509,7 @@ The current default source is a `metric-grounded dry-run final judge`: it uses h
 
 Human-readable table:
 
-The human-readable table intentionally keeps only six columns for quick review. Audio, VLM, LLM, and anchor ablation differences are reported in `samples_known_object/ablation_evaluation/ablation_table.csv` and `ablation_report.md`, not in the final human-readable table.
+The human-readable table intentionally keeps only six columns for quick review. Audio, VLM, LLM, and anchor ablation differences are reported in `final_result/evaluation/ablation/ablation_table.csv` and `ablation_report.md`, not in the final human-readable table.
 
 | Case | Object 6DoF | Visual Overlay | Contact/Anchor | Physical | Temporal |
 | --- | --- | --- | --- | --- | --- |
@@ -481,7 +517,7 @@ The human-readable table intentionally keeps only six columns for quick review. 
 Current artifact:
 
 ```text
-samples_known_object/final_result_evaluation/final_evaluation_human_readable.md
+final_result/evaluation/final_evaluation_human_readable.md
 ```
 
 Detailed CSV columns:
@@ -509,6 +545,55 @@ Tom's `hoi_summary` already provides:
 - grasp stability / MDev* when available.
 
 The next implementation should merge these into the unified final evaluator rather than treat them as a separate table.
+
+### 11.1 Current handoff artifact gap and TODO
+
+Tom's results are not disconnected from the upstream object/contact/audio pipeline. The checked artifacts show:
+
+- `pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv`
+  keeps the final object SE3 trajectory, support proxy, contact frame, and audio-contact frame fields;
+- `human_audio_semantics/contact_records.csv` keeps audio/visual contact events, contact target, contact state, and manipulation weights;
+- `human_audio_semantics/body_surface_contacts.csv` keeps body-surface contact points, contact part/region, and surface distance;
+- `benchmark_vlm_qwen` keeps gate timeline, optimizer decisions, pre-smooth pose, and residuals.
+
+However, these artifacts are still not enough for the final evaluator to compute three hard-metric families:
+
+| Missing metric | Why it cannot be computed as a hard metric now | Required artifact |
+| --- | --- | --- |
+| `anchor_drift` | Basketball/football `anchor_state.csv` contains anchor gates, but `stable_local_x/y/z/s` and `observed_local_x/y/z/s` are empty. Ball cases currently use surface-gap / center-depth anchors rather than mug/stick-style object-local stable grasp points. | `final_anchor_state.csv` |
+| `static_tail_drift` | The final result does not mark which interval should be static. Basketball/football also may not have a semantically valid static tail, so the evaluator must not automatically treat the last frames as static. | `final_motion_intervals.csv` |
+| `floating_rate` / support gap | Tom final HOI metrics include penetration and contact surface distance, but not final 3D object-to-floor/support-surface gap. Pipeline traces have 2D/proxy fields such as `support_gap_px/floor_v`, but those must not be presented as final 3D floating hard metrics. | `final_support_state.csv` |
+
+Therefore the human-readable table moves these fields into Evidence Notes instead of displaying `n/a` in the main cells. This is not simply an unfinished run; it is a final-result handoff contract gap.
+
+Next TODO:
+
+```text
+final_anchor_state.csv
+  frame,time,human_part,object_part,anchor_type,
+  stable_local_x,stable_local_y,stable_local_z,stable_local_s,
+  observed_local_x,observed_local_y,observed_local_z,observed_local_s,
+  surface_gap_m,anchor_drift_m,anchor_update_allowed,pose_anchor_allowed,source
+
+final_support_state.csv
+  frame,time,support_type,support_part,
+  object_bottom_x,object_bottom_y,object_bottom_z,
+  support_surface_x,support_surface_y,support_surface_z,
+  support_gap_m,floating_flag,penetration_flag,support_confidence,source
+
+final_motion_intervals.csv
+  interval_id,start_frame,end_frame,
+  motion_regime,expected_static,expected_high_speed,
+  contact_required,audio_event_aligned,reason,source
+```
+
+Once these artifacts exist, the evaluator can upgrade the currently unavailable fields into:
+
+- `contact_anchor_drift_mean/max`
+- `floating_rate`
+- `support_consistency`
+- `static_tail_drift_m`
+- `static_rotation_drift_rad`
 
 ## 12. Acceptance criteria
 

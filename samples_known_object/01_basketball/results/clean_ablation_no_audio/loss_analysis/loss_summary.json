@@ -1,0 +1,25 @@
+{
+  "case_name": "basketball",
+  "mode": "non_invasive_loss_audit",
+  "per_frame_residuals": "samples_known_object/01_basketball/results/clean_ablation_no_audio/loss_analysis/per_frame_residuals.csv",
+  "stage7_loss_residuals": "samples_known_object/01_basketball/results/clean_ablation_no_audio/stage7_loss_residuals.csv",
+  "loss_trace": "samples_known_object/01_basketball/results/clean_ablation_no_audio/loss_analysis/loss_trace.csv",
+  "plots": [
+    "samples_known_object/01_basketball/results/clean_ablation_no_audio/loss_analysis/E_total.png",
+    "samples_known_object/01_basketball/results/clean_ablation_no_audio/loss_analysis/E_visual.png",
+    "samples_known_object/01_basketball/results/clean_ablation_no_audio/loss_analysis/E_contact.png",
+    "samples_known_object/01_basketball/results/clean_ablation_no_audio/loss_analysis/E_support.png",
+    "samples_known_object/01_basketball/results/clean_ablation_no_audio/loss_analysis/E_smooth.png",
+    "samples_known_object/01_basketball/results/clean_ablation_no_audio/loss_analysis/E_reg.png"
+  ],
+  "active_terms": [
+    "E_total",
+    "E_visual",
+    "E_mask",
+    "E_contact",
+    "E_support",
+    "E_smooth",
+    "E_reg"
+  ],
+  "note": "This audit computes comparable residual terms from existing generic outputs. It does not replace the optimizer internals yet."
+}

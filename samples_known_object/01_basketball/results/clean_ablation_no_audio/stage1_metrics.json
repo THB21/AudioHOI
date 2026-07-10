@@ -1,0 +1,25 @@
+{
+  "component": "generic_observation_mainline",
+  "case_name": "basketball",
+  "adapter": {
+    "component": "mask_track_center",
+    "source": "samples_known_object/01_basketball/results/tracking/ball_trajectory.csv",
+    "center_source": "samples_known_object/01_basketball/results/tracking/cotracker_center_trajectory.csv",
+    "points_source": "samples_known_object/01_basketball/results/tracking/cotracker_points.csv",
+    "depth_source": "samples_known_object/01_basketball/results/da3/priors/ball_depth_prior.csv",
+    "object_observations": "samples_known_object/01_basketball/results/clean_ablation_no_audio/object_observations.csv",
+    "local_points": "none_for_center_proxy",
+    "rows": 192,
+    "policy": "generic mask/object center/radius + optional CoTracker/object bottom + DA3 depth only; contact fields are owned by Stage2",
+    "adapter_component": "mask_track_center"
+  },
+  "object_observations": "samples_known_object/01_basketball/results/clean_ablation_no_audio/object_observations.csv",
+  "object_correspondence": "samples_known_object/01_basketball/results/clean_ablation_no_audio/object_correspondence.csv",
+  "object_surface_points": "samples_known_object/01_basketball/results/clean_ablation_no_audio/object_surface_points.csv",
+  "object_semantic_points": "samples_known_object/01_basketball/results/clean_ablation_no_audio/object_semantic_points.csv",
+  "rows": 192,
+  "correspondence_rows": 192,
+  "surface_rows": 0,
+  "semantic_rows": 0,
+  "policy": "fixed generic observation contract; case-specific observation code is compatibility adapter only"
+}

@@ -1,0 +1,23 @@
+{
+  "gate_impact_status": "ok",
+  "gate_event_count": 36,
+  "gate_active_count": 36,
+  "gate_reject_unclear_count": 13,
+  "gate_source_counts": "pass:23;reject:5;unclear:8",
+  "stage_residual_reweight_count": 1,
+  "optimizer_reoptimized_frames": 192,
+  "optimizer_reweighted_frames": 192,
+  "residual_enabled_total": 1728,
+  "anchor_update_allowed_count": 250,
+  "anchor_update_blocked_count": 67,
+  "pose_anchor_allowed_count": 250,
+  "anchor_residual_enabled_frames": 0,
+  "freeze_interpolation_frames": 192,
+  "pose_delta_translation_mean_m": 0.010642314107255928,
+  "pose_delta_translation_max_m": 0.045809152292613425,
+  "pose_delta_rotation_mean_rad": 0.021645064540952386,
+  "pose_delta_rotation_max_rad": 0.08112746588545622,
+  "pose_delta_frame_count": 192,
+  "source_gate_timeline": "samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm_trace/04_gating/gate_timeline.csv",
+  "source_optimizer_decisions": "samples_known_object/05_chair/results/benchmark_vlm_qwen/optimizer_decisions.csv"
+}

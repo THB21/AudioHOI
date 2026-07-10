@@ -1,0 +1,7 @@
+case,method,result_name,result_dir,result_exists,audio,vlm,llm,ablation_flags,actual_vlm_mode,actual_llm_mode,actual_ablation_flags,method_manifest_valid,method_manifest_mismatch_reason
+basketball,full_audio_vlm_llm,clean_ablation_full_audio_vlm_llm,samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm,True,True,qwen,mistral,,qwen,mistral,,True,
+basketball,no_audio,clean_ablation_no_audio,samples_known_object/01_basketball/results/clean_ablation_no_audio,True,False,qwen,mistral,disable_audio_events,qwen,mistral,disable_audio_events,True,
+basketball,no_vlm_llm,clean_ablation_no_vlm_llm,samples_known_object/01_basketball/results/clean_ablation_no_vlm_llm,True,True,none,none,no_vlm|no_llm,none,none,no_vlm|no_llm,True,
+football,full_audio_vlm_llm,clean_ablation_full_audio_vlm_llm,samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm,True,True,qwen,mistral,,qwen,mistral,,True,
+football,no_audio,clean_ablation_no_audio,samples_known_object/10_football/results/clean_ablation_no_audio,True,False,qwen,mistral,disable_audio_events,qwen,mistral,disable_audio_events,True,
+football,no_vlm_llm,clean_ablation_no_vlm_llm,samples_known_object/10_football/results/clean_ablation_no_vlm_llm,True,True,none,none,no_vlm|no_llm,none,none,no_vlm|no_llm,True,

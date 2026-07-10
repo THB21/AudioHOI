@@ -1,0 +1,426 @@
+{
+  "case_name": "basketball",
+  "result_dir": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm",
+  "render_dir": "samples_known_object/01_basketball/results/renders/clean_ablation_full_audio_vlm_llm",
+  "checks": {
+    "required_csvs": {
+      "object_observations": {
+        "exists": true,
+        "rows": 192,
+        "pass": true
+      },
+      "contact_candidates": {
+        "exists": true,
+        "rows": 192,
+        "pass": true
+      },
+      "object_pose_init": {
+        "exists": true,
+        "rows": 192,
+        "pass": true
+      },
+      "object_pose": {
+        "exists": true,
+        "rows": 192,
+        "pass": true
+      },
+      "object_contact_points": {
+        "exists": true,
+        "rows": 192,
+        "pass": true
+      }
+    },
+    "required_csvs_pass": true,
+    "frame_count": {
+      "new": 192,
+      "baseline": 192,
+      "pass": true
+    },
+    "pose_delta": {
+      "comparable": true,
+      "keys": [
+        "tx",
+        "ty",
+        "tz",
+        "u_obs",
+        "v_obs",
+        "z_ref_anchor_segment"
+      ],
+      "median_abs_delta": 7.499999999938112e-06,
+      "p95_abs_delta": 0.135396,
+      "max_abs_delta": 0.2863649999999999
+    },
+    "pose_delta_pass": false,
+    "phase_delta": {
+      "comparable": true,
+      "reason": "no_phase_baseline"
+    },
+    "phase_delta_pass": true,
+    "renders": {
+      "object_only/overlay.mp4": {
+        "exists": true,
+        "bytes": 1013249,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "frames": 192,
+        "pass": true
+      },
+      "object_only/camera3d.mp4": {
+        "exists": true,
+        "bytes": 119137,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "frames": 192,
+        "pass": true
+      },
+      "object_only/side_yz.mp4": {
+        "exists": true,
+        "bytes": 94901,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "frames": 192,
+        "pass": true
+      },
+      "with_human/overlay.mp4": {
+        "exists": true,
+        "bytes": 1633924,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "frames": 192,
+        "pass": true
+      },
+      "with_human/camera3d.mp4": {
+        "exists": true,
+        "bytes": 304287,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "frames": 192,
+        "pass": true
+      },
+      "with_human/side_yz.mp4": {
+        "exists": true,
+        "bytes": 519170,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "frames": 192,
+        "pass": true
+      }
+    },
+    "required_renders_pass": true,
+    "overall_pass": false,
+    "old_script_reference_scan_pass": true
+  },
+  "migration_audit": {
+    "case_name": "basketball",
+    "result_name": "clean_ablation_full_audio_vlm_llm",
+    "component_status": {
+      "geometry_model": {
+        "component": "sphere_proxy",
+        "migration_status": "clean_from_raw_or_stage_inputs",
+        "migration_priority": "keep",
+        "note": "no solved artifact dependency declared"
+      },
+      "observation_model": {
+        "component": "mask_track_center",
+        "migration_status": "clean_from_raw_or_stage_inputs",
+        "migration_priority": "keep",
+        "note": "no solved artifact dependency declared"
+      },
+      "contact_policy": {
+        "component": "hand_floor",
+        "migration_status": "generic_solver_external_env",
+        "migration_priority": "keep_env_boundary_or_package_deps",
+        "note": "runs generic_contact_pipeline/components/contact/solvers/ball_proxy_depth_builder.py and ball_contact_candidate_builder.py in the audiohoi env; builds hand/floor gates from object mesh tracks + GVHMR + DA3 + audio"
+      },
+      "pose_model": {
+        "component": "translation3",
+        "migration_status": "clean_from_raw_or_stage_inputs",
+        "migration_priority": "keep",
+        "note": "no solved artifact dependency declared"
+      },
+      "render_backend": {
+        "component": "proxy_sphere",
+        "migration_status": "generic_solver_external_env",
+        "migration_priority": "keep_env_boundary_or_package_deps",
+        "note": "runs generic_contact_pipeline/components/render/proxy_sphere_scene.py in the audiohoi env because render deps are not in base Python"
+      },
+      "refinement_policy_0": {
+        "component": "anchor_depth",
+        "migration_status": "generic_solver_external_env",
+        "migration_priority": "keep_env_boundary_or_package_deps",
+        "note": "runs generic_contact_pipeline/components/refinement/anchor_depth_solver.py in the audiohoi env because solver deps are not in base Python"
+      },
+      "refinement_policy_1": {
+        "component": "backproject_xy",
+        "migration_status": "clean_from_raw_or_stage_inputs",
+        "migration_priority": "keep",
+        "note": "no solved artifact dependency declared"
+      }
+    },
+    "migration_status_counts": {
+      "clean_from_raw_or_stage_inputs": 4,
+      "generic_solver_external_env": 3
+    },
+    "runtime_coupling_components": {},
+    "old_script_reference_scan": {
+      "root": "scripts/shared/generic_contact_pipeline",
+      "patterns": [
+        "scripts.shared.radius_free_proxy",
+        "scripts/shared/radius_free_proxy",
+        "stage4_anchor_refinement/run_anchor_refinement.py",
+        "stage5_render/render_pose6d_scene.py",
+        "stage5_render/render_mug_articraft_fast_scene.py",
+        "stage5_render/render_chair_articraft_solid_3d_scene.py"
+      ],
+      "hit_count": 0,
+      "hits": [],
+      "pass": true
+    },
+    "schema_status": {
+      "object_observations": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_observations.csv",
+        "exists": true,
+        "columns": [
+          "frame",
+          "time",
+          "ref_u",
+          "ref_v",
+          "ref_u_smooth",
+          "ref_v_smooth",
+          "ref_u_fit",
+          "ref_v_fit",
+          "ref_source",
+          "ref_type",
+          "support_u",
+          "support_v",
+          "support_v_raw",
+          "support_dv",
+          "support_dv_smooth",
+          "support_source",
+          "contact_u",
+          "contact_v",
+          "contact_source",
+          "object_ref_depth_m",
+          "contact_proxy_depth_m",
+          "contact_depth_offset_m",
+          "ref_conf",
+          "support_conf",
+          "contact_conf",
+          "depth_conf",
+          "observation_conf",
+          "proxy_conf",
+          "proxy_jitter_px",
+          "support_jitter_px",
+          "proxy_sigma_px",
+          "support_sigma_px",
+          "active_label",
+          "active_label_conf",
+          "active_part_u",
+          "active_part_v",
+          "active_part_z",
+          "contact_proxy_name",
+          "da3_depth_raw",
+          "da3_depth_smooth",
+          "object_depth_raw",
+          "object_depth_smooth",
+          "object_depth_confidence",
+          "support_gap_px",
+          "object_motion_score",
+          "audio_score",
+          "radius_px"
+        ]
+      },
+      "object_local_points": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_local_points.csv",
+        "exists": true,
+        "columns": [
+          "point_id",
+          "part",
+          "role",
+          "local_x",
+          "local_y",
+          "local_z",
+          "source"
+        ]
+      },
+      "object_local_segments": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_local_segments.csv",
+        "exists": false,
+        "columns": []
+      },
+      "contact_candidates": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/contact_candidates.csv",
+        "exists": true,
+        "columns": [
+          "frame",
+          "time",
+          "contact_active",
+          "human_part",
+          "human_side",
+          "object_part",
+          "object_local_id",
+          "contact_u",
+          "contact_v",
+          "contact_depth_offset_m",
+          "contact_conf",
+          "anchor_score",
+          "source"
+        ]
+      },
+      "object_pose_init": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose_init.csv",
+        "exists": true,
+        "columns": [
+          "frame",
+          "time",
+          "tx",
+          "ty",
+          "tz",
+          "qw",
+          "qx",
+          "qy",
+          "qz",
+          "radius_m",
+          "coord_frame",
+          "u_obs",
+          "v_obs",
+          "u_proj",
+          "v_proj",
+          "bottom_proj_v",
+          "floor_v",
+          "u_ref_obs",
+          "v_ref_obs",
+          "support_v_obs",
+          "depth_prior_m",
+          "contact_depth_offset_m",
+          "contact_frame",
+          "audio_contact_frame",
+          "source",
+          "se3_schema"
+        ]
+      },
+      "object_pose": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+        "exists": true,
+        "columns": [
+          "frame",
+          "time",
+          "tx",
+          "ty",
+          "tz",
+          "qw",
+          "qx",
+          "qy",
+          "qz",
+          "radius_m",
+          "coord_frame",
+          "u_obs",
+          "v_obs",
+          "radius_obs_px",
+          "u_proj",
+          "v_proj",
+          "radius_proj_px",
+          "bottom_proj_v",
+          "floor_v",
+          "support_type",
+          "support_source",
+          "support_confidence",
+          "residual_px",
+          "contact_frame",
+          "audio_contact_frame",
+          "human_contact_event",
+          "floor_contact_event",
+          "human_contact_state",
+          "floor_contact_state",
+          "contact_part",
+          "contact_side",
+          "contact_label",
+          "active_part",
+          "active_part_y",
+          "active_part_z",
+          "u_ref_obs",
+          "v_ref_obs",
+          "contact_u",
+          "contact_v",
+          "contact_depth_offset_m",
+          "contact_depth_offset_used_m",
+          "z_contact_final",
+          "global_z_ref",
+          "z_ref_global_shift",
+          "z_ref_anchor_segment",
+          "contact_depth_gap",
+          "source"
+        ]
+      },
+      "object_contact_points": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_contact_points.csv",
+        "exists": true,
+        "columns": [
+          "frame",
+          "time",
+          "contact_active",
+          "human_part",
+          "human_side",
+          "object_part",
+          "object_local_id",
+          "contact_u",
+          "contact_v",
+          "contact_depth_offset_m",
+          "contact_conf",
+          "anchor_score",
+          "source"
+        ]
+      },
+      "object_phase": {
+        "path": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/object_phase.csv",
+        "exists": false,
+        "columns": []
+      }
+    },
+    "baseline_path_status": {
+      "final_pose_csv": {
+        "path": "samples_known_object/01_basketball/results/pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv",
+        "exists": true,
+        "is_dir": false
+      },
+      "init_pose_csv": {
+        "path": "samples_known_object/01_basketball/results/pose6d_object_proxy_da3_init/object_pose6d_sharedcam_trajectory.csv",
+        "exists": true,
+        "is_dir": false
+      },
+      "object_observations_csv": {
+        "path": "samples_known_object/01_basketball/results/object_observations/object_observations.csv",
+        "exists": true,
+        "is_dir": false
+      },
+      "object_proxy_observations_csv": {
+        "path": "samples_known_object/01_basketball/results/object_proxy_observations/object_proxy_observations.csv",
+        "exists": true,
+        "is_dir": false
+      },
+      "contact_candidates_csv": {
+        "path": "samples_known_object/01_basketball/results/contact_candidates_object_proxy/anchor_contact_candidates.csv",
+        "exists": true,
+        "is_dir": false
+      },
+      "contact_state_csv": {
+        "path": "samples_known_object/01_basketball/results/contact_candidates_object_proxy/contact_state_frames.csv",
+        "exists": true,
+        "is_dir": false
+      },
+      "render_dir": {
+        "path": "samples_known_object/01_basketball/results/renders/pose6d_object_proxy_anchor_refined",
+        "exists": false,
+        "is_dir": false
+      }
+    },
+    "migration_note": "v1 keeps solved baselines only for regression comparison and explicit provenance snapshots. baseline_reader components would copy solved artifacts, but current four case profiles should not use any. external_runner_on_generic_inputs components would run old stable scripts on generic stage files, but current four case profiles should not use any. generic_solver_external_env components are generic-owned code but intentionally run in a non-base conda env for dependency isolation. clean_from_verified_intermediate components rebuild outputs from trusted intermediate artifacts. preserved_provenance_snapshot components use explicit generic_pipeline_v1/provenance_snapshots files where the historical upstream chain is no longer fully present. clean_from_raw_or_stage_inputs components do not declare solved-artifact dependencies. Each step should be migrated leftward and validated with stage6_compare before replacing the old path."
+  },
+  "migration_audit_csv": "samples_known_object/01_basketball/results/clean_ablation_full_audio_vlm_llm/migration_audit.csv"
+}

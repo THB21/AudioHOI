@@ -1,0 +1,37 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+football,stage-1,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+football,stage-1,llm_csv:stage_contract,reject,report_unclear_csv_audit,0,0,0,required artifact 'stage0_inputs_manifest.json' missing
+football,stage0,artifact:stage0_inputs_manifest,pass,keep_outputs,0,1,0,stage0_inputs_manifest exists
+football,stage0,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+football,stage0,llm_csv:stage0_inputs,pass,keep_outputs,0,1,0,stage0 input manifest exists
+football,stage1,artifact:object_observations,pass,keep_outputs,0,1,0,object_observations exists
+football,stage1,artifact:object_correspondence,pass,keep_outputs,0,1,0,object_correspondence exists
+football,stage1,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+football,stage1,llm_csv:observation_contract,pass,keep_outputs,0,1,0,object_observations and object_correspondence rows exist with frame-aligned evidence (242 rows each)
+football,stage2,artifact:contact_candidates,pass,keep_outputs,0,1,0,contact_candidates exists
+football,stage2,artifact:anchor_state,pass,keep_outputs,0,1,0,anchor_state exists
+football,stage2,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+football,stage2,llm_csv:contact_anchor_contract,pass,keep_outputs,0,1,0,contact_candidates and anchor_state expose observed/persistent/update/pose-anchor fields consistently
+football,stage3,artifact:object_pose_init,pass,keep_outputs,0,1,0,object_pose_init exists
+football,stage3,se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+football,stage3,vlm_gate,unclear,rerun_stage_with_lower_trust,1,1,0,VLM marked 3 frame/query rows unclear
+football,stage3,llm_csv:se3_schema,pass,keep_outputs,0,1,0,All frames in object_pose_init.csv contain se3_schema=1
+football,stage4,artifact:object_pose,pass,keep_outputs,0,1,0,object_pose exists
+football,stage4,artifact:motion_regime,pass,keep_outputs,0,1,0,motion_regime exists
+football,stage4,artifact:optimizer_decisions,pass,keep_outputs,0,1,0,optimizer_decisions exists
+football,stage4,artifact:physical_smooth_residuals,pass,keep_outputs,0,1,0,physical_smooth_residuals exists
+football,stage4,artifact:pose_jump_audit,pass,keep_outputs,0,1,0,pose_jump_audit exists
+football,stage4,pose_jump_audit,unclear,reweight_and_rerun_optimizer,1,1,1,1 spike rows require optimizer reweight/recheck
+football,stage4,vlm_gate,unclear,rerun_stage_with_lower_trust,1,1,1,VLM marked 10 frame/query rows unclear
+football,stage4,llm_csv:sequence_optimizer_contract,pass,keep_outputs,0,1,0,"All required artifacts (residual, regime, jump, decision) exist and optimizer enabled"
+football,stage4,llm_csv:pose_jump_audit,unclear,reweight_and_rerun_optimizer,1,1,1,1 visual spike row detected; requires feedback reweight and rerun
+football,stage5,artifact:render_manifest,pass,keep_outputs,0,1,0,render_manifest exists
+football,stage5,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+football,stage5,llm_csv:render_manifest,pass,keep_outputs,0,1,0,render manifest exists and is accessible
+football,stage5,llm_csv:render_temporal_consistency,unclear,report_unclear_csv_audit,0,1,0,no effective temporal VLM gate rows to compare against machine spike metrics
+football,stage6,vlm_gate,unclear,rerun_stage_with_lower_trust,0,1,0,VLM marked 3 frame/query rows unclear
+football,stage6,llm_csv:stage_contract,pass,keep_outputs,0,1,0,required artifacts present and stage contract satisfied
+football,stage6.5,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+football,stage6.5,llm_csv:stage_contract,pass,keep_outputs,0,1,0,"required artifacts present, no stage-specific CSV audit rule violated"
+football,stage7,vlm_gate,unclear,rerun_stage_with_lower_trust,0,1,0,VLM marked 3 frame/query rows unclear
+football,stage7,llm_csv:stage_contract,pass,keep_outputs,0,1,0,required artifacts present and stage contract satisfied

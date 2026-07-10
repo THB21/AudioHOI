@@ -18,9 +18,10 @@ class MethodVariant:
 
 
 DEFAULT_VARIANTS = [
-    MethodVariant("full_audio_vlm_llm", "benchmark_vlm_qwen", [], audio=True, vlm="qwen", llm="mistral"),
-    MethodVariant("audio_enabled", "benchmark_audio_enabled", [], audio=True, vlm="qwen", llm="mistral"),
-    MethodVariant("no_audio", "benchmark_no_audio", ["no_audio"], audio=False, vlm="qwen", llm="mistral"),
+    MethodVariant("full_audio_vlm_llm", "clean_ablation_full_audio_vlm_llm", [], audio=True, vlm="qwen", llm="mistral"),
+    MethodVariant("no_audio", "clean_ablation_no_audio", ["disable_audio_events"], audio=False, vlm="qwen", llm="mistral"),
+    MethodVariant("no_vlm_llm", "clean_ablation_no_vlm_llm", ["no_vlm", "no_llm"], audio=True, vlm="none", llm="none"),
+    MethodVariant("audio_enabled", "benchmark_audio_enabled", [], audio=True, vlm="qwen", llm="mistral", required=False),
     MethodVariant("no_vlm", "benchmark_baseline_no_vlm", ["no_vlm"], audio=True, vlm="none", llm="mistral"),
     MethodVariant("no_llm", "benchmark_no_llm", ["no_llm"], audio=True, vlm="qwen", llm="none"),
     MethodVariant("no_contact_anchor", "benchmark_no_anchor", ["no_contact_anchor"], audio=True, vlm="qwen", llm="mistral"),
@@ -29,11 +30,8 @@ DEFAULT_VARIANTS = [
 
 MATERIALIZED_DEFAULT_METHODS = [
     "full_audio_vlm_llm",
-    "audio_enabled",
     "no_audio",
-    "no_vlm",
-    "no_llm",
-    "no_contact_anchor",
+    "no_vlm_llm",
 ]
 
 MATERIALIZED_DEFAULT_VARIANTS = [

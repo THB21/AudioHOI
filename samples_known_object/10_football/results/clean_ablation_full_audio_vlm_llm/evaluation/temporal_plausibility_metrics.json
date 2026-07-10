@@ -1,0 +1,22 @@
+{
+  "temporal_metric_status": "ok",
+  "translation_spike_count": 12,
+  "rotation_spike_count": 0,
+  "event_aligned_spike_count": 10,
+  "non_event_spike_count": 2,
+  "translation_spike_threshold": 0.05278519996791101,
+  "rotation_spike_threshold_rad": 0.05,
+  "translation_acceleration_max": 0.13194136440774795,
+  "rotation_acceleration_max": 0.0,
+  "high_speed_event_windows": 19,
+  "high_speed_recall": 0.9473684210526315,
+  "oversmooth_rate": 0.05263157894736842,
+  "static_tail_drift_m": 0.14172773847768824,
+  "temporal_failure_intervals": "[{\"start\":63,\"end\":63},{\"start\":84,\"end\":84}]",
+  "event_frame_count": 19,
+  "event_window_frame_count": 125,
+  "temporal_accel_at_events": 0.014423512296246319,
+  "temporal_accel_in_flight": 0.005087644081799432,
+  "source_pose": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/object_pose.csv",
+  "source_events": "samples_known_object/10_football/results/human_audio_semantics/contact_records.csv"
+}

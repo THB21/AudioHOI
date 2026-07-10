@@ -1,0 +1,24 @@
+{
+  "backend": "proxy_sphere",
+  "outputs": {
+    "object_only/overlay.mp4": "samples_known_object/01_basketball/results/renders/clean_ablation_no_vlm_llm/object_only/overlay.mp4",
+    "object_only/camera3d.mp4": "samples_known_object/01_basketball/results/renders/clean_ablation_no_vlm_llm/object_only/camera3d.mp4",
+    "object_only/side_yz.mp4": "samples_known_object/01_basketball/results/renders/clean_ablation_no_vlm_llm/object_only/side_yz.mp4",
+    "with_human/overlay.mp4": "samples_known_object/01_basketball/results/renders/clean_ablation_no_vlm_llm/with_human/overlay.mp4",
+    "with_human/camera3d.mp4": "samples_known_object/01_basketball/results/renders/clean_ablation_no_vlm_llm/with_human/camera3d.mp4",
+    "with_human/side_yz.mp4": "samples_known_object/01_basketball/results/renders/clean_ablation_no_vlm_llm/with_human/side_yz.mp4"
+  },
+  "required": [
+    "object_only/overlay.mp4",
+    "object_only/camera3d.mp4",
+    "object_only/side_yz.mp4",
+    "with_human/overlay.mp4",
+    "with_human/camera3d.mp4",
+    "with_human/side_yz.mp4"
+  ],
+  "policy": "rerendered with generic proxy_sphere_scene using generic object_pose.csv and automatic h264 finalize",
+  "renderer": {
+    "python": "/home/yang/miniconda3/envs/audiohoi/bin/python",
+    "script": "scripts/shared/generic_contact_pipeline/components/render/scenes/proxy_sphere_scene.py"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "case_name": "basketball",
+  "stage": "stage7",
+  "llm_mode": "none",
+  "disabled": true,
+  "note": "LLM stage audit is disabled for this run; only hard artifact/VLM gates are active.",
+  "queries": [
+    {
+      "case_name": "basketball",
+      "stage": "stage7",
+      "object_family": "dynamic_ball",
+      "role": "CSV/metrics LLM audit gate; labels only, no coordinates or pose generation",
+      "query_id": "stage_contract",
+      "question": "Do this stage's machine metrics and gate artifacts allow the pipeline to continue?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "stage_inconsistent",
+        "unclear"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+basketball,stage3,artifact:object_pose_init,pass,keep_outputs,0,1,0,object_pose_init exists
+basketball,stage3,se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+basketball,stage3,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate

@@ -1,0 +1,15 @@
+{
+  "rows": 36,
+  "labels": [
+    "aligned",
+    "ball_center",
+    "hand_on_ball_boundary",
+    "no_change",
+    "normal",
+    "pass",
+    "stable",
+    "unclear",
+    "visual_spike",
+    "yes"
+  ]
+}

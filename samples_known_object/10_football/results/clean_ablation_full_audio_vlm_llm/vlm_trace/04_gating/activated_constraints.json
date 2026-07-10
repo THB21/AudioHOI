@@ -1,0 +1,119 @@
+{
+  "target_mask_check": {
+    "frames": [
+      "1"
+    ],
+    "pass_gates": [
+      "pass"
+    ],
+    "active_count": 1
+  },
+  "keypart_identity_check": {
+    "frames": [
+      "1",
+      "122",
+      "242"
+    ],
+    "pass_gates": [
+      "pass"
+    ],
+    "active_count": 3
+  },
+  "track_stability_check": {
+    "frames": [
+      "1",
+      "122",
+      "242"
+    ],
+    "pass_gates": [
+      "pass"
+    ],
+    "active_count": 3
+  },
+  "contact_relation_check": {
+    "frames": [
+      "2",
+      "46",
+      "242",
+      "1",
+      "122"
+    ],
+    "pass_gates": [
+      "pass"
+    ],
+    "active_count": 5
+  },
+  "overlay_alignment_check": {
+    "frames": [
+      "1",
+      "122",
+      "242"
+    ],
+    "pass_gates": [
+      "unclear"
+    ],
+    "active_count": 3
+  },
+  "anchor_update_check": {
+    "frames": [
+      "2",
+      "46",
+      "242",
+      "1",
+      "122"
+    ],
+    "pass_gates": [
+      "unclear"
+    ],
+    "active_count": 5
+  },
+  "temporal_motion_check": {
+    "frames": [
+      "2",
+      "46",
+      "242",
+      "1",
+      "122"
+    ],
+    "pass_gates": [
+      "unclear"
+    ],
+    "active_count": 5
+  },
+  "post_render_sanity_check": {
+    "frames": [
+      "1",
+      "122",
+      "242"
+    ],
+    "pass_gates": [
+      "pass"
+    ],
+    "active_count": 3
+  },
+  "baseline_regression_check": {
+    "frames": [
+      "1",
+      "122",
+      "242"
+    ],
+    "pass_gates": [
+      "unclear"
+    ],
+    "active_count": 3
+  },
+  "loss_diagnostic_check": {
+    "frames": [
+      "129",
+      "130",
+      "127",
+      "1",
+      "122"
+    ],
+    "pass_gates": [
+      "reject",
+      "unclear"
+    ],
+    "active_count": 5
+  }
+}

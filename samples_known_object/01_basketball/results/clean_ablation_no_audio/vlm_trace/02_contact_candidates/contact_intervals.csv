@@ -1,0 +1,16 @@
+start_frame,end_frame,candidate_type,confidence,source
+10,10,floor,0.0,contact_candidates
+22,22,floor,0.0,contact_candidates
+36,36,floor,0.0,contact_candidates
+50,50,floor,0.0,contact_candidates
+63,63,floor,0.0,contact_candidates
+76,76,floor,0.0,contact_candidates
+87,87,floor,0.0,contact_candidates
+99,99,floor,0.0,contact_candidates
+112,112,floor,0.0,contact_candidates
+125,125,floor,0.0,contact_candidates
+137,137,floor,0.0,contact_candidates
+148,148,floor,0.0,contact_candidates
+160,160,floor,0.0,contact_candidates
+173,173,floor,0.0,contact_candidates
+186,186,floor,0.0,contact_candidates

@@ -1,0 +1,22 @@
+{
+  "temporal_metric_status": "ok",
+  "translation_spike_count": 0,
+  "rotation_spike_count": 9,
+  "event_aligned_spike_count": 0,
+  "non_event_spike_count": 9,
+  "translation_spike_threshold": 0.02,
+  "rotation_spike_threshold_rad": 0.05,
+  "translation_acceleration_max": 0.0076434118149754145,
+  "rotation_acceleration_max": 0.7590196853945959,
+  "high_speed_event_windows": 0,
+  "high_speed_recall": null,
+  "oversmooth_rate": null,
+  "static_tail_drift_m": 0.0011902810592460925,
+  "temporal_failure_intervals": "[{\"start\":60,\"end\":63},{\"start\":82,\"end\":82},{\"start\":89,\"end\":89},{\"start\":101,\"end\":103}]",
+  "event_frame_count": 0,
+  "event_window_frame_count": 0,
+  "temporal_accel_at_events": null,
+  "temporal_accel_in_flight": 0.0004771956566239425,
+  "source_pose": "samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+  "source_events": "missing_audio_contact_csv"
+}

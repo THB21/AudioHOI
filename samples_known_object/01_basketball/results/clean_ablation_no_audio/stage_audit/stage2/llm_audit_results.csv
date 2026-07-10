@@ -1,0 +1,2 @@
+query_id,label,blocking,rerun_stage,residual_reweight,short_reason,llm_reviewed
+contact_anchor_contract,pass,0,0,0,contact_candidates and anchor_state expose observed/persistent/update/pose-anchor fields consistently,1

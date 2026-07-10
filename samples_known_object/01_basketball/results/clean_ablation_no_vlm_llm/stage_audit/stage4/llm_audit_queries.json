@@ -1,0 +1,37 @@
+{
+  "case_name": "basketball",
+  "stage": "stage4",
+  "llm_mode": "none",
+  "disabled": true,
+  "note": "LLM stage audit is disabled for this run; only hard artifact/VLM gates are active.",
+  "queries": [
+    {
+      "case_name": "basketball",
+      "stage": "stage4",
+      "object_family": "dynamic_ball",
+      "role": "CSV/metrics LLM audit gate; labels only, no coordinates or pose generation",
+      "query_id": "sequence_optimizer_contract",
+      "question": "Did the fixed sequence SE3 optimizer run and emit residual, regime, jump, and decision artifacts?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "stage_inconsistent",
+        "unclear"
+      ]
+    },
+    {
+      "case_name": "basketball",
+      "stage": "stage4",
+      "object_family": "dynamic_ball",
+      "role": "CSV/metrics LLM audit gate; labels only, no coordinates or pose generation",
+      "query_id": "pose_jump_audit",
+      "question": "Do pose/contact/smoothness spike metrics require reweighting and optimizer rerun?",
+      "allowed_labels": [
+        "pass",
+        "rotation_jump",
+        "static_drift",
+        "unclear"
+      ]
+    }
+  ]
+}

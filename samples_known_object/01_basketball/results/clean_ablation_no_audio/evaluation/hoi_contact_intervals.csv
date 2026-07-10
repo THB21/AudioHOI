@@ -1,0 +1,16 @@
+human_part,human_side,object_part,start_frame,end_frame,n_frames,mean_contact_confidence,mean_surface_gap_m,mean_anchor_drift,source
+floor,,floor_support,10,10,1,0.871438,0.008248,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,22,22,1,0.573102,0.012039,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,36,36,1,0.81015,0.069242,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,50,50,1,0.584193,0.116312,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,63,63,1,0.124645,0.093592,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,76,76,1,0.570351,0.079477,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,87,87,1,0.704345,0.03782,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,99,99,1,0.579463,0.031334,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,112,112,1,0.204214,0.271235,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,125,125,1,0.343017,0.098557,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,137,137,1,0.681514,0.082445,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,148,148,1,0.30406,0.14735,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,160,160,1,0.413224,0.094263,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,173,173,1,0.821046,0.015339,,hand_floor_from_anchor_floor_candidates
+floor,,floor_support,186,186,1,0.251229,0.201714,,hand_floor_from_anchor_floor_candidates

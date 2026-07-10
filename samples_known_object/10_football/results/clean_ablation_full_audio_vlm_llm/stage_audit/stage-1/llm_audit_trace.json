@@ -1,0 +1,25 @@
+{
+  "provider": {
+    "name": "mistral_api",
+    "kind": "mistral_chat_completions",
+    "api_key_env": "MISTRAL_API_KEY",
+    "api_key_present": true,
+    "model_id": "mistral-small-latest",
+    "base_url": "https://api.mistral.ai/v1",
+    "temperature": 0.0,
+    "max_new_tokens": 900,
+    "timeout_seconds": 120
+  },
+  "used": true,
+  "error": "",
+  "response_id": "50610a33d1894b0898a9f07028c5d59c",
+  "usage": {
+    "prompt_tokens": 430,
+    "total_tokens": 492,
+    "completion_tokens": 62,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "raw_text": "{\"results\": [{\"query_id\": \"stage_contract\", \"label\": \"schema_missing\", \"blocking\": true, \"rerun_stage\": false, \"residual_reweight\": false, \"short_reason\": \"required artifact 'stage0_inputs_manifest.json' missing\"}]}"
+}

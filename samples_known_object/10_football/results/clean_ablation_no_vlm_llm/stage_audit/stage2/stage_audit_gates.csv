@@ -1,0 +1,4 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+football,stage2,artifact:contact_candidates,pass,keep_outputs,0,1,0,contact_candidates exists
+football,stage2,artifact:anchor_state,pass,keep_outputs,0,1,0,anchor_state exists
+football,stage2,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate

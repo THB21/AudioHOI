@@ -1,0 +1,15 @@
+{
+  "stage_label": "stage4_anchor_depth_final",
+  "path": "samples_known_object/10_football/results/clean_ablation_full_audio_vlm_llm/loss_analysis/ball_stage4_anchor_depth_residuals.csv",
+  "rows": 242,
+  "terms": {
+    "E_total": 2469.5526219599997,
+    "E_visual": 0.0,
+    "E_depth": 1866.591798228,
+    "E_support": 0.0,
+    "E_contact": 568.5787719950001,
+    "E_smooth": 0.08114823300000004,
+    "E_reg": 34.300903489000014
+  },
+  "note": "Optimizer-style normalized ball residuals mirroring the radius-free center/support/contact/smooth/reg construction; report only, does not alter pose."
+}

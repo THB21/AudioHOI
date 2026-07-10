@@ -1,0 +1,25 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+basketball,stage-1,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+basketball,stage0,artifact:stage0_inputs_manifest,pass,keep_outputs,0,1,0,stage0_inputs_manifest exists
+basketball,stage0,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+basketball,stage1,artifact:object_observations,pass,keep_outputs,0,1,0,object_observations exists
+basketball,stage1,artifact:object_correspondence,pass,keep_outputs,0,1,0,object_correspondence exists
+basketball,stage1,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+basketball,stage2,artifact:contact_candidates,pass,keep_outputs,0,1,0,contact_candidates exists
+basketball,stage2,artifact:anchor_state,pass,keep_outputs,0,1,0,anchor_state exists
+basketball,stage2,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+basketball,stage3,artifact:object_pose_init,pass,keep_outputs,0,1,0,object_pose_init exists
+basketball,stage3,se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+basketball,stage3,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+basketball,stage4,artifact:object_pose,pass,keep_outputs,0,1,0,object_pose exists
+basketball,stage4,artifact:motion_regime,pass,keep_outputs,0,1,0,motion_regime exists
+basketball,stage4,artifact:optimizer_decisions,pass,keep_outputs,0,1,0,optimizer_decisions exists
+basketball,stage4,artifact:physical_smooth_residuals,pass,keep_outputs,0,1,0,physical_smooth_residuals exists
+basketball,stage4,artifact:pose_jump_audit,pass,keep_outputs,0,1,0,pose_jump_audit exists
+basketball,stage4,pose_jump_audit,pass,keep_outputs,0,1,0,no pose/contact/smoothness spike rows
+basketball,stage4,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+basketball,stage5,artifact:render_manifest,pass,keep_outputs,0,1,0,render_manifest exists
+basketball,stage5,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+basketball,stage6,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+basketball,stage6.5,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+basketball,stage7,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate

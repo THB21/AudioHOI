@@ -1,0 +1,11 @@
+{
+  "rows": 6,
+  "delta_rows": 4,
+  "table": "final_result/evaluation/ablation/ablation_table.csv",
+  "delta_table": "final_result/evaluation/ablation/ablation_delta_table.csv",
+  "registry_table": "final_result/evaluation/ablation/ablation_method_registry.csv",
+  "report": "final_result/evaluation/ablation/ablation_report.md",
+  "missing_results": 0,
+  "identical_pose_rows": 0,
+  "identical_metric_rows": 0
+}

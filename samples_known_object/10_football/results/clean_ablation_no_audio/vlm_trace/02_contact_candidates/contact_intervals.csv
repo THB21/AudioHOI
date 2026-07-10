@@ -1,0 +1,15 @@
+start_frame,end_frame,candidate_type,confidence,source
+2,4,floor,0.0,contact_candidates
+12,13,floor,0.0,contact_candidates
+15,39,floor,0.0,contact_candidates
+43,53,floor,0.0,contact_candidates
+86,87,foot,0.0,contact_candidates
+103,104,foot,0.0,contact_candidates
+125,125,foot,0.0,contact_candidates
+145,146,foot,0.0,contact_candidates
+177,177,foot,0.0,contact_candidates
+206,206,floor,0.0,contact_candidates
+219,219,floor,0.0,contact_candidates
+226,226,floor,0.0,contact_candidates
+230,231,floor,0.0,contact_candidates
+234,242,floor,0.0,contact_candidates

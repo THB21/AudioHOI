@@ -1,0 +1,12 @@
+{
+  "rows": 36,
+  "labels": [
+    "ball_center",
+    "foot_kick_touch_ball_boundary",
+    "normal",
+    "pass",
+    "stable",
+    "unclear",
+    "yes"
+  ]
+}

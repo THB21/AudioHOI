@@ -1,0 +1,16 @@
+frame,time,human_part,human_side,object_part,object_local_id,expected,observed,persistent,rel_static,min_distance_m,surface_gap_m,penetration_depth_m,contact_confidence,contact_state,anchor_update_allowed,pose_anchor_allowed,stable_local_x,stable_local_y,stable_local_z,stable_local_s,observed_local_x,observed_local_y,observed_local_z,observed_local_s,contact_u,contact_v,contact_depth_offset_m,local_s_drift,source
+10,0.375000,floor,,floor_support,boundary_000,1,1,0,0,0.008248,0.008248,,0.871438,observed_anchor,1,1,,,,,,,,,547.000,558.000,0.008248,,hand_floor_from_anchor_floor_candidates
+22,0.875000,floor,,floor_support,boundary_000,1,1,1,0,0.012039,0.012039,,0.573102,persistent_anchor,1,1,,,,,,,,,534.000,563.000,0.012039,,hand_floor_from_anchor_floor_candidates
+36,1.458333,floor,,floor_support,boundary_000,1,1,1,0,0.069242,0.069242,,0.81015,persistent_anchor,1,1,,,,,,,,,539.000,574.000,0.069242,,hand_floor_from_anchor_floor_candidates
+50,2.041667,floor,,floor_support,boundary_000,1,1,1,0,0.116312,0.116312,,0.584193,persistent_anchor,1,1,,,,,,,,,539.000,586.000,0.116312,,hand_floor_from_anchor_floor_candidates
+63,2.583333,floor,,floor_support,boundary_000,1,1,1,0,0.093592,0.093592,,0.124645,persistent_anchor,1,1,,,,,,,,,610.000,585.000,0.093592,,hand_floor_from_anchor_floor_candidates
+76,3.125000,floor,,floor_support,boundary_000,1,1,1,0,0.079477,0.079477,,0.570351,persistent_anchor,1,1,,,,,,,,,556.000,567.000,0.079477,,hand_floor_from_anchor_floor_candidates
+87,3.583333,floor,,floor_support,boundary_063,1,1,1,0,0.03782,0.03782,,0.704345,persistent_anchor,1,1,,,,,,,,,497.000,561.000,0.037820,,hand_floor_from_anchor_floor_candidates
+99,4.083333,floor,,floor_support,boundary_000,1,1,1,0,0.031334,0.031334,,0.579463,persistent_anchor,1,1,,,,,,,,,527.000,566.000,0.031334,,hand_floor_from_anchor_floor_candidates
+112,4.625000,floor,,floor_support,boundary_000,1,1,1,0,0.271235,0.271235,,0.204214,persistent_anchor,1,1,,,,,,,,,590.000,586.000,0.271235,,hand_floor_from_anchor_floor_candidates
+125,5.166667,floor,,floor_support,boundary_062,1,1,1,0,0.098557,0.098557,,0.343017,persistent_anchor,1,1,,,,,,,,,569.000,580.000,0.098557,,hand_floor_from_anchor_floor_candidates
+137,5.666667,floor,,floor_support,boundary_000,1,1,1,0,0.082445,0.082445,,0.681514,persistent_anchor,1,1,,,,,,,,,511.000,563.000,0.082445,,hand_floor_from_anchor_floor_candidates
+148,6.125000,floor,,floor_support,boundary_000,1,1,1,0,0.14735,0.14735,,0.30406,persistent_anchor,1,1,,,,,,,,,580.000,584.000,0.147350,,hand_floor_from_anchor_floor_candidates
+160,6.625000,floor,,floor_support,boundary_062,1,1,1,0,0.094263,0.094263,,0.413224,persistent_anchor,1,1,,,,,,,,,568.000,587.000,0.094263,,hand_floor_from_anchor_floor_candidates
+173,7.166667,floor,,floor_support,boundary_000,1,1,1,0,0.015339,0.015339,,0.821046,persistent_anchor,1,1,,,,,,,,,501.000,568.000,0.015339,,hand_floor_from_anchor_floor_candidates
+186,7.708333,floor,,floor_support,boundary_063,1,1,1,0,0.201714,0.201714,,0.251229,persistent_anchor,1,1,,,,,,,,,581.000,573.000,0.201714,,hand_floor_from_anchor_floor_candidates

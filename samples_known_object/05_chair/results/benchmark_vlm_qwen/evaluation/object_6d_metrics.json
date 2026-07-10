@@ -11,6 +11,6 @@
   "rotation_velocity_max": 0.014349423960705472,
   "rotation_acceleration_mean": 0.00033060104855595806,
   "jump_count": 0,
-  "static_tail_drift_m": 0.0,
+  "static_tail_drift_m": null,
   "geometry_spread_m": null
 }

@@ -28,10 +28,24 @@ from scripts.shared.generic_contact_pipeline.core.evaluation.final_hoi.summary_w
     run_unified_final_evaluation,
 )
 from scripts.shared.generic_contact_pipeline.core.evaluation.final_hoi.utils import normalize_artifact_value, repo_rel
+from scripts.shared.generic_contact_pipeline.core.evaluation.final_hoi.final_result_sources import (
+    load_final_result_profiles,
+    validate_final_result_profile,
+)
 from scripts.shared.generic_contact_pipeline.tools.run_ablation_evaluation import DEFAULT_METHODS
 
 
 class FinalHoiEvaluationTest(unittest.TestCase):
+    def test_canonical_final_result_sources_are_frame_aligned_and_exclude_unpaired_mug(self) -> None:
+        profiles = load_final_result_profiles()
+
+        self.assertEqual([profile.case_name for profile in profiles], ["basketball", "football"])
+        validations = [validate_final_result_profile(profile) for profile in profiles]
+        self.assertTrue(all(row["hard_metrics_ready"] for row in validations))
+        self.assertTrue(all(row["gate_trace_ready"] for row in validations))
+        self.assertTrue(all(row["final_pose_frame_aligned"] for row in validations))
+        self.assertTrue(all(row["source_pose_frame_aligned"] for row in validations))
+
     def test_final_hoi_artifact_paths_are_repo_relative(self) -> None:
         repo_root = Path(__file__).resolve().parents[1]
         absolute = repo_root / "samples_known_object" / "11_stick" / "results" / "benchmark_vlm_qwen" / "object_pose.csv"
@@ -74,6 +88,16 @@ class FinalHoiEvaluationTest(unittest.TestCase):
                 {"frame": "1", "time": "0.0", "tx": "0", "ty": "0", "tz": "4", "qw": "1", "qx": "0", "qy": "0", "qz": "0", "length_m": "1.86"},
                 {"frame": "2", "time": "0.1", "tx": "0.1", "ty": "0", "tz": "4", "qw": "0.999", "qx": "0", "qy": "0.045", "qz": "0", "length_m": "1.86"},
                 {"frame": "3", "time": "0.2", "tx": "0.2", "ty": "0", "tz": "4", "qw": "0.996", "qx": "0", "qy": "0.090", "qz": "0", "length_m": "1.86"},
+                {"frame": "4", "time": "0.3", "tx": "0.22", "ty": "0", "tz": "4", "qw": "0.991", "qx": "0", "qy": "0.134", "qz": "0", "length_m": "1.86"},
+            ],
+        )
+        write_csv(
+            paths["object_pose_pre_smooth"],
+            [
+                {"frame": "1", "time": "0.0", "tx": "0.02", "ty": "0", "tz": "4", "qw": "1", "qx": "0", "qy": "0", "qz": "0"},
+                {"frame": "2", "time": "0.1", "tx": "0.13", "ty": "0", "tz": "4", "qw": "0.999", "qx": "0", "qy": "0.045", "qz": "0"},
+                {"frame": "3", "time": "0.2", "tx": "0.24", "ty": "0", "tz": "4", "qw": "0.996", "qx": "0", "qy": "0.090", "qz": "0"},
+                {"frame": "4", "time": "0.3", "tx": "0.25", "ty": "0", "tz": "4", "qw": "0.991", "qx": "0", "qy": "0.134", "qz": "0"},
             ],
         )
         write_csv(
@@ -92,8 +116,46 @@ class FinalHoiEvaluationTest(unittest.TestCase):
             ],
         )
         write_csv(paths["pose_jump_audit"], [{"frame": "2", "smoothness_spike": "1", "static_tail_drift_m": "0.03"}])
-        write_csv(paths["physical_smooth_residuals"], [{"frame": "1", "velocity_norm": "0.1", "acceleration_norm": "0.2"}])
-        write_csv(paths["anchor_state"], [{"frame": "1", "anchor_drift_m": "0.02"}, {"frame": "2", "anchor_drift_m": "0.04"}])
+        write_csv(paths["physical_smooth_residuals"], [{"frame": "1", "velocity_norm": "0.1", "acceleration_norm": "0.2", "anchor_residual_enabled": "1"}])
+        write_csv(
+            paths["anchor_state"],
+            [
+                {"frame": "1", "anchor_drift_m": "0.02", "anchor_update_allowed": "1", "pose_anchor_allowed": "1"},
+                {"frame": "2", "anchor_drift_m": "0.04", "anchor_update_allowed": "0", "pose_anchor_allowed": "1"},
+            ],
+        )
+        write_csv(
+            paths["optimizer_decisions"],
+            [
+                {
+                    "frame": "1",
+                    "visual_residual_enabled": "1",
+                    "contact_anchor_residual_enabled": "1",
+                    "velocity_residual_enabled": "1",
+                    "acceleration_residual_enabled": "1",
+                    "static_freeze_residual_enabled": "1",
+                    "boundary_freeze_interpolation_enabled": "0",
+                    "static_tail_freeze_enabled": "0",
+                    "feedback_reoptimized": "1",
+                    "feedback_reweight_reason": "stage_audit_residual_reweight",
+                }
+            ],
+        )
+        write_csv(
+            profile.result_dir / "vlm_trace" / "04_gating" / "gate_timeline.csv",
+            [
+                {"frame": "1", "stage": "stage2", "constraint": "contact_anchor", "active": "1", "source_gate": "pass"},
+                {"frame": "2", "stage": "stage4", "constraint": "temporal_smooth", "active": "1", "source_gate": "unclear"},
+            ],
+        )
+        write_csv(
+            paths["stage_audit_dir"] / "stage_audit_gates.csv",
+            [{"case_name": profile.case_name, "stage": "stage4", "check_type": "optimizer", "pass_gate": "pass", "residual_reweight": "1"}],
+        )
+        write_csv(
+            profile.sample_dir / "results" / "human_audio_semantics" / "contact_records.csv",
+            [{"frame": "2", "refined_frame": "2", "time": "0.1", "source": "audio", "relevant": "1"}],
+        )
         hoi_dir = profile.sample_dir / "results" / "hoi_eval"
         hoi_dir.mkdir(parents=True, exist_ok=True)
         (hoi_dir / "hoi_interaction_metrics.json").write_text(
@@ -131,6 +193,8 @@ class FinalHoiEvaluationTest(unittest.TestCase):
             self.assertTrue((eval_dir / "object_6d_metrics.json").exists())
             self.assertTrue((eval_dir / "overlay_metrics.json").exists())
             self.assertTrue((eval_dir / "penetration_floating_metrics.json").exists())
+            self.assertTrue((eval_dir / "temporal_plausibility_metrics.json").exists())
+            self.assertTrue((eval_dir / "gate_impact_metrics.json").exists())
             self.assertEqual(summary["case"], "stick")
             self.assertTrue(summary["metrics"]["se3_valid"])
             self.assertAlmostEqual(summary["metrics"]["overlay_hard_score"], 0.8)
@@ -143,8 +207,14 @@ class FinalHoiEvaluationTest(unittest.TestCase):
             self.assertIn("tradeoff_score", rows[0])
             self.assertIn("contact_proxy", rows[0])
             self.assertIn("contact_proxy_source", rows[0])
+            self.assertIn("translation_spike_count", rows[0])
+            self.assertIn("non_event_spike_count", rows[0])
+            self.assertIn("gate_active_count", rows[0])
+            self.assertIn("optimizer_reweighted_frames", rows[0])
             self.assertAlmostEqual(float(rows[0]["contact_proxy"]), 0.7866278610665535)
             self.assertEqual(rows[0]["contact_proxy_source"], "contact_gap_mm_exp_decay_sigma_50")
+            self.assertEqual(rows[0]["gate_active_count"], "2")
+            self.assertEqual(rows[0]["optimizer_reweighted_frames"], "1")
             manifest = json.loads((profile.result_dir / "pipeline_manifest.json").read_text())
             self.assertIn("final_hoi_evaluation", manifest)
             self.assertEqual(
@@ -155,6 +225,8 @@ class FinalHoiEvaluationTest(unittest.TestCase):
                 manifest["final_hoi_evaluation"]["pipeline_qa_summary_csv"],
                 str(profile.result_dir / "vlm_trace" / "06_evaluation" / "pipeline_qa_summary.csv"),
             )
+            self.assertIn("temporal_plausibility_metrics_json", manifest["final_hoi_evaluation"])
+            self.assertIn("gate_impact_metrics_json", manifest["final_hoi_evaluation"])
 
     def test_unified_final_evaluation_exports_vlm_llm_qa_artifacts(self) -> None:
         with TemporaryDirectory() as tmp:
@@ -269,9 +341,12 @@ class FinalHoiEvaluationTest(unittest.TestCase):
     def test_ablation_registry_defaults_to_materialized_benchmark_results(self) -> None:
         by_method = {variant.method: variant for variant in DEFAULT_VARIANTS}
 
-        self.assertEqual(by_method["full_audio_vlm_llm"].result_name, "benchmark_vlm_qwen")
-        self.assertEqual(by_method["no_vlm"].result_name, "benchmark_baseline_no_vlm")
-        self.assertEqual(by_method["no_audio"].result_name, "benchmark_no_audio")
+        self.assertEqual(by_method["full_audio_vlm_llm"].result_name, "clean_ablation_full_audio_vlm_llm")
+        self.assertEqual(by_method["no_vlm_llm"].result_name, "clean_ablation_no_vlm_llm")
+        self.assertEqual(by_method["no_vlm_llm"].vlm, "none")
+        self.assertEqual(by_method["no_vlm_llm"].llm, "none")
+        self.assertEqual(by_method["no_audio"].result_name, "clean_ablation_no_audio")
+        self.assertEqual(by_method["no_audio"].ablation_flags, ["disable_audio_events"])
         self.assertEqual(by_method["no_llm"].result_name, "benchmark_no_llm")
         self.assertEqual(by_method["no_contact_anchor"].result_name, "benchmark_no_anchor")
         self.assertEqual(by_method["audio_enabled"].result_name, "benchmark_audio_enabled")
@@ -279,7 +354,7 @@ class FinalHoiEvaluationTest(unittest.TestCase):
     def test_ablation_cli_default_methods_are_materialized_required_variants(self) -> None:
         self.assertEqual(
             DEFAULT_METHODS,
-            ["full_audio_vlm_llm", "audio_enabled", "no_audio", "no_vlm", "no_llm", "no_contact_anchor"],
+            ["full_audio_vlm_llm", "no_audio", "no_vlm_llm"],
         )
         self.assertEqual([variant.method for variant in MATERIALIZED_DEFAULT_VARIANTS], DEFAULT_METHODS)
         self.assertNotIn("object_only", [variant.method for variant in MATERIALIZED_DEFAULT_VARIANTS])
@@ -335,13 +410,19 @@ class FinalHoiEvaluationTest(unittest.TestCase):
     def test_ablation_runner_marks_missing_variants_and_writes_delta_table(self) -> None:
         with TemporaryDirectory() as tmp:
             full = self._profile(tmp, result_name="full_result")
-            no_vlm = self._profile(tmp, result_name="no_vlm_result")
+            no_vlm_llm = self._profile(tmp, result_name="no_vlm_llm_result")
             self._write_artifacts(full)
-            self._write_artifacts(no_vlm)
+            self._write_artifacts(no_vlm_llm)
+            (full.result_dir / "pipeline_manifest.json").write_text(
+                json.dumps({"vlm_mode": "qwen", "llm_mode": "mistral", "profile": {}}) + "\n"
+            )
+            (no_vlm_llm.result_dir / "pipeline_manifest.json").write_text(
+                json.dumps({"vlm_mode": "none", "llm_mode": "none", "profile": {"ablation_flags": ["no_vlm", "no_llm"]}}) + "\n"
+            )
             variants = [
                 MethodVariant(method="full_audio_vlm_llm", result_name="full_result", ablation_flags=[], audio=True, vlm="qwen", llm="mistral"),
-                MethodVariant(method="no_vlm", result_name="no_vlm_result", ablation_flags=["no_vlm"], audio=True, vlm="none", llm="mistral"),
-                MethodVariant(method="no_audio", result_name="missing_result", ablation_flags=["no_audio"], audio=False, vlm="qwen", llm="mistral"),
+                MethodVariant(method="no_vlm_llm", result_name="no_vlm_llm_result", ablation_flags=["no_vlm", "no_llm"], audio=True, vlm="none", llm="none"),
+                MethodVariant(method="no_audio", result_name="missing_result", ablation_flags=["disable_audio_events"], audio=False, vlm="qwen", llm="mistral"),
             ]
 
             result = run_ablation_evaluation([full], variants=variants, output_dir=Path(tmp) / "ablation")
@@ -349,16 +430,21 @@ class FinalHoiEvaluationTest(unittest.TestCase):
             table = read_csv(Path(result["table"]))
             rows = {row["method"]: row for row in table}
             self.assertEqual(rows["full_audio_vlm_llm"]["method_status"], "ok")
-            self.assertEqual(rows["no_vlm"]["method_status"], "ok")
+            self.assertEqual(rows["no_vlm_llm"]["method_status"], "ok")
             self.assertEqual(rows["no_audio"]["method_status"], "missing_result")
             self.assertEqual(rows["full_audio_vlm_llm"]["audio"], "True")
-            self.assertEqual(rows["no_vlm"]["vlm"], "none")
-            self.assertEqual(rows["no_vlm"]["ablation_flags"], "no_vlm")
+            self.assertEqual(rows["no_vlm_llm"]["vlm"], "none")
+            self.assertEqual(rows["no_vlm_llm"]["llm"], "none")
+            self.assertEqual(rows["no_vlm_llm"]["ablation_flags"], "no_vlm|no_llm")
             self.assertIn("contact_proxy", rows["full_audio_vlm_llm"])
+            self.assertIn("gate_active_count", rows["full_audio_vlm_llm"])
+            self.assertIn("pose_delta_translation_max_m", rows["full_audio_vlm_llm"])
+            self.assertEqual(rows["full_audio_vlm_llm"]["gate_active_count"], "2")
+            self.assertEqual(rows["full_audio_vlm_llm"]["optimizer_reweighted_frames"], "1")
             self.assertIn("pose_sha256", rows["full_audio_vlm_llm"])
             self.assertNotEqual(rows["full_audio_vlm_llm"]["pose_sha256"], "")
-            self.assertEqual(rows["no_vlm"]["same_pose_as_baseline"], "True")
-            self.assertEqual(rows["no_vlm"]["metrics_identical_to_baseline"], "True")
+            self.assertEqual(rows["no_vlm_llm"]["same_pose_as_baseline"], "True")
+            self.assertEqual(rows["no_vlm_llm"]["metrics_identical_to_baseline"], "False")
             self.assertTrue((Path(tmp) / "ablation" / "ablation_delta_table.csv").exists())
             self.assertTrue((Path(tmp) / "ablation" / "ablation_report.md").exists())
             self.assertTrue((Path(tmp) / "ablation" / "ablation_method_registry.csv").exists())
@@ -369,12 +455,12 @@ class FinalHoiEvaluationTest(unittest.TestCase):
             self.assertTrue(strict_manifest["require_existing"])
             registry = read_csv(Path(tmp) / "ablation" / "ablation_method_registry.csv")
             registry_methods = {row["method"] for row in registry}
-            self.assertEqual(registry_methods, {"full_audio_vlm_llm", "no_vlm", "no_audio"})
+            self.assertEqual(registry_methods, {"full_audio_vlm_llm", "no_vlm_llm", "no_audio"})
             self.assertTrue(all(row["case"] == "stick" for row in registry))
-            self.assertTrue(all(row["result_name"] in {"full_result", "no_vlm_result", "missing_result"} for row in registry))
+            self.assertTrue(all(row["result_name"] in {"full_result", "no_vlm_llm_result", "missing_result"} for row in registry))
             report = (Path(tmp) / "ablation" / "ablation_report.md").read_text()
-            self.assertIn("| case | method | status | result | audio | VLM | LLM | flags | same pose | same metrics |", report)
-            self.assertIn("| stick | no_vlm | ok | no_vlm_result | True | none | mistral | no_vlm | True | True |", report)
+            self.assertIn("| case | method | status | result | audio | VLM | LLM | flags | same pose | same metrics | contact proxy | overlay IoU | overlay source | gate status | gate source | gate events | gates active | reweight | pose delta max | final pass |", report)
+            self.assertIn("| stick | no_vlm_llm | ok | no_vlm_llm_result | True | none | none | no_vlm|no_llm | True | False |", report)
 
     def test_overlay_metrics_use_mask_pair_iou_when_observed_and_render_masks_exist(self) -> None:
         with TemporaryDirectory() as tmp:

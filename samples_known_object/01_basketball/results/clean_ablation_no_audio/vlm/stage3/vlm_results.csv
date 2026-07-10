@@ -1,0 +1,4 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+basketball,stage3,1,overlay_alignment_check,aligned,pass,accept_candidate,0,0,1
+basketball,stage3,97,overlay_alignment_check,aligned,pass,accept_candidate,0,0,1
+basketball,stage3,192,overlay_alignment_check,aligned,pass,accept_candidate,0,0,1

@@ -169,7 +169,7 @@ Use for:
 /home/yang/miniconda3/envs/audiohoi/bin/python \
   scripts/shared/generic_contact_pipeline/tools/run_final_hoi_evaluator.py \
   --result-name benchmark_vlm_qwen \
-  --output-dir samples_known_object/final_result_evaluation
+  --output-dir final_result/evaluation
 ```
 
 Do not use it for HaMeR/pyrender-specific hand diagnostics. It does not have `pyrender` or `hamer`.

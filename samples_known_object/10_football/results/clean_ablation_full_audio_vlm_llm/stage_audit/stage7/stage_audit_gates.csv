@@ -1,0 +1,3 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+football,stage7,vlm_gate,unclear,rerun_stage_with_lower_trust,0,1,0,VLM marked 3 frame/query rows unclear
+football,stage7,llm_csv:stage_contract,pass,keep_outputs,0,1,0,required artifacts present and stage contract satisfied

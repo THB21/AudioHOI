@@ -1,0 +1,3 @@
+query_id,label,blocking,rerun_stage,residual_reweight,short_reason,llm_reviewed
+sequence_optimizer_contract,pass,0,0,0,"All required artifacts (residual, regime, jump, decision) exist and optimizer enabled",1
+pose_jump_audit,unclear,0,1,1,1 visual spike row detected; requires feedback reweight and rerun,1

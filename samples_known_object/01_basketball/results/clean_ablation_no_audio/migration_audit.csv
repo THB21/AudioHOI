@@ -1,0 +1,8 @@
+case_name,result_name,role,component,migration_status,migration_priority,note
+basketball,clean_ablation_no_audio,geometry_model,sphere_proxy,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared
+basketball,clean_ablation_no_audio,observation_model,mask_track_center,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared
+basketball,clean_ablation_no_audio,contact_policy,hand_floor,generic_solver_external_env,keep_env_boundary_or_package_deps,runs generic_contact_pipeline/components/contact/solvers/ball_proxy_depth_builder.py and ball_contact_candidate_builder.py in the audiohoi env; builds hand/floor gates from object mesh tracks + GVHMR + DA3 + audio
+basketball,clean_ablation_no_audio,pose_model,translation3,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared
+basketball,clean_ablation_no_audio,render_backend,proxy_sphere,generic_solver_external_env,keep_env_boundary_or_package_deps,runs generic_contact_pipeline/components/render/proxy_sphere_scene.py in the audiohoi env because render deps are not in base Python
+basketball,clean_ablation_no_audio,refinement_policy_0,anchor_depth,generic_solver_external_env,keep_env_boundary_or_package_deps,runs generic_contact_pipeline/components/refinement/anchor_depth_solver.py in the audiohoi env because solver deps are not in base Python
+basketball,clean_ablation_no_audio,refinement_policy_1,backproject_xy,clean_from_raw_or_stage_inputs,keep,no solved artifact dependency declared

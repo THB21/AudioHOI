@@ -598,6 +598,33 @@ delta(method) = metric(method) - metric(full)
 - `gate_effectiveness_summary.csv`
 - `vlm_llm_ablation_summary.csv`
 
+当前实现已经把这部分提升为标准 `gate_impact_metrics.csv/json`，并接入
+`ablation_table.csv` / `ablation_delta_table.csv`。核心字段：
+
+| Metric | 含义 |
+| --- | --- |
+| `gate_event_count` | gate timeline 中记录的 gate 数 |
+| `gate_active_count` | 真正 active 的 gate 数 |
+| `gate_reject_unclear_count` | reject/unclear gate 数 |
+| `stage_residual_reweight_count` | LLM/stage audit 触发 residual reweight 的次数 |
+| `optimizer_reoptimized_frames` | optimizer 标记 feedback reoptimized 的帧数 |
+| `optimizer_reweighted_frames` | optimizer 使用 reweight reason 的帧数 |
+| `anchor_update_allowed_count` | anchor update 被允许的次数 |
+| `anchor_update_blocked_count` | anchor update 被阻断的次数 |
+| `freeze_interpolation_frames` | freeze / interpolation / static-tail residual 被启用的帧数 |
+| `pose_delta_translation_max_m` | pre-smooth pose 到 final pose 的最大平移变化 |
+| `pose_delta_rotation_max_rad` | pre-smooth pose 到 final pose 的最大旋转变化 |
+
+解释规则：
+
+- 如果 `full` 和 `no_vlm` final metrics 相同，但 gate impact 也相同，说明 VLM gate
+  很可能没有实际进入 optimizer，不能声称 VLM 带来提升。
+- 如果 final metrics 相近，但 `pose_delta_*`、`reweight`、`anchor_update_blocked`
+  不同，说明 gate 影响了过程，只是当前 aggregate metric 不够敏感或 case 已被 hard
+  constraints 主导。
+- 如果 `final_result` 缺少 gate timeline，`gate_impact_status` 必须写
+  `partial:missing_gate_timeline...`，不能伪造为 0。
+
 如果 full 和 no_vlm 数值几乎相同，必须解释：
 
 - 是否 VLM gates 太弱？

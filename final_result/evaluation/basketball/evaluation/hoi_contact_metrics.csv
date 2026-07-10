@@ -1,0 +1,2 @@
+contact_frame_ratio,contact_gap_mm,contact_proxy,contact_proxy_source,part_correct_ratio,contact_ratio_audio_windows,grasp_stability_mm,mdev_star_mm,hoi_contact_pair_rows,hoi_contact_interval_count,hoi_observed_contact_rows,hoi_persistent_contact_rows,contact_anchor_drift_mean,contact_anchor_drift_max,source
+0.474,36.72,0.47979324857852645,contact_gap_mm_exp_decay_sigma_50,1.0,0.875,47.43,42.42,192,39,183,0,,,samples_known_object/01_basketball/results/hoi_eval/hoi_interaction_metrics.json

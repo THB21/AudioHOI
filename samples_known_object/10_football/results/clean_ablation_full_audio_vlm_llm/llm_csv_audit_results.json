@@ -1,0 +1,116 @@
+{
+  "case_name": "football",
+  "mode": "mistral_csv_audit",
+  "llm_trace": {
+    "provider": {
+      "name": "mistral_api",
+      "kind": "mistral_chat_completions",
+      "api_key_env": "MISTRAL_API_KEY",
+      "api_key_present": true,
+      "model_id": "mistral-small-latest",
+      "base_url": "https://api.mistral.ai/v1",
+      "temperature": 0.0,
+      "max_new_tokens": 900,
+      "timeout_seconds": 120
+    },
+    "used": true,
+    "error": "",
+    "response_id": "2767eb1215ed43caa100053fd29a7f39",
+    "usage": {
+      "prompt_tokens": 15112,
+      "total_tokens": 15731,
+      "completion_tokens": 619,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "raw_text": "{\n  \"results\": [\n    {\n      \"query_id\": \"schema_completeness\",\n      \"label\": \"pass\",\n      \"blocking\": false,\n      \"short_reason\": \"All required CSV outputs present with expected schemas for football case.\",\n      \"evidence\": {\n        \"missing_schemas\": [],\n        \"present_schemas\": [\n          \"object_observations\",\n          \"object_correspondence\",\n          \"contact_candidates\",\n          \"anchor_state\",\n          \"contact_state\",\n          \"object_pose_init\",\n          \"object_pose\",\n          \"object_contact_points\",\n          \"physical_smooth_residuals\",\n          \"motion_regime\",\n          \"pose_jump_audit\",\n          \"optimizer_decisions\",\n          \"stage3_metrics\",\n          \"stage4_metrics\",\n          \"stage6_compare_report\",\n          \"vlm_gates\"\n        ]\n      }\n    },\n    {\n      \"query_id\": \"stage_consistency\",\n      \"label\": \"pass\",\n      \"blocking\": false,\n      \"short_reason\": \"Stage2 contact candidates, Stage4 contact outputs, VLM gates, and metrics are mutually consistent.\",\n      \"evidence\": {\n        \"contact_candidates_rows\": 242,\n        \"object_contact_points_rows\": 242,\n        \"vlm_gates_rows\": 31,\n        \"optimizer_decisions_rows\": 242,\n        \"motion_regime_rows\": 242,\n        \"inconsistencies\": [],\n        \"ignored_rejected_frames\": []\n      }\n    },\n    {\n      \"query_id\": \"object_specific_rules\",\n      \"label\": \"pass\",\n      \"blocking\": false,\n      \"short_reason\": \"Case-specific semantic rules for contact, phase, static/freeze, and side assignments are valid.\",\n      \"evidence\": {\n        \"failures\": [],\n        \"max_depth_step_m\": 0.017463,\n        \"contact_side_assignments\": \"consistent\",\n        \"phase_assignments\": \"valid\",\n        \"static_freeze_assignments\": \"valid\"\n      }\n    },\n    {\n      \"query_id\": \"failure_range_summary\",\n      \"label\": \"rotation_jump\",\n      \"blocking\": false,\n      \"short_reason\": \"Frames 203 and low-trust optimizer frames require inspection for rotation jumps.\",\n      \"evidence\": {\n        \"depth_jump_frames\": [],\n        \"contact_frame_min\": 1,\n        \"contact_frame_max\": 242,\n        \"contact_frame_count\": 242,\n        \"pose_jump_audit_frames\": [203],\n        \"trusted_solved_pose_lock\": false,\n        \"low_trust_optimizer_frames\": [1, 2, 46, 122, 242],\n        \"rotation_jump_candidates\": [203]\n      }\n    }\n  ]\n}"
+  },
+  "results": [
+    {
+      "query_id": "schema_completeness",
+      "label": "pass",
+      "blocking": false,
+      "evidence": {
+        "missing_schemas": [],
+        "present_schemas": [
+          "object_observations",
+          "object_correspondence",
+          "contact_candidates",
+          "anchor_state",
+          "contact_state",
+          "object_pose_init",
+          "object_pose",
+          "object_contact_points",
+          "physical_smooth_residuals",
+          "motion_regime",
+          "pose_jump_audit",
+          "optimizer_decisions",
+          "stage3_metrics",
+          "stage4_metrics",
+          "stage6_compare_report",
+          "vlm_gates"
+        ]
+      },
+      "short_reason": "All required CSV outputs present with expected schemas for football case.",
+      "llm_reviewed": true
+    },
+    {
+      "query_id": "stage_consistency",
+      "label": "pass",
+      "blocking": false,
+      "evidence": {
+        "contact_candidates_rows": 242,
+        "object_contact_points_rows": 242,
+        "vlm_gates_rows": 31,
+        "optimizer_decisions_rows": 242,
+        "motion_regime_rows": 242,
+        "inconsistencies": [],
+        "ignored_rejected_frames": []
+      },
+      "short_reason": "Stage2 contact candidates, Stage4 contact outputs, VLM gates, and metrics are mutually consistent.",
+      "llm_reviewed": true
+    },
+    {
+      "query_id": "object_specific_rules",
+      "label": "pass",
+      "blocking": false,
+      "evidence": {
+        "failures": [],
+        "max_depth_step_m": 0.017463,
+        "contact_side_assignments": "consistent",
+        "phase_assignments": "valid",
+        "static_freeze_assignments": "valid"
+      },
+      "short_reason": "Case-specific semantic rules for contact, phase, static/freeze, and side assignments are valid.",
+      "llm_reviewed": true
+    },
+    {
+      "query_id": "failure_range_summary",
+      "label": "rotation_jump",
+      "blocking": false,
+      "evidence": {
+        "depth_jump_frames": [],
+        "contact_frame_min": 1,
+        "contact_frame_max": 242,
+        "contact_frame_count": 242,
+        "pose_jump_audit_frames": [
+          203
+        ],
+        "trusted_solved_pose_lock": false,
+        "low_trust_optimizer_frames": [
+          1,
+          2,
+          46,
+          122,
+          242
+        ],
+        "rotation_jump_candidates": [
+          203
+        ]
+      },
+      "short_reason": "Frames 203 and low-trust optimizer frames require inspection for rotation jumps.",
+      "llm_reviewed": true
+    }
+  ]
+}

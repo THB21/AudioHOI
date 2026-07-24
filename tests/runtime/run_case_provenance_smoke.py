@@ -12,7 +12,9 @@ if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
 from scripts.shared.generic_contact_pipeline import run_pipeline
+from scripts.shared.generic_contact_pipeline.components.mainline import sequence_refine
 from scripts.shared.generic_contact_pipeline.core.base.config import CaseProfile
+from scripts.shared.generic_contact_pipeline.core.plugins.registry import REGISTRY
 from scripts.shared.generic_contact_pipeline.core.provenance.artifact_store import verify_attempt_artifacts
 
 
@@ -26,6 +28,10 @@ def main() -> None:
                 "sample_dir": str(sample_dir),
                 "result_name": "fake_result",
                 "object_family": "test",
+                "observation_model": "mask_track_center",
+                "contact_policy": "hand_floor",
+                "pose_model": "translation3",
+                "refinement_policy": [],
             }
         )
         calls = {"stage": 0, "audit": 0, "repair": 0}
@@ -80,8 +86,40 @@ def main() -> None:
         assert second["parent_attempt_id"] == "000001"
         assert second["stored_artifacts"]
         assert second["contract_audit"]["status"] == "pass"
+        assert second["plugin_audit"]["status"] == "resolved"
         assert verify_attempt_artifacts(profile.result_dir) == []
         assert manifest["ablation_mechanisms"]["all_requested_flags_have_consumers"]
+        assert manifest["capability_plugins"]["pose"]["name"] == "translation3"
+
+    plugin_profile = CaseProfile(
+        {
+            "case_name": "plugin_fixture",
+            "sample_dir": "/tmp/plugin_fixture",
+            "observation_model": "semantic_graph_tracks",
+            "contact_policy": "two_hand_toprail_endpoint",
+            "pose_model": "semantic_graph_6d",
+            "refinement_policy": [
+                "small_se3",
+                "anchor_propagate_freeze",
+                "sequence_se3_optimizer",
+            ],
+        }
+    )
+    invoked: list[str] = []
+
+    def fake_invoke(profile, kind, name, *args, **kwargs):
+        invoked.append(name)
+        return {"component": name}, REGISTRY.get(kind, name).describe()
+
+    with patch.object(sequence_refine, "invoke_selected_plugin", side_effect=fake_invoke):
+        reports = sequence_refine._run_compatibility_seed_builders(plugin_profile)
+    assert invoked == ["small_se3", "anchor_propagate_freeze"], invoked
+    assert [report["component"] for report in reports] == [
+        "small_se3",
+        "anchor_propagate_freeze",
+        "sequence_se3_optimizer",
+    ]
+    assert reports[-1]["reason"] == "mainline_marker_and_implementation"
     print("run_case provenance smoke: pass")
 
 

@@ -11,27 +11,8 @@ from ...core.base.camera import backproject_uvz
 from ...core.base.io import copy_file, read_csv, write_csv, write_json
 from ...core.base.schema import stage_paths
 from ..refinement.sequence_se3_optimizer import smooth_quaternion_pose_sequence
-from ..refinement.policies import (
-    anchor_depth,
-    anchor_propagate_freeze,
-    backproject_xy,
-    line_contact_lock,
-    small_se3,
-    stable_grasp_anchor,
-    table_freeze,
-)
 from ..refinement.policies import generic_line_physical_smooth
-
-
-COMPATIBILITY_SEED_BUILDERS = {
-    "anchor_depth": anchor_depth,
-    "anchor_propagate_freeze": anchor_propagate_freeze,
-    "backproject_xy": backproject_xy,
-    "line_contact_lock": line_contact_lock,
-    "small_se3": small_se3,
-    "stable_grasp_anchor": stable_grasp_anchor,
-    "table_freeze": table_freeze,
-}
+from ...core.plugins.registry import invoke_selected_plugin, resolve_pipeline_plugins
 
 
 def _has_se3(rows: list[dict[str, str]]) -> bool:
@@ -53,18 +34,37 @@ def _copy_contacts(profile: CaseProfile) -> str:
 def _run_compatibility_seed_builders(profile: CaseProfile) -> list[dict[str, object]]:
     """Run legacy refinement policies as seed/residual builders before final SE3 smoothing."""
     reports: list[dict[str, object]] = []
-    for name in profile.refinement_policies():
-        if name in {"sequence_se3_optimizer", "generic_line_physical_smooth"}:
-            continue
-        module = COMPATIBILITY_SEED_BUILDERS.get(name)
-        if module is None:
-            reports.append({"component": name, "enabled": False, "reason": "unknown_compatibility_seed_builder"})
+    resolved = resolve_pipeline_plugins(profile)
+    for spec in resolved.refinement:
+        if spec.role != "compatibility_adapter":
+            reports.append(
+                {
+                    "component": spec.name,
+                    "enabled": False,
+                    "reason": spec.role,
+                    "capability_plugin": spec.describe(),
+                }
+            )
             continue
         try:
-            report = module.apply(profile)
-            reports.append({"component": name, "enabled": True, "report": report})
+            report, plugin = invoke_selected_plugin(profile, "refinement", spec.name)
+            reports.append(
+                {
+                    "component": spec.name,
+                    "enabled": True,
+                    "report": report,
+                    "capability_plugin": plugin,
+                }
+            )
         except Exception as exc:
-            reports.append({"component": name, "enabled": False, "reason": str(exc)})
+            reports.append(
+                {
+                    "component": spec.name,
+                    "enabled": False,
+                    "reason": str(exc),
+                    "capability_plugin": spec.describe(),
+                }
+            )
             raise
     return reports
 

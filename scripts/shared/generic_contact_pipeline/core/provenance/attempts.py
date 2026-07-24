@@ -10,6 +10,7 @@ from typing import Any
 from ..base.io import REPO, repo_relative_value, write_json
 from ..base.schema import stage_paths
 from ..contracts.stage_artifacts import ContractValidationError, validate_stage_contracts
+from ..plugins.registry import stage_plugin_audit
 from .artifact_store import store_stage_artifacts
 
 
@@ -109,13 +110,24 @@ class StageAttempt:
         after = snapshot_stage_artifacts(self.profile, self.stage_name)
         stored_artifacts = store_stage_artifacts(self.profile.result_dir, after)
         contract_audit = validate_stage_contracts(self.profile, self.stage_name)
+        try:
+            plugin_audit = stage_plugin_audit(self.profile, self.stage_name)
+            plugin_audit["status"] = "resolved"
+        except Exception as exc:
+            plugin_audit = {
+                "schema_version": 1,
+                "stage": self.stage_name,
+                "status": "not_configured",
+                "error": str(exc),
+                "plugins": [],
+            }
         contract_failed = contract_audit["status"] == "fail" and status != "failed"
         final_status = "contract_failed" if contract_failed else status
         changed = sorted(
             path for path in set(self.before) | set(after) if self.before.get(path) != after.get(path)
         )
         record: dict[str, object] = {
-            "schema_version": 3,
+            "schema_version": 4,
             "case_name": self.profile.case_name,
             "result_name": self.profile.result_name,
             "stage": self.stage_name,
@@ -130,6 +142,7 @@ class StageAttempt:
             "artifacts_after": after,
             "stored_artifacts": stored_artifacts,
             "contract_audit": contract_audit,
+            "plugin_audit": plugin_audit,
             "changed_artifacts": changed,
             "result_summary": result_summary or {},
         }

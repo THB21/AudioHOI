@@ -27,6 +27,7 @@ from scripts.shared.generic_contact_pipeline.core.gates.stage_audit import write
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_provider import load_vlm_provider  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_gates import write_stage_gates  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.provenance.attempts import StageAttempt  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.plugins.registry import resolve_pipeline_plugins  # noqa: E402
 from scripts.shared.generic_contact_pipeline.components.mainline import contact_anchor, pose_init, sequence_refine  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.analysis import stage_llm_csv_audit, stage_loss_analysis  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.gates import stage_vlm_qwen, stage_vlm_verify  # noqa: E402
@@ -191,12 +192,13 @@ def _generic_mainline_manifest(profile) -> dict[str, object]:
         "enabled": True,
         "contract": "fixed_preprocess_observation_contact_anchor_se3_init_sequence_optimizer",
         "object_family": profile.data.get("object_family", ""),
-        "legacy_yaml_selectors": {
+        "yaml_plugin_selectors": {
             "observation_model": profile.data.get("observation_model", ""),
             "contact_policy": profile.data.get("contact_policy", ""),
             "pose_model": profile.data.get("pose_model", ""),
             "refinement_policy": profile.data.get("refinement_policy", []),
-            "role": "stage1-3 are normalized through generic contracts; refinement_policy is ignored by Stage4 except the generic sequence optimizer marker",
+            "resolution": "explicit capability plugin registry",
+            "role": "Stage1-3 selectors invoke compatibility adapters; Stage4 refinement selectors run in declared order as compatibility seed/residual builders, except plugins explicitly marked as mainline markers or implementations",
         },
         "artifacts": {
             name: {"path": str(path), "exists": path.exists(), "rows": _csv_count(path)}
@@ -288,6 +290,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
         result_name=args.result_name or None,
         ablation_flags=requested_ablation_flags,
     )
+    capability_plugins = resolve_pipeline_plugins(profile).describe()
     stage_results = []
     for stage_name, fn in selected_stages(from_stage, to_stage):
         print(f"[{case_name}] {stage_name}", flush=True)
@@ -358,6 +361,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
                 "vlm_mode": args.vlm_mode,
                 "llm_mode": args.llm_mode,
                 "ablation_mechanisms": ablation_mechanisms,
+                "capability_plugins": capability_plugins,
                 "vlm_blocked_at_stage": stage_name,
                 "stage_results": stage_results,
             }
@@ -375,6 +379,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
         "llm_mode": args.llm_mode,
         "vlm_blocking": args.vlm_blocking,
         "ablation_mechanisms": ablation_mechanisms,
+        "capability_plugins": capability_plugins,
         "stage_results": stage_results,
     }
     manifest["generic_se3_mainline"] = _generic_mainline_manifest(profile)

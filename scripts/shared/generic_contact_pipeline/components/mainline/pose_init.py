@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import importlib
 import math
 from collections import defaultdict
 
@@ -10,6 +9,7 @@ from ...core.base.config import CaseProfile
 from ...core.base.camera import backproject_uvz
 from ...core.base.io import read_csv, write_csv, write_json
 from ...core.base.schema import stage_paths
+from ...core.plugins.registry import invoke_selected_plugin
 
 
 SE3_FIELDS = ["frame", "time", "tx", "ty", "tz", "qw", "qx", "qy", "qz"]
@@ -17,10 +17,10 @@ SE3_FIELDS = ["frame", "time", "tx", "ty", "tz", "qw", "qx", "qy", "qz"]
 
 def _legacy_pose_adapter(profile: CaseProfile) -> dict[str, object]:
     name = profile.component("pose_model")
-    mod = importlib.import_module(f"scripts.shared.generic_contact_pipeline.components.pose.models.{name}")
-    result = mod.build(profile)
+    result, plugin = invoke_selected_plugin(profile, "pose", name)
     result = dict(result)
     result["adapter_component"] = name
+    result["capability_plugin"] = plugin
     return result
 
 

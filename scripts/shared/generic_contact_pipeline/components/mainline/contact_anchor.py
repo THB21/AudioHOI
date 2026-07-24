@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import importlib
 from collections import defaultdict
 
 from ...core.base.config import CaseProfile
 from ...core.base.io import read_csv, write_csv, write_json
 from ...core.base.schema import stage_paths
+from ...core.plugins.registry import invoke_selected_plugin
 from ..line_object.mainline import write_anchor_state
 
 
@@ -36,10 +36,10 @@ ANCHOR_FIELDS = [
 
 def _legacy_contact_adapter(profile: CaseProfile) -> dict[str, object]:
     name = profile.component("contact_policy")
-    mod = importlib.import_module(f"scripts.shared.generic_contact_pipeline.components.contact.policies.{name}")
-    result = mod.build(profile)
+    result, plugin = invoke_selected_plugin(profile, "contact", name)
     result = dict(result)
     result["adapter_component"] = name
+    result["capability_plugin"] = plugin
     return result
 
 

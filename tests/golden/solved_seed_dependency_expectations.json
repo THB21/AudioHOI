@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "existing": {
+    "mug": {
+      "rerun_readiness": "blocked_missing_input",
+      "dependencies": {
+        "mug_handle_phase_source": {
+          "selected_candidate_id": "identity_phase_fallback",
+          "resolution": "generated_fallback",
+          "rerun_readiness": "degraded_output_change",
+          "solved_seed_dependency": false
+        },
+        "mug_body_pose_seed": {
+          "selected_candidate_id": "historical_m18_pose",
+          "resolution": "selected_missing_path",
+          "rerun_readiness": "blocked_missing_input",
+          "solved_seed_dependency": true
+        }
+      }
+    },
+    "chair": {
+      "rerun_readiness": "ready",
+      "dependencies": {
+        "chair_stage4_pairprop_seed": {
+          "selected_candidate_id": "rebuilt_physical6d_seed",
+          "resolution": "selected_existing_file",
+          "rerun_readiness": "ready",
+          "solved_seed_dependency": true
+        }
+      }
+    }
+  },
+  "fresh": {
+    "mug": {
+      "rerun_readiness": "blocked_missing_input",
+      "dependencies": {
+        "mug_handle_phase_source": {
+          "selected_candidate_id": "identity_phase_fallback",
+          "resolution": "generated_fallback",
+          "rerun_readiness": "degraded_output_change",
+          "solved_seed_dependency": false
+        },
+        "mug_body_pose_seed": {
+          "selected_candidate_id": "historical_m18_pose",
+          "resolution": "selected_missing_path",
+          "rerun_readiness": "blocked_missing_input",
+          "solved_seed_dependency": true
+        }
+      }
+    },
+    "chair": {
+      "rerun_readiness": "blocked_missing_input",
+      "dependencies": {
+        "chair_stage4_pairprop_seed": {
+          "selected_candidate_id": "historical_physical6d_seed",
+          "resolution": "selected_missing_path",
+          "rerun_readiness": "blocked_missing_input",
+          "solved_seed_dependency": true
+        }
+      }
+    }
+  }
+}

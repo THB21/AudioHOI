@@ -334,7 +334,8 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
                         result_summary=_attempt_summary(result, vlm_result, stage_audit_result)
                     )
                 except Exception as exc:
-                    rerun_attempt.finish(status="failed", error=exc)
+                    if not rerun_attempt.finalized:
+                        rerun_attempt.finish(status="failed", error=exc)
                     raise
             else:
                 attempt.finish(
@@ -342,7 +343,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
                 )
                 attempt_finished = True
         except Exception as exc:
-            if not attempt_finished:
+            if not attempt_finished and not attempt.finalized:
                 attempt.finish(status="failed", error=exc)
             raise
         if args.vlm_blocking and vlm_result and vlm_result.get("blocking"):

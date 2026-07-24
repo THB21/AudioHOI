@@ -33,7 +33,9 @@ def main() -> None:
         def fake_stage(current_profile):
             calls["stage"] += 1
             current_profile.result_dir.mkdir(parents=True, exist_ok=True)
-            (current_profile.result_dir / "object_pose.csv").write_text("frame,x\n1,1\n")
+            (current_profile.result_dir / "object_pose.csv").write_text(
+                "frame,time,tx,ty,tz,qw,qx,qy,qz\n1,0.0,1,2,3,1,0,0,0\n"
+            )
             return {"status": "completed"}
 
         def fake_audit(current_profile, stage_name, *, llm_mode):
@@ -45,7 +47,9 @@ def main() -> None:
 
         def fake_repair(current_profile, stage_name, result, audit):
             calls["repair"] += 1
-            (current_profile.result_dir / "object_pose.csv").write_text("frame,x\n1,2\n")
+            (current_profile.result_dir / "object_pose.csv").write_text(
+                "frame,time,tx,ty,tz,qw,qx,qy,qz\n1,0.0,2,2,3,1,0,0,0\n"
+            )
             return {**result, "repair": "completed"}
 
         args = Namespace(
@@ -75,6 +79,7 @@ def main() -> None:
         assert second["trigger"] == "stage_audit_rerun"
         assert second["parent_attempt_id"] == "000001"
         assert second["stored_artifacts"]
+        assert second["contract_audit"]["status"] == "pass"
         assert verify_attempt_artifacts(profile.result_dir) == []
         assert manifest["ablation_mechanisms"]["all_requested_flags_have_consumers"]
     print("run_case provenance smoke: pass")

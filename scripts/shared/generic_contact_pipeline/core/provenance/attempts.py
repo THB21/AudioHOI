@@ -9,6 +9,7 @@ from typing import Any
 
 from ..base.io import REPO, repo_relative_value, write_json
 from ..base.schema import stage_paths
+from ..contracts.stage_artifacts import ContractValidationError, validate_stage_contracts
 from .artifact_store import store_stage_artifacts
 
 
@@ -74,6 +75,7 @@ class StageAttempt:
     attempt_id: str = field(init=False)
     started_at: str = field(init=False)
     before: dict[str, dict[str, object]] = field(init=False)
+    finalized: bool = field(init=False, default=False)
 
     def __post_init__(self) -> None:
         stage_dir = self.profile.result_dir / "provenance" / "stages" / self.stage_name
@@ -106,16 +108,19 @@ class StageAttempt:
         stage_dir = self.profile.result_dir / "provenance" / "stages" / self.stage_name
         after = snapshot_stage_artifacts(self.profile, self.stage_name)
         stored_artifacts = store_stage_artifacts(self.profile.result_dir, after)
+        contract_audit = validate_stage_contracts(self.profile, self.stage_name)
+        contract_failed = contract_audit["status"] == "fail" and status != "failed"
+        final_status = "contract_failed" if contract_failed else status
         changed = sorted(
             path for path in set(self.before) | set(after) if self.before.get(path) != after.get(path)
         )
         record: dict[str, object] = {
-            "schema_version": 2,
+            "schema_version": 3,
             "case_name": self.profile.case_name,
             "result_name": self.profile.result_name,
             "stage": self.stage_name,
             "attempt_id": self.attempt_id,
-            "status": status,
+            "status": final_status,
             "trigger": self.trigger,
             "parent_attempt_id": self.parent_attempt_id,
             "started_at": self.started_at,
@@ -124,6 +129,7 @@ class StageAttempt:
             "artifacts_before": self.before,
             "artifacts_after": after,
             "stored_artifacts": stored_artifacts,
+            "contract_audit": contract_audit,
             "changed_artifacts": changed,
             "result_summary": result_summary or {},
         }
@@ -138,15 +144,21 @@ class StageAttempt:
         if attempt_path.exists():
             raise FileExistsError(f"Refusing to overwrite immutable attempt record {attempt_path}")
         write_json(attempt_path, record)
+        self.finalized = True
         write_json(
             stage_dir / "active_attempt.json",
             {
                 "schema_version": 1,
                 "stage": self.stage_name,
                 "attempt_id": self.attempt_id,
-                "status": status,
+                "status": final_status,
                 "record": attempt_path,
                 "finished_at": record["finished_at"],
             },
         )
+        if contract_failed:
+            raise ContractValidationError(
+                f"{self.profile.case_name}:{self.stage_name} artifact contract failed: "
+                + "; ".join(str(error) for error in contract_audit["errors"])
+            )
         return record

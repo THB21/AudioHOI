@@ -181,10 +181,11 @@ class PipelineProvenanceTest(unittest.TestCase):
                 render_dir=Path(tmp) / "renders",
             )
             result_dir.mkdir(parents=True)
-            (result_dir / "object_pose.csv").write_text("frame,x\n1,0\n")
+            header = "frame,time,tx,ty,tz,qw,qx,qy,qz\n"
+            (result_dir / "object_pose.csv").write_text(header + "1,0,0,0,0,1,0,0,0\n")
 
             first = StageAttempt(profile, "stage4", trigger="scheduled_pipeline_stage")
-            (result_dir / "object_pose.csv").write_text("frame,x\n1,1\n")
+            (result_dir / "object_pose.csv").write_text(header + "1,0,1,0,0,1,0,0,0\n")
             first_record = first.finish(status="completed_rerun_requested")
 
             second = StageAttempt(
@@ -193,7 +194,7 @@ class PipelineProvenanceTest(unittest.TestCase):
                 trigger="stage_audit_rerun",
                 parent_attempt_id=first.attempt_id,
             )
-            (result_dir / "object_pose.csv").write_text("frame,x\n1,2\n")
+            (result_dir / "object_pose.csv").write_text(header + "1,0,2,0,0,1,0,0,0\n")
             second_record = second.finish()
 
             attempts = sorted((result_dir / "provenance/stages/stage4/attempts").glob("*.json"))

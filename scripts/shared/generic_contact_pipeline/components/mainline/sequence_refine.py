@@ -1064,7 +1064,9 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         max(t, anchor_prior_trust) if frame_constraints else t
         for t, frame_constraints in zip(trust, anchor_constraints)
     ]
-    pose_lock_reason = ""
+    pose_lock_reasons = sorted({row.get("pose_lock_reason", "") for row in rows if row.get("pose_lock_reason", "")})
+    pose_lock_reason = ",".join(pose_lock_reasons)
+    pose_lock_mask = [bool(row.get("pose_lock_reason", "")) for row in rows]
     feedback_reweight_reason = ""
     visual_prior_reason = ""
     overlay_prior_reason = ""
@@ -1109,6 +1111,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
             smooth_w=float(config.get("smooth_w", 0.95)),
             accel_w=float(config.get("accel_w", 4.2)),
             anchor_w=float(config.get("anchor_w", 1.0)),
+            pose_lock_mask=pose_lock_mask,
         )
         _annotate_anchor_residuals(cand_rows, cand_audit, anchor_constraints)
         cand_jump_audit = _audit_rows(rows, cand_rows, cand_audit, regime_rows)
@@ -1135,7 +1138,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         elif "vlm" in reweight_sources and "vlm" in candidate_sources and "vlm" not in best[1]:
             best = cand
     if best is None:
-        out_rows, se3_audit = smooth_quaternion_pose_sequence(rows)
+        out_rows, se3_audit = smooth_quaternion_pose_sequence(rows, pose_lock_mask=pose_lock_mask)
         selected_sources: set[str] = set()
         feedback_reweight_reason = ""
         selected_jump_audit = _audit_rows(rows, out_rows, se3_audit, regime_rows)

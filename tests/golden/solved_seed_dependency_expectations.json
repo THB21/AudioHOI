@@ -28,10 +28,10 @@
       "rerun_readiness": "ready",
       "dependencies": {
         "chair_stage4_pairprop_seed": {
-          "selected_candidate_id": "rebuilt_physical6d_seed",
+          "selected_candidate_id": "current_stage3_observation_fit",
           "resolution": "selected_existing_file",
           "rerun_readiness": "ready",
-          "solved_seed_dependency": true
+          "solved_seed_dependency": false
         }
       }
     }
@@ -61,13 +61,13 @@
       }
     },
     "chair": {
-      "rerun_readiness": "blocked_missing_input",
+      "rerun_readiness": "ready",
       "dependencies": {
         "chair_stage4_pairprop_seed": {
-          "selected_candidate_id": "historical_physical6d_seed",
-          "resolution": "selected_missing_path",
-          "rerun_readiness": "blocked_missing_input",
-          "solved_seed_dependency": true
+          "selected_candidate_id": "current_stage3_observation_fit",
+          "resolution": "generated_stage_output",
+          "rerun_readiness": "ready",
+          "solved_seed_dependency": false
         }
       }
     }

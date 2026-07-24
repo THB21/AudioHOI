@@ -522,3 +522,14 @@ python scripts/shared/generic_contact_pipeline/stages/stage_ablation.py \
 ```text
 docs/generic_pipeline_v2_mainline_audit_zh.md
 ```
+
+## 8. 后续：Phase G 通用重建内核
+
+当前设计统一了 DAG、产物和能量项命名，但 observation/contact/pose 的连续求解仍有
+case-specific compatibility 实现。算法级泛化迁移、分支顺序和 held-out 验收见：
+
+```text
+docs/generalized_reconstruction_kernel_plan.md
+```
+
+在该计划完成前，“generic”只表示统一框架与可组合能力，不表示新增对象无需专用求解器。

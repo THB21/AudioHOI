@@ -66,6 +66,7 @@ def _dependency(
         selection = candidate["selection"]
         if candidate["exists"] or selection in {
             "generated_by_stage1",
+            "generated_by_stage3",
             "generated_if_observations_exist",
             "unconditional",
         }:
@@ -77,7 +78,7 @@ def _dependency(
     elif selected["exists"]:
         resolution = "selected_existing_file"
         readiness = "ready"
-    elif selected["selection"] == "generated_by_stage1":
+    elif selected["selection"] in {"generated_by_stage1", "generated_by_stage3"}:
         inputs_exist = bool(selected["dependencies"]) and all(item["exists"] for item in selected["dependencies"])
         resolution = "generated_stage_output" if inputs_exist else "missing_generation_inputs"
         readiness = "ready" if inputs_exist else "blocked_missing_input"
@@ -168,27 +169,18 @@ def _mug_dependencies(profile: CaseProfile) -> list[dict[str, object]]:
 
 
 def _chair_dependencies(profile: CaseProfile) -> list[dict[str, object]]:
-    mainline_pose = _baseline_path(profile, "final_pose_csv")
-    mainline_segments = profile.sample_dir / "results/mainline_0425/semantic_local_points/chair_semantic_local_segments.csv"
-    mainline_observations = profile.sample_dir / "results/mainline_0425/inputs_2d/chair_semantic_observations.csv"
-    target_segments = profile.result_dir / "object_local_segments.csv"
     candidates = [
         _candidate(
-            "rebuilt_physical6d_seed",
-            profile.result_dir / "physical6d_rebuild_from_mainline_saved2d/physical6d_pose.csv",
-            "cached_derivative_of_historical_solved_pose",
-            dependencies=[mainline_pose, mainline_segments, mainline_observations, target_segments],
-        ),
-        _candidate(
-            "preserved_physical6d_snapshot",
-            profile.result_dir / "provenance_snapshots/chair_physical6d_seed.csv",
-            "preserved_solved_snapshot",
-        ),
-        _candidate(
-            "historical_physical6d_seed",
-            _baseline_path(profile, "physical6d_seed_csv"),
-            "historical_solved_seed",
-            selection="unconditional",
+            "current_stage3_observation_fit",
+            profile.result_dir / "object_pose_init.csv",
+            "observation_derived_stage_output",
+            selection="generated_by_stage3",
+            dependencies=[
+                profile.sample_dir / "results/tracking/object_mesh_tracks.csv",
+                profile.sample_dir / "results/da3/scene_depth/00001.npy",
+                profile.sample_dir / "results/gvhmr/result.pkl",
+                repo_path(profile.data["articraft_model_py"]),
+            ],
         ),
     ]
     return [

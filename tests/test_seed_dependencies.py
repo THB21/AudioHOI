@@ -13,7 +13,10 @@ sys.path.insert(0, str(REPO))
 
 from scripts.shared.generic_contact_pipeline.core.base.config import load_case_profile, with_runtime_overrides
 from scripts.shared.generic_contact_pipeline.core.provenance.seed_dependencies import audit_seed_dependencies
-from scripts.shared.generic_contact_pipeline.core.semantics.provenance import resolve_mug_m17_phase
+from scripts.shared.generic_contact_pipeline.core.semantics.provenance import (
+    resolve_chair_physical6d_seed,
+    resolve_mug_m17_phase,
+)
 from scripts.shared.generic_contact_pipeline.core.semantics.static_tail import enforce_declared_static_tail
 
 
@@ -86,6 +89,22 @@ class SeedDependencyAuditTest(unittest.TestCase):
             phase.write_text("frame,m17_phase_rad\n1,0.0\n")
             selected, info = resolve_mug_m17_phase(profile)
             self.assertEqual(selected, phase)
+            self.assertFalse(info["historical_solved_seed_used"])
+
+    def test_chair_seed_resolver_requires_current_stage3_pose(self) -> None:
+        from tempfile import TemporaryDirectory
+
+        with TemporaryDirectory() as tmp:
+            result_dir = Path(tmp) / "result"
+            profile = SimpleNamespace(result_dir=result_dir)
+            with self.assertRaisesRegex(FileNotFoundError, "current-run chair Stage 3 pose"):
+                resolve_chair_physical6d_seed(profile)
+            self.assertFalse(result_dir.exists())
+            seed = result_dir / "object_pose_init.csv"
+            seed.parent.mkdir(parents=True)
+            seed.write_text("frame,tx\n1,0.0\n")
+            selected, info = resolve_chair_physical6d_seed(profile)
+            self.assertEqual(selected, seed)
             self.assertFalse(info["historical_solved_seed_used"])
 
     def test_table_freeze_postcondition_survives_sequence_smoothing(self) -> None:

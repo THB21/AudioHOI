@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
 from ....core.base.config import CaseProfile
-from ....core.base.io import REPO, copy_file, read_csv, repo_path, write_csv, write_json
+from ....core.base.io import REPO, copy_file, read_csv, write_csv, write_json
 from ....core.semantics.provenance import resolve_chair_physical6d_seed
 from ....core.base.runtime import runtime_python
 from ....core.base.schema import stage_paths
@@ -45,7 +46,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
     pairprop_dir.mkdir(parents=True, exist_ok=True)
     pairprop_script = REPO / "scripts/shared/generic_contact_pipeline/components/refinement/solvers/chair_twohand_endpoint_se3.py"
     seed_csv, seed_info = resolve_chair_physical6d_seed(profile)
-    use_rebuilt_seed = seed_info.get("policy") == "rebuilt_from_mainline_saved2d"
+    use_current_stage3_seed = seed_info.get("policy") == "current_stage3_observation_fit"
     pairprop_pose = pairprop_dir / "object_pose_pairprop_generic.csv"
     pairprop_metrics = pairprop_dir / "pairprop_contact_refine_metrics.json"
     pairprop_quality = pairprop_dir / "pairprop_quality_metrics.json"
@@ -93,7 +94,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         "--z-bound",
         "1.25",
         "--w-contact",
-        "2.0" if use_rebuilt_seed else "4.0",
+        "2.0" if use_current_stage3_seed else "4.0",
         "--w-2d",
         "0.35",
         "--w-prior-rot",
@@ -103,7 +104,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         "--w-prior-z",
         "0.03",
         "--w-temporal",
-        "0.35" if use_rebuilt_seed else "0.55",
+        "0.35" if use_current_stage3_seed else "0.55",
         "--sigma-contact-m",
         "0.035",
         "--sigma-px",
@@ -111,7 +112,13 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         "--max-nfev",
         "240",
     ]
+    if use_current_stage3_seed:
+        pairprop_cmd.extend(
+            ["--contact-chord-init", "--contact-chord-2d-gauge", "--optimize-articulation", "--preserve-contact-chord-constraint"]
+        )
     subprocess.run(pairprop_cmd, cwd=REPO, check=True)
+    with Path(pairprop_metrics).open() as f:
+        pairprop_summary = json.load(f)
     quality_script = REPO / "scripts/shared/generic_contact_pipeline/components/refinement/solvers/evaluate_chair_pose_quality.py"
     quality_cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
@@ -121,7 +128,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         "--candidate-pose-csv",
         str(pairprop_pose),
         "--baseline-pose-csv",
-        str(repo_path(profile.baseline["final_pose_csv"])),
+        str(generic_stage4_dir / "object_pose.csv"),
         "--observations-csv",
         str(paths["object_observations"]),
         "--segments-csv",
@@ -136,15 +143,20 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         str(profile.data.get("contact_window", {}).get("end_frame", 144)),
     ]
     subprocess.run(quality_cmd, cwd=REPO, check=True)
-    import json
-
     with Path(pairprop_quality).open() as f:
         quality = json.load(f)
-    use_pairprop_pose = bool(quality.get("quality_gate", {}).get("pass"))
+    standard_quality_pass = bool(quality.get("quality_gate", {}).get("pass"))
+    constraint_quality_pass = bool(pairprop_summary.get("contact_chord_constraint_gate", {}).get("pass")) and bool(
+        quality.get("candidate", {}).get("freeze", {}).get("pass")
+    )
+    use_pairprop_pose = standard_quality_pass or (use_current_stage3_seed and constraint_quality_pass)
 
     if use_pairprop_pose:
         pose = copy_file(pairprop_pose, paths["object_pose"])
-        pose_policy = "generic pairprop contact-refine pose accepted by semantic-2D/contact/freeze quality gate"
+        if standard_quality_pass:
+            pose_policy = "generic pairprop contact-refine pose accepted by semantic-2D/contact/freeze quality gate"
+        else:
+            pose_policy = "current-run contact-chord pose accepted by per-frame geometric-bound/2D-gauge/freeze invariant gate"
     else:
         pose = copy_file(generic_stage4_dir / "object_pose.csv", paths["object_pose"])
         pose_policy = "generic stage4 pose retained; pairprop quality gate did not pass and no solved-baseline fallback is used"
@@ -162,15 +174,16 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         "generic_pairprop_pose": str(pairprop_pose),
         "generic_pairprop_metrics": str(pairprop_metrics),
         "generic_pairprop_quality": str(pairprop_quality),
+        "generic_pairprop_quality_reference": str(generic_stage4_dir / "object_pose.csv"),
         "generic_pairprop_seed_csv": str(seed_csv),
         "generic_pairprop_seed_info": seed_info,
         "generic_pairprop_pose_accepted": use_pairprop_pose,
+        "generic_pairprop_standard_quality_pass": standard_quality_pass,
+        "generic_pairprop_constraint_quality_pass": constraint_quality_pass,
         "pose_policy": pose_policy,
         "policy": "generic audio/contact/static phase and contact points plus generic pairprop contact-refine pose gated by semantic 2D, palm-contact, and freeze metrics",
     }
-    if pairprop_metrics.exists():
-        with Path(pairprop_metrics).open() as f:
-            metrics["generic_pairprop_summary"] = json.load(f)
+    metrics["generic_pairprop_summary"] = pairprop_summary
     metrics["generic_pairprop_quality_summary"] = quality
     write_json(paths["stage4_metrics"], metrics)
     return metrics

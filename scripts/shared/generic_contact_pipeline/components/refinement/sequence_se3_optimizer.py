@@ -169,6 +169,7 @@ def smooth_quaternion_pose_sequence(
     smooth_weight: Sequence[float] | None = None,
     accel_weight: Sequence[float] | None = None,
     anchor_constraints: Sequence[Sequence[tuple[Sequence[float], Sequence[float], float]]] | None = None,
+    pose_lock_mask: Sequence[bool] | None = None,
     translation_scales: tuple[float, float, float] = (0.065, 0.065, 0.095),
     rotation_scale: float = 0.070,
     prior_w: float = 0.30,
@@ -194,6 +195,9 @@ def smooth_quaternion_pose_sequence(
     anchor_constraints = anchor_constraints or [[] for _ in range(n)]
     if len(anchor_constraints) != n:
         raise ValueError("anchor_constraints length must match rows")
+    locked = np.asarray(list(pose_lock_mask) if pose_lock_mask is not None else [False] * n, dtype=bool)
+    if locked.shape[0] != n:
+        raise ValueError("pose_lock_mask length must match rows")
     if any(anchor_constraints):
         trans, rotvec, anchor_error, anchor_count = _optimize_joint_se3(
             trans0,
@@ -237,6 +241,12 @@ def smooth_quaternion_pose_sequence(
                 accel_w=accel_w,
             )
 
+    # A lock is a postcondition supplied by an upstream solver that has already
+    # passed its own invariant gate. Smoothing may still use neighboring rows,
+    # but it cannot rewrite locked states.
+    trans[locked] = trans0[locked]
+    rotvec[locked] = rot0[locked]
+
     out_rows: list[dict[str, str]] = []
     audit_rows: list[dict[str, str]] = []
     vel0 = np.zeros(n, dtype=float)
@@ -270,7 +280,9 @@ def smooth_quaternion_pose_sequence(
                 "qx": qx,
                 "qy": qy,
                 "qz": qz,
-                "source": (row.get("source", "") + "+sequence_se3_optimizer").strip("+"),
+                "source": (
+                    row.get("source", "") + ("+sequence_se3_pose_lock" if locked[i] else "+sequence_se3_optimizer")
+                ).strip("+"),
             }
         )
         out_rows.append(out)
@@ -290,6 +302,7 @@ def smooth_quaternion_pose_sequence(
                 "final_velocity_score": f"{vel[i]:.6f}",
                 "final_accel_score": f"{acc[i]:.6f}",
                 "se3_smoothed": "1" if delta_t > 1e-5 or delta_r > 1e-5 else "0",
+                "pose_locked": "1" if locked[i] else "0",
                 "delta_translation_m": f"{delta_t:.6f}",
                 "delta_rotation_rad": f"{delta_r:.6f}",
                 "trust_weight": f"{trust[i]:.6f}",

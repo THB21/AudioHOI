@@ -36,7 +36,8 @@
         {"path": "samples_known_object/05_chair/annotations", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 3, "size_bytes": 7445, "sha256": "44ae3abfb9691b888493409aa7be0fab90ea8828acdce0a744dcea66b88a6e2b"},
         {"path": "samples_known_object/05_chair/results/da3", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 194, "size_bytes": 67480574, "sha256": "ef072d9662db2bc61a58a089f20bb06bb9d78f68be9048f7998f6502c4c93ee4"},
         {"path": "samples_known_object/05_chair/results/gvhmr", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 5, "size_bytes": 1802898, "sha256": "be0188181bf20abdf4d4bd8794c77b7bf4e30ea91a2bb06cf31f0c37dec0ab3f"},
-        {"path": "samples_known_object/05_chair/results/segmentation/masks", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 192, "size_bytes": 912397, "sha256": "ba591c6545dea50d23b2d18f06d5b76c293622a4dd3c992eb4a316e1e0b70f7a"}
+        {"path": "samples_known_object/05_chair/results/segmentation/masks", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 192, "size_bytes": 912397, "sha256": "ba591c6545dea50d23b2d18f06d5b76c293622a4dd3c992eb4a316e1e0b70f7a"},
+        {"path": "samples_known_object/05_chair/results/tracking", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 4, "size_bytes": 2362799, "sha256": "73357d5e88e17c7a80a231b9dff6bf2772132124e7828f17e250feadda84be02"}
       ]
     },
     "stick": {

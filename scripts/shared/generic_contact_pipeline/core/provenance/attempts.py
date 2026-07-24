@@ -9,6 +9,7 @@ from typing import Any
 
 from ..base.io import REPO, repo_relative_value, write_json
 from ..base.schema import stage_paths
+from .artifact_store import store_stage_artifacts
 
 
 STAGE_ARTIFACT_KEYS: dict[str, tuple[str, ...]] = {
@@ -104,11 +105,12 @@ class StageAttempt:
     ) -> dict[str, object]:
         stage_dir = self.profile.result_dir / "provenance" / "stages" / self.stage_name
         after = snapshot_stage_artifacts(self.profile, self.stage_name)
+        stored_artifacts = store_stage_artifacts(self.profile.result_dir, after)
         changed = sorted(
             path for path in set(self.before) | set(after) if self.before.get(path) != after.get(path)
         )
         record: dict[str, object] = {
-            "schema_version": 1,
+            "schema_version": 2,
             "case_name": self.profile.case_name,
             "result_name": self.profile.result_name,
             "stage": self.stage_name,
@@ -121,6 +123,7 @@ class StageAttempt:
             "metadata": self.metadata,
             "artifacts_before": self.before,
             "artifacts_after": after,
+            "stored_artifacts": stored_artifacts,
             "changed_artifacts": changed,
             "result_summary": result_summary or {},
         }

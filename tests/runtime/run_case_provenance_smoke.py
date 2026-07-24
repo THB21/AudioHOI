@@ -13,6 +13,7 @@ if str(REPO) not in sys.path:
 
 from scripts.shared.generic_contact_pipeline import run_pipeline
 from scripts.shared.generic_contact_pipeline.core.base.config import CaseProfile
+from scripts.shared.generic_contact_pipeline.core.provenance.artifact_store import verify_attempt_artifacts
 
 
 def main() -> None:
@@ -73,6 +74,8 @@ def main() -> None:
         second = json.loads(attempts[1].read_text())
         assert second["trigger"] == "stage_audit_rerun"
         assert second["parent_attempt_id"] == "000001"
+        assert second["stored_artifacts"]
+        assert verify_attempt_artifacts(profile.result_dir) == []
         assert manifest["ablation_mechanisms"]["all_requested_flags_have_consumers"]
     print("run_case provenance smoke: pass")
 

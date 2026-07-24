@@ -11,6 +11,10 @@ from types import SimpleNamespace
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.shared.generic_contact_pipeline.core.provenance.attempts import StageAttempt
+from scripts.shared.generic_contact_pipeline.core.provenance.artifact_store import (
+    ArtifactStore,
+    verify_attempt_artifacts,
+)
 from scripts.shared.generic_contact_pipeline.core.provenance.golden import (
     CANONICAL_CASES,
     DEFAULT_GOLDEN_MANIFEST,
@@ -21,6 +25,32 @@ from scripts.shared.generic_contact_pipeline.core.provenance.golden import (
 
 
 class PipelineProvenanceTest(unittest.TestCase):
+    def test_artifact_store_deduplicates_content_and_detects_corruption(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            result_dir = root / "result"
+            first = root / "first.csv"
+            second = root / "second.csv"
+            first.write_text("frame,value\n1,same\n")
+            second.write_bytes(first.read_bytes())
+            store = ArtifactStore(result_dir)
+
+            first_ref = store.put(first, canonical_path="first.csv")
+            second_ref = store.put(second, canonical_path="second.csv")
+
+            self.assertEqual(first_ref["sha256"], second_ref["sha256"])
+            self.assertEqual(first_ref["blob_path"], second_ref["blob_path"])
+            blobs = list((result_dir / "provenance/artifact_store/sha256").glob("*/*"))
+            self.assertEqual(len(blobs), 1)
+            self.assertEqual(store.verify_reference(first_ref), [])
+
+            blob = blobs[0]
+            blob.chmod(0o644)
+            blob.write_text("corrupt\n")
+            self.assertTrue(any("sha256 expected" in error for error in store.verify_reference(first_ref)))
+            with self.assertRaisesRegex(RuntimeError, "blob is corrupt"):
+                store.put(first)
+
     def test_five_case_golden_manifest_has_stage_pose_gate_and_decoded_render_hashes(self) -> None:
         payload = json.loads(DEFAULT_GOLDEN_MANIFEST.read_text())
 
@@ -172,6 +202,15 @@ class PipelineProvenanceTest(unittest.TestCase):
             self.assertNotEqual(
                 first_record["artifacts_after"],
                 second_record["artifacts_after"],
+            )
+            self.assertEqual(set(first_record["stored_artifacts"]), set(first_record["artifacts_after"]))
+            self.assertEqual(set(second_record["stored_artifacts"]), set(second_record["artifacts_after"]))
+            self.assertEqual(verify_attempt_artifacts(result_dir), [])
+            second_payload = json.loads(attempts[1].read_text())
+            second_payload["stored_artifacts"] = {}
+            attempts[1].write_text(json.dumps(second_payload))
+            self.assertTrue(
+                any("missing store references" in error for error in verify_attempt_artifacts(result_dir))
             )
             active = json.loads((result_dir / "provenance/stages/stage4/active_attempt.json").read_text())
             self.assertEqual(active["attempt_id"], "000002")

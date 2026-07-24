@@ -64,7 +64,11 @@ def _dependency(
     selected: dict[str, object] | None = None
     for candidate in candidates:
         selection = candidate["selection"]
-        if candidate["exists"] or selection in {"generated_if_observations_exist", "unconditional"}:
+        if candidate["exists"] or selection in {
+            "generated_by_stage1",
+            "generated_if_observations_exist",
+            "unconditional",
+        }:
             selected = candidate
             break
     if selected is None:
@@ -73,6 +77,10 @@ def _dependency(
     elif selected["exists"]:
         resolution = "selected_existing_file"
         readiness = "ready"
+    elif selected["selection"] == "generated_by_stage1":
+        inputs_exist = bool(selected["dependencies"]) and all(item["exists"] for item in selected["dependencies"])
+        resolution = "generated_stage_output" if inputs_exist else "missing_generation_inputs"
+        readiness = "ready" if inputs_exist else "blocked_missing_input"
     elif selected["selection"] == "generated_if_observations_exist":
         observation_exists = any(item["exists"] for item in selected["dependencies"])
         resolution = "generated_fallback" if observation_exists else "generated_empty_fallback"
@@ -102,46 +110,45 @@ def _baseline_path(profile: CaseProfile, key: str) -> Path:
 
 
 def _mug_dependencies(profile: CaseProfile) -> list[dict[str, object]]:
-    rebuild_dir = profile.result_dir / "m17_rebuild_from_recovered_m15"
     observation_csv = profile.sample_dir / "results/object_observations/object_observations.csv"
-    phase_candidates = [
-        _candidate(
-            "rebuilt_m17_phase",
-            rebuild_dir / "corrected_handle_phase.csv",
-            "cached_derivative_of_historical_solved_phase",
-            dependencies=[_baseline_path(profile, "m15_recovered_phase_csv")],
-        ),
-        _candidate(
-            "preserved_m17_snapshot",
-            profile.result_dir / "provenance_snapshots/mug_m17_handle_phase.csv",
-            "preserved_solved_snapshot",
-        ),
-        _candidate(
-            "historical_m17_phase",
-            _baseline_path(profile, "m17_phase_csv"),
-            "historical_solved_seed",
-        ),
-        _candidate(
-            "historical_final_phase",
-            _baseline_path(profile, "final_phase_csv"),
-            "historical_solved_output",
-        ),
-        _candidate(
-            "identity_phase_fallback",
-            rebuild_dir / "identity_handle_phase.csv",
-            "synthetic_identity_fallback",
-            selection="generated_if_observations_exist",
-            dependencies=[observation_csv],
-        ),
+    proxy_csv = profile.sample_dir / "results/object_proxy_observations/object_proxy_observations.csv"
+    body_pose = profile.result_dir / "observation_seed/body_pose.csv"
+    phase = profile.result_dir / "observation_seed/axial_phase.csv"
+    generation_inputs = [
+        observation_csv,
+        proxy_csv,
+        profile.sample_dir / "results/gvhmr/result.pkl",
+        profile.sample_dir / "articraft/materialized_mug_mesh/assets/meshes/body_shell.obj",
+        profile.sample_dir / "articraft/materialized_mug_mesh/assets/meshes/handle_loop.obj",
     ]
-    pose_seed_raw = profile.baseline.get("m18_pose_csv") or profile.baseline.get("final_pose_csv", "")
-    pose_seed = repo_path(pose_seed_raw) if pose_seed_raw else profile.sample_dir / "results/pipe/anchored_pose_obs.csv"
     return [
         _dependency(
             "mug_handle_phase_source",
             consumer_stage="stage1,stage3,stage4",
             consumer="rigid_body_parts,rigid6_plus_phase,stable_grasp_anchor",
-            candidates=phase_candidates,
+            candidates=[
+                _candidate(
+                    "observation_derived_axial_phase",
+                    phase,
+                    "observation_derived_stage_output",
+                    selection="generated_by_stage1",
+                    dependencies=generation_inputs,
+                )
+            ],
+        ),
+        _dependency(
+            "mug_contact_export_pose",
+            consumer_stage="stage1",
+            consumer="rigid_body_parts/export_mug_articraft_contact_points",
+            candidates=[
+                _candidate(
+                    "observation_derived_body_pose",
+                    body_pose,
+                    "observation_derived_stage_output",
+                    selection="generated_by_stage1",
+                    dependencies=generation_inputs,
+                )
+            ],
         ),
         _dependency(
             "mug_body_pose_seed",
@@ -149,10 +156,11 @@ def _mug_dependencies(profile: CaseProfile) -> list[dict[str, object]]:
             consumer="rigid6_plus_phase/mug_opening_2d_pose_correction",
             candidates=[
                 _candidate(
-                    "historical_m18_pose",
-                    pose_seed,
-                    "historical_solved_seed",
-                    selection="unconditional",
+                    "observation_derived_body_pose",
+                    body_pose,
+                    "observation_derived_stage_output",
+                    selection="generated_by_stage1",
+                    dependencies=generation_inputs,
                 )
             ],
         ),

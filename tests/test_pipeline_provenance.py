@@ -18,7 +18,9 @@ from scripts.shared.generic_contact_pipeline.core.provenance.artifact_store impo
 from scripts.shared.generic_contact_pipeline.core.provenance.golden import (
     CANONICAL_CASES,
     DEFAULT_GOLDEN_MANIFEST,
+    DEFAULT_RUNTIME_INPUT_MANIFEST,
     artifact_record,
+    manifest_artifact_paths,
     sync_golden_inputs,
     verify_golden_manifest,
 )
@@ -70,6 +72,16 @@ class PipelineProvenanceTest(unittest.TestCase):
             renders = case["outputs"]["decoded_renders"]
             self.assertEqual(len(renders), 6, case_name)
             self.assertTrue(all(len(item["decoded"]["sha256_rgb24"]) == 64 for item in renders))
+
+    def test_runtime_input_manifest_covers_five_case_da3_gvhmr_and_sam2_outputs(self) -> None:
+        payload = json.loads(DEFAULT_RUNTIME_INPUT_MANIFEST.read_text())
+        self.assertEqual(tuple(payload["cases"]), CANONICAL_CASES)
+        for case_name, case in payload["cases"].items():
+            paths = {record["path"] for record in case["inputs"]}
+            self.assertTrue(any(path.endswith("/frames") for path in paths), case_name)
+            self.assertTrue(any(path.endswith("/results/da3") for path in paths), case_name)
+            self.assertTrue(any(path.endswith("/results/gvhmr") for path in paths), case_name)
+            self.assertTrue(any(path.endswith("/results/segmentation/masks") for path in paths), case_name)
 
     def test_artifact_record_includes_csv_contract_and_hash(self) -> None:
         with TemporaryDirectory() as tmp:
@@ -170,6 +182,60 @@ class PipelineProvenanceTest(unittest.TestCase):
             )
             self.assertTrue(any("non-golden hash" in error for error in conflict["errors"]))
             self.assertEqual(target.read_text(), "different\n")
+
+    def test_supplemental_runtime_manifest_overrides_stale_input_record(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            destination = root / "destination"
+            logical = "sample/generated/masks"
+            hydrated = source / logical
+            hydrated.mkdir(parents=True)
+            (hydrated / "0001.png").write_bytes(b"mask")
+            supplemental = {"cases": {"mug": {"inputs": [artifact_record(hydrated, logical_path=logical)]}}}
+            stale = {
+                "cases": {
+                    case: ({"inputs": [{"path": logical, "kind": "directory", "exists": True,
+                                         "file_count": 0, "size_bytes": 0,
+                                         "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}]}
+                           if case == "mug" else {"inputs": []})
+                    for case in CANONICAL_CASES
+                }
+            }
+            owned = manifest_artifact_paths(supplemental)
+            base_report = sync_golden_inputs(stale, source_root=source, destination_root=destination,
+                                             exclude_paths=owned)
+            runtime_report = sync_golden_inputs(supplemental, source_root=source,
+                                                destination_root=destination)
+            self.assertEqual(base_report["errors"], [])
+            self.assertEqual(runtime_report["would_copy"], [logical])
+
+    def test_golden_input_sync_safely_hydrates_partial_directories(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            destination = root / "destination"
+            logical = Path("sample/results/da3")
+            source_dir = source / logical
+            source_dir.mkdir(parents=True)
+            (source_dir / "tracked.csv").write_text("same\n")
+            (source_dir / "ignored.npy").write_bytes(b"ignored input")
+            destination_dir = destination / logical
+            destination_dir.mkdir(parents=True)
+            (destination_dir / "tracked.csv").write_text("same\n")
+            record = artifact_record(source_dir, logical_path=logical.as_posix())
+            manifest = {"cases": {"mug": {"inputs": [record]}}}
+
+            dry_run = sync_golden_inputs(manifest, source_root=source, destination_root=destination)
+            self.assertEqual(dry_run["would_copy"], [logical.as_posix()])
+            self.assertFalse((destination_dir / "ignored.npy").exists())
+            applied = sync_golden_inputs(manifest, source_root=source, destination_root=destination, apply=True)
+            self.assertEqual(applied["copied"], [logical.as_posix()])
+            self.assertEqual((destination_dir / "ignored.npy").read_bytes(), b"ignored input")
+
+            (destination_dir / "tracked.csv").write_text("conflict\n")
+            conflict = sync_golden_inputs(manifest, source_root=source, destination_root=destination, apply=True)
+            self.assertTrue(any("conflicting files" in error for error in conflict["errors"]))
 
     def test_stage_rerun_creates_distinct_immutable_attempt_records(self) -> None:
         with TemporaryDirectory() as tmp:

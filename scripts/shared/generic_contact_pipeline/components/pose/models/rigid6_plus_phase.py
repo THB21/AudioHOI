@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 
 from ....core.base.config import CaseProfile
-from ....core.base.io import REPO, read_csv, repo_path, write_csv, write_json
+from ....core.base.io import REPO, read_csv, write_csv, write_json
 from ....core.semantics.provenance import resolve_mug_m17_phase, write_mug_m17_reconstruction_report
 from ....core.base.runtime import runtime_python
 from ....core.base.schema import stage_paths
@@ -15,8 +15,11 @@ def build(profile: CaseProfile) -> dict[str, object]:
     write_mug_m17_reconstruction_report(profile, phase_info)
     m18_dir = profile.result_dir / "m18_opening_2d_video_correction_internal"
     m18_solver = REPO / "scripts/shared/generic_contact_pipeline/components/pose/solvers/mug_opening_2d_pose_correction.py"
-    seed_pose_raw = profile.baseline.get("m18_pose_csv") or profile.baseline.get("final_pose_csv", "")
-    seed_pose_csv = repo_path(seed_pose_raw) if seed_pose_raw else profile.sample_dir / "results/pipe/anchored_pose_obs.csv"
+    seed_pose_csv = profile.result_dir / "observation_seed/body_pose.csv"
+    if not seed_pose_csv.exists():
+        raise FileNotFoundError(
+            f"Missing observation-derived mug body pose {seed_pose_csv}; run Stage 1 first"
+        )
     m18_cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
         str(m18_solver),
@@ -60,6 +63,7 @@ def build(profile: CaseProfile) -> dict[str, object]:
         "body_pose_trajectory": str(m18_dir / "mug_m18_opening_2d_video_trajectory.csv"),
         "phase_source": str(phase_source),
         "phase_reconstruction": phase_info,
+        "historical_solved_seed_used": False,
         "rows": len(out_rows),
     }
     write_json(paths["stage3_metrics"], metrics)

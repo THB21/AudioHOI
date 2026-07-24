@@ -17,6 +17,7 @@ from .attempts import STAGE_ARTIFACT_KEYS
 CANONICAL_CASES = ("basketball", "football", "mug", "chair", "stick")
 CANONICAL_RESULT_NAME = "benchmark_vlm_qwen"
 DEFAULT_GOLDEN_MANIFEST = REPO / "tests" / "golden" / "pipeline_v1_five_cases.json"
+DEFAULT_RUNTIME_INPUT_MANIFEST = REPO / "tests" / "golden" / "pipeline_v1_runtime_inputs.json"
 
 
 def _sha256_file(path: Path) -> str:
@@ -262,6 +263,7 @@ def verify_golden_manifest(
     *,
     verify_decoded_renders: bool = True,
     input_root: Path | None = None,
+    exclude_paths: set[str] | None = None,
 ) -> list[str]:
     errors: list[str] = []
     if manifest.get("schema_version") != 1:
@@ -273,6 +275,8 @@ def verify_golden_manifest(
     seen: set[str] = set()
     for record in _iter_artifact_records(cases):
         path_value = str(record["path"])
+        if exclude_paths and path_value in exclude_paths:
+            continue
         source_scope = str(record.get("source_scope", "repository"))
         identity = f"{source_scope}:{path_value}:{record.get('sha256')}"
         if identity in seen:
@@ -297,12 +301,38 @@ def verify_golden_manifest(
     return errors
 
 
+def verify_runtime_input_manifest(manifest: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    if manifest.get("schema_version") != 1:
+        errors.append(f"runtime input schema_version expected 1, got {manifest.get('schema_version')!r}")
+    cases = manifest.get("cases", {})
+    if not isinstance(cases, dict):
+        return errors + ["runtime input cases must be an object"]
+    for record in _iter_artifact_records(cases):
+        path_value = str(record["path"])
+        actual = artifact_record(_repo_path_from_recorded(path_value), logical_path=path_value)
+        for key in ("exists", "kind", "sha256", "size_bytes", "file_count", "columns", "rows"):
+            if actual.get(key) != record.get(key):
+                errors.append(f"{path_value}: {key} expected {record.get(key)!r}, got {actual.get(key)!r}")
+    return errors
+
+
+def manifest_artifact_paths(manifest: dict[str, object]) -> set[str]:
+    """Return logical paths owned by a manifest.
+
+    Supplemental runtime-input manifests intentionally override stale
+    missing/empty input records in the frozen Phase 0 result manifest.
+    """
+    return {str(record["path"]) for record in _iter_artifact_records(manifest.get("cases", {}))}
+
+
 def sync_golden_inputs(
     manifest: dict[str, object],
     *,
     source_root: Path,
     destination_root: Path = REPO,
     apply: bool = False,
+    exclude_paths: set[str] | None = None,
 ) -> dict[str, object]:
     copied: list[str] = []
     would_copy: list[str] = []
@@ -322,6 +352,8 @@ def sync_golden_inputs(
             if not isinstance(record, dict) or not record.get("exists"):
                 continue
             logical_path = str(record.get("path", ""))
+            if exclude_paths and logical_path in exclude_paths:
+                continue
             if logical_path in seen:
                 continue
             seen.add(logical_path)
@@ -332,10 +364,41 @@ def sync_golden_inputs(
             destination = destination_root / relative
             if destination.exists():
                 current = artifact_record(destination, logical_path=logical_path)
-                if current.get("sha256") != record.get("sha256"):
-                    errors.append(f"{logical_path}: destination exists with a non-golden hash")
-                else:
+                if current.get("sha256") == record.get("sha256"):
                     verified.append(logical_path)
+                    continue
+                source = source_root / relative
+                if record.get("kind") == "directory" and destination.is_dir() and source.is_dir():
+                    source_record = artifact_record(source, logical_path=logical_path)
+                    if source_record.get("sha256") != record.get("sha256"):
+                        errors.append(f"{logical_path}: source hash does not match golden manifest")
+                        continue
+                    conflicts = []
+                    for existing in sorted(item for item in destination.rglob("*") if item.is_file()):
+                        source_item = source / existing.relative_to(destination)
+                        if not source_item.is_file() or _sha256_file(existing) != _sha256_file(source_item):
+                            conflicts.append(existing.relative_to(destination).as_posix())
+                    if conflicts:
+                        errors.append(
+                            f"{logical_path}: partial destination has conflicting files: {conflicts[:5]}"
+                        )
+                        continue
+                    if not apply:
+                        would_copy.append(logical_path)
+                        continue
+                    for source_item in sorted(item for item in source.rglob("*") if item.is_file()):
+                        target = destination / source_item.relative_to(source)
+                        if target.exists():
+                            continue
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(source_item, target)
+                    hydrated = artifact_record(destination, logical_path=logical_path)
+                    if hydrated.get("sha256") != record.get("sha256"):
+                        errors.append(f"{logical_path}: hydrated directory does not match golden manifest")
+                    else:
+                        copied.append(logical_path)
+                    continue
+                errors.append(f"{logical_path}: destination exists with a non-golden hash")
                 continue
             source = source_root / relative
             if not source.exists():

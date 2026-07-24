@@ -11,6 +11,7 @@ from ...core.base.camera import backproject_uvz
 from ...core.base.io import copy_file, read_csv, write_csv, write_json
 from ...core.base.schema import stage_paths
 from ..refinement.sequence_se3_optimizer import smooth_quaternion_pose_sequence
+from ...core.semantics.static_tail import enforce_declared_static_tail
 from ..refinement.policies import generic_line_physical_smooth
 from ...core.plugins.registry import invoke_selected_plugin, resolve_pipeline_plugins
 
@@ -1140,6 +1141,8 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         selected_jump_audit = _audit_rows(rows, out_rows, se3_audit, regime_rows)
     else:
         _score, selected_sources, out_rows, se3_audit, trust, smooth_weight, accel_weight, feedback_reweight_reason, selected_jump_audit = best
+    out_rows, static_tail_postcondition = enforce_declared_static_tail(profile, out_rows)
+    selected_jump_audit = _audit_rows(rows, out_rows, se3_audit, regime_rows)
     rejected_sources = sorted(reweight_sources - selected_sources)
     write_csv(paths["object_pose"], out_rows)
     write_csv(paths["physical_smooth_residuals"], se3_audit)
@@ -1195,6 +1198,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         "anchor_residual": anchor_metrics,
         "anchor_pose_prior": anchor_prior_metrics,
         "line_overlay_depth_stabilizer": {"enabled": False, "reason": "replaced_by_generic_line_physical_smooth_seed_builder"},
+        "static_tail_postcondition": static_tail_postcondition,
         "feedback_reweight_sources": sorted(selected_sources),
         "requested_feedback_reweight_sources": sorted(reweight_sources),
         "rejected_feedback_sources": rejected_sources,

@@ -10,9 +10,9 @@ from ..base.schema import stage_paths
 BASELINE_READER_COMPONENTS = {}
 
 VERIFIED_INTERMEDIATE_COMPONENTS = {
-    "rigid_body_plus_parts": "uses mug 2D object_observations plus generic object_proxy builder and Articraft contact-point exporter; rebuilds M17 handle phase from the preserved recovered M15 branch when available",
-    "rigid6_plus_phase": "regenerates mug M18 body pose with generic CSV-only 2D/contact correction; rebuilds M17 handle phase from recovered M15 instead of reading the solved M17 snapshot",
-    "stable_grasp_anchor": "uses generic-regenerated mug M18 pose and rebuilt M17 phase, then rebuilds final pose/phase and grasp-anchor state in generic code",
+    "rigid_body_plus_parts": "derives mug body pose and axial phase from current 2D/depth observations, then exports Articraft contact points from those result-owned artifacts",
+    "rigid6_plus_phase": "refines the current observation-derived body pose with generic CSV-only 2D/contact correction; no historical M18/M17 input is read",
+    "stable_grasp_anchor": "uses the current Stage 3 pose and observation-derived axial phase, then rebuilds final pose/phase and grasp-anchor state in generic code",
     "small_se3": "rebuilds chair physical6d seed from retained mainline saved-2D inputs, then runs generic two-hand endpoint SE(3) contact refinement with semantic-2D/contact/freeze quality gate",
 }
 

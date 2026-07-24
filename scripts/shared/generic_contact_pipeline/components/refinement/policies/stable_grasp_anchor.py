@@ -5,9 +5,11 @@ import json
 import math
 from pathlib import Path
 
+import numpy as np
+
 from ....components.contact.solvers.build_mug_grasp_anchor_state import FIELDS, build_state
 from ....core.base.config import CaseProfile
-from ....core.base.io import float_or_none, read_csv, repo_path, write_csv, write_json
+from ....core.base.io import float_or_none, read_csv, write_csv, write_json
 from ....core.semantics.provenance import resolve_mug_m17_phase, write_mug_m17_reconstruction_report
 from ....core.base.schema import stage_paths
 from ....core.gates.vlm_gates import apply_contact_gate_to_rows
@@ -143,7 +145,11 @@ def _detect_static_frame(profile: CaseProfile, rows: list[dict[str, str]]) -> tu
 
 def _build_mug_pose(profile: CaseProfile, out_path) -> dict[str, object]:
     paths = stage_paths(profile)
-    pose_source = paths["object_pose_init"] if paths["object_pose_init"].exists() else repo_path(profile.baseline["m18_pose_csv"])
+    pose_source = paths["object_pose_init"]
+    if not pose_source.exists():
+        raise FileNotFoundError(
+            f"Missing current-run mug Stage 3 pose {pose_source}; historical M18 fallback is disabled"
+        )
     rows = read_csv(pose_source)
     by_frame = {int(float(r["frame"])): r for r in rows}
     start, end, steps, rot_reason = _detect_rotation_window(rows)
@@ -196,66 +202,6 @@ def _build_mug_pose(profile: CaseProfile, out_path) -> dict[str, object]:
     }
 
 
-def _phase_anchors() -> list[tuple[int, float]]:
-    return [
-        (1, 0.447322), (20, -4.6), (26, 22.0), (30, 58.0), (35, 92.0),
-        (45, 145.0), (50, 154.0), (55, 160.0), (57, 162.0), (60, 156.0),
-        (62, 152.0), (65, 146.0), (75, 132.0), (84, 125.0), (86, 115.0),
-        (89, 100.0), (95, 75.0), (100, 70.0), (105, 90.0), (107, 85.0),
-        (110, 65.0), (112, 55.0), (115, 45.0), (120, 30.0), (126, 15.0),
-        (135, 5.0), (145, -20.0), (150, -23.0), (180, -31.902183), (240, -31.744569),
-    ]
-
-
-def _pchip_slopes(x: list[float], y: list[float]) -> list[float]:
-    n = len(x)
-    h = [x[i + 1] - x[i] for i in range(n - 1)]
-    d = [(y[i + 1] - y[i]) / h[i] for i in range(n - 1)]
-    m = [0.0] * n
-    for k in range(1, n - 1):
-        if d[k - 1] == 0.0 or d[k] == 0.0 or (d[k - 1] < 0.0) != (d[k] < 0.0):
-            m[k] = 0.0
-        else:
-            w1 = 2.0 * h[k] + h[k - 1]
-            w2 = h[k] + 2.0 * h[k - 1]
-            m[k] = (w1 + w2) / (w1 / d[k - 1] + w2 / d[k])
-
-    def endpoint(h0, h1, d0, d1):
-        val = ((2.0 * h0 + h1) * d0 - h0 * d1) / (h0 + h1)
-        if (val < 0.0) != (d0 < 0.0):
-            return 0.0
-        if (d0 < 0.0) != (d1 < 0.0) and abs(val) > abs(3.0 * d0):
-            return 3.0 * d0
-        return val
-
-    m[0] = endpoint(h[0], h[1], d[0], d[1]) if n > 2 else d[0]
-    m[-1] = endpoint(h[-1], h[-2], d[-1], d[-2]) if n > 2 else d[-1]
-    return m
-
-
-def _pchip_eval(x: list[float], y: list[float], xs: list[float]) -> list[float]:
-    m = _pchip_slopes(x, y)
-    out = []
-    for xv in xs:
-        if xv <= x[0]:
-            k = 0
-        elif xv >= x[-1]:
-            k = len(x) - 2
-        else:
-            k = 0
-            while k + 1 < len(x) and x[k + 1] < xv:
-                k += 1
-        h = x[k + 1] - x[k]
-        t = (xv - x[k]) / h
-        out.append(
-            (2 * t**3 - 3 * t**2 + 1) * y[k]
-            + (t**3 - 2 * t**2 + t) * h * m[k]
-            + (-2 * t**3 + 3 * t**2) * y[k + 1]
-            + (t**3 - t**2) * h * m[k + 1]
-        )
-    return out
-
-
 def _wrap_pi(value: float) -> float:
     return (value + math.pi) % (2.0 * math.pi) - math.pi
 
@@ -264,11 +210,8 @@ def _build_mug_phase(profile: CaseProfile, out_path) -> dict[str, object]:
     phase_source, phase_info = resolve_mug_m17_phase(profile)
     write_mug_m17_reconstruction_report(profile, phase_info)
     rows = read_csv(phase_source)
-    frames = [int(float(r["frame"])) for r in rows]
-    available = set(frames)
-    anchors = [(fr, deg) for fr, deg in _phase_anchors() if fr in available]
-    desired = _pchip_eval([float(fr) for fr, _deg in anchors], [deg for _fr, deg in anchors], [float(fr) for fr in frames])
-    out_deg = list(desired)
+    source_rad = [float(r["m17_phase_rad"]) for r in rows]
+    out_deg = [math.degrees(value) for value in np.unwrap(np.asarray(source_rad, dtype=float))]
     max_step = 7.0
     for i in range(1, len(out_deg)):
         delta = out_deg[i] - out_deg[i - 1]
@@ -290,11 +233,13 @@ def _build_mug_phase(profile: CaseProfile, out_path) -> dict[str, object]:
         new["m17_phase_deg"] = f"{math.degrees(rad):.6f}"
         new["m43_phase_rad"] = f"{rad:.9f}"
         new["m43_phase_deg"] = f"{math.degrees(rad):.6f}"
-        new["m43_source"] = "smooth_entry_physical_phase_no_hide"
+        new["m43_source"] = "observation_axial_phase_velocity_limited"
         out_rows.append(new)
     write_csv(out_path, out_rows, fields)
     return {
-        "anchors": len(anchors),
+        "observation_rows": len(rows),
+        "historical_phase_anchors_used": False,
+        "velocity_limit_deg_per_frame": max_step,
         "max_abs_velocity_deg": max(abs(out_deg[i] - out_deg[i - 1]) for i in range(1, len(out_deg))),
         "phase_source": str(phase_source),
         "phase_reconstruction": phase_info,
@@ -329,9 +274,9 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         "object_contact_points_source": str(internal_csv),
         "object_contact_points_builder": "generic_contact_pipeline/components/contact/build_mug_grasp_anchor_state.py",
         "hidden_handle_policy": "keep_previous_stable_grasp_anchor",
-        "pose_policy": "m18_rotation_slerp_table_freeze_clean_python",
+        "pose_policy": "current_stage3_rotation_slerp_table_freeze_clean_python",
         "pose_info": pose_info,
-        "phase_policy": "m17_phase_pchip_smooth_entry_no_hide_clean_python",
+        "phase_policy": "observation_axial_phase_velocity_limited_clean_python",
         "phase_info": phase_info,
         "grasp_anchor_summary": contact_summary,
         "vlm_gate_summary": vlm_gate_summary,

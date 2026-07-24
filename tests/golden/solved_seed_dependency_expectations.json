@@ -2,19 +2,25 @@
   "schema_version": 1,
   "existing": {
     "mug": {
-      "rerun_readiness": "blocked_missing_input",
+      "rerun_readiness": "ready",
       "dependencies": {
         "mug_handle_phase_source": {
-          "selected_candidate_id": "identity_phase_fallback",
-          "resolution": "generated_fallback",
-          "rerun_readiness": "degraded_output_change",
+          "selected_candidate_id": "observation_derived_axial_phase",
+          "resolution": "generated_stage_output",
+          "rerun_readiness": "ready",
+          "solved_seed_dependency": false
+        },
+        "mug_contact_export_pose": {
+          "selected_candidate_id": "observation_derived_body_pose",
+          "resolution": "generated_stage_output",
+          "rerun_readiness": "ready",
           "solved_seed_dependency": false
         },
         "mug_body_pose_seed": {
-          "selected_candidate_id": "historical_m18_pose",
-          "resolution": "selected_missing_path",
-          "rerun_readiness": "blocked_missing_input",
-          "solved_seed_dependency": true
+          "selected_candidate_id": "observation_derived_body_pose",
+          "resolution": "generated_stage_output",
+          "rerun_readiness": "ready",
+          "solved_seed_dependency": false
         }
       }
     },
@@ -32,19 +38,25 @@
   },
   "fresh": {
     "mug": {
-      "rerun_readiness": "blocked_missing_input",
+      "rerun_readiness": "ready",
       "dependencies": {
         "mug_handle_phase_source": {
-          "selected_candidate_id": "identity_phase_fallback",
-          "resolution": "generated_fallback",
-          "rerun_readiness": "degraded_output_change",
+          "selected_candidate_id": "observation_derived_axial_phase",
+          "resolution": "generated_stage_output",
+          "rerun_readiness": "ready",
+          "solved_seed_dependency": false
+        },
+        "mug_contact_export_pose": {
+          "selected_candidate_id": "observation_derived_body_pose",
+          "resolution": "generated_stage_output",
+          "rerun_readiness": "ready",
           "solved_seed_dependency": false
         },
         "mug_body_pose_seed": {
-          "selected_candidate_id": "historical_m18_pose",
-          "resolution": "selected_missing_path",
-          "rerun_readiness": "blocked_missing_input",
-          "solved_seed_dependency": true
+          "selected_candidate_id": "observation_derived_body_pose",
+          "resolution": "generated_stage_output",
+          "rerun_readiness": "ready",
+          "solved_seed_dependency": false
         }
       }
     },

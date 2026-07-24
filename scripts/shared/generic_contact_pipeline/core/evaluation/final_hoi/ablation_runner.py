@@ -22,6 +22,8 @@ ABLATION_FIELDS = [
     "vlm",
     "llm",
     "ablation_flags",
+    "declared_mechanism",
+    "mechanism_supported",
     "actual_vlm_mode",
     "actual_llm_mode",
     "actual_ablation_flags",
@@ -113,6 +115,8 @@ REGISTRY_FIELDS = [
     "vlm",
     "llm",
     "ablation_flags",
+    "declared_mechanism",
+    "mechanism_supported",
     "actual_vlm_mode",
     "actual_llm_mode",
     "actual_ablation_flags",
@@ -201,7 +205,16 @@ def _row(profile: CaseProfile, variant: MethodVariant) -> dict[str, Any]:
         "vlm": variant.vlm or "",
         "llm": variant.llm or "",
         "ablation_flags": "|".join(variant.ablation_flags),
+        "declared_mechanism": variant.mechanism,
+        "mechanism_supported": variant.mechanism_supported,
     }
+    if not variant.mechanism_supported:
+        return {
+            **base,
+            "method_status": "unsupported_mechanism",
+            "method_manifest_valid": False,
+            "method_manifest_mismatch_reason": variant.mechanism,
+        }
     if not result_dir.exists() or not (result_dir / "object_pose.csv").exists():
         return {
             **base,
@@ -399,6 +412,8 @@ def _registry_rows(profiles: list[CaseProfile], variants: list[MethodVariant]) -
                     "vlm": variant.vlm or "",
                     "llm": variant.llm or "",
                     "ablation_flags": "|".join(variant.ablation_flags),
+                    "declared_mechanism": variant.mechanism,
+                    "mechanism_supported": variant.mechanism_supported,
                     **(_manifest_audit(result_dir, variant) if result_dir.exists() else {
                         "actual_vlm_mode": "",
                         "actual_llm_mode": "",

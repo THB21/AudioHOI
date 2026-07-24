@@ -15,6 +15,7 @@ if __package__ in {None, ""}:
         sys.path.insert(0, str(REPO))
 
 from scripts.shared.generic_contact_pipeline.core.base.config import available_cases, load_case_profile, with_runtime_overrides  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.base.ablation import describe_ablation_mechanisms, validate_ablation_flags  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.base.io import read_csv, write_json  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.base.schema import stage_paths  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.evaluation.benchmark import run_benchmark as run_result_benchmark  # noqa: E402
@@ -25,6 +26,7 @@ from scripts.shared.generic_contact_pipeline.core.evaluation.vlm_trace import ex
 from scripts.shared.generic_contact_pipeline.core.gates.stage_audit import write_stage_audit  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_provider import load_vlm_provider  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_gates import write_stage_gates  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.provenance.attempts import StageAttempt  # noqa: E402
 from scripts.shared.generic_contact_pipeline.components.mainline import contact_anchor, pose_init, sequence_refine  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.analysis import stage_llm_csv_audit, stage_loss_analysis  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.gates import stage_vlm_qwen, stage_vlm_verify  # noqa: E402
@@ -265,29 +267,84 @@ def _repair_after_stage_audit(profile, stage_name: str, result: dict[str, object
     return repaired
 
 
+def _attempt_summary(
+    result: dict[str, object],
+    vlm_result: dict[str, object] | None,
+    stage_audit_result: dict[str, object],
+) -> dict[str, object]:
+    return {
+        "stage_status": result.get("status", result.get("decision", "")),
+        "vlm_decision": vlm_result.get("decision", "") if vlm_result else "not_run",
+        "stage_audit_decision": stage_audit_result.get("decision", ""),
+        "rerun_requested": bool(stage_audit_result.get("rerun_stage")),
+    }
+
+
 def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.Namespace) -> dict[str, object]:
-    profile = with_runtime_overrides(load_case_profile(case_name), result_name=args.result_name or None, ablation_flags=args.ablation_flag)
+    requested_ablation_flags = validate_ablation_flags(args.ablation_flag)
+    ablation_mechanisms = describe_ablation_mechanisms(requested_ablation_flags)
+    profile = with_runtime_overrides(
+        load_case_profile(case_name),
+        result_name=args.result_name or None,
+        ablation_flags=requested_ablation_flags,
+    )
     stage_results = []
     for stage_name, fn in selected_stages(from_stage, to_stage):
         print(f"[{case_name}] {stage_name}", flush=True)
-        if stage_name in {"stage-1", "stage6.5"}:
-            result = fn(profile, args.llm_mode)
-        else:
-            result = fn(profile)
-        vlm_result = _run_stage_vlm(profile, stage_name, args)
-        vlm_gate_result = None
-        if vlm_result is not None:
-            vlm_gate_result = write_stage_gates(profile, stage_name)
-            result = _refresh_generic_mainline_after_vlm(profile, stage_name, result)
-            print(
-                f"[{case_name}] {stage_name} vlm={vlm_result.get('mode')} "
-                f"decision={vlm_result.get('decision')} gates={vlm_result.get('gate_counts', {})}",
-                flush=True,
-            )
-        stage_audit_result = write_stage_audit(profile, stage_name, llm_mode=args.llm_mode)
-        result = _repair_after_stage_audit(profile, stage_name, result, stage_audit_result)
-        if stage_audit_result.get("rerun_stage"):
+        attempt = StageAttempt(
+            profile,
+            stage_name,
+            trigger="scheduled_pipeline_stage",
+            metadata={"from_stage": from_stage, "to_stage": to_stage},
+        )
+        attempt_finished = False
+        try:
+            if stage_name in {"stage-1", "stage6.5"}:
+                result = fn(profile, args.llm_mode)
+            else:
+                result = fn(profile)
+            vlm_result = _run_stage_vlm(profile, stage_name, args)
+            vlm_gate_result = None
+            if vlm_result is not None:
+                vlm_gate_result = write_stage_gates(profile, stage_name)
+                result = _refresh_generic_mainline_after_vlm(profile, stage_name, result)
+                print(
+                    f"[{case_name}] {stage_name} vlm={vlm_result.get('mode')} "
+                    f"decision={vlm_result.get('decision')} gates={vlm_result.get('gate_counts', {})}",
+                    flush=True,
+                )
             stage_audit_result = write_stage_audit(profile, stage_name, llm_mode=args.llm_mode)
+            if stage_audit_result.get("rerun_stage"):
+                attempt.finish(
+                    status="completed_rerun_requested",
+                    result_summary=_attempt_summary(result, vlm_result, stage_audit_result),
+                )
+                attempt_finished = True
+                rerun_attempt = StageAttempt(
+                    profile,
+                    stage_name,
+                    trigger="stage_audit_rerun",
+                    parent_attempt_id=attempt.attempt_id,
+                    metadata={"audit_decision": stage_audit_result},
+                )
+                try:
+                    result = _repair_after_stage_audit(profile, stage_name, result, stage_audit_result)
+                    stage_audit_result = write_stage_audit(profile, stage_name, llm_mode=args.llm_mode)
+                    rerun_attempt.finish(
+                        result_summary=_attempt_summary(result, vlm_result, stage_audit_result)
+                    )
+                except Exception as exc:
+                    rerun_attempt.finish(status="failed", error=exc)
+                    raise
+            else:
+                attempt.finish(
+                    result_summary=_attempt_summary(result, vlm_result, stage_audit_result)
+                )
+                attempt_finished = True
+        except Exception as exc:
+            if not attempt_finished:
+                attempt.finish(status="failed", error=exc)
+            raise
         if args.vlm_blocking and vlm_result and vlm_result.get("blocking"):
             stage_results.append({"stage": stage_name, "result": result, "vlm_verification": vlm_result, "vlm_gate": vlm_gate_result, "stage_audit": stage_audit_result})
             manifest = {
@@ -299,6 +356,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
                 "to_stage": to_stage,
                 "vlm_mode": args.vlm_mode,
                 "llm_mode": args.llm_mode,
+                "ablation_mechanisms": ablation_mechanisms,
                 "vlm_blocked_at_stage": stage_name,
                 "stage_results": stage_results,
             }
@@ -315,6 +373,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
         "vlm_mode": args.vlm_mode,
         "llm_mode": args.llm_mode,
         "vlm_blocking": args.vlm_blocking,
+        "ablation_mechanisms": ablation_mechanisms,
         "stage_results": stage_results,
     }
     manifest["generic_se3_mainline"] = _generic_mainline_manifest(profile)

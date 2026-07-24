@@ -11,6 +11,7 @@ from types import SimpleNamespace
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.shared.generic_contact_pipeline.core.base.io import read_csv, write_csv
+from scripts.shared.generic_contact_pipeline.core.base.ablation import validate_ablation_flags
 from scripts.shared.generic_contact_pipeline.core.base.schema import stage_paths
 from scripts.shared.generic_contact_pipeline.core.evaluation.final_hoi.schemas import EvaluationPaths
 from scripts.shared.generic_contact_pipeline.core.evaluation.final_hoi.overlay_metrics import compute_overlay_metrics
@@ -41,6 +42,14 @@ class FinalHoiEvaluationTest(unittest.TestCase):
 
         self.assertEqual([profile.case_name for profile in profiles], ["basketball", "football"])
         validations = [validate_final_result_profile(profile) for profile in profiles]
+        missing = sorted(
+            {artifact for row in validations for artifact in row["missing_artifacts"]}
+        )
+        if missing:
+            self.skipTest(
+                "requires generated repository data not present in a clean checkout: "
+                + ", ".join(missing)
+            )
         self.assertTrue(all(row["hard_metrics_ready"] for row in validations))
         self.assertTrue(all(row["gate_trace_ready"] for row in validations))
         self.assertTrue(all(row["final_pose_frame_aligned"] for row in validations))
@@ -345,11 +354,19 @@ class FinalHoiEvaluationTest(unittest.TestCase):
         self.assertEqual(by_method["no_vlm_llm"].result_name, "clean_ablation_no_vlm_llm")
         self.assertEqual(by_method["no_vlm_llm"].vlm, "none")
         self.assertEqual(by_method["no_vlm_llm"].llm, "none")
+        self.assertEqual(by_method["no_vlm_llm"].ablation_flags, [])
         self.assertEqual(by_method["no_audio"].result_name, "clean_ablation_no_audio")
         self.assertEqual(by_method["no_audio"].ablation_flags, ["disable_audio_events"])
         self.assertEqual(by_method["no_llm"].result_name, "benchmark_no_llm")
         self.assertEqual(by_method["no_contact_anchor"].result_name, "benchmark_no_anchor")
+        self.assertFalse(by_method["no_contact_anchor"].mechanism_supported)
+        self.assertEqual(by_method["no_contact_anchor"].ablation_flags, [])
         self.assertEqual(by_method["audio_enabled"].result_name, "benchmark_audio_enabled")
+
+    def test_runtime_ablation_flags_must_have_algorithm_consumers(self) -> None:
+        self.assertEqual(validate_ablation_flags(["disable_audio_events"]), ["disable_audio_events"])
+        with self.assertRaisesRegex(ValueError, "[Nn]o current pipeline component consumes"):
+            validate_ablation_flags(["no_contact_anchor"])
 
     def test_ablation_cli_default_methods_are_materialized_required_variants(self) -> None:
         self.assertEqual(

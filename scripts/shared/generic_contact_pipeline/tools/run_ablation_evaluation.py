@@ -57,6 +57,8 @@ def main() -> None:
                 vlm=base.vlm,
                 llm=base.llm,
                 required=base.required,
+                mechanism=base.mechanism,
+                mechanism_supported=base.mechanism_supported,
             )
         )
     profiles = [load_case_profile(case) for case in args.cases]

@@ -15,17 +15,25 @@ class MethodVariant:
     vlm: str | None = None
     llm: str | None = None
     required: bool = True
+    mechanism: str = ""
+    mechanism_supported: bool = True
 
 
 DEFAULT_VARIANTS = [
-    MethodVariant("full_audio_vlm_llm", "clean_ablation_full_audio_vlm_llm", [], audio=True, vlm="qwen", llm="mistral"),
-    MethodVariant("no_audio", "clean_ablation_no_audio", ["disable_audio_events"], audio=False, vlm="qwen", llm="mistral"),
-    MethodVariant("no_vlm_llm", "clean_ablation_no_vlm_llm", ["no_vlm", "no_llm"], audio=True, vlm="none", llm="none"),
-    MethodVariant("audio_enabled", "benchmark_audio_enabled", [], audio=True, vlm="qwen", llm="mistral", required=False),
-    MethodVariant("no_vlm", "benchmark_baseline_no_vlm", ["no_vlm"], audio=True, vlm="none", llm="mistral"),
-    MethodVariant("no_llm", "benchmark_no_llm", ["no_llm"], audio=True, vlm="qwen", llm="none"),
-    MethodVariant("no_contact_anchor", "benchmark_no_anchor", ["no_contact_anchor"], audio=True, vlm="qwen", llm="mistral"),
-    MethodVariant("object_only", "benchmark_object_only", ["object_only"], audio=True, vlm="qwen", llm="mistral", required=False),
+    MethodVariant("full_audio_vlm_llm", "clean_ablation_full_audio_vlm_llm", [], audio=True, vlm="qwen", llm="mistral", mechanism="reference_full_pipeline"),
+    MethodVariant("no_audio", "clean_ablation_no_audio", ["disable_audio_events"], audio=False, vlm="qwen", llm="mistral", mechanism="disable_audio_events runtime consumers"),
+    MethodVariant("no_vlm_llm", "clean_ablation_no_vlm_llm", [], audio=True, vlm="none", llm="none", mechanism="vlm_mode=none and llm_mode=none"),
+    MethodVariant("audio_enabled", "benchmark_audio_enabled", [], audio=True, vlm="qwen", llm="mistral", required=False, mechanism="reference_audio_enabled_pipeline"),
+    MethodVariant("no_vlm", "benchmark_baseline_no_vlm", [], audio=True, vlm="none", llm="mistral", mechanism="vlm_mode=none"),
+    MethodVariant("no_llm", "benchmark_no_llm", [], audio=True, vlm="qwen", llm="none", mechanism="llm_mode=none"),
+    MethodVariant(
+        "no_contact_anchor", "benchmark_no_anchor", [], audio=True, vlm="qwen", llm="mistral",
+        required=False, mechanism="unverified legacy result; no runtime consumer", mechanism_supported=False,
+    ),
+    MethodVariant(
+        "object_only", "benchmark_object_only", [], audio=True, vlm="qwen", llm="mistral",
+        required=False, mechanism="render/evaluation label; not a solver intervention", mechanism_supported=False,
+    ),
 ]
 
 MATERIALIZED_DEFAULT_METHODS = [

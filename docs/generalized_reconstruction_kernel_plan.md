@@ -127,6 +127,72 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 7. 仅在全部 mandatory gate 通过后切换 capability plugin。
 8. 切换后删除对应的专用连续优化入口；保留只读 compatibility reader 的期限必须明确。
 
+## Mug：多组件旋转的泛化模型
+
+Mug 不能被建模为两个互不相关的刚体姿态。首批通用表达应是一个运动学图：
+
+```text
+world -> body(root SE3) -> handle(periodic/revolute joint)
+```
+
+每帧状态为 `T_world_body + scale + handle.phase`，handle 的世界变换必须由
+`T_world_handle = T_world_body * T_body_handle(handle.phase)` 组合得到。body、handle、
+rim 和 bottom measurement 都绑定到各自 `FeatureRef`，投影、接触和渲染统一查询
+`GeometryProvider.local_to_world(feature, state)`；solver 不允许分别生成两个无约束
+rotation CSV。
+
+当前 mug body 近似轴对称，因此 root 绕局部竖直轴的 yaw 与 `handle.phase` 不是两个
+独立可观测量：对任意 `delta`，给 root yaw 加 `delta`、同时给 phase 减 `delta`，
+复合后的 handle 几何可以保持不变。迁移时必须声明跨 DOF 的 coupled gauge，并选择
+一个确定规范（首选保持现有 fresh seed 约定：body axial yaw 固定到 gauge，所有可观测
+轴向角写入 phase）。禁止对两个量各自加 identity/historical prior 来伪造可观测性。
+
+通用初始化和优化分解为：
+
+1. body mask/center/depth 建立 root translation、tilt 和 scale 的观测推导候选；
+2. visible handle feature 约束复合轴向角，hidden span 保留 `occluded_hold` 并使用通用
+   periodic temporal factor；
+3. palm-handle contact 作用于组合后的 handle feature，而不是对象名为 mug 的列；
+4. 以组合后 feature 的 2D/3D 位置、接触和 render 做 gauge-invariant 验收，不比较
+   raw yaw/phase 数值。
+
+为此 `StateSpec` 还需从平铺 DOF 扩展出 `KinematicNode`、`JointSpec(parent/child/axis)`、
+`FeatureAttachment` 和可同时引用多个 DOF 的 coupled `GaugeConstraint`。这套表达应同样
+覆盖带转动把手、盖子或铰接子件的 held-out 对象；对象配置只提供几何、关节轴和 feature
+mapping，不新增 mug/cup 专用连续 solver。
+
+当前 `phase_snapshot_fallback` gap 来自 canonical `benchmark_vlm_qwen` 的 Stage 3
+provenance（其中明确记录 `snapshot_fallback_used=true`），不是“mug 的双组件旋转无法
+泛化”。`mug_observation_seed_v4` 已证明 current-run 观测足以生成可接受候选；该 gap
+只有在上述 phase initializer 和 coupled gauge 被 generic solver 正式消费并通过独立
+sandbox 回归后才能关闭，不能仅因存在 fresh 结果而从审计中删除。
+
+## Chair：当前专用机制及其通用替代
+
+Chair 的物理状态本身可以用通用模型表达：root SE3、两个有 URDF limit 的 revolute
+joint，以及绑定在 articulated links 上的 line/endpoint features。当前被标记为
+`semantic_graph_solver_private`，原因是求解实现尚未经过这些通用边界：
+
+- `chair_twohand_endpoint_se3.py` 直接导入 chair pose/render 模块和固定 base transform；
+- articulation 根据 chair part/segment id 和局部 X 轴分支计算，未通过
+  `GeometryProvider.joint_transform/Jacobian`；
+- contact 字段、左右 top-rail endpoint、两个 joint 名称和 palm pairing 写在 solver 内；
+- 两端点对齐、绕 contact chord 的剩余 twist、2D semantic line 拟合、关节求解和
+  `pose_lock_reason` 在同一对象专用优化路径内完成。
+
+其中纯 `align_contact_chord(local[2], target[2], init)` 已经不依赖 chair，可保留并提升
+为通用 `RigidCorrespondenceInitializer`。两点对应只能确定 translation 和两个旋转自由度，
+绕 chord 的 twist 是结构性 rank deficiency；通用 solver 应显式报告该 null space，再用
+`LineReprojectionFactor`、`JointLimitFactor` 和 coupled `GaugeConstraintFactor` 消除，而不在
+chair runner 中隐式补齐。双手和 top rail 只是两组 `HumanSite <-> FeatureRef` 对应，关节
+传播由 URDF `GeometryProvider` 提供。
+
+`pose_lock_reason` 也应迁移为 candidate attempt 的通用 constraint-acceptance invariant：
+已通过硬接触/几何下界 gate 的状态不能被后续非约束 smoother 静默覆写，但不应出现
+chair 专属锁。完成这些迁移并通过 semantic 2D、contact median/P90、freeze 与六路 render
+回归后，才能关闭 `semantic_graph_solver_private`；它表示当前软件封装仍专用，不表示
+chair 必须永远使用专用算法。
+
 ## Runtime Input Hydration Gate
 
 所有后续分支必须在代码迁移前执行：
@@ -243,3 +309,4 @@ factor 配置。任何 plugin 若直接读取 baseline pose、直接运行对象
 | 2026-07-26 | in_progress | 创建 generic-sequence-solver 分支，建立只读 sequence problem shadow、deterministic shadow attempt id 与 accepted-output write 防线 | `docs/generic_sequence_solver_plan.md` |
 | 2026-07-26 | in_progress | 增加 sequence solver shadow diagnostics；basketball/football 标记 future-shadow-ready，mug/chair 被机制 gap 阻断；stick line contact 改为 nonblocking compatibility | `docs/generic_sequence_solver_plan.md` |
 | 2026-07-26 | in_progress | 增加 candidate sandbox guard；只允许 future-ready case 写隔离 manifest，拒绝 accepted output 文件名 | `docs/generic_sequence_solver_plan.md` |
+| 2026-07-26 | in_progress | 明确 mug 根姿态/子组件 phase 的 coupled gauge，以及 chair 私有 chord/gauge 求解向通用 kinematic graph/factor 的迁移边界 | 本文件、`docs/generic_sequence_solver_plan.md` |

@@ -43,6 +43,13 @@ Base: `64710953 Add factor shadow composition validation`
 - mug/chair 因未迁移机制 gap 标记为 `blocked_by_known_gaps`。
 - stick 的 `line_contact_lock_special_refinement` 可作为 compatibility refinement 保留，
   标记为 nonblocking gap。
+- mug 的 `phase_snapshot_fallback` 是 canonical provenance gap。generic state 必须把它
+  表达为 `root SE3 -> periodic child component`，并以 coupled yaw/phase gauge 比较组合
+  后几何；不得把 body 与 handle 当作两个独立刚体 rotation。
+- chair 的 `semantic_graph_solver_private` 是实现边界 gap：状态和约束可泛化，但当前
+  top-rail chord 初始化、twist/关节 2D gauge 和 pose lock 仍捆在 chair 私有 solver。
+  迁移目标是通用 kinematic graph、correspondence initializer 和 rank-deficiency factor，
+  不是删除两点接触这一有效几何机制。
 
 新增 isolated candidate sandbox guard：
 

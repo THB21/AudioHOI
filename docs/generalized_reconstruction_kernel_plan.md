@@ -100,7 +100,7 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 | 分支 | 工作内容 | 状态 | 完成条件 |
 | --- | --- | --- | --- |
 | `refactor/generalized-measurements` | Measurement IR、坐标系/单位/covariance、五 case read-only adapters | done | 63 tests；旧 CSV byte-stable；20 contracts、plugins、encoded/decoded golden 通过 |
-| `refactor/contact-constraint-ir` | ContactConstraint、HumanSite、FeatureRef、local-coordinate union、gate adapter | pending | Stage 2 五 case 无语义丢失；dead flag/无消费者检测通过 |
+| `refactor/contact-constraint-ir` | ContactConstraint、HumanSite、FeatureRef、local-coordinate union、gate adapter | done | 五 case byte-stable shadow；72 tests；contracts/plugins/golden 通过；dead flag 保持拒绝 |
 | `refactor/state-spec-kinematics` | StateSpec、DOF/gauge、sphere/line/mesh/URDF GeometryProvider | pending | 五 case 状态可无 case branch 构造；projection parity 通过 |
 | `refactor/factor-registry` | 通用 factor registry、residual trace、组合校验 | pending | 原 solver 输入可映射为 factors；单位与 Jacobian 数值检查通过 |
 | `refactor/generic-sequence-solver` | 通用初始化、单帧/序列求解、deterministic attempt provenance | pending | shadow mode 可运行；不读取 baseline；失败不覆盖 accepted 输出 |
@@ -197,3 +197,4 @@ factor 配置。任何 plugin 若直接读取 baseline pose、直接运行对象
 | 2026-07-24 | done | 将 Phase G 接入 chair 后续顺序 | `docs/chair_seed_removal_plan.md` |
 | 2026-07-24 | done | 在 v2 主线设计中限定当前 generic 声明边界 | `docs/generic_pipeline_v2_mainline_design_cn.md` |
 | 2026-07-24 | done | Measurement IR、三类 legacy schema adapter、显式字段 coverage 与五 case shadow hash | `docs/generalized_measurements_plan.md` |
+| 2026-07-25 | done | ContactConstraint IR、LocalXYZ/LineS union、离散 gate 与五 case contact shadow hash | `docs/contact_constraint_ir_plan.md` |

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "cases": {
+    "basketball": {
+      "factor_count": 10,
+      "factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
+      "gap_ids": [],
+      "unmapped_nonempty_fields": [],
+      "canonical_sha256": "55b19aaf69ba145514af522b3c3e5314ae7549cc70669f1f42b6f1e22e043c4a"
+    },
+    "football": {
+      "factor_count": 10,
+      "factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
+      "gap_ids": [],
+      "unmapped_nonempty_fields": [],
+      "canonical_sha256": "6e40428624bb09a9b1692ff67da45e03f83523bafacfe107584a2de655f5f2ea"
+    },
+    "mug": {
+      "factor_count": 5,
+      "factor_kinds": {
+        "contact_distance": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
+      "gap_ids": [
+        "mug.phase_snapshot_fallback"
+      ],
+      "unmapped_nonempty_fields": [],
+      "canonical_sha256": "45f777950a006aa63bfce95cddd30919e6e61761466ad50a840047f94bef4432"
+    },
+    "chair": {
+      "factor_count": 9,
+      "factor_kinds": {
+        "contact_distance": 1,
+        "metric_depth": 1,
+        "point_reprojection": 2,
+        "pose_prior": 1,
+        "regularization": 1,
+        "support_and_penetration": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
+      "gap_ids": [
+        "chair.semantic_graph_solver_private",
+        "unsupported_loss_term:E_audio"
+      ],
+      "unmapped_nonempty_fields": [
+        "E_audio"
+      ],
+      "canonical_sha256": "80b3b4c311d4a1987436324648a767fc7893dabbf0829661acbd5e3bff829240"
+    },
+    "stick": {
+      "factor_count": 5,
+      "factor_kinds": {
+        "contact_distance": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
+      "gap_ids": [
+        "stick.line_contact_lock_special_refinement"
+      ],
+      "unmapped_nonempty_fields": [],
+      "canonical_sha256": "155f0e3be3c35de3319c279583e40d499f29a9ba6153760fd66894b397a35f0c"
+    }
+  }
+}

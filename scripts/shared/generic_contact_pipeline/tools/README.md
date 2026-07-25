@@ -19,6 +19,8 @@ Preprocess and inspection helpers:
 - `export_state_parity.py`
 - `verify_state_shadow.py`
 - `verify_state_parity.py`
+- `export_factor_shadow.py`
+- `verify_factor_shadow.py`
 - `export_vlm_qa_report.py`
 - `evaluate_overlay_quality.py`
 - `evaluate_visible_line_overlay.py`

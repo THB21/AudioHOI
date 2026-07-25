@@ -104,7 +104,7 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 | `refactor/generalized-measurements` | Measurement IR、坐标系/单位/covariance、五 case read-only adapters | done | 63 tests；旧 CSV byte-stable；20 contracts、plugins、encoded/decoded golden 通过 |
 | `refactor/contact-constraint-ir` | ContactConstraint、HumanSite、FeatureRef、local-coordinate union、gate adapter | done | 五 case byte-stable shadow；72 tests；contracts/plugins/golden 通过；dead flag 保持拒绝 |
 | `refactor/state-spec-kinematics` | StateSpec、DOF/gauge、sphere/line/mesh/URDF GeometryProvider | done | 五 case state shadow/hash/parity verified；89 tests；decoded golden 通过；solver/loss/output 路径无改动 |
-| `refactor/factor-registry` | 通用 factor registry、residual trace、组合校验 | pending | 原 solver 输入可映射为 factors；单位与 Jacobian 数值检查通过 |
+| `refactor/factor-registry` | 通用 factor registry、residual trace、组合校验 | in_progress | 新 worktree 已创建并补齐 runtime inputs；先修复 state shadow hash portability，再进入 factor IR |
 | `refactor/generic-sequence-solver` | 通用初始化、单帧/序列求解、deterministic attempt provenance | pending | shadow mode 可运行；不读取 baseline；失败不覆盖 accepted 输出 |
 | `refactor/migrate-ball-cases` | basketball/football 迁移 | pending | 两 case 全指标不退化；删除其专用连续求解分支 |
 | `refactor/migrate-line-case` | stick 迁移 | pending | LineS/contact/时序指标不退化；无 line 专用 optimizer |
@@ -235,3 +235,4 @@ factor 配置。任何 plugin 若直接读取 baseline pose、直接运行对象
 | 2026-07-24 | done | Measurement IR、三类 legacy schema adapter、显式字段 coverage 与五 case shadow hash | `docs/generalized_measurements_plan.md` |
 | 2026-07-25 | done | ContactConstraint IR、LocalXYZ/LineS union、离散 gate 与五 case contact shadow hash | `docs/contact_constraint_ir_plan.md` |
 | 2026-07-25 | done | 完成 StateSpec/GeometryProvider shadow、五 case frozen hash、parity/verifier 与回归门禁 | `docs/state_spec_kinematics_plan.md` |
+| 2026-07-25 | in_progress | 创建 factor-registry 分支，补齐 ignored inputs，修复 state shadow canonical hash 的 worktree 路径依赖 | `docs/factor_registry_plan.md` |

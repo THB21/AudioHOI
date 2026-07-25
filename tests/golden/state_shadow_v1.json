@@ -8,7 +8,7 @@
       "state_spec_id": "translation3:sphere",
       "geometry_kind": "sphere",
       "geometry_resource_sha256": null,
-      "canonical_sha256": "85ce3988776a81f7a78aa5940640513cae3d0bc768766632d31c48b1fec32b5f"
+      "canonical_sha256": "77820d3bec95e714cd63f76e193887109dd9c80c12a47bd4a6d9022e637510b2"
     },
     "football": {
       "legacy_schema": "translation3_sphere_v1",
@@ -17,7 +17,7 @@
       "state_spec_id": "translation3:sphere",
       "geometry_kind": "sphere",
       "geometry_resource_sha256": null,
-      "canonical_sha256": "af9cafd4ab2b48903a392fd62421a6671457a8ab24fad49fff03394c0f7ba05c"
+      "canonical_sha256": "b3ea57e992ecc11ec4ff245ebaf63aa1ff34c4f4691d64ec72c64a4084be3c26"
     },
     "mug": {
       "legacy_schema": "rigid6_plus_periodic_phase_v1",
@@ -26,7 +26,7 @@
       "state_spec_id": "rigid6_plus_phase:mug",
       "geometry_kind": "rigid_mesh",
       "geometry_resource_sha256": "544814f00aa4dd8f712e019a8bec14c7e3cbdc22ab77bac1b0ec782109e40b2b",
-      "canonical_sha256": "0775db18349d5e8161efb03f7623645160e8304a1f1a9da0da6ed5c7e062092b"
+      "canonical_sha256": "b4152ed9f9ac5855dc480415fd4f59986680455e76a7bc51fce1d95750c56b1f"
     },
     "chair": {
       "legacy_schema": "semantic_graph_6d_v1",
@@ -44,7 +44,7 @@
       "state_spec_id": "translation3:line_capsule",
       "geometry_kind": "line_capsule",
       "geometry_resource_sha256": "1c59b2c8cbe32badf856fbee00eeaadbb7455fec07a143e986827ba9350e9aa7",
-      "canonical_sha256": "f1922d65b57a65ce00f114ce5b23bd6b3177bddbfaa917d5b904bc8616512edf"
+      "canonical_sha256": "dba0fa8a6bef3a112d6c26c0b999eaf4a5c1a743af38e3af1b247ec6e5459f18"
     }
   }
 }

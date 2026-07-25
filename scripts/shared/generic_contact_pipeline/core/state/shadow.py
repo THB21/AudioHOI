@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from ..base.config import CaseProfile
+from ..base.io import repo_relative_value
 from .adapters import adapt_legacy_state_rows
 from .types import geometry_record, state_spec_record
 
@@ -15,7 +16,8 @@ def _canonical_hash(value: object) -> str:
 
 
 def build_state_shadow(profile: CaseProfile, pose_csv: Path, rows: list[dict[str, str]]) -> dict[str, object]:
-    adapted = adapt_legacy_state_rows(profile, rows, str(pose_csv))
+    source_path = str(repo_relative_value(pose_csv))
+    adapted = adapt_legacy_state_rows(profile, rows, source_path)
     spec_record = state_spec_record(adapted.state_spec)
     geometry = geometry_record(adapted.geometry)
     return {
@@ -25,7 +27,7 @@ def build_state_shadow(profile: CaseProfile, pose_csv: Path, rows: list[dict[str
         "sample_id": profile.case_name,
         "legacy_schema": adapted.schema,
         "source": {
-            "path": str(pose_csv),
+            "path": source_path,
             "sha256": hashlib.sha256(pose_csv.read_bytes()).hexdigest(),
             "rows": len(rows),
         },

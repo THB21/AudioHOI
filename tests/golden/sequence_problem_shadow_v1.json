@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "cases": {
+    "basketball": {
+      "state_model": "translation3",
+      "geometry_kind": "sphere",
+      "measurement_count": 768,
+      "measurement_frames": 192,
+      "contact_count": 192,
+      "factor_count": 10,
+      "factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
+      "gap_ids": [],
+      "attempt_id": "shadow-ee9266549cd3",
+      "validation_errors": [],
+      "canonical_sha256": "ee9266549cd31817cd75226fbe59fe337872417a2a6b798c55d5187add9bd0ec"
+    },
+    "football": {
+      "state_model": "translation3",
+      "geometry_kind": "sphere",
+      "measurement_count": 968,
+      "measurement_frames": 242,
+      "contact_count": 242,
+      "factor_count": 10,
+      "factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
+      "gap_ids": [],
+      "attempt_id": "shadow-7dacd3238ca5",
+      "validation_errors": [],
+      "canonical_sha256": "7dacd3238ca52fb025da0d77606d2d6ca8c10076a1bf146ce0d569419da78699"
+    },
+    "mug": {
+      "state_model": "rigid6_plus_phase",
+      "geometry_kind": "rigid_mesh",
+      "measurement_count": 1359,
+      "measurement_frames": 240,
+      "contact_count": 240,
+      "factor_count": 5,
+      "factor_kinds": {
+        "contact_distance": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
+      "gap_ids": [
+        "phase_snapshot_fallback"
+      ],
+      "attempt_id": "shadow-273b8f2c1d95",
+      "validation_errors": [],
+      "canonical_sha256": "273b8f2c1d95a2feb0ddfa2b33d339337d774d97ebc85bdefeffa501ef30b37d"
+    },
+    "chair": {
+      "state_model": "semantic_graph_6d",
+      "geometry_kind": "articulated_urdf",
+      "measurement_count": 1014,
+      "measurement_frames": 192,
+      "contact_count": 317,
+      "factor_count": 9,
+      "factor_kinds": {
+        "contact_distance": 1,
+        "metric_depth": 1,
+        "point_reprojection": 2,
+        "pose_prior": 1,
+        "regularization": 1,
+        "support_and_penetration": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
+      "gap_ids": [
+        "semantic_graph_solver_private",
+        "unsupported_loss_term:E_audio"
+      ],
+      "attempt_id": "shadow-c1561f4b1f0e",
+      "validation_errors": [],
+      "canonical_sha256": "c1561f4b1f0e6d89bf21b62d0a292b822811265b3b44066ddf1158400dabe3e3"
+    },
+    "stick": {
+      "state_model": "translation3_with_line_orientation_prior",
+      "geometry_kind": "line_capsule",
+      "measurement_count": 960,
+      "measurement_frames": 240,
+      "contact_count": 480,
+      "factor_count": 5,
+      "factor_kinds": {
+        "contact_distance": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
+      "gap_ids": [
+        "line_contact_lock_special_refinement"
+      ],
+      "attempt_id": "shadow-72c6bc913ac8",
+      "validation_errors": [],
+      "canonical_sha256": "72c6bc913ac8fc4ae0d32121766d4b2c4acbfc1650a821609cfe664678a7daff"
+    }
+  }
+}

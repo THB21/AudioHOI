@@ -105,7 +105,7 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 | `refactor/contact-constraint-ir` | ContactConstraint、HumanSite、FeatureRef、local-coordinate union、gate adapter | done | 五 case byte-stable shadow；72 tests；contracts/plugins/golden 通过；dead flag 保持拒绝 |
 | `refactor/state-spec-kinematics` | StateSpec、DOF/gauge、sphere/line/mesh/URDF GeometryProvider | done | 五 case state shadow/hash/parity verified；89 tests；decoded golden 通过；solver/loss/output 路径无改动 |
 | `refactor/factor-registry` | 通用 factor registry、residual trace、组合校验 | in_progress | Factor IR shadow/verifier/validator 已建立；98 tests；decoded golden 通过；不被 solver 消费 |
-| `refactor/generic-sequence-solver` | 通用初始化、单帧/序列求解、deterministic attempt provenance | pending | shadow mode 可运行；不读取 baseline；失败不覆盖 accepted 输出 |
+| `refactor/generic-sequence-solver` | 通用初始化、单帧/序列求解、deterministic attempt provenance | in_progress | sequence problem shadow/verifier 已建立；104 tests；不读取 baseline pose；不写 accepted 输出 |
 | `refactor/migrate-ball-cases` | basketball/football 迁移 | pending | 两 case 全指标不退化；删除其专用连续求解分支 |
 | `refactor/migrate-line-case` | stick 迁移 | pending | LineS/contact/时序指标不退化；无 line 专用 optimizer |
 | `refactor/migrate-mug-case` | mug rigid mesh + periodic phase 迁移 | pending | gauge-invariant pose、handle、contact、render 接受标准通过 |
@@ -225,6 +225,8 @@ factor 配置。任何 plugin 若直接读取 baseline pose、直接运行对象
   generic initializer 的训练/参考输入。
 - 2026-07-24：held-out 通过条件采用“零新增专用连续 solver”，而不是仅要求 pipeline
   能运行。
+- 2026-07-26：`generic-sequence-solver` 首步只建立 problem/attempt shadow contract；
+  不执行 optimizer，避免把旧 pose 或 compatibility seed 偷渡为通用初始化。
 
 ## 计划维护记录
 
@@ -238,3 +240,4 @@ factor 配置。任何 plugin 若直接读取 baseline pose、直接运行对象
 | 2026-07-25 | done | 完成 StateSpec/GeometryProvider shadow、五 case frozen hash、parity/verifier 与回归门禁 | `docs/state_spec_kinematics_plan.md` |
 | 2026-07-25 | in_progress | 创建 factor-registry 分支，补齐 ignored inputs，修复 state shadow canonical hash 的 worktree 路径依赖；建立首版 Factor IR shadow/verifier | `docs/factor_registry_plan.md` |
 | 2026-07-26 | in_progress | 增加 Factor IR 组合校验；gap id 改为机制级命名，避免 object-name-specific 判断；更新 98-test 回归证据 | `docs/factor_registry_plan.md` |
+| 2026-07-26 | in_progress | 创建 generic-sequence-solver 分支，建立只读 sequence problem shadow、deterministic shadow attempt id 与 accepted-output write 防线 | `docs/generic_sequence_solver_plan.md` |

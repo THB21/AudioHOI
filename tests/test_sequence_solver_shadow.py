@@ -8,9 +8,12 @@ from pathlib import Path
 from scripts.shared.generic_contact_pipeline.core.base.config import load_case_profile
 from scripts.shared.generic_contact_pipeline.core.solver import (
     build_canonical_sequence_problem_summary,
+    build_canonical_sequence_solver_diagnostics_summary,
     build_sequence_problem_shadow,
+    build_sequence_solver_shadow_diagnostics,
     validate_sequence_problem_shadow,
     verify_sequence_problem_summary,
+    verify_sequence_solver_diagnostics_summary,
 )
 
 
@@ -103,3 +106,86 @@ def test_sequence_problem_verifier_cli_reports_all_cases() -> None:
     assert len(lines) == len(CASE_DIRECTORIES)
     assert lines[0].startswith("basketball: state=translation3")
     assert any("semantic_graph_solver_private" in line for line in lines)
+
+
+def test_sequence_solver_shadow_diagnostics_never_execute_or_write() -> None:
+    result_dir = REPO / "samples_known_object/10_football/results/benchmark_vlm_qwen"
+    diagnostics = build_sequence_solver_shadow_diagnostics(load_case_profile("football"), result_dir)
+    assert diagnostics["status"] == "ready_for_future_shadow_solve"
+    assert diagnostics["solver_executed"] is False
+    assert diagnostics["accepted_outputs_written"] is False
+    assert diagnostics["baseline_pose_read"] is False
+    phase_statuses = {phase["phase_id"]: phase["status"] for phase in diagnostics["phases"]}
+    assert phase_statuses == {
+        "assemble_problem": "pass",
+        "initialize_state": "not_executed",
+        "solve_sequence": "not_executed",
+        "evaluate_candidate": "not_executed",
+    }
+
+
+def test_sequence_solver_shadow_diagnostics_block_known_unmigrated_mechanisms() -> None:
+    mug = build_sequence_solver_shadow_diagnostics(
+        load_case_profile("mug"),
+        REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen",
+    )
+    chair = build_sequence_solver_shadow_diagnostics(
+        load_case_profile("chair"),
+        REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
+    )
+    stick = build_sequence_solver_shadow_diagnostics(
+        load_case_profile("stick"),
+        REPO / "samples_known_object/11_stick/results/benchmark_vlm_qwen",
+    )
+    assert mug["blocking_gap_ids"] == ["phase_snapshot_fallback"]
+    assert chair["blocking_gap_ids"] == ["semantic_graph_solver_private"]
+    assert stick["blocking_gap_ids"] == ["line_contact_lock_special_refinement"]
+    assert all(item["status"] == "blocked_by_known_gaps" for item in (mug, chair, stick))
+
+
+def test_five_case_sequence_solver_diagnostics_matches_frozen_manifest() -> None:
+    expected = json.loads((REPO / "tests/golden/sequence_solver_diagnostics_v1.json").read_text())
+    actual = build_canonical_sequence_solver_diagnostics_summary()
+    assert actual == expected
+    assert verify_sequence_solver_diagnostics_summary() == []
+
+
+def test_sequence_solver_diagnostics_export_cli_writes_reviewable_manifest(tmp_path: Path) -> None:
+    out = tmp_path / "chair_sequence_solver_diagnostics.json"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/shared/generic_contact_pipeline/tools/export_sequence_solver_diagnostics.py",
+            "--case",
+            "chair",
+            "--result-dir",
+            "samples_known_object/05_chair/results/benchmark_vlm_qwen",
+            "--out",
+            str(out),
+        ],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    payload = json.loads(out.read_text())
+    assert json.loads(completed.stdout) == payload
+    assert payload["mode"] == "generic_sequence_solver_shadow_diagnostics"
+    assert payload["blocking_gap_ids"] == ["semantic_graph_solver_private"]
+
+
+def test_sequence_solver_diagnostics_verifier_cli_reports_all_cases() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/shared/generic_contact_pipeline/tools/verify_sequence_solver_diagnostics.py",
+        ],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    lines = completed.stdout.strip().splitlines()
+    assert len(lines) == len(CASE_DIRECTORIES)
+    assert lines[0].startswith("basketball: status=ready_for_future_shadow_solve")
+    assert any("blocking_gaps=[semantic_graph_solver_private]" in line for line in lines)

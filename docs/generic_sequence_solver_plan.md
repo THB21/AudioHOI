@@ -34,6 +34,14 @@ Base: `64710953 Add factor shadow composition validation`
   - `writes=[]`
 - 提供 export/verify CLI 与五 case golden summary。
 
+新增 shadow execution diagnostics：
+
+- 固定 `assemble_problem -> initialize_state -> solve_sequence -> evaluate_candidate` 四段诊断。
+- `assemble_problem` 只检查 typed inputs 是否可组装。
+- `initialize_state`、`solve_sequence`、`evaluate_candidate` 均不执行。
+- basketball/football 标记为 `ready_for_future_shadow_solve`。
+- mug/chair/stick 因未迁移机制 gap 标记为 `blocked_by_known_gaps`。
+
 ## 非目标
 
 - 不运行 optimizer。
@@ -49,13 +57,16 @@ Base: `64710953 Add factor shadow composition validation`
 | 建立 `core/solver` shadow contract | done | `problem.py`、`validation.py`、`golden.py` |
 | 增加 CLI | done | `export_sequence_problem_shadow.py`、`verify_sequence_problem_shadow.py` |
 | 冻结五 case summary | done | `tests/golden/sequence_problem_shadow_v1.json` |
-| 增加测试 | done | `tests/test_sequence_solver_shadow.py`：6 passed |
-| 运行回归 | done | focused IR tests 49 passed；`python -m pytest -q`: 104 passed, 2 skipped；state/factor/sequence/golden gates pass |
+| 增加 shadow execution diagnostics | done | `diagnostics.py`、`diagnostics_golden.py`、export/verify CLI |
+| 冻结五 case diagnostics | done | `tests/golden/sequence_solver_diagnostics_v1.json` |
+| 增加测试 | done | `tests/test_sequence_solver_shadow.py`：11 passed |
+| 运行回归 | done | focused IR tests 54 passed；`python -m pytest -q`: 109 passed, 2 skipped；state/factor/sequence/golden gates pass |
 
 ## 接受标准
 
 - sequence problem validator 必须拒绝任何 solver execution、accepted output write 或
   baseline pose read。
+- sequence diagnostics 必须保持 solver/initializer/evaluator 不执行，且 `writes=[]`。
 - `object_pose_init.csv` 不得出现在 sequence problem payload。
 - 五 case measurement/contact/factor 数量与 gap ids 必须 frozen。
 - 当前 gap 保持显式：
@@ -77,5 +88,6 @@ Base: `64710953 Add factor shadow composition validation`
 - 通用 solver 未来应消费哪些 typed inputs 和 factor requirements；
 - 当前哪些 legacy 机制仍不能安全泛化；
 - shadow attempt 如何在失败时只记录诊断，不覆盖 accepted outputs。
+- 哪些 case 可进入下一步 future shadow solve，哪些 case 必须先迁移 legacy gap。
 
 真正的 pose 不退化迁移仍在后续对象迁移分支中逐 case 完成。

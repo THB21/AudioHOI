@@ -23,6 +23,8 @@ Preprocess and inspection helpers:
 - `verify_factor_shadow.py`
 - `export_sequence_problem_shadow.py`
 - `verify_sequence_problem_shadow.py`
+- `export_sequence_solver_diagnostics.py`
+- `verify_sequence_solver_diagnostics.py`
 - `export_vlm_qa_report.py`
 - `evaluate_overlay_quality.py`
 - `evaluate_visible_line_overlay.py`

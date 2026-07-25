@@ -29,9 +29,10 @@ def main() -> None:
     for case_name in CANONICAL_CASE_DIRECTORIES:
         summary = actual["cases"][case_name]
         gaps = ",".join(summary["blocking_gap_ids"])
+        nonblocking = ",".join(summary["nonblocking_gap_ids"])
         print(
             f"{case_name}: status={summary['status']} attempt={summary['attempt_id']} "
-            f"blocking_gaps=[{gaps}] {summary['canonical_sha256']}"
+            f"blocking_gaps=[{gaps}] nonblocking_gaps=[{nonblocking}] {summary['canonical_sha256']}"
         )
     if errors:
         for error in errors:

@@ -9,6 +9,12 @@ from .problem import build_sequence_problem_shadow
 from .validation import validate_sequence_problem_shadow
 
 
+NONBLOCKING_COMPATIBILITY_GAPS = {
+    "line_contact_lock_special_refinement",
+    "unsupported_loss_term:E_audio",
+}
+
+
 def _canonical_hash(value: object) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(payload).hexdigest()
@@ -37,14 +43,8 @@ def build_sequence_solver_shadow_diagnostics(profile: CaseProfile, result_dir: P
     problem = build_sequence_problem_shadow(profile, result_dir)
     validation_errors = validate_sequence_problem_shadow(problem)
     gap_ids = list(problem["inputs"]["factor_shadow"]["gap_ids"])
-    blocking_gaps = [
-        gap
-        for gap in gap_ids
-        if gap
-        not in {
-            "unsupported_loss_term:E_audio",
-        }
-    ]
+    nonblocking_gaps = [gap for gap in gap_ids if gap in NONBLOCKING_COMPATIBILITY_GAPS]
+    blocking_gaps = [gap for gap in gap_ids if gap and gap not in NONBLOCKING_COMPATIBILITY_GAPS]
     ready_for_future_shadow_solve = not validation_errors and not blocking_gaps
     phases = [
         _phase_record(
@@ -83,6 +83,7 @@ def build_sequence_solver_shadow_diagnostics(profile: CaseProfile, result_dir: P
             ),
             diagnostics={
                 "blocking_gap_ids": blocking_gaps,
+                "nonblocking_gap_ids": nonblocking_gaps,
                 "factor_kinds": problem["inputs"]["factor_shadow"]["factor_kinds"],
                 "solver_executed": False,
             },
@@ -103,6 +104,8 @@ def build_sequence_solver_shadow_diagnostics(profile: CaseProfile, result_dir: P
         "status": status,
         "phases": phases,
         "validation_errors": validation_errors,
+        "blocking_gap_ids": blocking_gaps,
+        "nonblocking_gap_ids": nonblocking_gaps,
     }
     return {
         "schema_version": 1,
@@ -116,6 +119,7 @@ def build_sequence_solver_shadow_diagnostics(profile: CaseProfile, result_dir: P
         "baseline_pose_read": False,
         "validation_errors": validation_errors,
         "blocking_gap_ids": blocking_gaps,
+        "nonblocking_gap_ids": nonblocking_gaps,
         "phases": phases,
         "canonical_sha256": _canonical_hash(canonical_payload),
     }

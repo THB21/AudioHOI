@@ -19,6 +19,7 @@ def sequence_solver_diagnostics_summary(case_name: str, result_dir: Path) -> dic
         "attempt_id": diagnostics["attempt_id"],
         "status": diagnostics["status"],
         "blocking_gap_ids": diagnostics["blocking_gap_ids"],
+        "nonblocking_gap_ids": diagnostics["nonblocking_gap_ids"],
         "phase_statuses": {phase["phase_id"]: phase["status"] for phase in diagnostics["phases"]},
         "solver_executed": diagnostics["solver_executed"],
         "accepted_outputs_written": diagnostics["accepted_outputs_written"],

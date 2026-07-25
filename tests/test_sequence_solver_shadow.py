@@ -130,7 +130,7 @@ def test_sequence_solver_shadow_diagnostics_never_execute_or_write() -> None:
     }
 
 
-def test_sequence_solver_shadow_diagnostics_block_known_unmigrated_mechanisms() -> None:
+def test_sequence_solver_shadow_diagnostics_block_only_required_unmigrated_mechanisms() -> None:
     mug = build_sequence_solver_shadow_diagnostics(
         load_case_profile("mug"),
         REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen",
@@ -145,8 +145,10 @@ def test_sequence_solver_shadow_diagnostics_block_known_unmigrated_mechanisms() 
     )
     assert mug["blocking_gap_ids"] == ["phase_snapshot_fallback"]
     assert chair["blocking_gap_ids"] == ["semantic_graph_solver_private"]
-    assert stick["blocking_gap_ids"] == ["line_contact_lock_special_refinement"]
-    assert all(item["status"] == "blocked_by_known_gaps" for item in (mug, chair, stick))
+    assert stick["blocking_gap_ids"] == []
+    assert stick["nonblocking_gap_ids"] == ["line_contact_lock_special_refinement"]
+    assert all(item["status"] == "blocked_by_known_gaps" for item in (mug, chair))
+    assert stick["status"] == "ready_for_future_shadow_solve"
 
 
 def test_five_case_sequence_solver_diagnostics_matches_frozen_manifest() -> None:
@@ -214,6 +216,18 @@ def test_candidate_sandbox_manifest_allows_ready_ball_cases_only() -> None:
     assert chair["blocking_gap_ids"] == ["semantic_graph_solver_private"]
     assert validate_candidate_sandbox_manifest(basketball) == []
     assert validate_candidate_sandbox_manifest(chair) == []
+
+
+def test_candidate_sandbox_manifest_allows_line_contact_as_nonblocking_compatibility() -> None:
+    stick = build_candidate_sandbox_manifest(
+        load_case_profile("stick"),
+        REPO / "samples_known_object/11_stick/results/benchmark_vlm_qwen",
+    )
+    assert stick["eligible_for_candidate_sandbox"] is True
+    assert stick["status"] == "sandbox_ready"
+    assert stick["blocking_gap_ids"] == []
+    assert stick["nonblocking_gap_ids"] == ["line_contact_lock_special_refinement"]
+    assert stick["planned_artifacts"] == [SANDBOX_MANIFEST_NAME]
 
 
 def test_candidate_sandbox_validation_rejects_accepted_output_names() -> None:

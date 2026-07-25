@@ -22,6 +22,7 @@ def candidate_sandbox_summary(case_name: str, result_dir: Path) -> dict[str, obj
         "problem_sha256": manifest["problem_sha256"],
         "diagnostics_sha256": manifest["diagnostics_sha256"],
         "blocking_gap_ids": manifest["blocking_gap_ids"],
+        "nonblocking_gap_ids": manifest["nonblocking_gap_ids"],
         "planned_artifacts": manifest["planned_artifacts"],
         "canonical_sha256": manifest["canonical_sha256"],
     }

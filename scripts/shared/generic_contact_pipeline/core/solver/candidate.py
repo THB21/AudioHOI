@@ -40,6 +40,7 @@ def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
         "candidate_dir": str(repo_relative_value(target_dir)),
         "planned_artifacts": planned_artifacts,
         "blocking_gap_ids": diagnostics["blocking_gap_ids"],
+        "nonblocking_gap_ids": diagnostics["nonblocking_gap_ids"],
     }
     return {
         "schema_version": 1,
@@ -56,6 +57,7 @@ def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
         "problem_sha256": diagnostics["problem_sha256"],
         "diagnostics_sha256": diagnostics["canonical_sha256"],
         "blocking_gap_ids": diagnostics["blocking_gap_ids"],
+        "nonblocking_gap_ids": diagnostics["nonblocking_gap_ids"],
         "planned_artifacts": planned_artifacts,
         "forbidden_artifact_names": sorted(ACCEPTED_OUTPUT_NAMES),
         "write_policy": "sandbox_manifest_only_until_candidate_solver_is_accepted",

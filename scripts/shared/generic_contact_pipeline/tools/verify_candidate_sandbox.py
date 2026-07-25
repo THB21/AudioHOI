@@ -28,9 +28,11 @@ def main() -> None:
     errors = verify_candidate_sandbox_summary(args.manifest, result_name=args.result_name)
     for case_name in CANONICAL_CASE_DIRECTORIES:
         summary = actual["cases"][case_name]
+        nonblocking = ",".join(summary["nonblocking_gap_ids"])
         print(
             f"{case_name}: status={summary['status']} eligible={summary['eligible_for_candidate_sandbox']} "
-            f"candidate_dir={summary['candidate_dir']} {summary['canonical_sha256']}"
+            f"candidate_dir={summary['candidate_dir']} nonblocking_gaps=[{nonblocking}] "
+            f"{summary['canonical_sha256']}"
         )
     if errors:
         for error in errors:

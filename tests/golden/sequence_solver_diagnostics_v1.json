@@ -6,6 +6,7 @@
       "attempt_id": "shadow-ee9266549cd3",
       "status": "ready_for_future_shadow_solve",
       "blocking_gap_ids": [],
+      "nonblocking_gap_ids": [],
       "phase_statuses": {
         "assemble_problem": "pass",
         "initialize_state": "not_executed",
@@ -16,13 +17,14 @@
       "accepted_outputs_written": false,
       "baseline_pose_read": false,
       "validation_errors": [],
-      "canonical_sha256": "5b410bf212d440498db7ece10254d5e57ecb37e20dabe3f3f7e8efbd05cf04bf"
+      "canonical_sha256": "6ed46baa39ae1eb67a578cae317c4378569160acaab2440e1e4af381a63d295c"
     },
     "football": {
       "problem_sha256": "7dacd3238ca52fb025da0d77606d2d6ca8c10076a1bf146ce0d569419da78699",
       "attempt_id": "shadow-7dacd3238ca5",
       "status": "ready_for_future_shadow_solve",
       "blocking_gap_ids": [],
+      "nonblocking_gap_ids": [],
       "phase_statuses": {
         "assemble_problem": "pass",
         "initialize_state": "not_executed",
@@ -33,7 +35,7 @@
       "accepted_outputs_written": false,
       "baseline_pose_read": false,
       "validation_errors": [],
-      "canonical_sha256": "293b0530ec99b6f0429e9c0e595918d2fbe883972fa4c1a1347c0bfe8e596604"
+      "canonical_sha256": "4cd016c7959d70dc152768ecd1694f1f7c90d9db13a535907e71cac723185c4e"
     },
     "mug": {
       "problem_sha256": "273b8f2c1d95a2feb0ddfa2b33d339337d774d97ebc85bdefeffa501ef30b37d",
@@ -42,6 +44,7 @@
       "blocking_gap_ids": [
         "phase_snapshot_fallback"
       ],
+      "nonblocking_gap_ids": [],
       "phase_statuses": {
         "assemble_problem": "pass",
         "initialize_state": "not_executed",
@@ -52,7 +55,7 @@
       "accepted_outputs_written": false,
       "baseline_pose_read": false,
       "validation_errors": [],
-      "canonical_sha256": "33c04cd12cf660cf0935540ec840e2bd604afd7484cf8918e99e35c61f109898"
+      "canonical_sha256": "603266783dc23af97d122dfaeb4fc491612bf573c8cb2da7eed20fdbceda6a91"
     },
     "chair": {
       "problem_sha256": "c1561f4b1f0e6d89bf21b62d0a292b822811265b3b44066ddf1158400dabe3e3",
@@ -61,24 +64,8 @@
       "blocking_gap_ids": [
         "semantic_graph_solver_private"
       ],
-      "phase_statuses": {
-        "assemble_problem": "pass",
-        "initialize_state": "not_executed",
-        "solve_sequence": "blocked_by_known_gaps",
-        "evaluate_candidate": "not_executed"
-      },
-      "solver_executed": false,
-      "accepted_outputs_written": false,
-      "baseline_pose_read": false,
-      "validation_errors": [],
-      "canonical_sha256": "ce34e4cd34625f749664efa598cf4b75e5e17df8dde077ee9c637f81ff0ad6f6"
-    },
-    "stick": {
-      "problem_sha256": "72c6bc913ac8fc4ae0d32121766d4b2c4acbfc1650a821609cfe664678a7daff",
-      "attempt_id": "shadow-72c6bc913ac8",
-      "status": "blocked_by_known_gaps",
-      "blocking_gap_ids": [
-        "line_contact_lock_special_refinement"
+      "nonblocking_gap_ids": [
+        "unsupported_loss_term:E_audio"
       ],
       "phase_statuses": {
         "assemble_problem": "pass",
@@ -90,7 +77,27 @@
       "accepted_outputs_written": false,
       "baseline_pose_read": false,
       "validation_errors": [],
-      "canonical_sha256": "9c86b0e482655c2e737a34a78130f4abc45d159ac2e3b5e2f0ac0ff9130f59f4"
+      "canonical_sha256": "cbd4c91b3849e03e8e0a5227653cd466483ffd5e356530f52958e023a2889019"
+    },
+    "stick": {
+      "problem_sha256": "72c6bc913ac8fc4ae0d32121766d4b2c4acbfc1650a821609cfe664678a7daff",
+      "attempt_id": "shadow-72c6bc913ac8",
+      "status": "ready_for_future_shadow_solve",
+      "blocking_gap_ids": [],
+      "nonblocking_gap_ids": [
+        "line_contact_lock_special_refinement"
+      ],
+      "phase_statuses": {
+        "assemble_problem": "pass",
+        "initialize_state": "not_executed",
+        "solve_sequence": "not_executed",
+        "evaluate_candidate": "not_executed"
+      },
+      "solver_executed": false,
+      "accepted_outputs_written": false,
+      "baseline_pose_read": false,
+      "validation_errors": [],
+      "canonical_sha256": "dd593701b8e40a1206ab3b4e92437de9605cc2d9c61891facd40245b72d19acc"
     }
   }
 }

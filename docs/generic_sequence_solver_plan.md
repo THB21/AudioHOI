@@ -40,11 +40,14 @@ Base: `64710953 Add factor shadow composition validation`
 - `assemble_problem` 只检查 typed inputs 是否可组装。
 - `initialize_state`、`solve_sequence`、`evaluate_candidate` 均不执行。
 - basketball/football 标记为 `ready_for_future_shadow_solve`。
-- mug/chair/stick 因未迁移机制 gap 标记为 `blocked_by_known_gaps`。
+- mug/chair 因未迁移机制 gap 标记为 `blocked_by_known_gaps`。
+- stick 的 `line_contact_lock_special_refinement` 可作为 compatibility refinement 保留，
+  标记为 nonblocking gap。
 
 新增 isolated candidate sandbox guard：
 
-- 只允许 future-ready case 计划写入 sibling `generic_sequence_solver_shadow/...` 目录。
+- 只允许 future-ready case 计划写入 sibling `generic_sequence_solver_shadow/...` 目录；
+  当前包括 basketball、football，以及保留 line contact compatibility 的 stick。
 - 当前只 materialize sandbox manifest，不生成 pose/contact/phase/render。
 - validator 拒绝 accepted output 文件名，例如 `object_pose_init.csv`、`object_pose.csv`。
 - blocked case 不计划任何 artifact。
@@ -69,7 +72,7 @@ Base: `64710953 Add factor shadow composition validation`
 | 增加 candidate sandbox guard | done | `candidate.py`、`candidate_golden.py`、export/verify CLI |
 | 冻结五 case sandbox summary | done | `tests/golden/sequence_candidate_sandbox_v1.json` |
 | 增加测试 | done | `tests/test_sequence_solver_shadow.py`：17 passed |
-| 运行回归 | done | focused IR tests 60 passed；`python -m pytest -q`: 115 passed, 2 skipped；state/factor/sequence/candidate/golden gates pass |
+| 运行回归 | done | focused IR tests 61 passed；`python -m pytest -q`: 116 passed, 2 skipped；state/factor/sequence/candidate/golden gates pass |
 
 ## 接受标准
 
@@ -82,7 +85,7 @@ Base: `64710953 Add factor shadow composition validation`
 - 当前 gap 保持显式：
   - mug: `phase_snapshot_fallback`
   - chair: `semantic_graph_solver_private`、`unsupported_loss_term:E_audio`
-  - stick: `line_contact_lock_special_refinement`
+  - stick: `line_contact_lock_special_refinement`（nonblocking compatibility）
 - 受保护路径无 diff：
   - `components/`
   - `stages/`
@@ -98,7 +101,8 @@ Base: `64710953 Add factor shadow composition validation`
 - 通用 solver 未来应消费哪些 typed inputs 和 factor requirements；
 - 当前哪些 legacy 机制仍不能安全泛化；
 - shadow attempt 如何在失败时只记录诊断，不覆盖 accepted outputs。
-- 哪些 case 可进入下一步 future shadow solve，哪些 case 必须先迁移 legacy gap。
+- 哪些 case 可进入下一步 future shadow solve，哪些 case 必须先迁移 blocking legacy gap。
+- line contact 可保留为 stick compatibility refinement，但必须继续记录为 nonblocking gap。
 - future candidate 输出必须先进入隔离 sandbox，不能污染 canonical `benchmark_vlm_qwen`。
 
 真正的 pose 不退化迁移仍在后续对象迁移分支中逐 case 完成。

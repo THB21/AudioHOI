@@ -13,6 +13,12 @@ Preprocess and inspection helpers:
 - `run_sam2_object.py`
 - `run_cotracker_object_points.py`
 - `render_contact_candidates.py`
+- `export_measurement_shadow.py`
+- `export_contact_constraint_shadow.py`
+- `export_state_shadow.py`
+- `export_state_parity.py`
+- `verify_state_shadow.py`
+- `verify_state_parity.py`
 - `export_vlm_qa_report.py`
 - `evaluate_overlay_quality.py`
 - `evaluate_visible_line_overlay.py`

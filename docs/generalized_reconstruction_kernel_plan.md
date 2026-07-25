@@ -25,6 +25,8 @@ detector / tracker / depth / human pose
 - Mug observation-derived seed 已完成；chair seed removal 必须先达到接受标准。
 - 五个 canonical case 的输入、逐阶段产物、contact/gate、pose 和 decoded render
   hashes 可重验。
+- 每个新 worktree 必须先补齐 ignored runtime inputs；DA3/GVHMR/SAM2/tracking 不得
+  以 missing 形式进入 golden 验证或回归结论。
 - 每项迁移先 shadow-run，未通过接受标准时继续使用原实现，禁止静默替换。
 
 ## 非目标
@@ -101,7 +103,7 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 | --- | --- | --- | --- |
 | `refactor/generalized-measurements` | Measurement IR、坐标系/单位/covariance、五 case read-only adapters | done | 63 tests；旧 CSV byte-stable；20 contracts、plugins、encoded/decoded golden 通过 |
 | `refactor/contact-constraint-ir` | ContactConstraint、HumanSite、FeatureRef、local-coordinate union、gate adapter | done | 五 case byte-stable shadow；72 tests；contracts/plugins/golden 通过；dead flag 保持拒绝 |
-| `refactor/state-spec-kinematics` | StateSpec、DOF/gauge、sphere/line/mesh/URDF GeometryProvider | pending | 五 case 状态可无 case branch 构造；projection parity 通过 |
+| `refactor/state-spec-kinematics` | StateSpec、DOF/gauge、sphere/line/mesh/URDF GeometryProvider | done | 五 case state shadow/hash/parity verified；89 tests；decoded golden 通过；solver/loss/output 路径无改动 |
 | `refactor/factor-registry` | 通用 factor registry、residual trace、组合校验 | pending | 原 solver 输入可映射为 factors；单位与 Jacobian 数值检查通过 |
 | `refactor/generic-sequence-solver` | 通用初始化、单帧/序列求解、deterministic attempt provenance | pending | shadow mode 可运行；不读取 baseline；失败不覆盖 accepted 输出 |
 | `refactor/migrate-ball-cases` | basketball/football 迁移 | pending | 两 case 全指标不退化；删除其专用连续求解分支 |
@@ -116,13 +118,47 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 
 每个现有 case 按相同流程迁移：
 
-1. 冻结现有输入、factor 等价项和逐帧指标。
-2. adapter-only shadow run：只生成 IR，不参与求解。
-3. factor shadow run：计算 residual，但不改 pose。
-4. generic solver 写入独立 result directory。
-5. 比较 observation coverage、contact/gate、pose、时序和六路 decoded render。
-6. 仅在全部 mandatory gate 通过后切换 capability plugin。
-7. 切换后删除对应的专用连续优化入口；保留只读 compatibility reader 的期限必须明确。
+1. 从上一接受提交创建新 worktree，并先运行 runtime input hydration dry-run/apply。
+2. 冻结现有输入、factor 等价项和逐帧指标。
+3. adapter-only shadow run：只生成 IR，不参与求解。
+4. factor shadow run：计算 residual，但不改 pose。
+5. generic solver 写入独立 result directory。
+6. 比较 observation coverage、contact/gate、pose、时序和六路 decoded render。
+7. 仅在全部 mandatory gate 通过后切换 capability plugin。
+8. 切换后删除对应的专用连续优化入口；保留只读 compatibility reader 的期限必须明确。
+
+## Runtime Input Hydration Gate
+
+所有后续分支必须在代码迁移前执行：
+
+```bash
+python scripts/shared/generic_contact_pipeline/tools/sync_golden_inputs.py \
+  --source-root /mnt/hdd/AudioHOI
+python scripts/shared/generic_contact_pipeline/tools/sync_golden_inputs.py \
+  --source-root /mnt/hdd/AudioHOI --apply
+```
+
+接受标准：
+
+- dry-run/apply 都必须 `errors=0`；
+- DA3、GVHMR、SAM2 masks、chair tracking 等 ignored runtime inputs 必须 verified 或 copied；
+- 若目标已有不同 hash，sync 必须拒绝覆盖，由人工决定是否接受新 baseline；
+- golden 中的 missing 只能表示真实不存在的历史证据，不允许表示 worktree 未补齐。
+
+当前 `refactor/state-spec-kinematics` worktree 验证结果：`verified=89 would_copy=0 copied=0 errors=0`。
+
+## 当前泛化边界
+
+截至本计划阶段，系统还不是完整泛化重建算法：
+
+- 观测层已进入 `Measurement IR`，并通过五 case read-only shadow adapter 验证。
+- 接触层已进入 `ContactConstraint IR`，并通过五 case read-only shadow adapter 验证。
+- 姿态/几何层正在进入 `StateSpec + GeometryProvider`；本阶段只声明 state/geometry，
+  不替换 Stage 3/4 连续求解。
+- 真正的泛化姿态求解必须等 `factor-registry` 和 `generic-sequence-solver` 通过后才成立。
+
+因此，“泛化修复”计划覆盖观测、接触、姿态三层，但当前仅前两层已实现；姿态求解
+仍处于 shadow 声明与后续迁移阶段。
 
 ## Mandatory regression gates
 
@@ -198,3 +234,4 @@ factor 配置。任何 plugin 若直接读取 baseline pose、直接运行对象
 | 2026-07-24 | done | 在 v2 主线设计中限定当前 generic 声明边界 | `docs/generic_pipeline_v2_mainline_design_cn.md` |
 | 2026-07-24 | done | Measurement IR、三类 legacy schema adapter、显式字段 coverage 与五 case shadow hash | `docs/generalized_measurements_plan.md` |
 | 2026-07-25 | done | ContactConstraint IR、LocalXYZ/LineS union、离散 gate 与五 case contact shadow hash | `docs/contact_constraint_ir_plan.md` |
+| 2026-07-25 | done | 完成 StateSpec/GeometryProvider shadow、五 case frozen hash、parity/verifier 与回归门禁 | `docs/state_spec_kinematics_plan.md` |

@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "cases": {
+    "basketball": {
+      "legacy_schema": "translation3_sphere_v1",
+      "source_sha256": "7fbf7f333da9750da99588fda7312d89099fbd6a66061ec0f597603238aaff3e",
+      "rows": 192,
+      "state_spec_id": "translation3:sphere",
+      "geometry_kind": "sphere",
+      "geometry_resource_sha256": null,
+      "canonical_sha256": "85ce3988776a81f7a78aa5940640513cae3d0bc768766632d31c48b1fec32b5f"
+    },
+    "football": {
+      "legacy_schema": "translation3_sphere_v1",
+      "source_sha256": "ff7891f57874e3c40e55177635ee8e23084b9a07586ee34022cf09dc5910d71e",
+      "rows": 242,
+      "state_spec_id": "translation3:sphere",
+      "geometry_kind": "sphere",
+      "geometry_resource_sha256": null,
+      "canonical_sha256": "af9cafd4ab2b48903a392fd62421a6671457a8ab24fad49fff03394c0f7ba05c"
+    },
+    "mug": {
+      "legacy_schema": "rigid6_plus_periodic_phase_v1",
+      "source_sha256": "7eaf277f276f8fd61367bcb135df58f50b1ef4837fd3cb812cfe0db53616f539",
+      "rows": 240,
+      "state_spec_id": "rigid6_plus_phase:mug",
+      "geometry_kind": "rigid_mesh",
+      "geometry_resource_sha256": "544814f00aa4dd8f712e019a8bec14c7e3cbdc22ab77bac1b0ec782109e40b2b",
+      "canonical_sha256": "0775db18349d5e8161efb03f7623645160e8304a1f1a9da0da6ed5c7e062092b"
+    },
+    "chair": {
+      "legacy_schema": "semantic_graph_6d_v1",
+      "source_sha256": "11561ec268d42c951f505bf1654dc04ef1953c708ada8e0a70255483fea326e5",
+      "rows": 192,
+      "state_spec_id": "semantic_graph_6d:chair",
+      "geometry_kind": "articulated_urdf",
+      "geometry_resource_sha256": "35bc5978269e700654c31c989430a1906f8728e65743b6e4867f3a66f869ce7f",
+      "canonical_sha256": "d2728c0c2cca8f76b6ebc292fb6ddc0b3d32b3ba27d9d3df6cd5131f71ed5b08"
+    },
+    "stick": {
+      "legacy_schema": "translation3_line_capsule_v1",
+      "source_sha256": "012bfead2f5636ee9a25376b3b8cb4fddc75c27f1fd045f1caf8d7781df6cd72",
+      "rows": 240,
+      "state_spec_id": "translation3:line_capsule",
+      "geometry_kind": "line_capsule",
+      "geometry_resource_sha256": "1c59b2c8cbe32badf856fbee00eeaadbb7455fec07a143e986827ba9350e9aa7",
+      "canonical_sha256": "f1922d65b57a65ce00f114ce5b23bd6b3177bddbfaa917d5b904bc8616512edf"
+    }
+  }
+}

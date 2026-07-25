@@ -25,6 +25,8 @@ Preprocess and inspection helpers:
 - `verify_sequence_problem_shadow.py`
 - `export_sequence_solver_diagnostics.py`
 - `verify_sequence_solver_diagnostics.py`
+- `export_candidate_sandbox.py`
+- `verify_candidate_sandbox.py`
 - `export_vlm_qa_report.py`
 - `evaluate_overlay_quality.py`
 - `evaluate_visible_line_overlay.py`

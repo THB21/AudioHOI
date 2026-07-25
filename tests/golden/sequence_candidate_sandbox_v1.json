@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "cases": {
+    "basketball": {
+      "status": "sandbox_ready",
+      "eligible_for_candidate_sandbox": true,
+      "candidate_dir": "samples_known_object/01_basketball/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_basketball",
+      "attempt_id": "shadow-ee9266549cd3",
+      "problem_sha256": "ee9266549cd31817cd75226fbe59fe337872417a2a6b798c55d5187add9bd0ec",
+      "diagnostics_sha256": "5b410bf212d440498db7ece10254d5e57ecb37e20dabe3f3f7e8efbd05cf04bf",
+      "blocking_gap_ids": [],
+      "planned_artifacts": [
+        "generic_sequence_solver_shadow_candidate.json"
+      ],
+      "canonical_sha256": "2201935c59ba7ccde2d92fd125df1c29660ca5d4fe0cd5b4283c66f5bca249cc"
+    },
+    "football": {
+      "status": "sandbox_ready",
+      "eligible_for_candidate_sandbox": true,
+      "candidate_dir": "samples_known_object/10_football/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_football",
+      "attempt_id": "shadow-7dacd3238ca5",
+      "problem_sha256": "7dacd3238ca52fb025da0d77606d2d6ca8c10076a1bf146ce0d569419da78699",
+      "diagnostics_sha256": "293b0530ec99b6f0429e9c0e595918d2fbe883972fa4c1a1347c0bfe8e596604",
+      "blocking_gap_ids": [],
+      "planned_artifacts": [
+        "generic_sequence_solver_shadow_candidate.json"
+      ],
+      "canonical_sha256": "d8c4ee82f9b893327b943fa2fb57dd63926c50b1c1457b73759825e3eff5e7a3"
+    },
+    "mug": {
+      "status": "blocked_by_known_gaps",
+      "eligible_for_candidate_sandbox": false,
+      "candidate_dir": "samples_known_object/02_mug/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_mug",
+      "attempt_id": "shadow-273b8f2c1d95",
+      "problem_sha256": "273b8f2c1d95a2feb0ddfa2b33d339337d774d97ebc85bdefeffa501ef30b37d",
+      "diagnostics_sha256": "33c04cd12cf660cf0935540ec840e2bd604afd7484cf8918e99e35c61f109898",
+      "blocking_gap_ids": [
+        "phase_snapshot_fallback"
+      ],
+      "planned_artifacts": [],
+      "canonical_sha256": "a62da24fc384749828ce422954da2eabfd4b6990c4b294fcb519b881453d3c77"
+    },
+    "chair": {
+      "status": "blocked_by_known_gaps",
+      "eligible_for_candidate_sandbox": false,
+      "candidate_dir": "samples_known_object/05_chair/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_chair",
+      "attempt_id": "shadow-c1561f4b1f0e",
+      "problem_sha256": "c1561f4b1f0e6d89bf21b62d0a292b822811265b3b44066ddf1158400dabe3e3",
+      "diagnostics_sha256": "ce34e4cd34625f749664efa598cf4b75e5e17df8dde077ee9c637f81ff0ad6f6",
+      "blocking_gap_ids": [
+        "semantic_graph_solver_private"
+      ],
+      "planned_artifacts": [],
+      "canonical_sha256": "f7d2d0a47f617ecee8c03c47260495c2207ab4fdd996d447203b3749b115c3ec"
+    },
+    "stick": {
+      "status": "blocked_by_known_gaps",
+      "eligible_for_candidate_sandbox": false,
+      "candidate_dir": "samples_known_object/11_stick/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_stick",
+      "attempt_id": "shadow-72c6bc913ac8",
+      "problem_sha256": "72c6bc913ac8fc4ae0d32121766d4b2c4acbfc1650a821609cfe664678a7daff",
+      "diagnostics_sha256": "9c86b0e482655c2e737a34a78130f4abc45d159ac2e3b5e2f0ac0ff9130f59f4",
+      "blocking_gap_ids": [
+        "line_contact_lock_special_refinement"
+      ],
+      "planned_artifacts": [],
+      "canonical_sha256": "6a22e946b5044e98f68d9f9fd4fae80ebc9e455b4e60c6447da15723183dae0f"
+    }
+  }
+}

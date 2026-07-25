@@ -42,6 +42,13 @@ Base: `64710953 Add factor shadow composition validation`
 - basketball/football 标记为 `ready_for_future_shadow_solve`。
 - mug/chair/stick 因未迁移机制 gap 标记为 `blocked_by_known_gaps`。
 
+新增 isolated candidate sandbox guard：
+
+- 只允许 future-ready case 计划写入 sibling `generic_sequence_solver_shadow/...` 目录。
+- 当前只 materialize sandbox manifest，不生成 pose/contact/phase/render。
+- validator 拒绝 accepted output 文件名，例如 `object_pose_init.csv`、`object_pose.csv`。
+- blocked case 不计划任何 artifact。
+
 ## 非目标
 
 - 不运行 optimizer。
@@ -59,14 +66,17 @@ Base: `64710953 Add factor shadow composition validation`
 | 冻结五 case summary | done | `tests/golden/sequence_problem_shadow_v1.json` |
 | 增加 shadow execution diagnostics | done | `diagnostics.py`、`diagnostics_golden.py`、export/verify CLI |
 | 冻结五 case diagnostics | done | `tests/golden/sequence_solver_diagnostics_v1.json` |
-| 增加测试 | done | `tests/test_sequence_solver_shadow.py`：11 passed |
-| 运行回归 | done | focused IR tests 54 passed；`python -m pytest -q`: 109 passed, 2 skipped；state/factor/sequence/golden gates pass |
+| 增加 candidate sandbox guard | done | `candidate.py`、`candidate_golden.py`、export/verify CLI |
+| 冻结五 case sandbox summary | done | `tests/golden/sequence_candidate_sandbox_v1.json` |
+| 增加测试 | done | `tests/test_sequence_solver_shadow.py`：17 passed |
+| 运行回归 | done | focused IR tests 60 passed；`python -m pytest -q`: 115 passed, 2 skipped；state/factor/sequence/candidate/golden gates pass |
 
 ## 接受标准
 
 - sequence problem validator 必须拒绝任何 solver execution、accepted output write 或
   baseline pose read。
 - sequence diagnostics 必须保持 solver/initializer/evaluator 不执行，且 `writes=[]`。
+- candidate sandbox 只能写 sandbox manifest，且 candidate dir 不得等于 canonical result dir。
 - `object_pose_init.csv` 不得出现在 sequence problem payload。
 - 五 case measurement/contact/factor 数量与 gap ids 必须 frozen。
 - 当前 gap 保持显式：
@@ -89,5 +99,6 @@ Base: `64710953 Add factor shadow composition validation`
 - 当前哪些 legacy 机制仍不能安全泛化；
 - shadow attempt 如何在失败时只记录诊断，不覆盖 accepted outputs。
 - 哪些 case 可进入下一步 future shadow solve，哪些 case 必须先迁移 legacy gap。
+- future candidate 输出必须先进入隔离 sandbox，不能污染 canonical `benchmark_vlm_qwen`。
 
 真正的 pose 不退化迁移仍在后续对象迁移分支中逐 case 完成。

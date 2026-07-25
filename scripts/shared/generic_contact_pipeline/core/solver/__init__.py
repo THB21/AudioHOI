@@ -17,17 +17,37 @@ from .diagnostics_golden import (
     build_canonical_sequence_solver_diagnostics_summary,
     verify_sequence_solver_diagnostics_summary,
 )
+from .candidate import (
+    SANDBOX_MANIFEST_NAME,
+    build_candidate_sandbox_manifest,
+    default_candidate_dir,
+    validate_candidate_sandbox_manifest,
+    write_candidate_sandbox_manifest,
+)
+from .candidate_golden import (
+    DEFAULT_CANDIDATE_SANDBOX_GOLDEN,
+    build_canonical_candidate_sandbox_summary,
+    verify_candidate_sandbox_summary,
+)
 from .problem import build_sequence_problem_shadow
 from .validation import validate_sequence_problem_shadow
 
 __all__ = [
     "DEFAULT_SEQUENCE_DIAGNOSTICS_GOLDEN",
+    "DEFAULT_CANDIDATE_SANDBOX_GOLDEN",
     "DEFAULT_SEQUENCE_PROBLEM_GOLDEN",
+    "SANDBOX_MANIFEST_NAME",
+    "build_candidate_sandbox_manifest",
+    "build_canonical_candidate_sandbox_summary",
     "build_canonical_sequence_problem_summary",
     "build_canonical_sequence_solver_diagnostics_summary",
     "build_sequence_problem_shadow",
     "build_sequence_solver_shadow_diagnostics",
+    "default_candidate_dir",
+    "validate_candidate_sandbox_manifest",
     "validate_sequence_problem_shadow",
+    "verify_candidate_sandbox_summary",
     "verify_sequence_problem_summary",
     "verify_sequence_solver_diagnostics_summary",
+    "write_candidate_sandbox_manifest",
 ]

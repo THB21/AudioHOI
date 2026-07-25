@@ -7,13 +7,19 @@ from pathlib import Path
 
 from scripts.shared.generic_contact_pipeline.core.base.config import load_case_profile
 from scripts.shared.generic_contact_pipeline.core.solver import (
+    SANDBOX_MANIFEST_NAME,
+    build_candidate_sandbox_manifest,
+    build_canonical_candidate_sandbox_summary,
     build_canonical_sequence_problem_summary,
     build_canonical_sequence_solver_diagnostics_summary,
     build_sequence_problem_shadow,
     build_sequence_solver_shadow_diagnostics,
+    validate_candidate_sandbox_manifest,
     validate_sequence_problem_shadow,
+    verify_candidate_sandbox_summary,
     verify_sequence_problem_summary,
     verify_sequence_solver_diagnostics_summary,
+    write_candidate_sandbox_manifest,
 )
 
 
@@ -189,3 +195,96 @@ def test_sequence_solver_diagnostics_verifier_cli_reports_all_cases() -> None:
     assert len(lines) == len(CASE_DIRECTORIES)
     assert lines[0].startswith("basketball: status=ready_for_future_shadow_solve")
     assert any("blocking_gaps=[semantic_graph_solver_private]" in line for line in lines)
+
+
+def test_candidate_sandbox_manifest_allows_ready_ball_cases_only() -> None:
+    basketball = build_candidate_sandbox_manifest(
+        load_case_profile("basketball"),
+        REPO / "samples_known_object/01_basketball/results/benchmark_vlm_qwen",
+    )
+    chair = build_candidate_sandbox_manifest(
+        load_case_profile("chair"),
+        REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
+    )
+    assert basketball["eligible_for_candidate_sandbox"] is True
+    assert basketball["planned_artifacts"] == [SANDBOX_MANIFEST_NAME]
+    assert basketball["accepted_outputs_written"] is False
+    assert chair["eligible_for_candidate_sandbox"] is False
+    assert chair["planned_artifacts"] == []
+    assert chair["blocking_gap_ids"] == ["semantic_graph_solver_private"]
+    assert validate_candidate_sandbox_manifest(basketball) == []
+    assert validate_candidate_sandbox_manifest(chair) == []
+
+
+def test_candidate_sandbox_validation_rejects_accepted_output_names() -> None:
+    manifest = build_candidate_sandbox_manifest(
+        load_case_profile("football"),
+        REPO / "samples_known_object/10_football/results/benchmark_vlm_qwen",
+    )
+    manifest["planned_artifacts"] = ["object_pose_init.csv"]
+    manifest["accepted_outputs_written"] = True
+    errors = validate_candidate_sandbox_manifest(manifest)
+    assert any("accepted outputs" in error for error in errors)
+    assert any("accepted output names" in error for error in errors)
+
+
+def test_candidate_sandbox_materialize_writes_only_manifest(tmp_path: Path) -> None:
+    candidate_dir = tmp_path / "ball_candidate"
+    manifest = write_candidate_sandbox_manifest(
+        load_case_profile("basketball"),
+        REPO / "samples_known_object/01_basketball/results/benchmark_vlm_qwen",
+        candidate_dir,
+    )
+    written = candidate_dir / SANDBOX_MANIFEST_NAME
+    assert written.exists()
+    assert json.loads(written.read_text()) == manifest
+    assert not (candidate_dir / "object_pose_init.csv").exists()
+    assert not (candidate_dir / "object_pose.csv").exists()
+
+
+def test_five_case_candidate_sandbox_matches_frozen_manifest() -> None:
+    expected = json.loads((REPO / "tests/golden/sequence_candidate_sandbox_v1.json").read_text())
+    actual = build_canonical_candidate_sandbox_summary()
+    assert actual == expected
+    assert verify_candidate_sandbox_summary() == []
+
+
+def test_candidate_sandbox_export_cli_writes_reviewable_manifest(tmp_path: Path) -> None:
+    out = tmp_path / "football_candidate_sandbox.json"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/shared/generic_contact_pipeline/tools/export_candidate_sandbox.py",
+            "--case",
+            "football",
+            "--result-dir",
+            "samples_known_object/10_football/results/benchmark_vlm_qwen",
+            "--out",
+            str(out),
+        ],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    payload = json.loads(out.read_text())
+    assert json.loads(completed.stdout) == payload
+    assert payload["mode"] == "generic_sequence_solver_candidate_sandbox"
+    assert payload["planned_artifacts"] == [SANDBOX_MANIFEST_NAME]
+
+
+def test_candidate_sandbox_verifier_cli_reports_all_cases() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/shared/generic_contact_pipeline/tools/verify_candidate_sandbox.py",
+        ],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    lines = completed.stdout.strip().splitlines()
+    assert len(lines) == len(CASE_DIRECTORIES)
+    assert lines[0].startswith("basketball: status=sandbox_ready eligible=True")
+    assert any("chair: status=blocked_by_known_gaps eligible=False" in line for line in lines)

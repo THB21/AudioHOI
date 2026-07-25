@@ -39,10 +39,10 @@
         "temporal_velocity": 1
       },
       "gap_ids": [
-        "mug.phase_snapshot_fallback"
+        "phase_snapshot_fallback"
       ],
       "unmapped_nonempty_fields": [],
-      "canonical_sha256": "45f777950a006aa63bfce95cddd30919e6e61761466ad50a840047f94bef4432"
+      "canonical_sha256": "b68be8f866deb3e10d8e29c92f8400d8f92b315aec41cb3ed4ee8b1a6283e840"
     },
     "chair": {
       "factor_count": 9,
@@ -57,13 +57,13 @@
         "temporal_velocity": 1
       },
       "gap_ids": [
-        "chair.semantic_graph_solver_private",
+        "semantic_graph_solver_private",
         "unsupported_loss_term:E_audio"
       ],
       "unmapped_nonempty_fields": [
         "E_audio"
       ],
-      "canonical_sha256": "80b3b4c311d4a1987436324648a767fc7893dabbf0829661acbd5e3bff829240"
+      "canonical_sha256": "3070822169006141a460cfba552bdda6b984b3279a33726693fafde59d845ed1"
     },
     "stick": {
       "factor_count": 5,
@@ -75,10 +75,10 @@
         "temporal_velocity": 1
       },
       "gap_ids": [
-        "stick.line_contact_lock_special_refinement"
+        "line_contact_lock_special_refinement"
       ],
       "unmapped_nonempty_fields": [],
-      "canonical_sha256": "155f0e3be3c35de3319c279583e40d499f29a9ba6153760fd66894b397a35f0c"
+      "canonical_sha256": "74a4d134082455d9e2a90ae5cb8b5c5cd6ecb7ac37fd1520f8169c675964f794"
     }
   }
 }

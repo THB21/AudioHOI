@@ -104,7 +104,7 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 | `refactor/generalized-measurements` | Measurement IR、坐标系/单位/covariance、五 case read-only adapters | done | 63 tests；旧 CSV byte-stable；20 contracts、plugins、encoded/decoded golden 通过 |
 | `refactor/contact-constraint-ir` | ContactConstraint、HumanSite、FeatureRef、local-coordinate union、gate adapter | done | 五 case byte-stable shadow；72 tests；contracts/plugins/golden 通过；dead flag 保持拒绝 |
 | `refactor/state-spec-kinematics` | StateSpec、DOF/gauge、sphere/line/mesh/URDF GeometryProvider | done | 五 case state shadow/hash/parity verified；89 tests；decoded golden 通过；solver/loss/output 路径无改动 |
-| `refactor/factor-registry` | 通用 factor registry、residual trace、组合校验 | in_progress | Factor IR shadow/verifier 已建立；96 tests；decoded golden 通过；不被 solver 消费 |
+| `refactor/factor-registry` | 通用 factor registry、residual trace、组合校验 | in_progress | Factor IR shadow/verifier/validator 已建立；98 tests；decoded golden 通过；不被 solver 消费 |
 | `refactor/generic-sequence-solver` | 通用初始化、单帧/序列求解、deterministic attempt provenance | pending | shadow mode 可运行；不读取 baseline；失败不覆盖 accepted 输出 |
 | `refactor/migrate-ball-cases` | basketball/football 迁移 | pending | 两 case 全指标不退化；删除其专用连续求解分支 |
 | `refactor/migrate-line-case` | stick 迁移 | pending | LineS/contact/时序指标不退化；无 line 专用 optimizer |
@@ -153,12 +153,13 @@ python scripts/shared/generic_contact_pipeline/tools/sync_golden_inputs.py \
 
 - 观测层已进入 `Measurement IR`，并通过五 case read-only shadow adapter 验证。
 - 接触层已进入 `ContactConstraint IR`，并通过五 case read-only shadow adapter 验证。
-- 姿态/几何层正在进入 `StateSpec + GeometryProvider`；本阶段只声明 state/geometry，
-  不替换 Stage 3/4 连续求解。
+- 姿态/几何层已进入 `StateSpec + GeometryProvider` shadow；当前 factor registry 只建立
+  residual/factor trace 与组合校验，不替换 Stage 3/4 连续求解。
 - 真正的泛化姿态求解必须等 `factor-registry` 和 `generic-sequence-solver` 通过后才成立。
 
-因此，“泛化修复”计划覆盖观测、接触、姿态三层，但当前仅前两层已实现；姿态求解
-仍处于 shadow 声明与后续迁移阶段。
+因此，“泛化修复”计划覆盖观测、接触、姿态三层；当前已经把三层输入语义与 factor
+trace 放入 shadow gate。真正的连续姿态求解泛化仍处于后续 `generic-sequence-solver`
+迁移阶段。
 
 ## Mandatory regression gates
 
@@ -236,3 +237,4 @@ factor 配置。任何 plugin 若直接读取 baseline pose、直接运行对象
 | 2026-07-25 | done | ContactConstraint IR、LocalXYZ/LineS union、离散 gate 与五 case contact shadow hash | `docs/contact_constraint_ir_plan.md` |
 | 2026-07-25 | done | 完成 StateSpec/GeometryProvider shadow、五 case frozen hash、parity/verifier 与回归门禁 | `docs/state_spec_kinematics_plan.md` |
 | 2026-07-25 | in_progress | 创建 factor-registry 分支，补齐 ignored inputs，修复 state shadow canonical hash 的 worktree 路径依赖；建立首版 Factor IR shadow/verifier | `docs/factor_registry_plan.md` |
+| 2026-07-26 | in_progress | 增加 Factor IR 组合校验；gap id 改为机制级命名，避免 object-name-specific 判断；更新 98-test 回归证据 | `docs/factor_registry_plan.md` |

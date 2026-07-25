@@ -16,6 +16,7 @@ from scripts.shared.generic_contact_pipeline.core.factors import (
     build_canonical_factor_shadow_summary,
     build_factor_shadow,
     verify_factor_shadow_summary,
+    validate_factor_shadow,
 )
 
 
@@ -73,9 +74,9 @@ def test_specialized_legacy_paths_remain_explicit_gaps() -> None:
     mug = build_factor_shadow(load_case_profile("mug"), REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen")
     chair = build_factor_shadow(load_case_profile("chair"), REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen")
     stick = build_factor_shadow(load_case_profile("stick"), REPO / "samples_known_object/11_stick/results/benchmark_vlm_qwen")
-    assert [gap["gap_id"] for gap in mug["gaps"]] == ["mug.phase_snapshot_fallback"]
-    assert "chair.semantic_graph_solver_private" in [gap["gap_id"] for gap in chair["gaps"]]
-    assert [gap["gap_id"] for gap in stick["gaps"]] == ["stick.line_contact_lock_special_refinement"]
+    assert [gap["gap_id"] for gap in mug["gaps"]] == ["phase_snapshot_fallback"]
+    assert "semantic_graph_solver_private" in [gap["gap_id"] for gap in chair["gaps"]]
+    assert [gap["gap_id"] for gap in stick["gaps"]] == ["line_contact_lock_special_refinement"]
 
 
 def test_factor_shadow_export_cli_writes_reviewable_manifest(tmp_path: Path) -> None:
@@ -116,4 +117,16 @@ def test_factor_shadow_verifier_cli_reports_all_cases() -> None:
     lines = completed.stdout.strip().splitlines()
     assert len(lines) == len(CASE_DIRECTORIES)
     assert lines[0].startswith("basketball: factors=10")
-    assert any("stick.line_contact_lock_special_refinement" in line for line in lines)
+    assert any("line_contact_lock_special_refinement" in line for line in lines)
+
+
+def test_factor_shadow_validation_checks_composition_and_sources() -> None:
+    shadow = build_factor_shadow(load_case_profile("chair"), REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen")
+    assert validate_factor_shadow(shadow) == []
+
+
+def test_factor_shadow_validation_rejects_absolute_residual_sources() -> None:
+    shadow = build_factor_shadow(load_case_profile("basketball"), REPO / "samples_known_object/01_basketball/results/benchmark_vlm_qwen")
+    shadow["factors"]["records"][0]["residual_source"]["artifact"] = "/tmp/not_repo_relative.csv"
+    errors = validate_factor_shadow(shadow)
+    assert any("repo-relative" in error for error in errors)

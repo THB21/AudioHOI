@@ -15,6 +15,10 @@ from scripts.shared.generic_contact_pipeline.core.factors.golden import (  # noq
     build_canonical_factor_shadow_summary,
     verify_factor_shadow_summary,
 )
+from scripts.shared.generic_contact_pipeline.core.factors.shadow import build_factor_shadow  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.factors.validation import validate_factor_shadow  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.base.config import load_case_profile  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.base.io import REPO  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.state.golden import CANONICAL_CASE_DIRECTORIES  # noqa: E402
 
 
@@ -31,6 +35,12 @@ def main() -> None:
         kinds = ",".join(f"{key}={value}" for key, value in sorted(summary["factor_kinds"].items()))
         gaps = ",".join(summary["gap_ids"])
         print(f"{case_name}: factors={summary['factor_count']} kinds=[{kinds}] gaps=[{gaps}] {summary['canonical_sha256']}")
+        directory = CANONICAL_CASE_DIRECTORIES[case_name]
+        shadow = build_factor_shadow(
+            load_case_profile(case_name),
+            REPO / "samples_known_object" / directory / "results" / args.result_name,
+        )
+        errors.extend(f"{case_name}: {error}" for error in validate_factor_shadow(shadow))
     if errors:
         for error in errors:
             print(error, file=sys.stderr)

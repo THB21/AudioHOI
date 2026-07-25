@@ -206,37 +206,35 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
             mapped.add(field)
 
     gaps: list[FactorGap] = []
-    if profile.case_name == "mug":
-        adapter = stage3_metrics.get("adapter", {}) if isinstance(stage3_metrics.get("adapter"), dict) else {}
-        phase = adapter.get("phase_reconstruction", {}) if isinstance(adapter.get("phase_reconstruction"), dict) else {}
-        if phase.get("snapshot_fallback_used"):
-            gaps.append(
-                FactorGap(
-                    "mug.phase_snapshot_fallback",
-                    "known_gap",
-                    "legacy phase reconstruction uses fallback/snapshot evidence; not promoted to PosePriorFactor",
-                    str(repo_relative_value(result_dir / "stage3_metrics.json")),
-                )
-            )
-    if profile.case_name == "chair":
+    adapter = stage3_metrics.get("adapter", {}) if isinstance(stage3_metrics.get("adapter"), dict) else {}
+    phase = adapter.get("phase_reconstruction", {}) if isinstance(adapter.get("phase_reconstruction"), dict) else {}
+    if phase.get("snapshot_fallback_used"):
         gaps.append(
             FactorGap(
-                "chair.semantic_graph_solver_private",
+                "phase_snapshot_fallback",
+                "known_gap",
+                "legacy phase reconstruction uses fallback/snapshot evidence; not promoted to PosePriorFactor",
+                str(repo_relative_value(result_dir / "stage3_metrics.json")),
+            )
+        )
+    if adapter.get("component") == "semantic_graph_6d" or adapter.get("solver"):
+        gaps.append(
+            FactorGap(
+                "semantic_graph_solver_private",
                 "known_gap",
                 "semantic graph 6D seed remains solver-private and is represented only as StateSpec shadow in this branch",
                 str(repo_relative_value(result_dir / "stage3_metrics.json")),
             )
         )
-    if profile.case_name == "stick":
-        if stage4_metrics.get("line_object_special_refinement"):
-            gaps.append(
-                FactorGap(
-                    "stick.line_contact_lock_special_refinement",
-                    "known_gap",
-                    "line_contact_lock is a compatibility seed/refinement path; factor registry records equivalent contact/temporal terms but does not consume it",
-                    str(repo_relative_value(result_dir / "stage4_metrics.json")),
-                )
+    if stage4_metrics.get("line_object_special_refinement"):
+        gaps.append(
+            FactorGap(
+                "line_contact_lock_special_refinement",
+                "known_gap",
+                "line_contact_lock is a compatibility seed/refinement path; factor registry records equivalent contact/temporal terms but does not consume it",
+                str(repo_relative_value(result_dir / "stage4_metrics.json")),
             )
+        )
 
     if trace_rows:
         mapped.update(field for field in ("iteration", "active_frames", "active_contact_frames", "active_audio_frames") if field in trace_rows[0])

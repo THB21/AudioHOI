@@ -12,6 +12,7 @@ from .types import (
     factor_record,
     gap_record,
 )
+from .validation import validate_factor_shadow
 
 __all__ = [
     "FactorAdaptationResult",
@@ -28,4 +29,5 @@ __all__ = [
     "factor_record",
     "gap_record",
     "verify_factor_shadow_summary",
+    "validate_factor_shadow",
 ]

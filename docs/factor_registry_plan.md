@@ -19,7 +19,7 @@ Base: `d6729aea Add state spec kinematics shadow gates`
 | Ignored runtime input hydration | done | dry-run `verified=41 would_copy=48 errors=0`; apply `copied=48 errors=0`; final dry-run `verified=89 would_copy=0 errors=0` |
 | State shadow portability | done | 修复 state shadow canonical hash 的 worktree 绝对路径依赖 |
 | State gates | done | `verify_state_shadow.py` pass；`verify_state_parity.py` pass with known chair warnings |
-| Baseline regression | done | `python -m pytest -q`: 89 passed, 2 skipped；decoded five-case golden verify passed |
+| Baseline regression | done | `python -m pytest -q`: 98 passed, 2 skipped；decoded five-case golden verify passed |
 
 ## Scope
 
@@ -54,13 +54,15 @@ Base: `d6729aea Add state spec kinematics shadow gates`
 | 定义 `core/factors/types.py` | done | factor id、kind、input refs、unit、weight/gate/residual source；solver consumption 被拒绝 |
 | 增加五 case shadow adapter | done | 从 `loss_analysis`、ball residual summaries、contact CSV 和 stage metrics 生成 factor summary |
 | 增加 factor registry/verifier | done | `tests/golden/factor_shadow_v1.json`、`tools/export_factor_shadow.py`、`tools/verify_factor_shadow.py` |
-| 增加测试 | done | `tests/test_factors.py` 覆盖 frozen summary、CLI、dead flag、specialized gap |
-| 运行回归 | done | focused IR tests 41 passed；`python -m pytest -q`: 96 passed, 2 skipped；decoded five-case golden verify passed |
+| 增加 factor 组合校验 | done | `validate_factor_shadow()` 检查 read-only mode、唯一 factor id、输入引用、repo-relative residual/gap provenance |
+| 增加测试 | done | `tests/test_factors.py` 覆盖 frozen summary、CLI、dead flag、mechanism gap、composition/source validation |
+| 运行回归 | done | focused IR tests 43 passed；`python -m pytest -q`: 98 passed, 2 skipped；decoded five-case golden verify passed |
 
 ## 接受标准
 
 - factor shadow `consumed_by_solver=false`。
 - factor 的 measurement/contact/state 输入均以 id/source hash 引用，不复制连续 pose。
+- factor id 必须唯一，residual source/gap source 必须是可重验的 repo-relative artifact。
 - basketball/football/stick 的 translation/depth/contact/smoothness 等价项能映射为通用 factors。
 - mug/chair 中不能泛化的 solved-seed 或 solver-private 项必须显式列入 gap report。
 - `no_contact_anchor` 仍不得复活为有效 consumer。
@@ -69,7 +71,7 @@ Base: `d6729aea Add state spec kinematics shadow gates`
 ## 当前 factor shadow 结论
 
 - basketball/football：已映射 depth/contact/smooth/reg/prior 等 residual summaries。
-- mug：contact/smooth/reg/prior 可映射；phase snapshot fallback 保留为 gap。
+- mug：contact/smooth/reg/prior 可映射；phase snapshot fallback 保留为机制级 gap。
 - chair：visual/depth/support/contact/smooth/reg/prior 可映射；`E_audio` 首批 deferred，
-  semantic graph private solver 保留为 gap。
-- stick：contact/smooth/reg/prior 可映射；`line_contact_lock` 保留为 special refinement gap。
+  semantic graph private solver 保留为机制级 gap。
+- stick：contact/smooth/reg/prior 可映射；`line_contact_lock` 保留为机制级 special refinement gap。

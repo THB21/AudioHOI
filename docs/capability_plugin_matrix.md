@@ -6,8 +6,8 @@ that the underlying algorithms are generic.
 
 | Case | Observation plugin | Contact plugin | Pose plugin | Ordered refinement plugins |
 | --- | --- | --- | --- | --- |
-| basketball | `mask_track_center` | `hand_floor` | `translation3` | `anchor_depth`, `backproject_xy` |
-| football | `mask_track_center` | `foot_floor` | `translation3` | `anchor_depth`, `backproject_xy` |
+| basketball | `mask_track_center` | `hand_floor` | `translation3` | `generic_sphere_sequence`, `backproject_xy` |
+| football | `mask_track_center` | `foot_floor` | `translation3` | `generic_sphere_sequence`, `backproject_xy` |
 | mug | `rigid_body_plus_parts` | `palm_handle_rim_body` | `rigid6_plus_phase` | `stable_grasp_anchor`, `anchor_depth`, `table_freeze` |
 | chair | `semantic_graph_tracks` | `two_hand_toprail_endpoint` | `semantic_graph_6d` | `small_se3`, `anchor_propagate_freeze`, `sequence_se3_optimizer` |
 | stick | `mask_track_center` | `persistent_two_palm_line` | `translation3` | `line_contact_lock`, `backproject_xy` |

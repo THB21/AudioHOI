@@ -55,7 +55,8 @@ Base: `64710953 Add factor shadow composition validation`
 
 - 只允许 future-ready case 计划写入 sibling `generic_sequence_solver_shadow/...` 目录；
   当前包括 basketball、football，以及保留 line contact compatibility 的 stick。
-- 当前只 materialize sandbox manifest，不生成 pose/contact/phase/render。
+- 原 shadow 分支只 materialize sandbox manifest；后续 ball migration 已允许 sphere case 在
+  sibling sandbox 生成安全命名的 candidate/residual/attempt，仍禁止 accepted output 名称。
 - validator 拒绝 accepted output 文件名，例如 `object_pose_init.csv`、`object_pose.csv`。
 - blocked case 不计划任何 artifact。
 
@@ -86,7 +87,8 @@ Base: `64710953 Add factor shadow composition validation`
 - sequence problem validator 必须拒绝任何 solver execution、accepted output write 或
   baseline pose read。
 - sequence diagnostics 必须保持 solver/initializer/evaluator 不执行，且 `writes=[]`。
-- candidate sandbox 只能写 sandbox manifest，且 candidate dir 不得等于 canonical result dir。
+- shadow manifest 本身只写 sandbox manifest；geometry candidate solver 只能写 manifest 中
+  声明的安全 artifact，且 candidate dir 不得等于 canonical result dir。
 - `object_pose_init.csv` 不得出现在 sequence problem payload。
 - 五 case measurement/contact/factor 数量与 gap ids 必须 frozen。
 - 当前 gap 保持显式：
@@ -113,3 +115,15 @@ Base: `64710953 Add factor shadow composition validation`
 - future candidate 输出必须先进入隔离 sandbox，不能污染 canonical `benchmark_vlm_qwen`。
 
 真正的 pose 不退化迁移仍在后续对象迁移分支中逐 case 完成。
+
+## 后续 ball migration 进展（2026-07-26）
+
+`refactor/migrate-ball-cases` 已真正执行 `translation3:sphere` candidate solver。它只读取
+result-owned Measurement IR、contact event/timeline、HumanSite 和 support observation，
+不读取 baseline/canonical pose；basketball 与 football candidate 均与旧 exact Stage 4
+seed 逐字节一致。candidate sandbox summary 因而对 sphere case 计划四个安全 artifact，
+stick 仍只计划 manifest，mug/chair blocking gap 不变。
+
+同时修复 canonical shadow hash 将绝对 worktree 前缀纳入哈希的问题。更新后的五 case
+hash 是路径归一化后的新 schema-v1 内容冻结；mug/chair/stick 的 hash 更新不表示其数据或
+算法发生变化。

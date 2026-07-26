@@ -114,7 +114,7 @@ def render_video_summary(path: Path) -> dict[str, object]:
 
 def _stage4_component_items(stage4: dict[str, object]) -> list[dict[str, object]]:
     items: list[dict[str, object]] = []
-    for key in ("components", "compatibility_adapters"):
+    for key in ("components", "seed_builders", "compatibility_adapters", "mainline_implementations"):
         value = stage4.get(key, [])
         if isinstance(value, list):
             items.extend(item for item in value if isinstance(item, dict))

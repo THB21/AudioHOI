@@ -1,9 +1,8 @@
-"""Generic sequence-solver shadow contracts.
+"""Generic sequence-solver contracts and isolated candidate implementations.
 
-This package describes the solver problem that future branches may execute.
-The current branch intentionally stays in shadow mode: it builds deterministic
-problem manifests and validates provenance without consuming legacy poses or
-writing accepted outputs.
+The shared shadow manifests remain plan-only. Geometry-specific candidate
+implementations may execute inside a safe directory, but cannot consume legacy
+poses or write accepted outputs until an explicit Stage 4 promotion step.
 """
 
 from .golden import (
@@ -19,6 +18,7 @@ from .diagnostics_golden import (
 )
 from .candidate import (
     SANDBOX_MANIFEST_NAME,
+    SPHERE_SANDBOX_ARTIFACTS,
     build_candidate_sandbox_manifest,
     default_candidate_dir,
     validate_candidate_sandbox_manifest,
@@ -30,24 +30,45 @@ from .candidate_golden import (
     verify_candidate_sandbox_summary,
 )
 from .problem import build_sequence_problem_shadow
+from .sphere_sequence import (
+    SPHERE_ATTEMPT_NAME,
+    SPHERE_CANDIDATE_NAME,
+    SPHERE_RESIDUAL_NAME,
+    SphereSequenceParameters,
+    solve_sphere_sequence_candidate,
+)
+from .sphere_golden import (
+    DEFAULT_SPHERE_SEQUENCE_GOLDEN,
+    build_sphere_sequence_regression_summary,
+    verify_sphere_sequence_regression,
+)
 from .validation import validate_sequence_problem_shadow
 
 __all__ = [
     "DEFAULT_SEQUENCE_DIAGNOSTICS_GOLDEN",
     "DEFAULT_CANDIDATE_SANDBOX_GOLDEN",
     "DEFAULT_SEQUENCE_PROBLEM_GOLDEN",
+    "DEFAULT_SPHERE_SEQUENCE_GOLDEN",
     "SANDBOX_MANIFEST_NAME",
+    "SPHERE_SANDBOX_ARTIFACTS",
+    "SPHERE_ATTEMPT_NAME",
+    "SPHERE_CANDIDATE_NAME",
+    "SPHERE_RESIDUAL_NAME",
+    "SphereSequenceParameters",
     "build_candidate_sandbox_manifest",
     "build_canonical_candidate_sandbox_summary",
     "build_canonical_sequence_problem_summary",
     "build_canonical_sequence_solver_diagnostics_summary",
     "build_sequence_problem_shadow",
     "build_sequence_solver_shadow_diagnostics",
+    "build_sphere_sequence_regression_summary",
     "default_candidate_dir",
     "validate_candidate_sandbox_manifest",
     "validate_sequence_problem_shadow",
     "verify_candidate_sandbox_summary",
     "verify_sequence_problem_summary",
     "verify_sequence_solver_diagnostics_summary",
+    "verify_sphere_sequence_regression",
     "write_candidate_sandbox_manifest",
+    "solve_sphere_sequence_candidate",
 ]

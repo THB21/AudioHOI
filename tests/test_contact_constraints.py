@@ -68,6 +68,17 @@ def test_shadow_is_deterministic_and_reports_unmapped_fields() -> None:
     assert "palm_to_line_px" in first["coverage"]["unmapped_nonempty_fields"]
 
 
+def test_shadow_hash_is_independent_of_absolute_worktree_prefix() -> None:
+    relative = Path("samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv")
+    absolute = REPO / relative
+    with absolute.open(newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    relative_shadow = build_contact_constraint_shadow("stick", relative, rows)
+    absolute_shadow = build_contact_constraint_shadow("stick", absolute, rows)
+    assert relative_shadow["source"] == absolute_shadow["source"]
+    assert relative_shadow["constraints"]["canonical_sha256"] == absolute_shadow["constraints"]["canonical_sha256"]
+
+
 def test_gate_changes_only_discrete_state_confidence_and_provenance() -> None:
     coordinate = LocalXYZ(0.1, 0.2, 0.3)
     constraint = ContactConstraint(

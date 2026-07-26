@@ -78,3 +78,14 @@ def test_shadow_manifest_is_deterministic_and_never_solver_consumed() -> None:
     assert first["measurements"]["frames"] == 192
     assert first["measurements"]["canonical_sha256"]
     assert first["coverage"]["unmapped_nonempty_fields"]
+
+
+def test_shadow_hash_is_independent_of_absolute_worktree_prefix() -> None:
+    relative = Path("samples_known_object/05_chair/results/benchmark_vlm_qwen/object_observations.csv")
+    absolute = REPO / relative
+    with absolute.open(newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    relative_shadow = build_measurement_shadow("chair", relative, rows)
+    absolute_shadow = build_measurement_shadow("chair", absolute, rows)
+    assert relative_shadow["source"] == absolute_shadow["source"]
+    assert relative_shadow["measurements"]["canonical_sha256"] == absolute_shadow["measurements"]["canonical_sha256"]

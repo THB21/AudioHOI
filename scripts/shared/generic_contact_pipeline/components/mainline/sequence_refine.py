@@ -32,15 +32,16 @@ def _copy_contacts(profile: CaseProfile) -> str:
     return str(paths["object_contact_points"])
 
 
-def _run_compatibility_seed_builders(profile: CaseProfile) -> list[dict[str, object]]:
-    """Run legacy refinement policies as seed/residual builders before final SE3 smoothing."""
+def _run_seed_builders(profile: CaseProfile) -> list[dict[str, object]]:
+    """Run selected compatibility or mainline seed builders before final SE3 smoothing."""
     reports: list[dict[str, object]] = []
     resolved = resolve_pipeline_plugins(profile)
     for spec in resolved.refinement:
-        if spec.role != "compatibility_adapter":
+        if spec.role not in {"compatibility_adapter", "mainline_implementation"}:
             reports.append(
                 {
                     "component": spec.name,
+                    "role": spec.role,
                     "enabled": False,
                     "reason": spec.role,
                     "capability_plugin": spec.describe(),
@@ -52,6 +53,7 @@ def _run_compatibility_seed_builders(profile: CaseProfile) -> list[dict[str, obj
             reports.append(
                 {
                     "component": spec.name,
+                    "role": spec.role,
                     "enabled": True,
                     "report": report,
                     "capability_plugin": plugin,
@@ -61,6 +63,7 @@ def _run_compatibility_seed_builders(profile: CaseProfile) -> list[dict[str, obj
             reports.append(
                 {
                     "component": spec.name,
+                    "role": spec.role,
                     "enabled": False,
                     "reason": str(exc),
                     "capability_plugin": spec.describe(),
@@ -1038,7 +1041,13 @@ def apply(profile: CaseProfile) -> dict[str, object]:
     copy_file(paths["object_pose_init"], paths["object_pose"])
     copy_file(paths["object_pose"], paths["object_pose_pre_smooth"])
 
-    compatibility_reports = _run_compatibility_seed_builders(profile)
+    seed_builder_reports = _run_seed_builders(profile)
+    compatibility_reports = [
+        report for report in seed_builder_reports if report.get("role") == "compatibility_adapter"
+    ]
+    mainline_reports = [
+        report for report in seed_builder_reports if report.get("role") == "mainline_implementation"
+    ]
     line_seed_report: dict[str, object] = {"enabled": False, "reason": "not_line_object"}
     if profile.data.get("line_object"):
         line_seed_report = _run_line_seed_builder(profile)
@@ -1170,9 +1179,14 @@ def apply(profile: CaseProfile) -> dict[str, object]:
     metrics = {
         "component": "generic_sequence_se3_mainline",
         "case_name": profile.case_name,
+        "seed_builders": seed_builder_reports,
         "compatibility_adapters": compatibility_reports,
+        "mainline_implementations": mainline_reports,
         "legacy_refinement_policies_ignored": [],
-        "legacy_refinement_policies_as_seed_builders": requested_legacy_policies,
+        "legacy_refinement_policies_as_seed_builders": [
+            str(report["component"]) for report in compatibility_reports if report.get("enabled") is True
+        ],
+        "selected_refinement_seed_builders": requested_legacy_policies,
         "line_object_special_refinement": bool(profile.data.get("line_object")),
         "line_object_seed_builder": line_seed_report,
         "object_pose_pre_smooth": str(paths["object_pose_pre_smooth"]),

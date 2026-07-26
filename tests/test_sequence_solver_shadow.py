@@ -8,6 +8,7 @@ from pathlib import Path
 from scripts.shared.generic_contact_pipeline.core.base.config import load_case_profile
 from scripts.shared.generic_contact_pipeline.core.solver import (
     SANDBOX_MANIFEST_NAME,
+    SPHERE_SANDBOX_ARTIFACTS,
     build_candidate_sandbox_manifest,
     build_canonical_candidate_sandbox_summary,
     build_canonical_sequence_problem_summary,
@@ -54,6 +55,15 @@ def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> 
     assert "physical6d_seed" not in payload
     assert problem["state_contract"]["state_model"] == "semantic_graph_6d"
     assert problem["state_contract"]["geometry_kind"] == "articulated_urdf"
+
+
+def test_sequence_problem_hash_is_independent_of_absolute_worktree_prefix() -> None:
+    relative = Path("samples_known_object/02_mug/results/benchmark_vlm_qwen")
+    absolute = REPO / relative
+    relative_problem = build_sequence_problem_shadow(load_case_profile("mug"), relative)
+    absolute_problem = build_sequence_problem_shadow(load_case_profile("mug"), absolute)
+    assert relative_problem["canonical_sha256"] == absolute_problem["canonical_sha256"]
+    assert relative_problem["attempt_plan"]["attempt_id"] == absolute_problem["attempt_plan"]["attempt_id"]
 
 
 def test_five_case_sequence_problem_matches_frozen_manifest() -> None:
@@ -209,7 +219,7 @@ def test_candidate_sandbox_manifest_allows_ready_ball_cases_only() -> None:
         REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
     )
     assert basketball["eligible_for_candidate_sandbox"] is True
-    assert basketball["planned_artifacts"] == [SANDBOX_MANIFEST_NAME]
+    assert basketball["planned_artifacts"] == SPHERE_SANDBOX_ARTIFACTS
     assert basketball["accepted_outputs_written"] is False
     assert chair["eligible_for_candidate_sandbox"] is False
     assert chair["planned_artifacts"] == []
@@ -284,7 +294,7 @@ def test_candidate_sandbox_export_cli_writes_reviewable_manifest(tmp_path: Path)
     payload = json.loads(out.read_text())
     assert json.loads(completed.stdout) == payload
     assert payload["mode"] == "generic_sequence_solver_candidate_sandbox"
-    assert payload["planned_artifacts"] == [SANDBOX_MANIFEST_NAME]
+    assert payload["planned_artifacts"] == SPHERE_SANDBOX_ARTIFACTS
 
 
 def test_candidate_sandbox_verifier_cli_reports_all_cases() -> None:

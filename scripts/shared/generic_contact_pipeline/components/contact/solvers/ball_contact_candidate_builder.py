@@ -528,11 +528,31 @@ def main() -> None:
     if current is not None:
         intervals.append(current)
 
+    human_site_rows = []
+    for i, frame in enumerate(frames.tolist()):
+        for site_id in (LEFT_HAND_KEY, RIGHT_HAND_KEY, LEFT_FOOT_KEY, RIGHT_FOOT_KEY):
+            point = centers[site_id][i]
+            side, body_part = site_id.split("_", 1)
+            human_site_rows.append({
+                'frame': frame,
+                'time': f'{times[i]:.6f}',
+                'site_id': site_id,
+                'body_part': body_part,
+                'side': side,
+                'x_m': f'{float(point[0]):.9f}',
+                'y_m': f'{float(point[1]):.9f}',
+                'z_m': f'{float(point[2]):.9f}',
+                'coordinate_frame': 'gvhmr_incam',
+                'confidence': '1.000000',
+                'source': 'gvhmr_smplx_contact_site_provider',
+            })
+
     write_csv(out_dir / 'anchor_contact_candidates.csv', anchor_rows, list(anchor_rows[0].keys()))
     write_csv(out_dir / 'floor_contact_candidates.csv', floor_rows, list(floor_rows[0].keys()))
     write_csv(out_dir / 'contact_state_frames.csv', state_rows, list(state_rows[0].keys()))
     write_csv(out_dir / 'contact_candidates_labeled.csv', labeled_rows, list(labeled_rows[0].keys()) if labeled_rows else ['frame','window_start','window_end','time','contact_type','target','score','confidence_level','source_support','source_proximity','source_motion','source_audio','source_depth','occlusion_score'])
     write_csv(out_dir / 'contact_intervals.csv', intervals, ['start_frame','end_frame','support_surface_type'])
+    write_csv(out_dir / 'human_sites.csv', human_site_rows, ['frame','time','site_id','body_part','side','x_m','y_m','z_m','coordinate_frame','confidence','source'])
     print(f'contact_candidate_dir: {out_dir}')
 
 

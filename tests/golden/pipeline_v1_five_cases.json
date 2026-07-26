@@ -433,8 +433,8 @@
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 1516,
-          "sha256": "6a9e53d34198eba5c7dc482ab99163b96b6e2cb83b0b19a44b192e8f2047dde4"
+          "size_bytes": 1670,
+          "sha256": "ca27a89fff7f121ed9bb4e367dbf23d20807cb04e86ad7f5c173aea9f22503f8"
         }
       ],
       "recorded_execution": {
@@ -2065,8 +2065,8 @@
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 1497,
-          "sha256": "5de3886a91d7ab0492b782d26587f369f3fd1bb80d5433f1170c287c94e467fe"
+          "size_bytes": 1649,
+          "sha256": "a597f13b1ee11c5c2a3bc0783af3b69ca3e8edb2c4ecef3fcae861728a47f3fc"
         }
       ],
       "recorded_execution": {

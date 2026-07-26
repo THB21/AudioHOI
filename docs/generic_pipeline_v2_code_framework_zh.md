@@ -103,7 +103,7 @@ components/render/
 
 例子：
 
-- 球类复用 `mask_track_center + hand_floor/foot_floor + translation3 + anchor_depth + proxy_sphere`。
+- 球类复用 `mask_track_center + hand_floor/foot_floor + translation3 + generic_sphere_sequence + proxy_sphere`。
 - mug 复用 `rigid_body_plus_parts + palm_handle_rim_body + rigid6_plus_phase + stable_grasp_anchor + articraft_mesh`。
 - chair 复用 `semantic_graph_tracks + two_hand_toprail_endpoint + semantic_graph_6d + small_se3/anchor_propagate_freeze + urdf_solid`。
 

@@ -2,11 +2,14 @@ case_name: basketball
 sample_dir: samples_known_object/01_basketball
 object_family: dynamic_ball
 geometry_model: sphere_proxy
+sphere:
+  radius_m: 0.12
+support_geometry_input: samples_known_object/01_basketball/results/pose6d_object_proxy_da3_init/support_geometry.json
 observation_model: mask_track_center
 contact_policy: hand_floor
 pose_model: translation3
 refinement_policy:
-  - anchor_depth
+  - generic_sphere_sequence
   - backproject_xy
 render_backend: proxy_sphere
 result_name: generic_pipeline_v1

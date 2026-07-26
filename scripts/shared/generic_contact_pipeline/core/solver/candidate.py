@@ -7,6 +7,7 @@ from pathlib import Path
 from ..base.config import CaseProfile
 from ..base.io import repo_relative_value, write_json
 from .diagnostics import build_sequence_solver_shadow_diagnostics
+from .sphere_sequence import SPHERE_ATTEMPT_NAME, SPHERE_CANDIDATE_NAME, SPHERE_RESIDUAL_NAME
 
 
 ACCEPTED_OUTPUT_NAMES = {
@@ -17,6 +18,12 @@ ACCEPTED_OUTPUT_NAMES = {
     "object_contact_points.csv",
 }
 SANDBOX_MANIFEST_NAME = "generic_sequence_solver_shadow_candidate.json"
+SPHERE_SANDBOX_ARTIFACTS = [
+    SANDBOX_MANIFEST_NAME,
+    SPHERE_CANDIDATE_NAME,
+    SPHERE_RESIDUAL_NAME,
+    SPHERE_ATTEMPT_NAME,
+]
 
 
 def _canonical_hash(value: object) -> str:
@@ -33,10 +40,12 @@ def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
     target_dir = candidate_dir or default_candidate_dir(result_dir, profile.case_name)
     eligible = diagnostics["status"] == "ready_for_future_shadow_solve"
     status = "sandbox_ready" if eligible else "blocked_by_known_gaps"
-    planned_artifacts = [SANDBOX_MANIFEST_NAME] if eligible else []
+    is_sphere = profile.component("pose_model") == "translation3" and profile.component("geometry_model") == "sphere_proxy"
+    planned_artifacts = (SPHERE_SANDBOX_ARTIFACTS if is_sphere else [SANDBOX_MANIFEST_NAME]) if eligible else []
     canonical_payload = {
         "attempt_id": diagnostics["attempt_id"],
         "status": status,
+        "geometry_kind": "sphere" if is_sphere else "other",
         "candidate_dir": str(repo_relative_value(target_dir)),
         "planned_artifacts": planned_artifacts,
         "blocking_gap_ids": diagnostics["blocking_gap_ids"],
@@ -46,6 +55,7 @@ def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
         "schema_version": 1,
         "mode": "generic_sequence_solver_candidate_sandbox",
         "sample_id": profile.case_name,
+        "geometry_kind": "sphere" if is_sphere else "other",
         "status": status,
         "eligible_for_candidate_sandbox": eligible,
         "solver_executed": False,
@@ -60,7 +70,11 @@ def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
         "nonblocking_gap_ids": diagnostics["nonblocking_gap_ids"],
         "planned_artifacts": planned_artifacts,
         "forbidden_artifact_names": sorted(ACCEPTED_OUTPUT_NAMES),
-        "write_policy": "sandbox_manifest_only_until_candidate_solver_is_accepted",
+        "write_policy": (
+            "sphere_solver_writes_only_safe_candidate_attempt_and_residual_artifacts"
+            if is_sphere
+            else "sandbox_manifest_only_until_candidate_solver_is_accepted"
+        ),
         "canonical_sha256": _canonical_hash(canonical_payload),
     }
 
@@ -94,8 +108,9 @@ def validate_candidate_sandbox_manifest(manifest: dict[str, object]) -> list[str
         if overlap:
             errors.append(f"planned artifacts include accepted output names: {overlap}")
         eligible = manifest.get("eligible_for_candidate_sandbox") is True
-        if eligible and planned != [SANDBOX_MANIFEST_NAME]:
-            errors.append("eligible sandbox must only plan the sandbox manifest artifact")
+        expected = SPHERE_SANDBOX_ARTIFACTS if manifest.get("geometry_kind") == "sphere" else [SANDBOX_MANIFEST_NAME]
+        if eligible and planned != expected:
+            errors.append(f"eligible sandbox must plan exactly the safe artifacts: {expected}")
         if not eligible and planned:
             errors.append("blocked sandbox must not plan artifacts")
     return errors

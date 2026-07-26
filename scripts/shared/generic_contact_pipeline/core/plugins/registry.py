@@ -85,6 +85,7 @@ REGISTRY = CapabilityRegistry(
         PluginSpec("pose", "rigid6_plus_phase", f"{POSE_MODULE}.rigid6_plus_phase", "build", ("observation.rigid_parts", "contact.candidates"), ("pose.se3", "articulation.phase")),
         PluginSpec("pose", "semantic_graph_6d", f"{POSE_MODULE}.semantic_graph_6d", "build", ("observation.semantic_graph", "contact.candidates"), ("pose.se3", "articulation.support")),
         PluginSpec("refinement", "anchor_depth", f"{REFINEMENT_MODULE}.anchor_depth", "apply", ("pose.se3", "contact.candidates"), ("pose.seed_refined",)),
+        PluginSpec("refinement", "generic_sphere_sequence", f"{REFINEMENT_MODULE}.generic_sphere_sequence", "apply", ("pose.se3", "contact.candidates"), ("pose.seed_refined",), role="mainline_implementation"),
         PluginSpec("refinement", "anchor_propagate_freeze", f"{REFINEMENT_MODULE}.anchor_propagate_freeze", "apply", ("pose.se3", "anchor.local_xyz"), ("pose.seed_refined",)),
         PluginSpec("refinement", "backproject_xy", f"{REFINEMENT_MODULE}.backproject_xy", "apply", ("pose.se3",), ("pose.seed_refined",)),
         PluginSpec("refinement", "line_contact_lock", f"{REFINEMENT_MODULE}.line_contact_lock", "apply", ("pose.se3", "anchor.local_s", "geometry.line_object"), ("pose.seed_refined",)),

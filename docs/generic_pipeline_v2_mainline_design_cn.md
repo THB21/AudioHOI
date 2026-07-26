@@ -462,7 +462,7 @@ unclear -> no update / no hard contact
 
 | case | geometry | observation | contact | pose/refine |
 |---|---|---|---|---|
-| basketball | sphere proxy | mask center | hand/floor | translation3 + anchor depth + backproject xy |
+| basketball | sphere proxy | mask center | hand/floor | translation3 + generic sphere sequence + backproject xy |
 | football | sphere proxy | mask center | foot/floor | translation3 + foot contact depth + smoothing |
 | mug | Articraft mesh | rigid body + parts | palm-handle/rim/table | rigid6+phase + stable grasp + table freeze |
 | chair | Articraft/URDF | semantic graph tracks | two-hand top rail endpoint | semantic 6D + small SE(3) + anchor propagate/freeze |

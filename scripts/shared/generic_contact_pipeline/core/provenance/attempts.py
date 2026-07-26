@@ -22,11 +22,15 @@ STAGE_ARTIFACT_KEYS: dict[str, tuple[str, ...]] = {
         "object_semantic_points", "line_correspondence", "line_observations",
         "object_local_points", "object_local_segments", "stage1_metrics",
     ),
-    "stage2": ("contact_candidates", "anchor_state", "contact_state", "stage2_metrics"),
+    "stage2": (
+        "contact_candidates", "contact_events", "human_sites", "support_geometry",
+        "anchor_state", "contact_state", "stage2_metrics",
+    ),
     "stage3": ("object_pose_init", "stage3_metrics"),
     "stage4": (
         "object_pose_pre_smooth", "motion_regime", "physical_smooth_residuals",
-        "pose_jump_audit", "optimizer_decisions", "object_pose",
+        "pose_jump_audit", "optimizer_decisions", "sphere_candidate", "sphere_residuals",
+        "sphere_attempt", "object_pose",
         "object_contact_points", "object_phase", "stage4_metrics",
     ),
     "stage5": ("render_manifest", "stage5_metrics"),

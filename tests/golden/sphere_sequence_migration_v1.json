@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "result_name": "generic_sphere_migration_switched_v1",
+  "cases": {
+    "basketball": {
+      "attempt_id": "sphere-07b106bbf92f",
+      "solver_executed": true,
+      "baseline_pose_read": false,
+      "candidate_accepted_outputs_written": false,
+      "frames": 192,
+      "human_contact_events": 15,
+      "support_events": 15,
+      "input_sha256": {
+        "object_measurements": "873f668fa3ae635739ef19acc9e7fb76c3908c160ab918aae4f0bc24580101a8",
+        "contact_events": "ca76eb6e222b508ae4c32605eeaf27023fd7ed040cd165ba9e419ba81eac7f9c",
+        "contact_timeline": "c775f36c78bea8f1f6ac106b6e461895b80421509fe897664806cb2791b76aad",
+        "human_sites": "60192399539bef34df231e6e90832546555c6fc5f57d15fc451f9479a0a9a213",
+        "support_geometry": "5063dbb3ccc65085174b5b17e8e8a323c70b832cd72000343df7066ca7488ec7"
+      },
+      "candidate_sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8",
+      "candidate_rows": 192,
+      "residual_sha256": "4d5243acff375179ee0dbe35f150b4044f3e3b46ec0068ceadd84b44c103df28",
+      "residual_rows": 192,
+      "legacy_exact_reference_sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8",
+      "candidate_equals_legacy_exact_reference": true,
+      "promoted_pre_smooth_sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8",
+      "candidate_equals_promoted_pre_smooth": true,
+      "final_pose_sha256": "2b01296a6c11fbb11ca69d04c5cb4f928d67c2023c28dfd0db09b22a3773fc10",
+      "final_pose_rows": 192,
+      "contact_sha256": "42143ca9c681e2e1a40dee5579dbcd3a0120e8916a614dc4bc7e809d7f3af97e",
+      "contact_rows": 192,
+      "stage4_audit": {"decision": "pass", "blocking_count": 0, "rerun_stage": false},
+      "stage5_audit": {"decision": "pass", "blocking_count": 0, "rerun_stage": false},
+      "render_sha256": {
+        "ball/overlay.mp4": "1e2ca59a8c024b0898b49e8322ab271b41e7405161b9a329b58af134c74c2d4e",
+        "ball/camera3d.mp4": "4b7351b2c849cac9ee617e88f116602e10d794a04cbd02ea0b335894290a1475",
+        "ball/side_yz.mp4": "8a5b3167bd0b6446d1a4c47b89873580ae8e3945553eecb3b79f33dc2dd78d12",
+        "with_human/overlay.mp4": "07437a19e2c35b0929c26f3a746a25415b4e7cf66f91e6181d00bd55637adf93",
+        "with_human/camera3d.mp4": "da8c20875b44583e4cfabda67f72d2be9e163011aa259d727786713436f911d0",
+        "with_human/side_yz.mp4": "ed90d2ca57d382fa8137f349d995d6ef1b0af889e1806c449009d1e44e0f3649"
+      }
+    },
+    "football": {
+      "attempt_id": "sphere-2b2ab3e69c81",
+      "solver_executed": true,
+      "baseline_pose_read": false,
+      "candidate_accepted_outputs_written": false,
+      "frames": 242,
+      "human_contact_events": 6,
+      "support_events": 9,
+      "input_sha256": {
+        "object_measurements": "00f621224be4988e80ddfa62333d5d79fa44d60cbb514bb146061f8071d6122f",
+        "contact_events": "e1e66ab8d0b42b323203ccbe123040301854d9d987b045698193d3fc97cac90d",
+        "contact_timeline": "acc923a74c19af641d9e7d32f2125a9a3e723ca5ed624cc03f9b8ab783e2bb0d",
+        "human_sites": "f7a35529772bf8ee874101a957916e52e03f3d3e9aa2726f415a6cd54769b3fd",
+        "support_geometry": "f6e4f65851402b0e73193d0fc4330ac38f436fa2a1effae071893a4732637f7c"
+      },
+      "candidate_sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365",
+      "candidate_rows": 242,
+      "residual_sha256": "2c25d8a10cd734d9a788e9c4b8efcd0b9103e9be4191b9793298549bddb80a60",
+      "residual_rows": 242,
+      "legacy_exact_reference_sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365",
+      "candidate_equals_legacy_exact_reference": true,
+      "promoted_pre_smooth_sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365",
+      "candidate_equals_promoted_pre_smooth": true,
+      "final_pose_sha256": "9c5098505c8bb6cb1157a7f5cdb5117afc831aeeddc793d2bd118f0b2a1a455d",
+      "final_pose_rows": 242,
+      "contact_sha256": "71291845277413be4c3b970a8d2197bd58a7cdf45af92cc0064b9a085f82eb77",
+      "contact_rows": 242,
+      "stage4_audit": {"decision": "pass", "blocking_count": 0, "rerun_stage": false},
+      "stage5_audit": {"decision": "pass", "blocking_count": 0, "rerun_stage": false},
+      "render_sha256": {
+        "ball/overlay.mp4": "9311d496a9a98918aeba3e8c6ea4af0d0b019e0e34c7856952ad9e7ca0fb45c8",
+        "ball/camera3d.mp4": "9687104ec49c7e4df8a0daf650e68782549a5c9774d0f5d45c1d16886cf12775",
+        "ball/side_yz.mp4": "d58ef19937dc981531163efc6ab76e2a11cc77542250d9b95f580fa78f40b218",
+        "with_human/overlay.mp4": "92af9853fa8728ed812684fafa7285ac8e4b8592589e81baf915aa57ce8ddaf0",
+        "with_human/camera3d.mp4": "f6128a7ea193181a1944df212ac045a3848925078f380d01434d42efab527065",
+        "with_human/side_yz.mp4": "098882a108d12df01191a7d45d7f67e687a76c658e8f257926c885051b9c5451"
+      }
+    }
+  }
+}

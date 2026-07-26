@@ -20,8 +20,8 @@ from scripts.shared.generic_contact_pipeline.core.plugins.registry import (
 class CapabilityPluginsTest(unittest.TestCase):
     def test_five_case_plugin_matrix_resolves_with_declared_capabilities(self) -> None:
         expected = {
-            "basketball": ("mask_track_center", "hand_floor", "translation3", ["anchor_depth", "backproject_xy"]),
-            "football": ("mask_track_center", "foot_floor", "translation3", ["anchor_depth", "backproject_xy"]),
+            "basketball": ("mask_track_center", "hand_floor", "translation3", ["generic_sphere_sequence", "backproject_xy"]),
+            "football": ("mask_track_center", "foot_floor", "translation3", ["generic_sphere_sequence", "backproject_xy"]),
             "mug": ("rigid_body_plus_parts", "palm_handle_rim_body", "rigid6_plus_phase", ["stable_grasp_anchor", "anchor_depth", "table_freeze"]),
             "chair": ("semantic_graph_tracks", "two_hand_toprail_endpoint", "semantic_graph_6d", ["small_se3", "anchor_propagate_freeze", "sequence_se3_optimizer"]),
             "stick": ("mask_track_center", "persistent_two_palm_line", "translation3", ["line_contact_lock", "backproject_xy"]),
@@ -32,6 +32,8 @@ class CapabilityPluginsTest(unittest.TestCase):
             self.assertEqual(resolved.contact.name, selectors[1])
             self.assertEqual(resolved.pose.name, selectors[2])
             self.assertEqual([spec.name for spec in resolved.refinement], selectors[3])
+            if case_name in {"basketball", "football"}:
+                self.assertEqual(resolved.refinement[0].role, "mainline_implementation")
             self.assertIn("pose.se3", resolved.final_capabilities)
             audit = stage_plugin_audit(load_case_profile(case_name), "stage4")
             expected_active = list(selectors[3])

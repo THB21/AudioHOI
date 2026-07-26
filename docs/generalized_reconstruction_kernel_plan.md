@@ -104,9 +104,9 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 | `refactor/generalized-measurements` | Measurement IR、坐标系/单位/covariance、五 case read-only adapters | done | 63 tests；旧 CSV byte-stable；20 contracts、plugins、encoded/decoded golden 通过 |
 | `refactor/contact-constraint-ir` | ContactConstraint、HumanSite、FeatureRef、local-coordinate union、gate adapter | done | 五 case byte-stable shadow；72 tests；contracts/plugins/golden 通过；dead flag 保持拒绝 |
 | `refactor/state-spec-kinematics` | StateSpec、DOF/gauge、sphere/line/mesh/URDF GeometryProvider | done | 五 case state shadow/hash/parity verified；89 tests；decoded golden 通过；solver/loss/output 路径无改动 |
-| `refactor/factor-registry` | 通用 factor registry、residual trace、组合校验 | in_progress | Factor IR shadow/verifier/validator 已建立；98 tests；decoded golden 通过；不被 solver 消费 |
-| `refactor/generic-sequence-solver` | 通用初始化、单帧/序列求解、deterministic attempt provenance | in_progress | sequence problem/diagnostics/candidate sandbox 已建立；116 tests；不读取 baseline pose；不写 accepted 输出 |
-| `refactor/migrate-ball-cases` | basketball/football 迁移 | pending | 两 case 全指标不退化；删除其专用连续求解分支 |
+| `refactor/factor-registry` | 通用 factor registry、residual trace、组合校验 | done | Factor IR shadow/verifier/validator 已建立；98 tests；decoded golden 通过；不被 solver 消费 |
+| `refactor/generic-sequence-solver` | 通用初始化、单帧/序列求解、deterministic attempt provenance | done | sequence problem/diagnostics/candidate sandbox 已建立；116 tests；不读取 baseline pose；不写 accepted 输出 |
+| `refactor/migrate-ball-cases` | basketball/football 迁移 | in_progress | typed sphere candidate 与旧 exact seed 两 case byte-identical；switched Stage1–5/audit/render pass；待 Qwen-equivalent 与全量门禁 |
 | `refactor/migrate-line-case` | stick 迁移 | pending | LineS/contact/时序指标不退化；无 line 专用 optimizer |
 | `refactor/migrate-mug-case` | mug rigid mesh + periodic phase 迁移 | pending | gauge-invariant pose、handle、contact、render 接受标准通过 |
 | `refactor/migrate-chair-case` | chair URDF + articulated DOF + two-hand contact 迁移 | pending | semantic 2D、contact P90、freeze、render 不退化 |
@@ -215,17 +215,20 @@ python scripts/shared/generic_contact_pipeline/tools/sync_golden_inputs.py \
 
 ## 当前泛化边界
 
-截至本计划阶段，系统还不是完整泛化重建算法：
+截至当前球类迁移阶段，系统还不是完整泛化重建算法：
 
 - 观测层已进入 `Measurement IR`，并通过五 case read-only shadow adapter 验证。
 - 接触层已进入 `ContactConstraint IR`，并通过五 case read-only shadow adapter 验证。
 - 姿态/几何层已进入 `StateSpec + GeometryProvider` shadow；当前 factor registry 只建立
   residual/factor trace 与组合校验，不替换 Stage 3/4 连续求解。
-- 真正的泛化姿态求解必须等 `factor-registry` 和 `generic-sequence-solver` 通过后才成立。
+- basketball/football 已由 result-owned Measurement/Contact/HumanSite/support 输入驱动
+  `translation3:sphere` 连续求解，并与旧 exact seed byte-identical；这是首个真正执行的
+  generic geometry-family solver。
+- mug/chair/stick 仍未由同一 generic factor executor 求解；line contact 可继续保留为
+  nonblocking compatibility mechanism。
 
-因此，“泛化修复”计划覆盖观测、接触、姿态三层；当前已经把三层输入语义与 factor
-trace 放入 shadow gate。真正的连续姿态求解泛化仍处于后续 `generic-sequence-solver`
-迁移阶段。
+因此，“泛化修复”计划覆盖观测、接触、姿态三层；球类已从 shadow 进入真实连续求解，
+其余几何族仍按 line、rigid+periodic、articulated URDF 分支逐一迁移。
 
 ## Mandatory regression gates
 
@@ -310,3 +313,4 @@ factor 配置。任何 plugin 若直接读取 baseline pose、直接运行对象
 | 2026-07-26 | in_progress | 增加 sequence solver shadow diagnostics；basketball/football 标记 future-shadow-ready，mug/chair 被机制 gap 阻断；stick line contact 改为 nonblocking compatibility | `docs/generic_sequence_solver_plan.md` |
 | 2026-07-26 | in_progress | 增加 candidate sandbox guard；只允许 future-ready case 写隔离 manifest，拒绝 accepted output 文件名 | `docs/generic_sequence_solver_plan.md` |
 | 2026-07-26 | in_progress | 明确 mug 根姿态/子组件 phase 的 coupled gauge，以及 chair 私有 chord/gauge 求解向通用 kinematic graph/factor 的迁移边界 | 本文件、`docs/generic_sequence_solver_plan.md` |
+| 2026-07-26 | in_progress | basketball/football 切换到 result-owned typed sphere solver；candidate 与旧 exact seed byte-identical，fresh Stage1–5/audit/render 通过；修复 shadow hash 的 worktree 路径污染 | `docs/ball_case_migration_plan.md` |

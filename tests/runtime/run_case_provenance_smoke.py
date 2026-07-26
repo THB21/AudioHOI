@@ -112,7 +112,7 @@ def main() -> None:
         return {"component": name}, REGISTRY.get(kind, name).describe()
 
     with patch.object(sequence_refine, "invoke_selected_plugin", side_effect=fake_invoke):
-        reports = sequence_refine._run_compatibility_seed_builders(plugin_profile)
+        reports = sequence_refine._run_seed_builders(plugin_profile)
     assert invoked == ["small_se3", "anchor_propagate_freeze"], invoked
     assert [report["component"] for report in reports] == [
         "small_se3",

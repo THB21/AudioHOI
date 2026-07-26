@@ -76,10 +76,16 @@ def _max_abs_delta(a: list[float], b: list[float]) -> float:
     return max(abs(x - y) for x, y in zip(a, b))
 
 
-def _run_exact_anchor_refinement(profile: CaseProfile, pose_csv: str, proxy_csv: str, state_csv: str) -> dict[str, str]:
+def _run_exact_anchor_refinement(
+    profile: CaseProfile,
+    pose_csv: str,
+    proxy_csv: str,
+    state_csv: str,
+    event_csv: str,
+    support_geometry_json: str,
+) -> dict[str, str]:
     python_bin = runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON")
     script = repo_path("scripts/shared/generic_contact_pipeline/components/refinement/solvers/anchor_depth_solver.py")
-    event_csv = profile.sample_dir / "results/contact_candidates_object_proxy/contact_candidates_labeled.csv"
     out_subdir = f"{profile.result_name}/exact_anchor_depth_reference"
     cmd = [
         python_bin,
@@ -91,9 +97,11 @@ def _run_exact_anchor_refinement(profile: CaseProfile, pose_csv: str, proxy_csv:
         "--contact-state-csv",
         str(repo_path(state_csv)),
         "--contact-event-csv",
-        str(event_csv),
+        str(repo_path(event_csv)),
         "--object-proxy-observation-csv",
         str(repo_path(proxy_csv)),
+        "--support-geometry-json",
+        str(repo_path(support_geometry_json)),
         "--object-pose-csv",
         str(repo_path(pose_csv)),
     ]
@@ -171,6 +179,8 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         pose_csv=str(paths["object_pose_init"]),
         proxy_csv=str(paths["contact_candidates"]),
         state_csv=str(paths["contact_state"]),
+        event_csv=str(paths["contact_events"]),
+        support_geometry_json=str(paths["support_geometry"]),
     )
     out = copy_file(exact["pose_csv"], paths["object_pose"])
     contacts = copy_file(paths["contact_candidates"], paths["object_contact_points"]) if paths["contact_candidates"].exists() else None
@@ -190,6 +200,8 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         "anchors_used": len(anchor_values),
         "policy": "exact_radius_free_anchor_refinement_audiohoi_env_using_stage2_contact_proxy",
         "exact_optimizer": exact,
+        "contact_event_source": str(paths["contact_events"]),
+        "support_geometry_source": str(paths["support_geometry"]),
         "raw_debug_pose": str(raw_debug_path),
         "raw_debug_policy": "pre-optimization anchor-segment reference only; final uses original least_squares logic",
         "raw_vs_final_max_abs_z_m": _max_abs_delta(z_raw, z_final),

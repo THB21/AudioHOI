@@ -17,9 +17,9 @@
         "temporal_velocity": 3
       },
       "gap_ids": [],
-      "attempt_id": "shadow-ee9266549cd3",
+      "attempt_id": "shadow-e563500a2a17",
       "validation_errors": [],
-      "canonical_sha256": "ee9266549cd31817cd75226fbe59fe337872417a2a6b798c55d5187add9bd0ec"
+      "canonical_sha256": "e563500a2a17792865db38567ae6a59569320276016e869a80557be2f274fbd7"
     },
     "football": {
       "state_model": "translation3",
@@ -37,9 +37,9 @@
         "temporal_velocity": 3
       },
       "gap_ids": [],
-      "attempt_id": "shadow-7dacd3238ca5",
+      "attempt_id": "shadow-66717c0693e0",
       "validation_errors": [],
-      "canonical_sha256": "7dacd3238ca52fb025da0d77606d2d6ca8c10076a1bf146ce0d569419da78699"
+      "canonical_sha256": "66717c0693e059596bf34d4146e21b5de2c50de454c834085274ba96de3d5c3c"
     },
     "mug": {
       "state_model": "rigid6_plus_phase",
@@ -58,9 +58,9 @@
       "gap_ids": [
         "phase_snapshot_fallback"
       ],
-      "attempt_id": "shadow-273b8f2c1d95",
+      "attempt_id": "shadow-47760fc4ae57",
       "validation_errors": [],
-      "canonical_sha256": "273b8f2c1d95a2feb0ddfa2b33d339337d774d97ebc85bdefeffa501ef30b37d"
+      "canonical_sha256": "47760fc4ae5716ee51c8ce1ec5ce8f51a272068f977682ca20810ce4d5bf0058"
     },
     "chair": {
       "state_model": "semantic_graph_6d",
@@ -83,9 +83,9 @@
         "semantic_graph_solver_private",
         "unsupported_loss_term:E_audio"
       ],
-      "attempt_id": "shadow-c1561f4b1f0e",
+      "attempt_id": "shadow-d9e440d13d55",
       "validation_errors": [],
-      "canonical_sha256": "c1561f4b1f0e6d89bf21b62d0a292b822811265b3b44066ddf1158400dabe3e3"
+      "canonical_sha256": "d9e440d13d559fa6ede62042318003c1f112985fc45461665317f5f2be99dafe"
     },
     "stick": {
       "state_model": "translation3_with_line_orientation_prior",
@@ -104,9 +104,9 @@
       "gap_ids": [
         "line_contact_lock_special_refinement"
       ],
-      "attempt_id": "shadow-72c6bc913ac8",
+      "attempt_id": "shadow-7fa5bb649e59",
       "validation_errors": [],
-      "canonical_sha256": "72c6bc913ac8fc4ae0d32121766d4b2c4acbfc1650a821609cfe664678a7daff"
+      "canonical_sha256": "7fa5bb649e59d797f6305e4e4a24fb44201ac91e70eb309f0fea73af4607c16b"
     }
   }
 }

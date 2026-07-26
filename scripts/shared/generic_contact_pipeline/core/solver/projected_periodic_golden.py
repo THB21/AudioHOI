@@ -8,10 +8,94 @@ from ..base.io import REPO
 
 
 DEFAULT_PROJECTED_PERIODIC_GOLDEN = REPO / "tests/golden/mug_projected_periodic_migration_v1.json"
+SWITCHED_RESULT_NAME = "generic_mug_periodic_switched_v1"
+SWITCHED_OUTPUTS = (
+    "observation_seed/body_pose.csv",
+    "observation_seed/axial_phase.csv",
+    "object_observations.csv",
+    "object_local_points.csv",
+    "object_pose_init.csv",
+    "object_pose_pre_smooth.csv",
+    "object_pose.csv",
+    "object_phase.csv",
+    "object_contact_points.csv",
+)
+SWITCHED_RENDERS = (
+    "object_only/overlay.mp4",
+    "object_only/camera3d.mp4",
+    "object_only/side_yz.mp4",
+    "with_human/overlay.mp4",
+    "with_human/camera3d.mp4",
+    "with_human/side_yz.mp4",
+)
+SWITCHED_LOSS_ARTIFACTS = (
+    "loss_analysis/loss_summary.json",
+    "loss_analysis/loss_trace.csv",
+    "loss_analysis/per_frame_residuals.csv",
+)
 
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _latest_stage_attempt(result_dir: Path, stage: str) -> dict[str, object]:
+    active = json.loads((result_dir / "provenance/stages" / stage / "active_attempt.json").read_text())
+    record_path = Path(str(active["record"]))
+    if not record_path.is_absolute():
+        record_path = REPO / record_path
+    record = json.loads(record_path.read_text())
+    return {
+        "status": record["status"],
+        "contract_status": record["contract_audit"]["status"],
+        "artifact_count": len(record["artifacts_after"]),
+        "stored_artifact_count": len(record["stored_artifacts"]),
+    }
+
+
+def _switched_pipeline_summary(results_dir: Path) -> dict[str, object]:
+    result_dir = results_dir / SWITCHED_RESULT_NAME
+    render_dir = results_dir / "renders" / SWITCHED_RESULT_NAME
+    stage6 = json.loads((result_dir / "stage6_compare_report.json").read_text())["checks"]
+    stage1_active = json.loads((result_dir / "provenance/stages/stage1/active_attempt.json").read_text())
+    stage1_path = Path(str(stage1_active["record"]))
+    if not stage1_path.is_absolute():
+        stage1_path = REPO / stage1_path
+    stage1 = json.loads(stage1_path.read_text())
+    seed_suffixes = (
+        "observation_seed/body_pose.csv",
+        "observation_seed/axial_phase.csv",
+        "observation_seed/observation_seed_report.json",
+    )
+    seed_store = {
+        suffix: next(
+            value["sha256"]
+            for path, value in stage1["stored_artifacts"].items()
+            if path.endswith(suffix)
+        )
+        for suffix in seed_suffixes
+    }
+    return {
+        "result_name": SWITCHED_RESULT_NAME,
+        "output_sha256": {relative: _sha256(result_dir / relative) for relative in SWITCHED_OUTPUTS},
+        "render_sha256": {relative: _sha256(render_dir / relative) for relative in SWITCHED_RENDERS},
+        "loss_sha256": {relative: _sha256(result_dir / relative) for relative in SWITCHED_LOSS_ARTIFACTS},
+        "stage_attempts": {
+            stage: _latest_stage_attempt(result_dir, stage)
+            for stage in ("stage1", "stage2", "stage3", "stage4", "stage5", "stage6", "stage7")
+        },
+        "stage1_seed_artifact_store_sha256": seed_store,
+        "stage6_semantic_gap": {
+            "required_csvs_pass": stage6["required_csvs_pass"],
+            "required_renders_pass": stage6["required_renders_pass"],
+            "frame_count": stage6["frame_count"],
+            "pose_delta": stage6["pose_delta"],
+            "pose_delta_pass": stage6["pose_delta_pass"],
+            "phase_delta": stage6["phase_delta"],
+            "phase_delta_pass": stage6["phase_delta_pass"],
+            "overall_pass": stage6["overall_pass"],
+        },
+    }
 
 
 def build_projected_periodic_regression_summary(attempt_path: Path) -> dict[str, object]:
@@ -46,6 +130,7 @@ def build_projected_periodic_regression_summary(attempt_path: Path) -> dict[str,
         "body_residual_rms_median": attempt["body_residual_rms_median"],
         "body_residual_rms_p90": attempt["body_residual_rms_p90"],
         "phase": attempt["phase"],
+        "switched_pipeline": _switched_pipeline_summary(result_dir.parent),
     }
 
 

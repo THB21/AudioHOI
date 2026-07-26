@@ -110,8 +110,14 @@ Frozen switched-run evidence:
   are byte-identical to that baseline;
 - Stage 1 attempt provenance stores body pose, axial phase and seed report in the
   content-addressed artifact store;
-- repository regression: 129 passed, 3 skipped.
+- all six Stage 5 MP4 files are byte-identical to the independently generated
+  `mug_observation_seed_v4` renders;
+- Stage 1–7 attempts complete with passing artifact contracts, and Stage 7 loss
+  artifacts are frozen in the migration golden;
+- repository regression: 130 passed, 3 skipped.
 
 This closes the historical phase fallback for fresh Stage 1. It does not yet
-claim a single factor executor for Mug Stage 3/4; Stage 5–7 and decoded renders
-remain the next promotion gate.
+claim a single factor executor for Mug Stage 3/4. Stage 6 now records, rather
+than crashes on, the pre-existing profile gap that declares a nonexistent
+`final_result/handle_phase.csv`; that comparison remains non-evaluable and does
+not pass.

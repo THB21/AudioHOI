@@ -108,7 +108,7 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 | `refactor/generic-sequence-solver` | 通用初始化、单帧/序列求解、deterministic attempt provenance | done | sequence problem/diagnostics/candidate sandbox 已建立；116 tests；不读取 baseline pose；不写 accepted 输出 |
 | `refactor/migrate-ball-cases` | basketball/football 迁移 | done | typed sphere candidate 与旧 exact seed 两 case byte-identical；switched Stage1–7、audit、render 与全量门禁通过 |
 | `refactor/migrate-line-case` | stick 迁移 | pending | LineS/contact/时序指标不退化；无 line 专用 optimizer |
-| `refactor/migrate-mug-case` | mug rigid mesh + periodic feature phase 迁移 | in_progress | generic Stage 1 body/phase 与 fresh baseline byte-identical；Stage 1–4 全关键 CSV byte-identical；待 Stage 5–7/render 接受 |
+| `refactor/migrate-mug-case` | mug rigid mesh + periodic feature phase 迁移 | in_progress | generic Stage 1 body/phase、Stage 1–4 关键 CSV、六路 render 均与独立 fresh baseline byte-identical；Stage 1–7 attempts/contracts pass；待 Stage 3/4 统一 factor executor |
 | `refactor/migrate-chair-case` | chair URDF + articulated DOF + two-hand contact 迁移 | pending | semantic 2D、contact P90、freeze、render 不退化 |
 | `refactor/heldout-generalization` | 未见对象与退化条件验证 | pending | 满足下述零专用 solver 验收 |
 
@@ -229,7 +229,8 @@ python scripts/shared/generic_contact_pipeline/tools/sync_golden_inputs.py \
   `translation3:sphere` 连续求解，并与旧 exact seed byte-identical；这是首个真正执行的
   generic geometry-family solver。
 - mug Stage 1 已由 object-agnostic projected-periodic core 加 geometry provider 求解，
-  body/phase 与 fresh baseline byte-identical；Stage 3/4 仍使用现有 pose/refinement plugin。
+  body/phase、下游关键 CSV 和六路 render 与 fresh baseline byte-identical；Stage 1–7
+  attempts/contracts pass。Stage 3/4 仍使用现有 pose/refinement plugin。
 - chair/stick 仍未由同一 generic factor executor 求解；line contact 可继续保留为
   nonblocking compatibility mechanism。
 
@@ -320,4 +321,4 @@ factor 配置。任何 plugin 若直接读取 baseline pose、直接运行对象
 | 2026-07-26 | in_progress | 增加 candidate sandbox guard；只允许 future-ready case 写隔离 manifest，拒绝 accepted output 文件名 | `docs/generic_sequence_solver_plan.md` |
 | 2026-07-26 | in_progress | 明确 mug 根姿态/子组件 phase 的 coupled gauge，以及 chair 私有 chord/gauge 求解向通用 kinematic graph/factor 的迁移边界 | 本文件、`docs/generic_sequence_solver_plan.md` |
 | 2026-07-26 | in_progress | basketball/football 切换到 result-owned typed sphere solver；candidate 与旧 exact seed byte-identical，fresh Stage1–5/audit/render 通过；修复 shadow hash 的 worktree 路径污染 | `docs/ball_case_migration_plan.md` |
-| 2026-07-26 | in_progress | mug Stage 1 切换到 generic projected-periodic core；明确 handle phase 是刚性总成 axial gauge 而非物理关节；body/phase 及 Stage 1–4 关键 CSV byte-identical，Stage 1 attempt 已存储三项 seed artifact | `docs/mug_observation_seed_design.md` |
+| 2026-07-26 | in_progress | mug Stage 1 切换到 generic projected-periodic core；明确 handle phase 是刚性总成 axial gauge 而非物理关节；body/phase、Stage 1–4 关键 CSV、六路 render byte-identical；Stage 1–7 attempts/contracts pass；Stage 6 将缺失 phase baseline 记录为 explicit semantic gap | `docs/mug_observation_seed_design.md` |

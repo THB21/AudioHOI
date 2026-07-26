@@ -55,5 +55,67 @@
     "phase_gauge": "body_yaw_zero_observable_axial_angle_in_phase",
     "phase_grid_step_deg": 0.5,
     "phase_smooth_sigma_frames": 1.5
+  },
+  "switched_pipeline": {
+    "result_name": "generic_mug_periodic_switched_v1",
+    "output_sha256": {
+      "observation_seed/body_pose.csv": "3ea905dfe8de77646d9a240d0104edaa6998e921d2a8a5d6862ec7ebb125db7c",
+      "observation_seed/axial_phase.csv": "3dc05829ef95b5dc929d0e84c9163b924f9eaee42971b8c61ff2ac4634366eb6",
+      "object_observations.csv": "4b984e2491c22b4f5cc07a56bfaad9bc4d40f4850025858abf53ef7afb69bb09",
+      "object_local_points.csv": "71a2147de73b5224f727f7c20751a7870a2011a1503be1573283fef86fa2b467",
+      "object_pose_init.csv": "c281bdd7b9379f09bec04fc481b67b60217d0be5ce049d2981ad16f230100dff",
+      "object_pose_pre_smooth.csv": "a019243a954e9a74949b1e2af95519e238048d906a901ae94f09a790f19b070b",
+      "object_pose.csv": "f4d97a889406eb8600fe01efcede1ed0173db4bc2a3c24da873ea39987412b71",
+      "object_phase.csv": "9c86b81ac1b6ab5ad6a1745c314273bc64255792ca1ceb6cd3448c42b229b918",
+      "object_contact_points.csv": "558fb61973bfa1cd24c99299f3243e5106dae2b3d175e43673ea5e16bb63ea81"
+    },
+    "render_sha256": {
+      "object_only/overlay.mp4": "2c06be41a510d0f9ac7671ed618ffabcf24f7b9663a87926d541b76f2c78ff0b",
+      "object_only/camera3d.mp4": "32f7c3535f6dece9afa85c92a41213a3895835938e20951037fbd75c8fb6c1f7",
+      "object_only/side_yz.mp4": "3b5df77ccebda3632915dad9a5f9bf3ab453c3cc7eb59320df42ee35339aed1a",
+      "with_human/overlay.mp4": "421c362056c6d5a779e0fc75ecc26146d5fbb24c21f16c1929ba2e84a2c7558c",
+      "with_human/camera3d.mp4": "8ad17f580bb48e413985aa484e5684ccb85392910129678f5ff24165d8309bc6",
+      "with_human/side_yz.mp4": "4bbf37fb545d4a3e608fbc39cd614a465b27fa64255546ac29f7d6db2a5e291c"
+    },
+    "loss_sha256": {
+      "loss_analysis/loss_summary.json": "cf23f043da14ac8f8062f3163dc7c5228fbb236d3de467ad3081ffbf8650da93",
+      "loss_analysis/loss_trace.csv": "a164eeea727984f564470a2ed03c0cca7dd2d62dbe95c4831208483b33d2893d",
+      "loss_analysis/per_frame_residuals.csv": "066a56de3f992f9c25c53b2f21f3f34a457c984bf3cbca88b83e1c4b251aee1c"
+    },
+    "stage_attempts": {
+      "stage1": {"status": "completed", "contract_status": "pass", "artifact_count": 10, "stored_artifact_count": 10},
+      "stage2": {"status": "completed", "contract_status": "pass", "artifact_count": 4, "stored_artifact_count": 4},
+      "stage3": {"status": "completed", "contract_status": "pass", "artifact_count": 3, "stored_artifact_count": 3},
+      "stage4": {"status": "completed", "contract_status": "pass", "artifact_count": 10, "stored_artifact_count": 10},
+      "stage5": {"status": "completed", "contract_status": "pass", "artifact_count": 3, "stored_artifact_count": 3},
+      "stage6": {"status": "completed", "contract_status": "pass", "artifact_count": 2, "stored_artifact_count": 2},
+      "stage7": {"status": "completed", "contract_status": "pass", "artifact_count": 4, "stored_artifact_count": 4}
+    },
+    "stage1_seed_artifact_store_sha256": {
+      "observation_seed/body_pose.csv": "3ea905dfe8de77646d9a240d0104edaa6998e921d2a8a5d6862ec7ebb125db7c",
+      "observation_seed/axial_phase.csv": "3dc05829ef95b5dc929d0e84c9163b924f9eaee42971b8c61ff2ac4634366eb6",
+      "observation_seed/observation_seed_report.json": "c741228ff0483c1c4599e450b2647e485dd6082e3e64fcf41fbdafaf971cd04c"
+    },
+    "stage6_semantic_gap": {
+      "required_csvs_pass": true,
+      "required_renders_pass": true,
+      "frame_count": {"new": 240, "baseline": 240, "pass": true},
+      "pose_delta": {
+        "comparable": true,
+        "keys": ["x", "y", "z", "yaw", "pitch", "roll", "scale"],
+        "median_abs_delta": 0.02894455,
+        "p95_abs_delta": 0.475590307,
+        "max_abs_delta": 1.078059968
+      },
+      "pose_delta_pass": false,
+      "phase_delta": {
+        "comparable": false,
+        "reason": "declared_phase_baseline_missing",
+        "baseline_path": "samples_known_object/02_mug/results/final_result/handle_phase.csv",
+        "new_phase_exists": true
+      },
+      "phase_delta_pass": false,
+      "overall_pass": false
+    }
   }
 }

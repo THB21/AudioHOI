@@ -217,20 +217,29 @@ def compare_case(profile: CaseProfile) -> dict[str, object]:
             checks["chair_quality_pose_gate"] = {"pass": False, "error": str(exc)}
     phase_csv = paths["object_phase"]
     baseline_phase = profile.baseline.get("final_phase_csv")
-    if baseline_phase and phase_csv.exists():
+    baseline_phase_path = repo_path(baseline_phase) if baseline_phase else None
+    if baseline_phase_path and baseline_phase_path.exists() and phase_csv.exists():
         if profile.case_name == "mug":
             phase_keys = ["m17_phase_rad", "m43_phase_rad", "m17_phase_deg", "m43_phase_deg"]
         else:
             phase_keys = ["contact_start_frame", "lift_frame", "place_frame", "static_start_frame"]
-        checks["phase_delta"] = pose_delta_summary(phase_csv, repo_path(baseline_phase), phase_keys)
+        checks["phase_delta"] = pose_delta_summary(phase_csv, baseline_phase_path, phase_keys)
         phase_delta = checks["phase_delta"]
         checks["phase_delta_pass"] = bool(
             isinstance(phase_delta, dict)
             and phase_delta.get("comparable")
             and float(phase_delta.get("max_abs_delta", 999.0)) <= 0.01
         )
+    elif baseline_phase_path:
+        checks["phase_delta"] = {
+            "comparable": False,
+            "reason": "declared_phase_baseline_missing",
+            "baseline_path": str(baseline_phase_path),
+            "new_phase_exists": phase_csv.exists(),
+        }
+        checks["phase_delta_pass"] = False
     else:
-        checks["phase_delta"] = {"comparable": True, "reason": "no_phase_baseline"}
+        checks["phase_delta"] = {"comparable": False, "reason": "no_phase_baseline_declared"}
         checks["phase_delta_pass"] = True
     render_checks = {}
     for rel in REQUIRED_RENDER_FILES:

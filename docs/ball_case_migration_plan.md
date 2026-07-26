@@ -85,5 +85,21 @@ sequence shadow 的 hash 还修复了跨 worktree 可移植性：Measurement/Con
 - 必须审计 diff，确认旧数值参数、loss、阈值和平滑算法没有变化。
 - 在上述门禁全部通过前不删除 `anchor_depth` compatibility policy；mug 仍需要该兼容入口。
 
+## Stage 6/7 评价结果与 evaluator gap
+
+Stage 7 非侵入式 loss audit 已完成。football 的所有逐项 sum/max 与 canonical
+`benchmark_vlm_qwen` 完全一致；basketball 的 `E_contact` 完全一致，`E_smooth` 总和从
+canonical 的 `0.108324227` 降到 `0.028951832`，`E_reg` 增加 `0.459727403`，因此
+`E_total` 增加 `0.380355008 / 305.580768`（约 `0.124%`）。basketball canonical 使用
+Qwen + Mistral audit，而 switched fresh run 使用 none gate；相同 gate/调用路径的旧新
+solver final pose 是 byte-identical，所以该差异不能归因于 solver migration。
+
+现有 Stage 6 `pose_delta_pass` 对两个 case 都为 false，但比较对象语义不匹配：new 侧是
+通用 SE3 smoother 后的 final pose，profile baseline 侧是旧 anchor exact seed。其
+max delta 为 basketball `0.313518m`、football `0.071158m`；与此同时 new candidate 与
+这个 exact seed 对两个 case 均逐字节一致。该结果已作为
+`stage6_profile_baseline_semantic_gap` 冻结，而没有修改 `0.01` 阈值。后续应把 evaluator
+拆成 `seed-vs-seed` 与 `final-vs-same-gate-final` 两个明确比较，不得用放宽阈值消除 gap。
+
 stick 的 line contact 按既定决策保留，继续作为 nonblocking compatibility mechanism；本分支
 不迁移或删除它。

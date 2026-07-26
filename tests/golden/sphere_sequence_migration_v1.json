@@ -31,6 +31,23 @@
       "contact_rows": 192,
       "stage4_audit": {"decision": "pass", "blocking_count": 0, "rerun_stage": false},
       "stage5_audit": {"decision": "pass", "blocking_count": 0, "rerun_stage": false},
+      "stage6_profile_baseline_semantic_gap": {
+        "comparison": "smoothed_final_pose_vs_profile_exact_seed",
+        "overall_pass": false,
+        "pose_delta_pass": false,
+        "p95_abs_delta": 0.147453,
+        "max_abs_delta": 0.3135180000000001,
+        "candidate_equals_compared_exact_seed": true
+      },
+      "stage7_loss_terms": {
+        "E_total": {"sum": 305.961123181, "max": 2.136795873},
+        "E_visual": {"sum": 0.0, "max": 0.0},
+        "E_mask": {"sum": 0.0, "max": 0.0},
+        "E_contact": {"sum": 2.050862735, "max": 0.204357339},
+        "E_support": {"sum": 0.0, "max": 0.0},
+        "E_smooth": {"sum": 0.028951832, "max": 0.001673466},
+        "E_reg": {"sum": 303.881308614, "max": 2.129022752}
+      },
       "render_sha256": {
         "ball/overlay.mp4": "1e2ca59a8c024b0898b49e8322ab271b41e7405161b9a329b58af134c74c2d4e",
         "ball/camera3d.mp4": "4b7351b2c849cac9ee617e88f116602e10d794a04cbd02ea0b335894290a1475",
@@ -69,6 +86,23 @@
       "contact_rows": 242,
       "stage4_audit": {"decision": "pass", "blocking_count": 0, "rerun_stage": false},
       "stage5_audit": {"decision": "pass", "blocking_count": 0, "rerun_stage": false},
+      "stage6_profile_baseline_semantic_gap": {
+        "comparison": "smoothed_final_pose_vs_profile_exact_seed",
+        "overall_pass": false,
+        "pose_delta_pass": false,
+        "p95_abs_delta": 0.023888999999999605,
+        "max_abs_delta": 0.07115799999999961,
+        "candidate_equals_compared_exact_seed": true
+      },
+      "stage7_loss_terms": {
+        "E_total": {"sum": 732.360247232, "max": 38.58250607},
+        "E_visual": {"sum": 0.0, "max": 0.0},
+        "E_mask": {"sum": 0.0, "max": 0.0},
+        "E_contact": {"sum": 44.47815581, "max": 2.073300491},
+        "E_support": {"sum": 0.0, "max": 0.0},
+        "E_smooth": {"sum": 0.747509616, "max": 0.047838262},
+        "E_reg": {"sum": 687.134581806, "max": 38.431770254}
+      },
       "render_sha256": {
         "ball/overlay.mp4": "9311d496a9a98918aeba3e8c6ea4af0d0b019e0e34c7856952ad9e7ca0fb45c8",
         "ball/camera3d.mp4": "9687104ec49c7e4df8a0daf650e68782549a5c9774d0f5d45c1d16886cf12775",

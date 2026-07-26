@@ -20,6 +20,7 @@ PRIMARY_RENDER_ARTIFACTS = (
     "with_human/camera3d.mp4",
     "with_human/side_yz.mp4",
 )
+LOSS_TERMS = ("E_total", "E_visual", "E_mask", "E_contact", "E_support", "E_smooth", "E_reg")
 
 
 def _sha256(path: Path) -> str:
@@ -29,6 +30,18 @@ def _sha256(path: Path) -> str:
 def _csv_rows(path: Path) -> int:
     with path.open(newline="") as handle:
         return sum(1 for _ in csv.DictReader(handle))
+
+
+def _loss_term_summary(path: Path) -> dict[str, dict[str, float]]:
+    with path.open(newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    return {
+        term: {
+            "sum": round(sum(float(row.get(term) or 0.0) for row in rows), 12),
+            "max": round(max(float(row.get(term) or 0.0) for row in rows), 12),
+        }
+        for term in LOSS_TERMS
+    }
 
 
 def sphere_sequence_case_summary(case_name: str, result_name: str) -> dict[str, object]:
@@ -46,6 +59,8 @@ def sphere_sequence_case_summary(case_name: str, result_name: str) -> dict[str, 
     render_dir = result_dir.parent / "renders" / result_name
     stage4_audit = json.loads((result_dir / "stage_audit/stage4/stage_audit_decision.json").read_text())
     stage5_audit = json.loads((result_dir / "stage_audit/stage5/stage_audit_decision.json").read_text())
+    stage6_compare = json.loads((result_dir / "stage6_compare_report.json").read_text())
+    pose_delta = stage6_compare["checks"]["pose_delta"]
     return {
         "attempt_id": attempt["attempt_id"],
         "solver_executed": attempt["solver_executed"],
@@ -77,6 +92,15 @@ def sphere_sequence_case_summary(case_name: str, result_name: str) -> dict[str, 
             "blocking_count": stage5_audit["blocking_count"],
             "rerun_stage": stage5_audit["rerun_stage"],
         },
+        "stage6_profile_baseline_semantic_gap": {
+            "comparison": "smoothed_final_pose_vs_profile_exact_seed",
+            "overall_pass": stage6_compare["checks"]["overall_pass"],
+            "pose_delta_pass": stage6_compare["checks"]["pose_delta_pass"],
+            "p95_abs_delta": pose_delta["p95_abs_delta"],
+            "max_abs_delta": pose_delta["max_abs_delta"],
+            "candidate_equals_compared_exact_seed": candidate_path.read_bytes() == reference_path.read_bytes(),
+        },
+        "stage7_loss_terms": _loss_term_summary(result_dir / "loss_analysis/per_frame_residuals.csv"),
         "render_sha256": {name: _sha256(render_dir / name) for name in PRIMARY_RENDER_ARTIFACTS},
     }
 

@@ -42,6 +42,19 @@ from .sphere_golden import (
     build_sphere_sequence_regression_summary,
     verify_sphere_sequence_regression,
 )
+from .projected_periodic_sequence import (
+    PeriodicKinematicContract,
+    ProjectedPeriodicGeometryProvider,
+    ProjectedPeriodicObservation,
+    ProjectedPeriodicParameters,
+    ProjectedPeriodicSolution,
+    solve_projected_periodic_sequence,
+)
+from .projected_periodic_golden import (
+    DEFAULT_PROJECTED_PERIODIC_GOLDEN,
+    build_projected_periodic_regression_summary,
+    verify_projected_periodic_regression,
+)
 from .validation import validate_sequence_problem_shadow
 
 __all__ = [
@@ -49,11 +62,17 @@ __all__ = [
     "DEFAULT_CANDIDATE_SANDBOX_GOLDEN",
     "DEFAULT_SEQUENCE_PROBLEM_GOLDEN",
     "DEFAULT_SPHERE_SEQUENCE_GOLDEN",
+    "DEFAULT_PROJECTED_PERIODIC_GOLDEN",
     "SANDBOX_MANIFEST_NAME",
     "SPHERE_SANDBOX_ARTIFACTS",
     "SPHERE_ATTEMPT_NAME",
     "SPHERE_CANDIDATE_NAME",
     "SPHERE_RESIDUAL_NAME",
+    "ProjectedPeriodicGeometryProvider",
+    "PeriodicKinematicContract",
+    "ProjectedPeriodicObservation",
+    "ProjectedPeriodicParameters",
+    "ProjectedPeriodicSolution",
     "SphereSequenceParameters",
     "build_candidate_sandbox_manifest",
     "build_canonical_candidate_sandbox_summary",
@@ -62,6 +81,7 @@ __all__ = [
     "build_sequence_problem_shadow",
     "build_sequence_solver_shadow_diagnostics",
     "build_sphere_sequence_regression_summary",
+    "build_projected_periodic_regression_summary",
     "default_candidate_dir",
     "validate_candidate_sandbox_manifest",
     "validate_sequence_problem_shadow",
@@ -69,6 +89,8 @@ __all__ = [
     "verify_sequence_problem_summary",
     "verify_sequence_solver_diagnostics_summary",
     "verify_sphere_sequence_regression",
+    "verify_projected_periodic_regression",
     "write_candidate_sandbox_manifest",
     "solve_sphere_sequence_candidate",
+    "solve_projected_periodic_sequence",
 ]

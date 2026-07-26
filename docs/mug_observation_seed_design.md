@@ -91,3 +91,27 @@ Mandatory gates:
 No loss weight, optimizer bound, or threshold is changed merely to pass these
 gates. If the first observation-derived implementation misses them, its result
 remains an experiment rather than replacing the canonical path.
+
+## Generic projected-periodic migration checkpoint
+
+The observation-derived implementation now delegates numerical solving to the
+object-agnostic `core/solver/projected_periodic_sequence.py`. Mug-specific code
+only adapts detector rows and supplies the declared body/handle geometry. The
+kinematic contract explicitly marks the handle as a fixed periodic feature of
+a rigid assembly (`physical_joint=false`, `relative_motion_allowed=false`), so
+the legacy phase cannot be misread as handle articulation.
+
+Frozen switched-run evidence:
+
+- input hashes: observations `f7877ab449f6...`, proxy depth `51d5a084c72c...`;
+- body pose `3ea905dfe8de...` and axial phase `3dc05829ef95...`, both byte-identical
+  to the fresh observation-derived baseline;
+- all Stage 1–4 observation/local-point/init/pre-smooth/final/phase/contact CSVs
+  are byte-identical to that baseline;
+- Stage 1 attempt provenance stores body pose, axial phase and seed report in the
+  content-addressed artifact store;
+- repository regression: 129 passed, 3 skipped.
+
+This closes the historical phase fallback for fresh Stage 1. It does not yet
+claim a single factor executor for Mug Stage 3/4; Stage 5–7 and decoded renders
+remain the next promotion gate.

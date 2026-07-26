@@ -44,8 +44,8 @@ Base: `64710953 Add factor shadow composition validation`
 - stick 的 `line_contact_lock_special_refinement` 可作为 compatibility refinement 保留，
   标记为 nonblocking gap。
 - mug 的 `phase_snapshot_fallback` 是 canonical provenance gap。generic state 必须把它
-  表达为 `root SE3 -> periodic child component`，并以 coupled yaw/phase gauge 比较组合
-  后几何；不得把 body 与 handle 当作两个独立刚体 rotation。
+  表达为刚性总成上的 periodic feature cue，并以 coupled yaw/phase gauge 比较组合后几何；
+  handle 不是物理 revolute child，不得把 body 与 handle 当作两个独立刚体 rotation。
 - chair 的 `semantic_graph_solver_private` 是实现边界 gap：状态和约束可泛化，但当前
   top-rail chord 初始化、twist/关节 2D gauge 和 pose lock 仍捆在 chair 私有 solver。
   迁移目标是通用 kinematic graph、correspondence initializer 和 rank-deficiency factor，

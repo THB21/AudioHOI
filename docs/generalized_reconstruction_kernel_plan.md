@@ -106,9 +106,9 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 | `refactor/state-spec-kinematics` | StateSpec、DOF/gauge、sphere/line/mesh/URDF GeometryProvider | done | 五 case state shadow/hash/parity verified；89 tests；decoded golden 通过；solver/loss/output 路径无改动 |
 | `refactor/factor-registry` | 通用 factor registry、residual trace、组合校验 | done | Factor IR shadow/verifier/validator 已建立；98 tests；decoded golden 通过；不被 solver 消费 |
 | `refactor/generic-sequence-solver` | 通用初始化、单帧/序列求解、deterministic attempt provenance | done | sequence problem/diagnostics/candidate sandbox 已建立；116 tests；不读取 baseline pose；不写 accepted 输出 |
-| `refactor/migrate-ball-cases` | basketball/football 迁移 | in_progress | typed sphere candidate 与旧 exact seed 两 case byte-identical；switched Stage1–5/audit/render pass；待 Qwen-equivalent 与全量门禁 |
+| `refactor/migrate-ball-cases` | basketball/football 迁移 | done | typed sphere candidate 与旧 exact seed 两 case byte-identical；switched Stage1–7、audit、render 与全量门禁通过 |
 | `refactor/migrate-line-case` | stick 迁移 | pending | LineS/contact/时序指标不退化；无 line 专用 optimizer |
-| `refactor/migrate-mug-case` | mug rigid mesh + periodic phase 迁移 | pending | gauge-invariant pose、handle、contact、render 接受标准通过 |
+| `refactor/migrate-mug-case` | mug rigid mesh + periodic feature phase 迁移 | in_progress | generic Stage 1 body/phase 与 fresh baseline byte-identical；Stage 1–4 全关键 CSV byte-identical；待 Stage 5–7/render 接受 |
 | `refactor/migrate-chair-case` | chair URDF + articulated DOF + two-hand contact 迁移 | pending | semantic 2D、contact P90、freeze、render 不退化 |
 | `refactor/heldout-generalization` | 未见对象与退化条件验证 | pending | 满足下述零专用 solver 验收 |
 
@@ -127,23 +127,26 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 7. 仅在全部 mandatory gate 通过后切换 capability plugin。
 8. 切换后删除对应的专用连续优化入口；保留只读 compatibility reader 的期限必须明确。
 
-## Mug：多组件旋转的泛化模型
+## Mug：刚性总成的周期特征与 coupled gauge
 
-Mug 不能被建模为两个互不相关的刚体姿态。首批通用表达应是一个运动学图：
+Mug 的 body 与 handle 是一个刚性总成，不存在把手相对杯体转动的物理关节。现有
+`handle.phase` 是对整只 mug 可观测轴向姿态的 legacy 编码，不是第二个组件姿态。首批
+通用表达应是：
 
 ```text
-world -> body(root SE3) -> handle(periodic/revolute joint)
+world -> rigid assembly(root translation + tilt + scale + axial phase)
+                       -> body feature（轴对称，axial phase 不可单独观测）
+                       -> handle feature（固定 attachment，提供 axial cue）
 ```
 
-每帧状态为 `T_world_body + scale + handle.phase`，handle 的世界变换必须由
-`T_world_handle = T_world_body * T_body_handle(handle.phase)` 组合得到。body、handle、
-rim 和 bottom measurement 都绑定到各自 `FeatureRef`，投影、接触和渲染统一查询
+每帧状态为 `T_world_assembly + scale + assembly.axial_phase`。body、handle、rim 和 bottom
+measurement 都绑定到各自 `FeatureRef`，投影、接触和渲染统一查询
 `GeometryProvider.local_to_world(feature, state)`；solver 不允许分别生成两个无约束
-rotation CSV。
+rotation CSV，也不允许把 `assembly.axial_phase` 当成 handle relative joint。
 
-当前 mug body 近似轴对称，因此 root 绕局部竖直轴的 yaw 与 `handle.phase` 不是两个
-独立可观测量：对任意 `delta`，给 root yaw 加 `delta`、同时给 phase 减 `delta`，
-复合后的 handle 几何可以保持不变。迁移时必须声明跨 DOF 的 coupled gauge，并选择
+当前 mug body 近似轴对称，因此 body symmetry phase 与 legacy `handle.phase` 不是两个
+独立可观测量：对任意 `delta`，改变 body symmetry 的坐标选择、同时对 assembly axial
+phase 做反向补偿，复合后的刚性总成几何可以保持不变。迁移时必须声明跨 DOF 的 coupled gauge，并选择
 一个确定规范（首选保持现有 fresh seed 约定：body axial yaw 固定到 gauge，所有可观测
 轴向角写入 phase）。禁止对两个量各自加 identity/historical prior 来伪造可观测性。
 
@@ -156,16 +159,17 @@ rotation CSV。
 4. 以组合后 feature 的 2D/3D 位置、接触和 render 做 gauge-invariant 验收，不比较
    raw yaw/phase 数值。
 
-为此 `StateSpec` 还需从平铺 DOF 扩展出 `KinematicNode`、`JointSpec(parent/child/axis)`、
-`FeatureAttachment` 和可同时引用多个 DOF 的 coupled `GaugeConstraint`。这套表达应同样
-覆盖带转动把手、盖子或铰接子件的 held-out 对象；对象配置只提供几何、关节轴和 feature
-mapping，不新增 mug/cup 专用连续 solver。
+当前 rigid mug 只需要固定 `FeatureAttachment` 与可同时引用多个 DOF 的 coupled
+`GaugeConstraint`；不得为它虚构 `JointSpec`。真正带转动把手、盖子或铰接子件的 held-out
+对象才增加 `KinematicNode` 与 `JointSpec(parent/child/axis)`。对象配置只提供几何、真实
+关节轴和 feature mapping，不新增 mug/cup 专用连续 solver。
 
-当前 `phase_snapshot_fallback` gap 来自 canonical `benchmark_vlm_qwen` 的 Stage 3
+历史 `phase_snapshot_fallback` gap 来自 canonical `benchmark_vlm_qwen` 的 Stage 3
 provenance（其中明确记录 `snapshot_fallback_used=true`），不是“mug 的双组件旋转无法
-泛化”。`mug_observation_seed_v4` 已证明 current-run 观测足以生成可接受候选；该 gap
-只有在上述 phase initializer 和 coupled gauge 被 generic solver 正式消费并通过独立
-sandbox 回归后才能关闭，不能仅因存在 fresh 结果而从审计中删除。
+泛化”。本分支的 generic projected-periodic core 已正式生成 current-run body/phase，
+isolated candidate 与 switched Stage 1 都通过 byte-identical 回归，因此 fresh-run 的该
+fallback gap 已关闭；canonical 记录继续作为历史基线保留。Stage 3/4 尚未统一到同一个
+factor executor，不能据此宣称 mug 全链路迁移完成。
 
 ## Chair：当前专用机制及其通用替代
 
@@ -224,11 +228,13 @@ python scripts/shared/generic_contact_pipeline/tools/sync_golden_inputs.py \
 - basketball/football 已由 result-owned Measurement/Contact/HumanSite/support 输入驱动
   `translation3:sphere` 连续求解，并与旧 exact seed byte-identical；这是首个真正执行的
   generic geometry-family solver。
-- mug/chair/stick 仍未由同一 generic factor executor 求解；line contact 可继续保留为
+- mug Stage 1 已由 object-agnostic projected-periodic core 加 geometry provider 求解，
+  body/phase 与 fresh baseline byte-identical；Stage 3/4 仍使用现有 pose/refinement plugin。
+- chair/stick 仍未由同一 generic factor executor 求解；line contact 可继续保留为
   nonblocking compatibility mechanism。
 
 因此，“泛化修复”计划覆盖观测、接触、姿态三层；球类已从 shadow 进入真实连续求解，
-其余几何族仍按 line、rigid+periodic、articulated URDF 分支逐一迁移。
+其余路径仍按 line、rigid periodic feature、articulated URDF 分支逐一迁移。
 
 ## Mandatory regression gates
 
@@ -314,3 +320,4 @@ factor 配置。任何 plugin 若直接读取 baseline pose、直接运行对象
 | 2026-07-26 | in_progress | 增加 candidate sandbox guard；只允许 future-ready case 写隔离 manifest，拒绝 accepted output 文件名 | `docs/generic_sequence_solver_plan.md` |
 | 2026-07-26 | in_progress | 明确 mug 根姿态/子组件 phase 的 coupled gauge，以及 chair 私有 chord/gauge 求解向通用 kinematic graph/factor 的迁移边界 | 本文件、`docs/generic_sequence_solver_plan.md` |
 | 2026-07-26 | in_progress | basketball/football 切换到 result-owned typed sphere solver；candidate 与旧 exact seed byte-identical，fresh Stage1–5/audit/render 通过；修复 shadow hash 的 worktree 路径污染 | `docs/ball_case_migration_plan.md` |
+| 2026-07-26 | in_progress | mug Stage 1 切换到 generic projected-periodic core；明确 handle phase 是刚性总成 axial gauge 而非物理关节；body/phase 及 Stage 1–4 关键 CSV byte-identical，Stage 1 attempt 已存储三项 seed artifact | `docs/mug_observation_seed_design.md` |

@@ -20,7 +20,8 @@ STAGE_ARTIFACT_KEYS: dict[str, tuple[str, ...]] = {
     "stage1": (
         "object_observations", "object_correspondence", "object_surface_points",
         "object_semantic_points", "line_correspondence", "line_observations",
-        "object_local_points", "object_local_segments", "stage1_metrics",
+        "object_local_points", "object_local_segments", "periodic_root_seed",
+        "periodic_feature_phase", "periodic_observation_report", "stage1_metrics",
     ),
     "stage2": (
         "contact_candidates", "contact_events", "human_sites", "support_geometry",

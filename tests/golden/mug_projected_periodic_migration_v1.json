@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "attempt_id": "periodic-fb830a2962f6",
+  "solver_executed": true,
+  "accepted_outputs_written": false,
+  "baseline_pose_read": false,
+  "historical_phase_read": false,
+  "state_spec": "root_se3_scale_plus_periodic_feature",
+  "geometry_provider": "articraft_mug_body_handle_periodic_v1",
+  "kinematic_contract": {
+    "root_node": "body",
+    "periodic_feature_node": "handle",
+    "axial_gauge_dof": "body.symmetry_phase",
+    "periodic_feature_dof": "assembly.axial_phase",
+    "physical_joint": false,
+    "relative_motion_allowed": false,
+    "observable_combination": "body.symmetry_phase + assembly.axial_phase",
+    "gauge_constraint": "body.symmetry_phase = 0",
+    "gauge_transform": "body.symmetry_phase += delta; assembly.axial_phase -= delta"
+  },
+  "parameters": {
+    "center_sigma_px": 7.0,
+    "bbox_sigma_px": 10.0,
+    "depth_sigma_m": 0.55,
+    "root_regularization_sigma": 0.45,
+    "periodic_feature_sigma_px": 5.0,
+    "temporal_phase_sigma_rad_per_frame": 0.25,
+    "phase_smooth_sigma_frames": 1.5,
+    "phase_grid_samples": 721,
+    "phase_candidate_count": 8,
+    "robust_loss": "soft_l1",
+    "robust_scale": 1.0,
+    "max_function_evaluations": 80
+  },
+  "input_sha256": {
+    "observations": "f7877ab449f623c1b44afbe785c917e638857099fabd8ed15b658425739b3b39",
+    "proxy_depth": "51d5a084c72c6a692ce4196cfc4213b7ecb42298096ae4cf239cdaac5c3927b2"
+  },
+  "body_candidate_sha256": "3ea905dfe8de77646d9a240d0104edaa6998e921d2a8a5d6862ec7ebb125db7c",
+  "phase_candidate_sha256": "3dc05829ef95b5dc929d0e84c9163b924f9eaee42971b8c61ff2ac4634366eb6",
+  "body_reference_sha256": "3ea905dfe8de77646d9a240d0104edaa6998e921d2a8a5d6862ec7ebb125db7c",
+  "phase_reference_sha256": "3dc05829ef95b5dc929d0e84c9163b924f9eaee42971b8c61ff2ac4634366eb6",
+  "body_equals_observation_seed": true,
+  "phase_equals_observation_seed": true,
+  "frames": 240,
+  "body_fit_success_frames": 171,
+  "body_residual_rms_median": 0.062125177995631053,
+  "body_residual_rms_p90": 0.11284063399067092,
+  "phase": {
+    "visible_frames": 159,
+    "hidden_or_unobserved_frames": 81,
+    "handle_reprojection_median_px": 6.961615635162186,
+    "handle_reprojection_p90_px": 9.271629474168572,
+    "handle_reprojection_max_px": 14.332741122386455,
+    "phase_gauge": "body_yaw_zero_observable_axial_angle_in_phase",
+    "phase_grid_step_deg": 0.5,
+    "phase_smooth_sigma_frames": 1.5
+  }
+}

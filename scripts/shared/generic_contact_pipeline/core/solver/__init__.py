@@ -35,6 +35,7 @@ from .candidate_golden import (
     verify_candidate_sandbox_summary,
 )
 from .problem import build_sequence_problem_shadow
+from .problem_contract import SequenceProblemContract, build_sequence_problem_contract, sequence_problem_contract_record
 from .sphere_sequence import (
     SPHERE_ATTEMPT_NAME,
     SPHERE_CANDIDATE_NAME,
@@ -119,6 +120,7 @@ __all__ = [
     "ProjectedPeriodicParameters",
     "ProjectedPeriodicSolution",
     "RigidCorrespondenceInitializer",
+    "SequenceProblemContract",
     "SphereSequenceParameters",
     "build_candidate_sandbox_manifest",
     "build_canonical_candidate_sandbox_summary",
@@ -126,6 +128,7 @@ __all__ = [
     "build_canonical_sequence_problem_summary",
     "build_canonical_sequence_solver_diagnostics_summary",
     "build_sequence_problem_shadow",
+    "build_sequence_problem_contract",
     "build_sequence_solver_shadow_diagnostics",
     "build_sphere_sequence_regression_summary",
     "build_projected_periodic_regression_summary",
@@ -155,4 +158,5 @@ __all__ = [
     "prepare_chair_factor_executor_candidate",
     "solve_sphere_sequence_candidate",
     "solve_projected_periodic_sequence",
+    "sequence_problem_contract_record",
 ]

@@ -17,6 +17,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     build_canonical_sequence_problem_summary,
     build_canonical_sequence_solver_diagnostics_summary,
     build_sequence_problem_shadow,
+    build_sequence_problem_contract,
     build_sequence_solver_shadow_diagnostics,
     validate_candidate_sandbox_manifest,
     validate_sequence_problem_shadow,
@@ -51,9 +52,45 @@ def test_sequence_problem_shadow_is_plan_only_and_never_consumes_legacy_pose() -
     assert problem["inputs"]["factor_activation_shadow"]["record_count"] == problem["inputs"]["factor_shadow"]["factor_count"]
     assert problem["inputs"]["compiled_factor_shadow"]["consumed_by_solver"] is False
     assert problem["inputs"]["compiled_factor_shadow"]["count"] == problem["inputs"]["factor_shadow"]["factor_count"]
+    assert problem["sequence_problem_contract"]["consumed_by_solver"] is False
+    assert problem["sequence_problem_contract"]["compiled_factor_count"] == problem["inputs"]["compiled_factor_shadow"]["count"]
     assert problem["attempt_plan"]["writes"] == []
     assert problem["attempt_plan"]["initializer_status"] == "not_executed"
     assert validate_sequence_problem_shadow(problem) == []
+
+
+def test_sequence_problem_contract_is_generic_executor_input_boundary() -> None:
+    state_contract = {
+        "spec_id": "rigid6:suitcase_mesh",
+        "geometry_kind": "rigid_mesh",
+        "required_dofs": ["root.translation", "root.rotation"],
+    }
+    measurement_shadow = {"measurements": {"count": 12, "canonical_sha256": "m" * 64}}
+    contact_shadow = {"constraints": {"count": 4, "canonical_sha256": "c" * 64}}
+    interaction_shadow = {"frame_count": 12, "canonical_sha256": "i" * 64}
+    compiled_factor_shadow = {
+        "count": 2,
+        "canonical_sha256": "f" * 64,
+        "records": [
+            {"factor_id": "point_reprojection:center"},
+            {"factor_id": "contact_distance:handle"},
+        ],
+    }
+
+    contract = build_sequence_problem_contract(
+        sample_id="heldout_suitcase",
+        state_contract=state_contract,
+        measurement_shadow=measurement_shadow,
+        contact_shadow=contact_shadow,
+        interaction_shadow=interaction_shadow,
+        compiled_factor_shadow=compiled_factor_shadow,
+    )
+
+    assert contract.state_spec_id == "rigid6:suitcase_mesh"
+    assert contract.geometry_kind == "rigid_mesh"
+    assert contract.compiled_factor_ids == ("point_reprojection:center", "contact_distance:handle")
+    assert contract.consumed_by_solver is False
+    assert all(name not in contract.canonical_sha256 for name in ("basketball", "football", "mug", "chair", "stick"))
 
 
 def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> None:

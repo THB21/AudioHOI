@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger 和 `CompiledFactor` shadow contract；暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 继续把 `CompiledFactor` 从 shadow contract 推进到 runtime factor executor 的输入边界；保持 residual parity，不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract 和 generic `SequenceProblemContract`；暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 继续把 `SequenceProblemContract + CompiledFactor` 从 shadow 边界推进到 runtime factor executor 输入；保持 residual parity，不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1364,3 +1364,11 @@ YYYY-MM-DD:
 - change: 新增 case-name-free `core/factors/compiler.py`，把 `FactorSpec + FactorActivationLedger` 编译为 shadow-only `CompiledFactor`，记录 residual function ref、robust loss、base weight source、input ids、active/downweighted/inactive mask summary 和 gate provenance；`build_sequence_problem_shadow()` 开始携带 `compiled_factor_shadow`，diagnostics assemble reads 增加 `compiled_factor_shadow:canonical`。
 - verification: 轻量范围 36 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
 - remaining gap: `CompiledFactor` 仍是 shadow-only、`consumed_by_solver=False`，尚未成为实际 executor 输入；mug/chair 的 interaction timeline 仍需补正式 contact/semantic state source，避免泛化状态估计依赖 legacy 空洞。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update
+- change: 新增 `core/solver/problem_contract.py`，把 `StateSpec`、geometry kind、Measurement shadow、ContactConstraint shadow、InteractionState shadow 和 CompiledFactor shadow 固化为 generic `SequenceProblemContract`；`build_sequence_problem_shadow()`、diagnostics 和 golden summary 开始携带该 contract 的 canonical hash 和 count 对齐检查。
+- verification: 轻量范围 37 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
+- remaining gap: `SequenceProblemContract` 仍是 shadow-only、`consumed_by_solver=False`，下一步需要把 runtime executor 的入口改成消费该 contract / compiled factors，而不是从 case adapter 直接选择 executor。

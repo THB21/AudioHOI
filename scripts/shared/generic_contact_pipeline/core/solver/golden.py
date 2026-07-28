@@ -17,6 +17,9 @@ def sequence_problem_summary(case_name: str, result_dir: Path) -> dict[str, obje
     problem = build_sequence_problem_shadow(load_case_profile(case_name), result_dir)
     validation_errors = validate_sequence_problem_shadow(problem)
     return {
+        "sequence_contract_sha256": problem["sequence_problem_contract"]["canonical_sha256"],
+        "sequence_contract_state_spec": problem["sequence_problem_contract"]["state_spec_id"],
+        "sequence_contract_compiled_factors": problem["sequence_problem_contract"]["compiled_factor_count"],
         "state_model": problem["state_contract"]["state_model"],
         "geometry_kind": problem["state_contract"]["geometry_kind"],
         "measurement_count": problem["inputs"]["measurement_shadow"]["count"],

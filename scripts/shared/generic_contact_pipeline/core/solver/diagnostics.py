@@ -52,6 +52,7 @@ def build_sequence_solver_shadow_diagnostics(profile: CaseProfile, result_dir: P
             "pass" if not validation_errors else "failed",
             reason="typed measurement/contact/factor inputs were assembled without running a solver",
             reads=[
+                "sequence_problem_contract:canonical",
                 problem["inputs"]["measurement_shadow"]["source"]["path"],
                 problem["inputs"]["contact_constraint_shadow"]["source"]["path"],
                 "interaction_state_shadow:canonical",
@@ -61,6 +62,7 @@ def build_sequence_solver_shadow_diagnostics(profile: CaseProfile, result_dir: P
             ],
             diagnostics={
                 "validation_error_count": len(validation_errors),
+                "sequence_contract_sha256": problem["sequence_problem_contract"]["canonical_sha256"],
                 "measurement_count": problem["inputs"]["measurement_shadow"]["count"],
                 "contact_count": problem["inputs"]["contact_constraint_shadow"]["count"],
                 "interaction_frame_count": problem["inputs"]["interaction_state_shadow"]["frame_count"],

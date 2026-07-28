@@ -38,6 +38,17 @@ def validate_sequence_problem_shadow(problem: dict[str, object]) -> list[str]:
         if not state_contract.get("required_dofs"):
             errors.append("state_contract missing required_dofs")
 
+    sequence_contract = problem.get("sequence_problem_contract", {})
+    if not isinstance(sequence_contract, dict):
+        errors.append("sequence_problem_contract must be recorded")
+    else:
+        if sequence_contract.get("consumed_by_solver") is not False:
+            errors.append("sequence_problem_contract must remain unconsumed")
+        if not sequence_contract.get("canonical_sha256"):
+            errors.append("sequence_problem_contract missing canonical_sha256")
+        if not isinstance(state_contract, dict) or sequence_contract.get("state_spec_id") != state_contract.get("spec_id"):
+            errors.append("sequence_problem_contract state_spec_id must match state_contract spec_id")
+
     inputs = problem.get("inputs", {})
     if not isinstance(inputs, dict):
         errors.append("inputs must be recorded")
@@ -104,6 +115,15 @@ def validate_sequence_problem_shadow(problem: dict[str, object]) -> list[str]:
                 errors.append("compiled_factor_shadow count must match factor_shadow count")
         else:
             errors.append("compiled_factor_shadow must be recorded")
+        if isinstance(sequence_contract, dict):
+            if isinstance(measurement, dict) and sequence_contract.get("measurement_count") != measurement.get("count"):
+                errors.append("sequence_problem_contract measurement_count must match measurement_shadow count")
+            if isinstance(contact, dict) and sequence_contract.get("contact_constraint_count") != contact.get("count"):
+                errors.append("sequence_problem_contract contact_constraint_count must match contact_constraint_shadow count")
+            if isinstance(interaction, dict) and sequence_contract.get("interaction_frame_count") != interaction.get("frame_count"):
+                errors.append("sequence_problem_contract interaction_frame_count must match interaction_state_shadow frame_count")
+            if isinstance(compiled, dict) and sequence_contract.get("compiled_factor_count") != compiled.get("count"):
+                errors.append("sequence_problem_contract compiled_factor_count must match compiled_factor_shadow count")
 
     attempt_plan = problem.get("attempt_plan", {})
     if not isinstance(attempt_plan, dict):

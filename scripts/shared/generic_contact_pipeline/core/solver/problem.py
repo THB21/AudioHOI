@@ -18,6 +18,7 @@ from ..factors.types import FactorSpec
 from ..interaction import build_interaction_timeline, frame_record, interaction_intervals
 from ..interaction.types import InteractionTimeline
 from ..measurements.shadow import build_measurement_shadow
+from .problem_contract import build_sequence_problem_contract, sequence_problem_contract_record
 
 
 def _canonical_hash(value: object) -> str:
@@ -193,9 +194,19 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
     compiled_factor_shadow = _compiled_factor_shadow(profile, factor_adapted.factors, factor_activation_ledger)
     factor_shadow = build_factor_shadow(profile, result_dir)
     state_contract = _profile_state_contract(profile)
+    sequence_contract = build_sequence_problem_contract(
+        sample_id=profile.case_name,
+        state_contract=state_contract,
+        measurement_shadow=measurement_shadow,
+        contact_shadow=contact_shadow,
+        interaction_shadow=interaction_shadow,
+        compiled_factor_shadow=compiled_factor_shadow,
+    )
+    sequence_contract_shadow = sequence_problem_contract_record(sequence_contract)
     factor_requirements = _factor_requirements(factor_shadow)
     factor_kinds = Counter(str(item["kind"]) for item in factor_requirements)
     problem_core = {
+        "sequence_problem_contract": sequence_contract_shadow,
         "state_contract": state_contract,
         "measurements": measurement_shadow["measurements"],
         "constraints": contact_shadow["constraints"],
@@ -234,6 +245,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
         "accepted_outputs_written": False,
         "baseline_pose_read": False,
         "state_contract": state_contract,
+        "sequence_problem_contract": sequence_contract_shadow,
         "inputs": {
             "measurement_shadow": {
                 "source": measurement_shadow["source"],

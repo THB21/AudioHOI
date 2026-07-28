@@ -13,6 +13,7 @@ from scripts.shared.generic_contact_pipeline.core.factors import (
     FactorKind,
     FactorSourceRef,
     FactorSpec,
+    build_compiled_factor_ledger,
     build_factor_activation_ledger,
     build_canonical_factor_shadow_summary,
     build_factor_shadow,
@@ -148,6 +149,49 @@ def test_factor_activation_ledger_is_interaction_state_conditioned_without_case_
     assert by_kind[FactorKind.AUDIO_EVENT_PRIOR].active_frames == 2
     assert ledger.consumed_by_solver is False
     assert "heldout_object" == ledger.sample_id
+
+
+def test_compiled_factor_ledger_binds_activation_to_factor_contract_without_case_names() -> None:
+    timeline = InteractionTimeline(
+        schema_version=1,
+        sample_id="new_object_family",
+        target_entity_id="target_object",
+        frames=(
+            _state(
+                1,
+                VisibilityState.VISIBLE,
+                ContactStateAxis.INACTIVE,
+                InteractionContactMode.UNKNOWN,
+                MotionMode.FREE,
+            ),
+            _state(
+                2,
+                VisibilityState.OCCLUDED,
+                ContactStateAxis.ACTIVE,
+                InteractionContactMode.GRASP,
+                MotionMode.ATTACHED,
+                active_contact_ids=("contact:hand",),
+            ),
+        ),
+        metrics={"final_pose_read": False},
+    )
+    factors = (_factor(FactorKind.POINT_REPROJECTION), _factor(FactorKind.CONTACT_DISTANCE))
+    activation = build_factor_activation_ledger("new_object_family", factors, timeline)
+    compiled = build_compiled_factor_ledger("new_object_family", factors, activation)
+
+    assert compiled.sample_id == "new_object_family"
+    assert compiled.consumed_by_solver is False
+    assert compiled.by_kind == {"contact_distance": 1, "point_reprojection": 1}
+    by_kind = {factor.kind: factor for factor in compiled.compiled_factors}
+    visual = by_kind[FactorKind.POINT_REPROJECTION]
+    contact = by_kind[FactorKind.CONTACT_DISTANCE]
+    assert visual.residual_fn_ref == "shadow_residual::point_reprojection"
+    assert visual.downweighted_frames == 1
+    assert "activation_policy:visibility_state_controls_visual_observation" in visual.gate_provenance
+    assert contact.active_frames == 1
+    assert contact.inactive_frames == 1
+    assert "activation_policy:contact_state_controls_contact_distance" in contact.gate_provenance
+    assert all("basketball" not in item and "chair" not in item and "mug" not in item for item in visual.gate_provenance + contact.gate_provenance)
 
 
 def test_five_case_factor_shadow_matches_frozen_manifest() -> None:

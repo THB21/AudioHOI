@@ -32,6 +32,15 @@
         "downweighted_frames": 45,
         "inactive_frames": 216
       },
+      "compiled_factor_count": 10,
+      "compiled_factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
       "factor_count": 10,
       "factor_kinds": {
         "contact_distance": 2,
@@ -42,9 +51,9 @@
         "temporal_velocity": 3
       },
       "gap_ids": [],
-      "attempt_id": "shadow-bd4e81d18c60",
+      "attempt_id": "shadow-fec88ec0b6b9",
       "validation_errors": [],
-      "canonical_sha256": "bd4e81d18c60fa20293809a82d311836bfe066860ec5450eb8121f2c82455256"
+      "canonical_sha256": "fec88ec0b6b96ff2e1cbd73f3d7116154ad72427f1e3c1a3ddb6edda7be606b9"
     },
     "football": {
       "state_model": "translation3",
@@ -78,6 +87,15 @@
         "downweighted_frames": 54,
         "inactive_frames": 322
       },
+      "compiled_factor_count": 10,
+      "compiled_factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
       "factor_count": 10,
       "factor_kinds": {
         "contact_distance": 2,
@@ -88,9 +106,9 @@
         "temporal_velocity": 3
       },
       "gap_ids": [],
-      "attempt_id": "shadow-5d890cebb979",
+      "attempt_id": "shadow-548a35959f49",
       "validation_errors": [],
-      "canonical_sha256": "5d890cebb97982904d139d9424adb2dd36835906a0a66239a88b0092d4e0cf9a"
+      "canonical_sha256": "548a35959f49ef364b4a78aec148f0839e16027fc730205263cacb0e5deb251e"
     },
     "mug": {
       "state_model": "rigid6_plus_phase",
@@ -117,6 +135,15 @@
         "downweighted_frames": 0,
         "inactive_frames": 240
       },
+      "compiled_factor_count": 6,
+      "compiled_factor_kinds": {
+        "contact_distance": 1,
+        "periodic_phase_prior": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
       "factor_count": 6,
       "factor_kinds": {
         "contact_distance": 1,
@@ -127,9 +154,9 @@
         "temporal_velocity": 1
       },
       "gap_ids": [],
-      "attempt_id": "shadow-db213337cb4e",
+      "attempt_id": "shadow-e87971b752d5",
       "validation_errors": [],
-      "canonical_sha256": "db213337cb4e64a1f0745910d84070134711367dd8e417f1a15f936904f619b1"
+      "canonical_sha256": "e87971b752d598f1c25ea882f32d7d2e890acbcdcae489ea06ba91e1640e0c65"
     },
     "chair": {
       "state_model": "semantic_graph_6d",
@@ -159,6 +186,20 @@
         "downweighted_frames": 0,
         "inactive_frames": 576
       },
+      "compiled_factor_count": 13,
+      "compiled_factor_kinds": {
+        "audio_event_prior": 1,
+        "contact_distance": 1,
+        "gauge_constraint": 1,
+        "joint_limit": 2,
+        "metric_depth": 1,
+        "point_reprojection": 2,
+        "pose_prior": 1,
+        "regularization": 1,
+        "support_and_penetration": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
       "factor_count": 13,
       "factor_kinds": {
         "audio_event_prior": 1,
@@ -174,9 +215,9 @@
         "temporal_velocity": 1
       },
       "gap_ids": [],
-      "attempt_id": "shadow-e30a54a55e22",
+      "attempt_id": "shadow-48117d159b3a",
       "validation_errors": [],
-      "canonical_sha256": "e30a54a55e22c22f13255056bb513e2229ca5b8ff2a9c0e8f471b0ad871328e0"
+      "canonical_sha256": "48117d159b3a078c3e0f693007f923259999094968e6ab38a1b8f9d7d531e1b6"
     },
     "stick": {
       "state_model": "translation3_with_line_orientation_prior",
@@ -204,6 +245,14 @@
         "downweighted_frames": 0,
         "inactive_frames": 0
       },
+      "compiled_factor_count": 5,
+      "compiled_factor_kinds": {
+        "contact_distance": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
       "factor_count": 5,
       "factor_kinds": {
         "contact_distance": 1,
@@ -215,9 +264,9 @@
       "gap_ids": [
         "line_contact_lock_special_refinement"
       ],
-      "attempt_id": "shadow-b777078d8b9d",
+      "attempt_id": "shadow-b2ba8d37ca5e",
       "validation_errors": [],
-      "canonical_sha256": "b777078d8b9da05b79d0d549ffba868d4ec5bdf4a56b039bab643400b2f559f7"
+      "canonical_sha256": "b2ba8d37ca5e250d4b93b3c993e70f7705f2f0246e77a1679c5c8fd9d04f64f9"
     }
   }
 }

@@ -28,6 +28,8 @@ def sequence_problem_summary(case_name: str, result_dir: Path) -> dict[str, obje
         "interaction_motion_modes": problem["inputs"]["interaction_state_shadow"]["by_motion_mode"],
         "factor_activation_policies": problem["inputs"]["factor_activation_shadow"]["by_policy"],
         "factor_activation_totals": problem["inputs"]["factor_activation_shadow"]["totals"],
+        "compiled_factor_count": problem["inputs"]["compiled_factor_shadow"]["count"],
+        "compiled_factor_kinds": problem["inputs"]["compiled_factor_shadow"]["by_kind"],
         "factor_count": problem["inputs"]["factor_shadow"]["factor_count"],
         "factor_kinds": problem["inputs"]["factor_shadow"]["factor_kinds"],
         "gap_ids": problem["inputs"]["factor_shadow"]["gap_ids"],

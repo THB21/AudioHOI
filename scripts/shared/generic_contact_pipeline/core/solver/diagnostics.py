@@ -56,6 +56,7 @@ def build_sequence_solver_shadow_diagnostics(profile: CaseProfile, result_dir: P
                 problem["inputs"]["contact_constraint_shadow"]["source"]["path"],
                 "interaction_state_shadow:canonical",
                 "factor_activation_shadow:canonical",
+                "compiled_factor_shadow:canonical",
                 "factor_shadow:canonical",
             ],
             diagnostics={
@@ -64,6 +65,7 @@ def build_sequence_solver_shadow_diagnostics(profile: CaseProfile, result_dir: P
                 "contact_count": problem["inputs"]["contact_constraint_shadow"]["count"],
                 "interaction_frame_count": problem["inputs"]["interaction_state_shadow"]["frame_count"],
                 "factor_activation_record_count": problem["inputs"]["factor_activation_shadow"]["record_count"],
+                "compiled_factor_count": problem["inputs"]["compiled_factor_shadow"]["count"],
                 "factor_count": problem["inputs"]["factor_shadow"]["factor_count"],
             },
         ),

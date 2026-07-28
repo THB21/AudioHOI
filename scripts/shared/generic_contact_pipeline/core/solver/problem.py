@@ -10,8 +10,9 @@ from typing import Any
 from ..base.config import CaseProfile
 from ..base.io import repo_relative_value
 from ..contact_constraints.shadow import build_contact_constraint_shadow
-from ..factors.activation import activation_record, build_factor_activation_ledger
+from ..factors.activation import FactorActivationLedger, activation_record, build_factor_activation_ledger
 from ..factors.adapters import adapt_factor_rows
+from ..factors.compiler import build_compiled_factor_ledger, compiled_factor_record
 from ..factors.shadow import build_factor_shadow
 from ..factors.types import FactorSpec
 from ..interaction import build_interaction_timeline, frame_record, interaction_intervals
@@ -137,8 +138,7 @@ def _interaction_state_shadow(profile: CaseProfile, result_dir: Path, timeline: 
     }
 
 
-def _factor_activation_shadow(profile: CaseProfile, factor_specs: tuple[FactorSpec, ...], timeline: InteractionTimeline) -> dict[str, object]:
-    ledger = build_factor_activation_ledger(profile.case_name, factor_specs, timeline)
+def _factor_activation_shadow(ledger: FactorActivationLedger) -> dict[str, object]:
     records = [activation_record(record) for record in ledger.records]
     totals = {
         "active_frames": sum(record.active_frames for record in ledger.records),
@@ -152,6 +152,20 @@ def _factor_activation_shadow(profile: CaseProfile, factor_specs: tuple[FactorSp
         "records": records,
         "by_policy": ledger.by_policy,
         "totals": totals,
+        "canonical_sha256": ledger.canonical_sha256,
+        "consumed_by_solver": False,
+    }
+
+
+def _compiled_factor_shadow(profile: CaseProfile, factor_specs: tuple[FactorSpec, ...], activation_ledger: FactorActivationLedger) -> dict[str, object]:
+    ledger = build_compiled_factor_ledger(profile.case_name, factor_specs, activation_ledger)
+    records = [compiled_factor_record(record) for record in ledger.compiled_factors]
+    return {
+        "schema_version": ledger.schema_version,
+        "sample_id": ledger.sample_id,
+        "count": len(records),
+        "by_kind": ledger.by_kind,
+        "records": records,
         "canonical_sha256": ledger.canonical_sha256,
         "consumed_by_solver": False,
     }
@@ -174,7 +188,9 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
     timeline = build_interaction_timeline(profile.case_name, result_dir)
     interaction_shadow = _interaction_state_shadow(profile, result_dir, timeline)
     factor_adapted = adapt_factor_rows(profile, result_dir)
-    factor_activation_shadow = _factor_activation_shadow(profile, factor_adapted.factors, timeline)
+    factor_activation_ledger = build_factor_activation_ledger(profile.case_name, factor_adapted.factors, timeline)
+    factor_activation_shadow = _factor_activation_shadow(factor_activation_ledger)
+    compiled_factor_shadow = _compiled_factor_shadow(profile, factor_adapted.factors, factor_activation_ledger)
     factor_shadow = build_factor_shadow(profile, result_dir)
     state_contract = _profile_state_contract(profile)
     factor_requirements = _factor_requirements(factor_shadow)
@@ -199,6 +215,11 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
             "by_policy": factor_activation_shadow["by_policy"],
             "totals": factor_activation_shadow["totals"],
             "canonical_sha256": factor_activation_shadow["canonical_sha256"],
+        },
+        "compiled_factors": {
+            "count": compiled_factor_shadow["count"],
+            "by_kind": compiled_factor_shadow["by_kind"],
+            "canonical_sha256": compiled_factor_shadow["canonical_sha256"],
         },
         "gaps": factor_shadow["gaps"],
     }
@@ -229,6 +250,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
             },
             "interaction_state_shadow": interaction_shadow,
             "factor_activation_shadow": factor_activation_shadow,
+            "compiled_factor_shadow": compiled_factor_shadow,
             "factor_shadow": {
                 "canonical_sha256": factor_shadow["canonical_sha256"],
                 "factor_count": factor_shadow["factors"]["count"],

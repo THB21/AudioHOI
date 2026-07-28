@@ -92,6 +92,18 @@ def validate_sequence_problem_shadow(problem: dict[str, object]) -> list[str]:
                 errors.append("factor_activation_shadow missing policy summary")
         else:
             errors.append("factor_activation_shadow must be recorded")
+        compiled = inputs.get("compiled_factor_shadow", {})
+        if isinstance(compiled, dict):
+            if compiled.get("consumed_by_solver") is not False:
+                errors.append("compiled_factor_shadow must remain unconsumed")
+            if not compiled.get("count"):
+                errors.append("compiled_factor_shadow missing records")
+            if not compiled.get("canonical_sha256"):
+                errors.append("compiled_factor_shadow missing canonical_sha256")
+            if isinstance(factor, dict) and compiled.get("count") != factor.get("factor_count"):
+                errors.append("compiled_factor_shadow count must match factor_shadow count")
+        else:
+            errors.append("compiled_factor_shadow must be recorded")
 
     attempt_plan = problem.get("attempt_plan", {})
     if not isinstance(attempt_plan, dict):

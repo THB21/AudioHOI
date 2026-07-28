@@ -49,6 +49,8 @@ def test_sequence_problem_shadow_is_plan_only_and_never_consumes_legacy_pose() -
     assert problem["inputs"]["interaction_state_shadow"]["metrics"]["final_pose_read"] is False
     assert problem["inputs"]["factor_activation_shadow"]["consumed_by_solver"] is False
     assert problem["inputs"]["factor_activation_shadow"]["record_count"] == problem["inputs"]["factor_shadow"]["factor_count"]
+    assert problem["inputs"]["compiled_factor_shadow"]["consumed_by_solver"] is False
+    assert problem["inputs"]["compiled_factor_shadow"]["count"] == problem["inputs"]["factor_shadow"]["factor_count"]
     assert problem["attempt_plan"]["writes"] == []
     assert problem["attempt_plan"]["initializer_status"] == "not_executed"
     assert validate_sequence_problem_shadow(problem) == []

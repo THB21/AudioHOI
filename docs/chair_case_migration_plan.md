@@ -52,7 +52,8 @@ chair per-frame residual loop 现在已复用 core `FactorResidualEvaluator` 组
 算术从 chair 私有循环中抽到 generic executor core。
 
 `FactorResidualEvaluator` 现在也覆盖 `joint_limit` 与 `gauge_constraint` residual block；
-chair candidate attempt 会记录 supported residual blocks。此处仍只是算术能力和
+chair candidate attempt 会记录 supported residual blocks，并在 sandbox 写入
+`chair_generic_factor_residuals.json` 覆盖率 manifest。此处仍只是算术能力和
 provenance 能力，不等于已经运行 isolated optimizer。
 
 ## 后续接受标准
@@ -66,6 +67,7 @@ provenance 能力，不等于已经运行 isolated optimizer。
    kind，required residual assembly 已进入 core evaluator；下一步需要 isolated
    candidate executor 实际产出 pose candidate。
 4. candidate 输出先进入 isolated result directory；禁止覆盖 canonical `benchmark_vlm_qwen`。
-   当前已建立 attempt manifest 外壳；下一步才替换为实际 generic executor 输出。
+   当前已建立 attempt/residual coverage manifest 外壳；下一步才替换为实际 generic
+   executor 输出。
 5. semantic 2D、contact median/P90、freeze、pose lock 和六路 render 均不退化后，才可
    关闭 `semantic_graph_solver_private`。

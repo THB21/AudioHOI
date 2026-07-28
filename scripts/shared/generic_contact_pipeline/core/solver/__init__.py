@@ -67,7 +67,9 @@ from .chair_diagnostics import (
 )
 from .chair_factor_candidate import (
     CHAIR_FACTOR_ATTEMPT_NAME,
+    CHAIR_FACTOR_RESIDUALS_NAME,
     build_chair_factor_executor_candidate,
+    build_chair_factor_residual_coverage,
     prepare_chair_factor_executor_candidate,
     validate_chair_factor_executor_candidate,
 )
@@ -80,6 +82,7 @@ __all__ = [
     "DEFAULT_SPHERE_SEQUENCE_GOLDEN",
     "DEFAULT_PROJECTED_PERIODIC_GOLDEN",
     "CHAIR_FACTOR_ATTEMPT_NAME",
+    "CHAIR_FACTOR_RESIDUALS_NAME",
     "FactorResidualEvaluator",
     "SANDBOX_MANIFEST_NAME",
     "SPHERE_SANDBOX_ARTIFACTS",
@@ -104,6 +107,7 @@ __all__ = [
     "build_line_contact_diagnostics",
     "build_chair_contact_diagnostics",
     "build_chair_factor_executor_candidate",
+    "build_chair_factor_residual_coverage",
     "default_candidate_dir",
     "validate_candidate_sandbox_manifest",
     "validate_line_contact_diagnostics",

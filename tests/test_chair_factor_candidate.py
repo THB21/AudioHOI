@@ -8,6 +8,7 @@ from pathlib import Path
 from scripts.shared.generic_contact_pipeline.core.base.config import load_case_profile
 from scripts.shared.generic_contact_pipeline.core.solver import (
     CHAIR_FACTOR_ATTEMPT_NAME,
+    CHAIR_FACTOR_RESIDUALS_NAME,
     prepare_chair_factor_executor_candidate,
     validate_chair_factor_executor_candidate,
 )
@@ -35,7 +36,12 @@ def test_chair_factor_candidate_attempt_writes_only_safe_manifest(tmp_path: Path
     assert {"point_reprojection", "contact_distance", "joint_limit", "gauge_constraint"}.issubset(
         attempt["supported_residual_blocks"]
     )
-    assert {path.name for path in candidate_dir.iterdir()} == {CHAIR_FACTOR_ATTEMPT_NAME}
+    assert {path.name for path in candidate_dir.iterdir()} == {CHAIR_FACTOR_ATTEMPT_NAME, CHAIR_FACTOR_RESIDUALS_NAME}
+    residuals = json.loads((candidate_dir / CHAIR_FACTOR_RESIDUALS_NAME).read_text())
+    assert residuals["mode"] == "chair_generic_factor_residual_coverage"
+    assert residuals["residual_evaluator_executed"] is True
+    assert residuals["solver_executed"] is False
+    assert residuals["required_factor_kinds_present"] is True
     assert not (candidate_dir / "object_pose.csv").exists()
     assert validate_chair_factor_executor_candidate(attempt) == []
 

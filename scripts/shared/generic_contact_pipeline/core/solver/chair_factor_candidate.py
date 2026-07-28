@@ -6,12 +6,13 @@ from pathlib import Path
 
 from ..base.config import CaseProfile
 from ..base.io import repo_relative_value, write_json
-from ..factors import build_chair_factor_executor_bundle, validate_chair_factor_executor_bundle
+from ..factors import build_chair_factor_executor_bundle, build_factor_shadow, validate_chair_factor_executor_bundle
 from .candidate import ACCEPTED_OUTPUT_NAMES
 from .chair_diagnostics import build_chair_contact_diagnostics, validate_chair_contact_diagnostics
 
 
 CHAIR_FACTOR_ATTEMPT_NAME = "chair_generic_factor_executor_attempt.json"
+CHAIR_FACTOR_RESIDUALS_NAME = "chair_generic_factor_residuals.json"
 CHAIR_SUPPORTED_RESIDUAL_BLOCKS = (
     "point_reprojection",
     "contact_distance",
@@ -25,6 +26,44 @@ CHAIR_SUPPORTED_RESIDUAL_BLOCKS = (
 def _canonical_hash(value: object) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(payload).hexdigest()
+
+
+def build_chair_factor_residual_coverage(profile: CaseProfile, result_dir: Path) -> dict[str, object]:
+    factor_shadow = build_factor_shadow(profile, result_dir)
+    records = factor_shadow.get("factors", {}).get("records", [])
+    by_kind: dict[str, list[str]] = {}
+    if isinstance(records, list):
+        for record in records:
+            if not isinstance(record, dict):
+                continue
+            raw_kind = record.get("kind")
+            kind = str(raw_kind.value if hasattr(raw_kind, "value") else raw_kind)
+            by_kind.setdefault(kind, []).append(str(record.get("factor_id")))
+    required = ("point_reprojection", "contact_distance", "joint_limit", "gauge_constraint")
+    payload = {
+        "schema_version": 1,
+        "mode": "chair_generic_factor_residual_coverage",
+        "sample_id": "chair",
+        "residual_evaluator_executed": True,
+        "solver_executed": False,
+        "accepted_outputs_written": False,
+        "baseline_pose_read": False,
+        "factor_shadow_sha256": factor_shadow["canonical_sha256"],
+        "required_factor_kinds": list(required),
+        "required_factor_kinds_present": all(kind in by_kind for kind in required),
+        "factor_ids_by_kind": {kind: sorted(values) for kind, values in sorted(by_kind.items())},
+        "policy": "coverage-only residual evaluator manifest; does not optimize or write accepted outputs",
+    }
+    payload["canonical_sha256"] = _canonical_hash(
+        {
+            "mode": payload["mode"],
+            "factor_shadow_sha256": payload["factor_shadow_sha256"],
+            "required_factor_kinds": payload["required_factor_kinds"],
+            "required_factor_kinds_present": payload["required_factor_kinds_present"],
+            "factor_ids_by_kind": payload["factor_ids_by_kind"],
+        }
+    )
+    return payload
 
 
 def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path, candidate_dir: Path) -> dict[str, object]:
@@ -80,7 +119,7 @@ def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path
         },
         "blocking_reasons": list(bundle.get("blocking_reasons", [])) + ["generic chair factor executor not implemented in this branch"],
         "validation_errors": bundle_errors + diagnostics_errors,
-        "planned_outputs": [CHAIR_FACTOR_ATTEMPT_NAME],
+        "planned_outputs": [CHAIR_FACTOR_ATTEMPT_NAME, CHAIR_FACTOR_RESIDUALS_NAME],
         "forbidden_artifact_names": sorted(ACCEPTED_OUTPUT_NAMES),
         "canonical_sha256": canonical,
     }
@@ -95,8 +134,8 @@ def validate_chair_factor_executor_candidate(attempt: dict[str, object]) -> list
     if attempt.get("baseline_pose_read") is not False:
         errors.append("chair factor candidate must not read baseline pose")
     planned = attempt.get("planned_outputs", [])
-    if not isinstance(planned, list) or planned != [CHAIR_FACTOR_ATTEMPT_NAME]:
-        errors.append("chair factor candidate must only plan the safe attempt manifest")
+    if not isinstance(planned, list) or planned != [CHAIR_FACTOR_ATTEMPT_NAME, CHAIR_FACTOR_RESIDUALS_NAME]:
+        errors.append("chair factor candidate must only plan safe attempt/residual manifests")
     forbidden = set(ACCEPTED_OUTPUT_NAMES)
     overlap = sorted(str(item) for item in planned if Path(str(item)).name in forbidden) if isinstance(planned, list) else []
     if overlap:
@@ -114,5 +153,6 @@ def prepare_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Pa
     if errors:
         raise ValueError("; ".join(errors))
     candidate_dir.mkdir(parents=True, exist_ok=True)
+    write_json(candidate_dir / CHAIR_FACTOR_RESIDUALS_NAME, build_chair_factor_residual_coverage(profile, result_dir))
     write_json(candidate_dir / CHAIR_FACTOR_ATTEMPT_NAME, attempt)
     return attempt

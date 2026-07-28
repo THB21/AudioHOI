@@ -20,6 +20,18 @@
         "free": 129,
         "supported_static": 7
       },
+      "factor_activation_policies": {
+        "always_on_state_or_geometry_regularizer": 3,
+        "contact_state_controls_contact_distance": 2,
+        "interaction_state_controls_acceleration_smoothness": 1,
+        "motion_mode_controls_velocity_smoothness": 3,
+        "visibility_state_controls_visual_observation": 1
+      },
+      "factor_activation_totals": {
+        "active_frames": 1659,
+        "downweighted_frames": 45,
+        "inactive_frames": 216
+      },
       "factor_count": 10,
       "factor_kinds": {
         "contact_distance": 2,
@@ -30,9 +42,9 @@
         "temporal_velocity": 3
       },
       "gap_ids": [],
-      "attempt_id": "shadow-26c20eeb7e92",
+      "attempt_id": "shadow-bd4e81d18c60",
       "validation_errors": [],
-      "canonical_sha256": "26c20eeb7e92d6fc13ae2306749b2ecc76d7634cd9b84766210e0dcf4164ee16"
+      "canonical_sha256": "bd4e81d18c60fa20293809a82d311836bfe066860ec5450eb8121f2c82455256"
     },
     "football": {
       "state_model": "translation3",
@@ -54,6 +66,18 @@
         "free": 169,
         "supported_static": 51
       },
+      "factor_activation_policies": {
+        "always_on_state_or_geometry_regularizer": 3,
+        "contact_state_controls_contact_distance": 2,
+        "interaction_state_controls_acceleration_smoothness": 1,
+        "motion_mode_controls_velocity_smoothness": 3,
+        "visibility_state_controls_visual_observation": 1
+      },
+      "factor_activation_totals": {
+        "active_frames": 2044,
+        "downweighted_frames": 54,
+        "inactive_frames": 322
+      },
       "factor_count": 10,
       "factor_kinds": {
         "contact_distance": 2,
@@ -64,9 +88,9 @@
         "temporal_velocity": 3
       },
       "gap_ids": [],
-      "attempt_id": "shadow-b20f734f6b53",
+      "attempt_id": "shadow-5d890cebb979",
       "validation_errors": [],
-      "canonical_sha256": "b20f734f6b5374fba3306ea4a32f13a58dcf568c742f71e645750b6587e367aa"
+      "canonical_sha256": "5d890cebb97982904d139d9424adb2dd36835906a0a66239a88b0092d4e0cf9a"
     },
     "mug": {
       "state_model": "rigid6_plus_phase",
@@ -82,6 +106,17 @@
       "interaction_motion_modes": {
         "free": 240
       },
+      "factor_activation_policies": {
+        "always_on_state_or_geometry_regularizer": 3,
+        "contact_state_controls_contact_distance": 1,
+        "interaction_state_controls_acceleration_smoothness": 1,
+        "motion_mode_controls_velocity_smoothness": 1
+      },
+      "factor_activation_totals": {
+        "active_frames": 1200,
+        "downweighted_frames": 0,
+        "inactive_frames": 240
+      },
       "factor_count": 6,
       "factor_kinds": {
         "contact_distance": 1,
@@ -92,9 +127,9 @@
         "temporal_velocity": 1
       },
       "gap_ids": [],
-      "attempt_id": "shadow-e2913a41d09d",
+      "attempt_id": "shadow-db213337cb4e",
       "validation_errors": [],
-      "canonical_sha256": "e2913a41d09d0c814dac92d10ce9c4037a0906c7b8d10569f063386f08b3828d"
+      "canonical_sha256": "db213337cb4e64a1f0745910d84070134711367dd8e417f1a15f936904f619b1"
     },
     "chair": {
       "state_model": "semantic_graph_6d",
@@ -109,6 +144,20 @@
       },
       "interaction_motion_modes": {
         "free": 192
+      },
+      "factor_activation_policies": {
+        "always_on_state_or_geometry_regularizer": 5,
+        "audio_event_ids_control_audio_alignment": 1,
+        "contact_state_controls_contact_distance": 1,
+        "interaction_state_controls_acceleration_smoothness": 1,
+        "motion_mode_controls_velocity_smoothness": 1,
+        "support_state_controls_support_penetration": 1,
+        "visibility_state_controls_visual_observation": 3
+      },
+      "factor_activation_totals": {
+        "active_frames": 1920,
+        "downweighted_frames": 0,
+        "inactive_frames": 576
       },
       "factor_count": 13,
       "factor_kinds": {
@@ -125,9 +174,9 @@
         "temporal_velocity": 1
       },
       "gap_ids": [],
-      "attempt_id": "shadow-0758c21d6fd7",
+      "attempt_id": "shadow-e30a54a55e22",
       "validation_errors": [],
-      "canonical_sha256": "0758c21d6fd7bf8e84dba5b861bf1e58126cf04deec2029d6104f52fab7c9b16"
+      "canonical_sha256": "e30a54a55e22c22f13255056bb513e2229ca5b8ff2a9c0e8f471b0ad871328e0"
     },
     "stick": {
       "state_model": "translation3_with_line_orientation_prior",
@@ -144,6 +193,17 @@
       "interaction_motion_modes": {
         "attached": 240
       },
+      "factor_activation_policies": {
+        "always_on_state_or_geometry_regularizer": 2,
+        "contact_state_controls_contact_distance": 1,
+        "interaction_state_controls_acceleration_smoothness": 1,
+        "motion_mode_controls_velocity_smoothness": 1
+      },
+      "factor_activation_totals": {
+        "active_frames": 1200,
+        "downweighted_frames": 0,
+        "inactive_frames": 0
+      },
       "factor_count": 5,
       "factor_kinds": {
         "contact_distance": 1,
@@ -155,9 +215,9 @@
       "gap_ids": [
         "line_contact_lock_special_refinement"
       ],
-      "attempt_id": "shadow-41ba517f051b",
+      "attempt_id": "shadow-b777078d8b9d",
       "validation_errors": [],
-      "canonical_sha256": "41ba517f051b9724c986f47d4f4cc9b96df623d4a55bbfe1a8c9c1761eb7ddf6"
+      "canonical_sha256": "b777078d8b9da05b79d0d549ffba868d4ec5bdf4a56b039bab643400b2f559f7"
     }
   }
 }

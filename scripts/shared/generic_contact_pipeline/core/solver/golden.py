@@ -26,6 +26,8 @@ def sequence_problem_summary(case_name: str, result_dir: Path) -> dict[str, obje
         "interaction_interval_count": problem["inputs"]["interaction_state_shadow"]["interval_count"],
         "interaction_contact_states": problem["inputs"]["interaction_state_shadow"]["by_contact_state"],
         "interaction_motion_modes": problem["inputs"]["interaction_state_shadow"]["by_motion_mode"],
+        "factor_activation_policies": problem["inputs"]["factor_activation_shadow"]["by_policy"],
+        "factor_activation_totals": problem["inputs"]["factor_activation_shadow"]["totals"],
         "factor_count": problem["inputs"]["factor_shadow"]["factor_count"],
         "factor_kinds": problem["inputs"]["factor_shadow"]["factor_kinds"],
         "gap_ids": problem["inputs"]["factor_shadow"]["gap_ids"],

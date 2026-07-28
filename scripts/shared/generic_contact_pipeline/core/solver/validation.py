@@ -80,6 +80,18 @@ def validate_sequence_problem_shadow(problem: dict[str, object]) -> list[str]:
             errors.append("factor_shadow must be recorded")
         elif factor.get("consumed_by_solver") is not False:
             errors.append("factor_shadow must remain unconsumed")
+        activation = inputs.get("factor_activation_shadow", {})
+        if isinstance(activation, dict):
+            if activation.get("consumed_by_solver") is not False:
+                errors.append("factor_activation_shadow must remain unconsumed")
+            if not activation.get("record_count"):
+                errors.append("factor_activation_shadow missing records")
+            if not activation.get("canonical_sha256"):
+                errors.append("factor_activation_shadow missing canonical_sha256")
+            if not isinstance(activation.get("by_policy"), dict):
+                errors.append("factor_activation_shadow missing policy summary")
+        else:
+            errors.append("factor_activation_shadow must be recorded")
 
     attempt_plan = problem.get("attempt_plan", {})
     if not isinstance(attempt_plan, dict):

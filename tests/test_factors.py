@@ -13,10 +13,19 @@ from scripts.shared.generic_contact_pipeline.core.factors import (
     FactorKind,
     FactorSourceRef,
     FactorSpec,
+    build_factor_activation_ledger,
     build_canonical_factor_shadow_summary,
     build_factor_shadow,
     verify_factor_shadow_summary,
     validate_factor_shadow,
+)
+from scripts.shared.generic_contact_pipeline.core.interaction import (
+    ContactStateAxis,
+    FrameInteractionState,
+    InteractionContactMode,
+    InteractionTimeline,
+    MotionMode,
+    VisibilityState,
 )
 
 
@@ -43,6 +52,102 @@ def test_factor_spec_rejects_solver_consumption() -> None:
             FactorSourceRef("x.csv", ("E_contact",), "test"),
             consumed_by_solver=True,
         )
+
+
+def _factor(kind: FactorKind) -> FactorSpec:
+    return FactorSpec(
+        f"{kind.value}:unit",
+        kind,
+        3,
+        (FactorInputRef("state", "StateSpec", "root"),),
+        "unit",
+        "unit_weight",
+        None,
+        FactorSourceRef("unit.csv", ("value",), "unit"),
+    )
+
+
+def _state(
+    frame: int,
+    visibility: VisibilityState,
+    contact_state: ContactStateAxis,
+    contact_mode: InteractionContactMode,
+    motion_mode: MotionMode,
+    *,
+    active_contact_ids: tuple[str, ...] = (),
+    support_contact_ids: tuple[str, ...] = (),
+    audio_event_ids: tuple[str, ...] = (),
+) -> FrameInteractionState:
+    return FrameInteractionState(
+        frame=frame,
+        time=frame / 30.0,
+        target_entity_id="target_object",
+        visibility_state=visibility,
+        contact_state=contact_state,
+        contact_mode=contact_mode,
+        motion_mode=motion_mode,
+        active_contact_ids=active_contact_ids,
+        support_contact_ids=support_contact_ids,
+        audio_event_ids=audio_event_ids,
+        semantic_relation_ids=(),
+        confidence=1.0,
+        provenance={"unit": True},
+    )
+
+
+def test_factor_activation_ledger_is_interaction_state_conditioned_without_case_names() -> None:
+    timeline = InteractionTimeline(
+        schema_version=1,
+        sample_id="heldout_object",
+        target_entity_id="target_object",
+        frames=(
+            _state(
+                1,
+                VisibilityState.VISIBLE,
+                ContactStateAxis.INACTIVE,
+                InteractionContactMode.UNKNOWN,
+                MotionMode.FREE,
+            ),
+            _state(
+                2,
+                VisibilityState.OCCLUDED,
+                ContactStateAxis.INACTIVE,
+                InteractionContactMode.UNKNOWN,
+                MotionMode.BALLISTIC,
+                audio_event_ids=("audio:impact",),
+            ),
+            _state(
+                3,
+                VisibilityState.PARTIALLY_VISIBLE,
+                ContactStateAxis.ACTIVE,
+                InteractionContactMode.IMPACT,
+                MotionMode.HIGH_SPEED,
+                active_contact_ids=("contact:impact",),
+                audio_event_ids=("audio:impact",),
+            ),
+        ),
+        metrics={"final_pose_read": False},
+    )
+    ledger = build_factor_activation_ledger(
+        "heldout_object",
+        (
+            _factor(FactorKind.POINT_REPROJECTION),
+            _factor(FactorKind.CONTACT_DISTANCE),
+            _factor(FactorKind.TEMPORAL_ACCELERATION),
+            _factor(FactorKind.AUDIO_EVENT_PRIOR),
+        ),
+        timeline,
+    )
+
+    by_kind = {record.kind: record for record in ledger.records}
+    assert by_kind[FactorKind.POINT_REPROJECTION].activation_policy == "visibility_state_controls_visual_observation"
+    assert by_kind[FactorKind.POINT_REPROJECTION].downweighted_frames == 1
+    assert by_kind[FactorKind.CONTACT_DISTANCE].active_frames == 1
+    assert by_kind[FactorKind.CONTACT_DISTANCE].inactive_frames == 2
+    assert by_kind[FactorKind.TEMPORAL_ACCELERATION].downweighted_frames == 2
+    assert by_kind[FactorKind.AUDIO_EVENT_PRIOR].active_frames == 2
+    assert ledger.consumed_by_solver is False
+    assert "heldout_object" == ledger.sample_id
 
 
 def test_five_case_factor_shadow_matches_frozen_manifest() -> None:

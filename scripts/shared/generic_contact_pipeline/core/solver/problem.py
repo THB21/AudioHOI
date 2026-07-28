@@ -10,8 +10,12 @@ from typing import Any
 from ..base.config import CaseProfile
 from ..base.io import repo_relative_value
 from ..contact_constraints.shadow import build_contact_constraint_shadow
+from ..factors.activation import activation_record, build_factor_activation_ledger
+from ..factors.adapters import adapt_factor_rows
 from ..factors.shadow import build_factor_shadow
+from ..factors.types import FactorSpec
 from ..interaction import build_interaction_timeline, frame_record, interaction_intervals
+from ..interaction.types import InteractionTimeline
 from ..measurements.shadow import build_measurement_shadow
 
 
@@ -94,8 +98,7 @@ def _factor_requirements(factor_shadow: dict[str, Any]) -> list[dict[str, object
     return requirements
 
 
-def _interaction_state_shadow(profile: CaseProfile, result_dir: Path) -> dict[str, object]:
-    timeline = build_interaction_timeline(profile.case_name, result_dir)
+def _interaction_state_shadow(profile: CaseProfile, result_dir: Path, timeline: InteractionTimeline) -> dict[str, object]:
     frames = [frame_record(state) for state in timeline.frames]
     frames = repo_relative_value(frames)
     intervals = interaction_intervals(timeline)
@@ -134,6 +137,26 @@ def _interaction_state_shadow(profile: CaseProfile, result_dir: Path) -> dict[st
     }
 
 
+def _factor_activation_shadow(profile: CaseProfile, factor_specs: tuple[FactorSpec, ...], timeline: InteractionTimeline) -> dict[str, object]:
+    ledger = build_factor_activation_ledger(profile.case_name, factor_specs, timeline)
+    records = [activation_record(record) for record in ledger.records]
+    totals = {
+        "active_frames": sum(record.active_frames for record in ledger.records),
+        "downweighted_frames": sum(record.downweighted_frames for record in ledger.records),
+        "inactive_frames": sum(record.inactive_frames for record in ledger.records),
+    }
+    return {
+        "schema_version": ledger.schema_version,
+        "sample_id": ledger.sample_id,
+        "record_count": len(records),
+        "records": records,
+        "by_policy": ledger.by_policy,
+        "totals": totals,
+        "canonical_sha256": ledger.canonical_sha256,
+        "consumed_by_solver": False,
+    }
+
+
 def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dict[str, object]:
     """Build a deterministic generic-solver problem manifest without solving it.
 
@@ -148,7 +171,10 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
     measurement_shadow["source"]["path"] = str(repo_relative_value(observation_csv))
     contact_shadow = build_contact_constraint_shadow(profile.case_name, contact_csv, _read_csv(contact_csv))
     contact_shadow["source"]["path"] = str(repo_relative_value(contact_csv))
-    interaction_shadow = _interaction_state_shadow(profile, result_dir)
+    timeline = build_interaction_timeline(profile.case_name, result_dir)
+    interaction_shadow = _interaction_state_shadow(profile, result_dir, timeline)
+    factor_adapted = adapt_factor_rows(profile, result_dir)
+    factor_activation_shadow = _factor_activation_shadow(profile, factor_adapted.factors, timeline)
     factor_shadow = build_factor_shadow(profile, result_dir)
     state_contract = _profile_state_contract(profile)
     factor_requirements = _factor_requirements(factor_shadow)
@@ -168,6 +194,12 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
         },
         "factor_kinds": dict(sorted(factor_kinds.items())),
         "factor_requirements": factor_requirements,
+        "factor_activation": {
+            "record_count": factor_activation_shadow["record_count"],
+            "by_policy": factor_activation_shadow["by_policy"],
+            "totals": factor_activation_shadow["totals"],
+            "canonical_sha256": factor_activation_shadow["canonical_sha256"],
+        },
         "gaps": factor_shadow["gaps"],
     }
     canonical_sha256 = _canonical_hash(problem_core)
@@ -196,6 +228,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
                 "consumed_by_solver": False,
             },
             "interaction_state_shadow": interaction_shadow,
+            "factor_activation_shadow": factor_activation_shadow,
             "factor_shadow": {
                 "canonical_sha256": factor_shadow["canonical_sha256"],
                 "factor_count": factor_shadow["factors"]["count"],

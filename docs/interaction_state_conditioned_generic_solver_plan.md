@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 把 `InteractionStateIR` 从 shadow 输入推进到 factor activation ledger；先记录 gate provenance，不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger；暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 把 activation ledger 的通用状态门控映射推进到 `CompiledFactor` shadow/runtime contract；继续保持 solver 不靠 `case_name` 分派。 |
 
 当前主线目标收束为一句话：
 
@@ -1348,3 +1348,11 @@ YYYY-MM-DD:
 - change: `InteractionStateIR` 接入 `build_sequence_problem_shadow()`，新增 `interaction_state_shadow` 输入摘要、canonical hash、状态分布统计和 diagnostics assemble reads；更新 sequence problem / diagnostics / candidate sandbox golden，使五 case problem manifest 开始显式携带 interaction state provenance。
 - verification: `python -m pytest -q ...` 轻量范围 34 个测试通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
 - remaining gap: `interaction_state_shadow` 仍是 `consumed_by_solver=False`，尚未进入真正 factor activation；mug/chair 当前 timeline 仍暴露为 mostly `inactive/free`，说明其正式 contact/semantic interaction source 尚需从 adapter/legacy trace 迁移；materialized candidate / Phase 0 full gate 在该 worktree 仍受 gitignored 外部输入缺失限制。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update
+- change: 新增 case-name-free `core/factors/activation.py`，用 `VisibilityState`、`ContactState`、`ContactMode`、`MotionMode`、`audio_event_ids` 为 `FactorKind` 生成 activation ledger；`build_sequence_problem_shadow()` 开始记录 `factor_activation_shadow`、policy 分布、active/downweighted/inactive frame totals；diagnostics assemble reads 增加 `factor_activation_shadow:canonical`。
+- verification: 轻量范围 35 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
+- remaining gap: activation ledger 仍是 shadow-only、`consumed_by_solver=False`；下一步应把该 ledger 下沉到 `CompiledFactor` / runtime factor contract，而不是继续增加 object-specific executor。

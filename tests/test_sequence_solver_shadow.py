@@ -368,3 +368,26 @@ def test_candidate_sandbox_verifier_cli_reports_all_cases() -> None:
     assert len(lines) == len(CASE_DIRECTORIES)
     assert lines[0].startswith("basketball: status=sandbox_ready eligible=True")
     assert any("chair: status=sandbox_ready eligible=True" in line for line in lines)
+
+
+def test_candidate_sandbox_verifier_cli_materializes_and_verifies_chair_candidate(tmp_path: Path) -> None:
+    candidate_root = tmp_path / "candidate_root"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/shared/generic_contact_pipeline/tools/verify_candidate_sandbox.py",
+            "--materialize-chair-candidates",
+            "--candidate-root",
+            str(candidate_root),
+        ],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    chair_dir = candidate_root / "benchmark_vlm_qwen_chair"
+    assert "chair_materialized=True" in completed.stdout
+    assert (chair_dir / "generic_chair_factor_candidate.csv").exists()
+    assert (chair_dir / "generic_chair_factor_residuals.csv").exists()
+    assert not (chair_dir / "object_pose.csv").exists()

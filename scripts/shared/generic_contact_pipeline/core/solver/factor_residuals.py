@@ -46,3 +46,19 @@ class FactorResidualEvaluator:
 
     def temporal_delta(self, x: np.ndarray, prev: np.ndarray, *, weight: float, scales: np.ndarray) -> np.ndarray:
         return (float(weight) * (x[: len(scales)] - prev[: len(scales)]) / scales).astype(float)
+
+    def joint_limit(
+        self,
+        values: np.ndarray,
+        *,
+        lower: float | None,
+        upper: float | None,
+        weight: float,
+        sigma_rad: float,
+    ) -> np.ndarray:
+        lower_violation = np.zeros_like(values, dtype=float) if lower is None else np.minimum(values - float(lower), 0.0)
+        upper_violation = np.zeros_like(values, dtype=float) if upper is None else np.maximum(values - float(upper), 0.0)
+        return (float(weight) * (lower_violation + upper_violation) / float(sigma_rad)).astype(float)
+
+    def gauge_constraint(self, values: np.ndarray, *, target: float, weight: float, sigma: float) -> np.ndarray:
+        return (float(weight) * (values - float(target)) / float(sigma)).astype(float)

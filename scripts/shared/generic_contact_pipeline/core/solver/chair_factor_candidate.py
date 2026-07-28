@@ -12,6 +12,14 @@ from .chair_diagnostics import build_chair_contact_diagnostics, validate_chair_c
 
 
 CHAIR_FACTOR_ATTEMPT_NAME = "chair_generic_factor_executor_attempt.json"
+CHAIR_SUPPORTED_RESIDUAL_BLOCKS = (
+    "point_reprojection",
+    "contact_distance",
+    "joint_limit",
+    "gauge_constraint",
+    "pose_prior",
+    "temporal_velocity",
+)
 
 
 def _canonical_hash(value: object) -> str:
@@ -41,6 +49,7 @@ def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path
         "missing_required_factor_kinds": bundle["missing_required_factor_kinds"],
         "compatibility_gap_id": bundle["compatibility_gap_id"],
         "compatibility_gap_status": bundle["compatibility_gap_status"],
+        "supported_residual_blocks": list(CHAIR_SUPPORTED_RESIDUAL_BLOCKS),
         "validation_error_count": len(bundle_errors) + len(diagnostics_errors),
         "candidate_dir": str(repo_relative_value(candidate_dir)),
     }
@@ -57,6 +66,7 @@ def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path
         "accepted_outputs_written": False,
         "baseline_pose_read": False,
         "missing_required_factor_kinds": bundle["missing_required_factor_kinds"],
+        "supported_residual_blocks": list(CHAIR_SUPPORTED_RESIDUAL_BLOCKS),
         "bundle": {
             "canonical_sha256": bundle["canonical_sha256"],
             "status": bundle["status"],

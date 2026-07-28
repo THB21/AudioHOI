@@ -52,3 +52,24 @@ def test_factor_residual_evaluator_matches_legacy_pose_prior_and_temporal_blocks
 
     np.testing.assert_allclose(prior, [0.5, -0.25, 0.75, 1.0, 2.0, 0.375])
     np.testing.assert_allclose(temporal, [0.2, 0.2, 0.4, 0.2, 0.1, 0.2])
+
+
+def test_factor_residual_evaluator_supports_joint_limit_and_gauge_blocks() -> None:
+    evaluator = FactorResidualEvaluator()
+
+    joint = evaluator.joint_limit(
+        values=np.array([-1.0, -0.5, 0.2, 0.8], dtype=float),
+        lower=-0.5,
+        upper=0.5,
+        weight=2.0,
+        sigma_rad=0.1,
+    )
+    gauge = evaluator.gauge_constraint(
+        values=np.array([0.25, -0.5], dtype=float),
+        target=0.0,
+        weight=0.4,
+        sigma=0.1,
+    )
+
+    np.testing.assert_allclose(joint, [-10.0, 0.0, 0.0, 6.0])
+    np.testing.assert_allclose(gauge, [1.0, -2.0])

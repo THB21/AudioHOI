@@ -51,6 +51,10 @@ chair per-frame residual loop 现在已复用 core `FactorResidualEvaluator` 组
 保持原权重、bounds、loss 和 residual 顺序，不改变 canonical 输出；它只把 residual
 算术从 chair 私有循环中抽到 generic executor core。
 
+`FactorResidualEvaluator` 现在也覆盖 `joint_limit` 与 `gauge_constraint` residual block；
+chair candidate attempt 会记录 supported residual blocks。此处仍只是算术能力和
+provenance 能力，不等于已经运行 isolated optimizer。
+
 ## 后续接受标准
 
 1. contact chord initializer 已提升为通用 `RigidCorrespondenceInitializer` core contract；
@@ -59,8 +63,8 @@ chair per-frame residual loop 现在已复用 core `FactorResidualEvaluator` 组
    chair solver 现在通过 data-rule provider 调用 rear/seat/side-stretcher 传播语义。
 3. twist rank deficiency、semantic 2D line factors、joint limits 和 contact distance
    进入 generic Factor IR；`joint_limit` 与 `gauge_constraint` 已是 available factor
-   kind，2D/contact/prior/temporal residual assembly 已进入 core evaluator；下一步需要
-   isolated candidate executor 实际产出 pose candidate。
+   kind，required residual assembly 已进入 core evaluator；下一步需要 isolated
+   candidate executor 实际产出 pose candidate。
 4. candidate 输出先进入 isolated result directory；禁止覆盖 canonical `benchmark_vlm_qwen`。
    当前已建立 attempt manifest 外壳；下一步才替换为实际 generic executor 输出。
 5. semantic 2D、contact median/P90、freeze、pose lock 和六路 render 均不退化后，才可

@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from ..base.config import CaseProfile
-from ..base.io import read_csv, repo_relative_value, write_csv, write_json
+from ..base.io import copy_file, read_csv, repo_relative_value, write_csv, write_json
 from ..factors import build_chair_factor_executor_bundle, build_factor_shadow, validate_chair_factor_executor_bundle
 from .candidate import ACCEPTED_OUTPUT_NAMES
 from .chair_diagnostics import build_chair_contact_diagnostics, validate_chair_contact_diagnostics
@@ -258,6 +258,71 @@ def validate_chair_factor_executor_candidate(attempt: dict[str, object]) -> list
     return errors
 
 
+def _load_json(path: Path) -> dict[str, object]:
+    if not path.exists():
+        return {}
+    payload = json.loads(path.read_text())
+    return payload if isinstance(payload, dict) else {}
+
+
+def verify_materialized_chair_factor_candidate(profile: CaseProfile, result_dir: Path, candidate_dir: Path) -> list[str]:
+    """Verify an isolated chair candidate directory matches its safe manifest.
+
+    This verifier intentionally validates only sandbox artifacts. It rejects
+    accepted output names so a reviewable candidate cannot silently become a
+    canonical Stage output.
+    """
+    errors: list[str] = []
+    if profile.case_name != "chair":
+        return ["chair factor candidate verifier only supports the chair case"]
+
+    for name in sorted(ACCEPTED_OUTPUT_NAMES):
+        if (candidate_dir / name).exists():
+            errors.append(f"accepted output artifact present in chair candidate dir: {name}")
+
+    for name in CHAIR_FACTOR_SAFE_OUTPUTS:
+        if not (candidate_dir / name).exists():
+            errors.append(f"missing planned output {name}")
+
+    attempt_path = candidate_dir / CHAIR_FACTOR_ATTEMPT_NAME
+    coverage_path = candidate_dir / CHAIR_FACTOR_RESIDUALS_NAME
+    candidate_path = candidate_dir / CHAIR_FACTOR_CANDIDATE_NAME
+    residual_table_path = candidate_dir / CHAIR_FACTOR_RESIDUAL_TABLE_NAME
+
+    attempt = _load_json(attempt_path)
+    if not attempt:
+        return errors + [f"missing or invalid attempt manifest {CHAIR_FACTOR_ATTEMPT_NAME}"]
+    errors.extend(validate_chair_factor_executor_candidate(attempt))
+    if attempt.get("canonical_result_dir") != str(repo_relative_value(result_dir)):
+        errors.append("chair factor candidate canonical_result_dir does not match requested result_dir")
+    planned = attempt.get("planned_outputs", [])
+    if planned != CHAIR_FACTOR_SAFE_OUTPUTS:
+        errors.append("chair factor candidate planned_outputs do not match safe output contract")
+
+    coverage = _load_json(coverage_path)
+    if not coverage:
+        errors.append(f"missing or invalid residual coverage manifest {CHAIR_FACTOR_RESIDUALS_NAME}")
+    else:
+        errors.extend(validate_chair_factor_residual_coverage(coverage))
+
+    candidate_pose = attempt.get("candidate_pose", {})
+    if isinstance(candidate_pose, dict) and candidate_path.exists():
+        rows = read_csv(candidate_path)
+        if int(candidate_pose.get("rows", 0) or 0) != len(rows):
+            errors.append("chair factor candidate pose row count does not match attempt manifest")
+        source_sha = candidate_pose.get("source_sha256")
+        if source_sha and _sha256(candidate_path) != source_sha:
+            errors.append("chair factor candidate pose sha256 does not match source artifact")
+
+    residual_table = attempt.get("residual_table", {})
+    if isinstance(residual_table, dict) and residual_table_path.exists():
+        rows = read_csv(residual_table_path)
+        if int(residual_table.get("rows", 0) or 0) != len(rows):
+            errors.append("chair factor residual table row count does not match attempt manifest")
+
+    return errors
+
+
 def prepare_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path, candidate_dir: Path) -> dict[str, object]:
     attempt = build_chair_factor_executor_candidate(profile, result_dir, candidate_dir)
     errors = validate_chair_factor_executor_candidate(attempt)
@@ -269,7 +334,7 @@ def prepare_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Pa
         raise ValueError("; ".join(residual_errors))
     candidate_dir.mkdir(parents=True, exist_ok=True)
     if attempt.get("status") == "ready_for_candidate_executor":
-        write_csv(candidate_dir / CHAIR_FACTOR_CANDIDATE_NAME, read_csv(_pairprop_pose_path(result_dir)))
+        copy_file(_pairprop_pose_path(result_dir), candidate_dir / CHAIR_FACTOR_CANDIDATE_NAME)
         metrics = json.loads(_pairprop_metrics_path(result_dir).read_text())
         write_csv(candidate_dir / CHAIR_FACTOR_RESIDUAL_TABLE_NAME, _chair_residual_rows(metrics))
     write_json(candidate_dir / CHAIR_FACTOR_RESIDUALS_NAME, residuals)

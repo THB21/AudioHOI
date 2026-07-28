@@ -15,6 +15,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     prepare_chair_factor_executor_candidate,
     validate_chair_factor_executor_candidate,
     validate_chair_factor_residual_coverage,
+    verify_materialized_chair_factor_candidate,
 )
 
 
@@ -79,6 +80,66 @@ def test_chair_factor_candidate_cli_writes_reviewable_attempt(tmp_path: Path) ->
     assert "ready_for_candidate_executor" in completed.stdout
     payload = json.loads((candidate_dir / CHAIR_FACTOR_ATTEMPT_NAME).read_text())
     assert payload["mode"] == "chair_generic_factor_executor_candidate_attempt"
+
+
+def test_materialized_chair_factor_candidate_verifier_accepts_safe_artifacts(tmp_path: Path) -> None:
+    candidate_dir = tmp_path / "chair_candidate"
+    profile = load_case_profile("chair")
+    prepare_chair_factor_executor_candidate(
+        profile,
+        REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
+        candidate_dir,
+    )
+
+    assert verify_materialized_chair_factor_candidate(
+        profile,
+        REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
+        candidate_dir,
+    ) == []
+
+
+def test_materialized_chair_factor_candidate_verifier_rejects_missing_or_accepted_outputs(tmp_path: Path) -> None:
+    candidate_dir = tmp_path / "chair_candidate"
+    profile = load_case_profile("chair")
+    prepare_chair_factor_executor_candidate(
+        profile,
+        REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
+        candidate_dir,
+    )
+    (candidate_dir / CHAIR_FACTOR_CANDIDATE_NAME).unlink()
+    (candidate_dir / "object_pose.csv").write_text("frame\n1\n")
+
+    errors = verify_materialized_chair_factor_candidate(
+        profile,
+        REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
+        candidate_dir,
+    )
+
+    assert any("missing planned output generic_chair_factor_candidate.csv" in error for error in errors)
+    assert any("accepted output artifact present" in error for error in errors)
+
+
+def test_materialized_chair_factor_candidate_verifier_cli_reports_candidate(tmp_path: Path) -> None:
+    candidate_dir = tmp_path / "chair_candidate"
+    prepare_chair_factor_executor_candidate(
+        load_case_profile("chair"),
+        REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
+        candidate_dir,
+    )
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/shared/generic_contact_pipeline/tools/verify_chair_factor_candidate.py",
+            "--candidate-dir",
+            str(candidate_dir),
+        ],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    assert "chair: factor_candidate materialized=True" in completed.stdout
 
 
 def test_chair_factor_residual_coverage_validator_rejects_false_coverage() -> None:

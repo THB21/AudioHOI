@@ -29,6 +29,7 @@ ENERGY_TO_KIND = {
     "E_smooth": FactorKind.TEMPORAL_VELOCITY,
     "E_temporal": FactorKind.TEMPORAL_ACCELERATION,
     "E_static": FactorKind.STATIC_FREEZE,
+    "E_audio": FactorKind.AUDIO_EVENT_PRIOR,
     "E_prior": FactorKind.POSE_PRIOR,
     "E_reg": FactorKind.REGULARIZATION,
 }
@@ -92,6 +93,9 @@ def _input_refs(kind: FactorKind) -> tuple[FactorInputRef, ...]:
         refs.append(FactorInputRef("measurement", "MeasurementIR", "depth_observation"))
     if kind in {FactorKind.CONTACT_DISTANCE, FactorKind.SUPPORT_AND_PENETRATION}:
         refs.append(FactorInputRef("constraint", "ContactConstraintIR", "contact_or_support"))
+    if kind == FactorKind.AUDIO_EVENT_PRIOR:
+        refs.append(FactorInputRef("measurement", "AudioEventIR", "audio_events"))
+        refs.append(FactorInputRef("constraint", "ContactConstraintIR", "audio_contact_phase"))
     if kind == FactorKind.GAUGE_CONSTRAINT:
         refs.append(FactorInputRef("state", "StateSpec", "gauge_constraints"))
     return tuple(refs)
@@ -133,6 +137,7 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
     stage4_metrics = _read_json(result_dir / "stage4_metrics.json")
     contact_csv = result_dir / "object_contact_points.csv"
     contact_rows = _read_csv(contact_csv)
+    active_terms = set(loss_summary.get("active_terms", [])) if isinstance(loss_summary.get("active_terms", []), list) else set()
 
     mapped = {"frame", "time", "source", "E_total"}
     factors: list[FactorSpec] = []
@@ -142,6 +147,8 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
             continue
         total = _energy_total(per_frame_rows, term)
         active = _active_count(per_frame_rows, term)
+        if kind == FactorKind.AUDIO_EVENT_PRIOR and term in active_terms and active == 0 and trace_rows:
+            active = int(float(trace_rows[-1].get("active_audio_frames", "0") or 0))
         if total == 0.0 and active == 0:
             mapped.add(term)
             continue
@@ -155,7 +162,11 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 input_refs=_input_refs(kind),
                 residual_unit="legacy_energy",
                 weight_source=_weight_source(term),
-                gate_source="vlm/contact/static gates in per_frame_residuals.csv",
+                gate_source=(
+                    "audio/contact/static gates in per_frame_residuals.csv"
+                    if kind == FactorKind.AUDIO_EVENT_PRIOR
+                    else "vlm/contact/static gates in per_frame_residuals.csv"
+                ),
                 residual_source=_source(per_frame, (term,), "non_invasive_loss_audit"),
             )
         )

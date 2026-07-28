@@ -123,7 +123,7 @@ def test_sequence_problem_verifier_cli_reports_all_cases() -> None:
     lines = completed.stdout.strip().splitlines()
     assert len(lines) == len(CASE_DIRECTORIES)
     assert lines[0].startswith("basketball: state=translation3")
-    assert any("unsupported_loss_term:E_audio" in line for line in lines)
+    assert any(line.startswith("chair: state=semantic_graph_6d") and "gaps=[]" in line for line in lines)
 
 
 def test_sequence_solver_shadow_diagnostics_never_execute_or_write() -> None:
@@ -157,7 +157,7 @@ def test_sequence_solver_shadow_diagnostics_block_only_required_unmigrated_mecha
     )
     assert mug["blocking_gap_ids"] == ["phase_snapshot_fallback"]
     assert chair["blocking_gap_ids"] == []
-    assert chair["nonblocking_gap_ids"] == ["unsupported_loss_term:E_audio"]
+    assert chair["nonblocking_gap_ids"] == []
     assert stick["blocking_gap_ids"] == []
     assert stick["nonblocking_gap_ids"] == ["line_contact_lock_special_refinement"]
     assert mug["status"] == "blocked_by_known_gaps"
@@ -194,7 +194,7 @@ def test_sequence_solver_diagnostics_export_cli_writes_reviewable_manifest(tmp_p
     assert json.loads(completed.stdout) == payload
     assert payload["mode"] == "generic_sequence_solver_shadow_diagnostics"
     assert payload["blocking_gap_ids"] == []
-    assert payload["nonblocking_gap_ids"] == ["unsupported_loss_term:E_audio"]
+    assert payload["nonblocking_gap_ids"] == []
 
 
 def test_sequence_solver_diagnostics_verifier_cli_reports_all_cases() -> None:
@@ -213,7 +213,7 @@ def test_sequence_solver_diagnostics_verifier_cli_reports_all_cases() -> None:
     assert lines[0].startswith("basketball: status=ready_for_future_shadow_solve")
     assert any(
         line.startswith("chair: status=ready_for_future_shadow_solve")
-        and "blocking_gaps=[] nonblocking_gaps=[unsupported_loss_term:E_audio]" in line
+        and "blocking_gaps=[] nonblocking_gaps=[]" in line
         for line in lines
     )
 
@@ -239,7 +239,7 @@ def test_candidate_sandbox_manifest_allows_ready_ball_and_chair_cases() -> None:
         "chair_generic_factor_residuals.json",
     ]
     assert chair["blocking_gap_ids"] == []
-    assert chair["nonblocking_gap_ids"] == ["unsupported_loss_term:E_audio"]
+    assert chair["nonblocking_gap_ids"] == []
     assert validate_candidate_sandbox_manifest(basketball) == []
     assert validate_candidate_sandbox_manifest(chair) == []
 

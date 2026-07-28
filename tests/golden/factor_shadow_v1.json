@@ -45,8 +45,9 @@
       "canonical_sha256": "b68be8f866deb3e10d8e29c92f8400d8f92b315aec41cb3ed4ee8b1a6283e840"
     },
     "chair": {
-      "factor_count": 12,
+      "factor_count": 13,
       "factor_kinds": {
+        "audio_event_prior": 1,
         "contact_distance": 1,
         "gauge_constraint": 1,
         "joint_limit": 2,
@@ -58,13 +59,9 @@
         "temporal_acceleration": 1,
         "temporal_velocity": 1
       },
-      "gap_ids": [
-        "unsupported_loss_term:E_audio"
-      ],
-      "unmapped_nonempty_fields": [
-        "E_audio"
-      ],
-      "canonical_sha256": "f0548b59922f288e0ddc824a68c89b54d4de919440f2a2b23d69354e0d2e5929"
+      "gap_ids": [],
+      "unmapped_nonempty_fields": [],
+      "canonical_sha256": "2f250100277f60ed0345d8268b43a4fd1222783a221e7bde50f43d22738fbb83"
     },
     "stick": {
       "factor_count": 5,

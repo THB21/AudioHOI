@@ -58,13 +58,11 @@
       "canonical_sha256": "c690d18875a614fcd3d9064e662b1b75bc8ff0275bd5caa822ab0183ed870676"
     },
     "chair": {
-      "problem_sha256": "01d045be9780bed8b7e04b977fbc731751ee96c96d8bcddf5ba5499cf35b5ea3",
-      "attempt_id": "shadow-01d045be9780",
+      "problem_sha256": "1faba87702d95c71bba1ddecc3bff6b56b4274727ed4861668b20a7e92f383dd",
+      "attempt_id": "shadow-1faba87702d9",
       "status": "ready_for_future_shadow_solve",
       "blocking_gap_ids": [],
-      "nonblocking_gap_ids": [
-        "unsupported_loss_term:E_audio"
-      ],
+      "nonblocking_gap_ids": [],
       "phase_statuses": {
         "assemble_problem": "pass",
         "initialize_state": "not_executed",
@@ -75,7 +73,7 @@
       "accepted_outputs_written": false,
       "baseline_pose_read": false,
       "validation_errors": [],
-      "canonical_sha256": "fd76f943ff11aeac7baf2d8a9c6147615b912488156b010ecf32fa2623d41c8f"
+      "canonical_sha256": "974ac3054a6ba22e871424bcaf86de62e5a4fe0b1f6e7d71a4871b592f86b7b1"
     },
     "stick": {
       "problem_sha256": "7fa5bb649e59d797f6305e4e4a24fb44201ac91e70eb309f0fea73af4607c16b",

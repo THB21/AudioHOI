@@ -68,8 +68,9 @@
       "measurement_count": 1014,
       "measurement_frames": 192,
       "contact_count": 317,
-      "factor_count": 12,
+      "factor_count": 13,
       "factor_kinds": {
+        "audio_event_prior": 1,
         "contact_distance": 1,
         "gauge_constraint": 1,
         "joint_limit": 2,
@@ -81,12 +82,10 @@
         "temporal_acceleration": 1,
         "temporal_velocity": 1
       },
-      "gap_ids": [
-        "unsupported_loss_term:E_audio"
-      ],
-      "attempt_id": "shadow-01d045be9780",
+      "gap_ids": [],
+      "attempt_id": "shadow-1faba87702d9",
       "validation_errors": [],
-      "canonical_sha256": "01d045be9780bed8b7e04b977fbc731751ee96c96d8bcddf5ba5499cf35b5ea3"
+      "canonical_sha256": "1faba87702d95c71bba1ddecc3bff6b56b4274727ed4861668b20a7e92f383dd"
     },
     "stick": {
       "state_model": "translation3_with_line_orientation_prior",

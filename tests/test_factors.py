@@ -78,6 +78,26 @@ def test_chair_factor_shadow_exposes_joint_limit_and_gauge_terms() -> None:
     assert kinds["gauge_constraint"] == 1
 
 
+def test_chair_factor_shadow_maps_audio_static_prior() -> None:
+    result_dir = REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen"
+    shadow = build_factor_shadow(load_case_profile("chair"), result_dir)
+    gap_ids = [gap["gap_id"] for gap in shadow["gaps"]]
+    assert "unsupported_loss_term:E_audio" not in gap_ids
+    assert "E_audio" not in shadow["coverage"]["unmapped_nonempty_fields"]
+    audio_factors = [
+        factor
+        for factor in shadow["factors"]["records"]
+        if factor["factor_id"] == "audio_event_prior:E_audio"
+    ]
+    assert len(audio_factors) == 1
+    assert audio_factors[0]["kind"] == FactorKind.AUDIO_EVENT_PRIOR
+    assert audio_factors[0]["frame_count"] == 8
+    assert audio_factors[0]["gate_source"] == "audio/contact/static gates in per_frame_residuals.csv"
+    input_roles = {(ref["role"], ref["source_ir"], ref["source_id"]) for ref in audio_factors[0]["input_refs"]}
+    assert ("measurement", "AudioEventIR", "audio_events") in input_roles
+    assert ("constraint", "ContactConstraintIR", "audio_contact_phase") in input_roles
+
+
 def test_specialized_legacy_paths_remain_explicit_gaps() -> None:
     mug = build_factor_shadow(load_case_profile("mug"), REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen")
     chair = build_factor_shadow(load_case_profile("chair"), REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen")

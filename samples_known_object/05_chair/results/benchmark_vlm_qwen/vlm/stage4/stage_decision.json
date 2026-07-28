@@ -1,24 +1,18 @@
 {
   "case_name": "chair",
   "stage": "stage4",
-  "mode": "qwen_vl",
-  "decision": "pass_with_unclear_frames",
+  "mode": "dry_run",
+  "decision": "not_blocking_dry_run",
   "blocking": false,
   "query_count": 10,
   "gate_counts": {
-    "pass": 4,
-    "unclear": 6
+    "not_evaluated": 10
   },
   "query_counts": {
     "anchor_update_check": 5,
     "temporal_motion_check": 5
   },
-  "accepted_frames": [
-    1,
-    20,
-    82,
-    89
-  ],
+  "accepted_frames": [],
   "blocked_frames": [],
   "report_only_reject_frames": [],
   "unclear_frames": [
@@ -28,27 +22,7 @@
     89,
     144
   ],
-  "repair_actions_by_frame": {
-    "20": [
-      "accept_candidate",
-      "unclear_no_update"
-    ],
-    "82": [
-      "accept_candidate",
-      "unclear_no_update"
-    ],
-    "144": [
-      "unclear_no_update"
-    ],
-    "1": [
-      "accept_candidate",
-      "unclear_no_update"
-    ],
-    "89": [
-      "accept_candidate",
-      "unclear_no_update"
-    ]
-  },
+  "repair_actions_by_frame": {},
   "rejected_results": [],
   "allowed_repair_actions": [
     "accept_candidate",
@@ -63,5 +37,5 @@
     "mark_for_report_only",
     "unclear_no_update"
   ],
-  "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+  "note": "Dry-run outputs generate schema/evidence only and never block."
 }

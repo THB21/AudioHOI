@@ -109,6 +109,19 @@ def _stage_factor_id(stage_label: str, term: str, kind: FactorKind) -> str:
     return f"{kind.value}:{stage_label}:{term}"
 
 
+def _chair_private_solver_gap_is_resolved(profile: CaseProfile, result_dir: Path) -> bool:
+    """Return true only when chair Stage4 provenance proves current-run generic readiness."""
+    if profile.case_name != "chair":
+        return False
+    try:
+        from ..solver.chair_diagnostics import build_chair_contact_diagnostics, validate_chair_contact_diagnostics
+
+        diagnostics = build_chair_contact_diagnostics(result_dir)
+    except Exception:
+        return False
+    return diagnostics.get("compatibility_gap_status") == "nonblocking" and not validate_chair_contact_diagnostics(diagnostics)
+
+
 def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptationResult:
     loss_dir = result_dir / "loss_analysis"
     per_frame = loss_dir / "per_frame_residuals.csv"
@@ -264,7 +277,7 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 str(repo_relative_value(result_dir / "stage3_metrics.json")),
             )
         )
-    if adapter.get("component") == "semantic_graph_6d" or adapter.get("solver"):
+    if (adapter.get("component") == "semantic_graph_6d" or adapter.get("solver")) and not _chair_private_solver_gap_is_resolved(profile, result_dir):
         gaps.append(
             FactorGap(
                 "semantic_graph_solver_private",

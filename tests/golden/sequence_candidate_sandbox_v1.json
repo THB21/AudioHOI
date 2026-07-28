@@ -50,20 +50,20 @@
       "canonical_sha256": "fa4e0dafbda1d45a172ca1e4964099fdda48118ac34865524c14cd8767d07efc"
     },
     "chair": {
-      "status": "blocked_by_known_gaps",
-      "eligible_for_candidate_sandbox": false,
+      "status": "sandbox_ready",
+      "eligible_for_candidate_sandbox": true,
       "candidate_dir": "samples_known_object/05_chair/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_chair",
-      "attempt_id": "shadow-6195e8447f47",
-      "problem_sha256": "6195e8447f470fd77e3c19bfe9d445f30b6b81a2d7b41f3809f02d98cf3d6af4",
-      "diagnostics_sha256": "59dd93dc6770f16f348869092c8adb24051daba3f7f058532aa8eac63fe2cb16",
-      "blocking_gap_ids": [
-        "semantic_graph_solver_private"
-      ],
+      "attempt_id": "shadow-01d045be9780",
+      "problem_sha256": "01d045be9780bed8b7e04b977fbc731751ee96c96d8bcddf5ba5499cf35b5ea3",
+      "diagnostics_sha256": "fd76f943ff11aeac7baf2d8a9c6147615b912488156b010ecf32fa2623d41c8f",
+      "blocking_gap_ids": [],
       "nonblocking_gap_ids": [
         "unsupported_loss_term:E_audio"
       ],
-      "planned_artifacts": [],
-      "canonical_sha256": "89d0c31e2e5f0b66a0029b1042d7bd8ca95a1c730543759b0f2839429c173bf4"
+      "planned_artifacts": [
+        "generic_sequence_solver_shadow_candidate.json"
+      ],
+      "canonical_sha256": "900567836e87f8fe83294edfedc0d2435c758254e8beb343015736e6e3c91c15"
     },
     "stick": {
       "status": "sandbox_ready",

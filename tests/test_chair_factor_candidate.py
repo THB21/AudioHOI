@@ -30,7 +30,7 @@ def test_chair_factor_candidate_attempt_writes_only_safe_manifest(tmp_path: Path
     )
 
     assert attempt["mode"] == "chair_generic_factor_executor_candidate_attempt"
-    assert attempt["status"] == "blocked_by_private_solver_gap"
+    assert attempt["status"] == "ready_for_candidate_executor"
     assert attempt["solver_executed"] is False
     assert attempt["accepted_outputs_written"] is False
     assert attempt["baseline_pose_read"] is False
@@ -64,7 +64,7 @@ def test_chair_factor_candidate_cli_writes_reviewable_attempt(tmp_path: Path) ->
         capture_output=True,
     )
 
-    assert "blocked_by_private_solver_gap" in completed.stdout
+    assert "ready_for_candidate_executor" in completed.stdout
     payload = json.loads((candidate_dir / CHAIR_FACTOR_ATTEMPT_NAME).read_text())
     assert payload["mode"] == "chair_generic_factor_executor_candidate_attempt"
 

@@ -378,9 +378,9 @@
           "source_scope": "repository",
           "kind": "directory",
           "exists": true,
-          "file_count": 0,
-          "size_bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "file_count": 192,
+          "size_bytes": 492759,
+          "sha256": "f0a77e1d0fb76a8840c80727a255fb51211fe742a4eca5fe312a4550d7f9d4be"
         },
         {
           "path": "samples_known_object/01_basketball/results/tracking/object_center_trajectory.csv",
@@ -2010,9 +2010,9 @@
           "source_scope": "repository",
           "kind": "directory",
           "exists": true,
-          "file_count": 0,
-          "size_bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "file_count": 242,
+          "size_bytes": 1020190,
+          "sha256": "9bf4f5801154db5ef930dc9929221c866f3aadee570a47eb1de721af06f806be"
         },
         {
           "path": "samples_known_object/10_football/results/tracking/object_center_trajectory.csv",
@@ -3544,9 +3544,9 @@
           "source_scope": "repository",
           "kind": "directory",
           "exists": true,
-          "file_count": 0,
-          "size_bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "file_count": 240,
+          "size_bytes": 564651,
+          "sha256": "b3271ff991d31a6c6646505d5ac4c7d4f3cc3bd1181bbfe66ff7a3886db76ba5"
         },
         {
           "path": "samples_known_object/02_mug/results/tracking/object_center_trajectory.csv",
@@ -4969,9 +4969,9 @@
           "source_scope": "repository",
           "kind": "directory",
           "exists": true,
-          "file_count": 0,
-          "size_bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "file_count": 192,
+          "size_bytes": 912397,
+          "sha256": "ba591c6545dea50d23b2d18f06d5b76c293622a4dd3c992eb4a316e1e0b70f7a"
         },
         {
           "path": "samples_known_object/05_chair/results/tracking/object_center_trajectory.csv",
@@ -5068,11 +5068,11 @@
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 357289,
-          "sha256": "03cae22e86a31cc7d6f1b3d077145efce728a12a1c0bc3df98c5d1ebdce8876b"
+          "size_bytes": 448468,
+          "sha256": "b0699793fa9350d8c1f28ff06f0a4bd4fa3e19d6cc6e626247250d72c037ab2a"
         },
-        "vlm_mode": "qwen",
-        "llm_mode": "mistral",
+        "vlm_mode": "none",
+        "llm_mode": "none",
         "ablation_flags": [],
         "note": "Observed historical metadata; result-directory names are not treated as proof of an enabled mechanism."
       },
@@ -5627,8 +5627,8 @@
             "source_scope": "repository",
             "kind": "file",
             "exists": true,
-            "size_bytes": 59867,
-            "sha256": "feb9bfde35fbd339b131e95bc5286d8ff8da72cdc6b32c397aab564de217d036",
+            "size_bytes": 66220,
+            "sha256": "fb82c2e626fca0908ef9c3024304dee1afd1097c77c47621f6d5c3ab6fccb969",
             "columns": [
               "frame",
               "time",
@@ -5648,11 +5648,12 @@
               "fy",
               "cx",
               "cy",
-              "line_rmse_px",
-              "endpoint_rmse_px",
-              "side_ratio_rmse_px",
-              "rail_rmse_px",
-              "source"
+              "da3_mask_depth_m",
+              "da3_depth_conf",
+              "residual_norm",
+              "source",
+              "se3_schema",
+              "pose_lock_reason"
             ],
             "rows": 192
           },
@@ -5661,8 +5662,8 @@
             "source_scope": "repository",
             "kind": "file",
             "exists": true,
-            "size_bytes": 17585,
-            "sha256": "86adfe7cc76134eb20065a9b442512126035ae685e3ccd13b9500e82f040a929",
+            "size_bytes": 17436,
+            "sha256": "28b9641698e0bdf32d69a804b88618e62ac3357e57891a6e82057159b77c5577",
             "columns": [
               "frame",
               "time",
@@ -5680,8 +5681,8 @@
             "source_scope": "repository",
             "kind": "file",
             "exists": true,
-            "size_bytes": 17652,
-            "sha256": "b114d120e2018a492f26eb69c0a0887126100e7efd3e1c47504fb414b09193b2",
+            "size_bytes": 17855,
+            "sha256": "10adc1308db6a264760886bcc18be9d9529c49fbb26140874d847476113a450a",
             "columns": [
               "frame",
               "se3_velocity_spike",
@@ -5693,6 +5694,7 @@
               "final_velocity_score",
               "final_accel_score",
               "se3_smoothed",
+              "pose_locked",
               "delta_translation_m",
               "delta_rotation_rad",
               "trust_weight",
@@ -5707,8 +5709,8 @@
             "source_scope": "repository",
             "kind": "file",
             "exists": true,
-            "size_bytes": 20895,
-            "sha256": "e7471fe6037b6e7e1f3a8cb692db7da0100e015d362fbe4d88d0ecc82dc5a06d",
+            "size_bytes": 20746,
+            "sha256": "3dbbbf924ffc4f41dc57b80cd0277e9ec1025e212436b92d68bcb34519a83638",
             "columns": [
               "frame",
               "visual_spike",
@@ -5736,8 +5738,8 @@
             "source_scope": "repository",
             "kind": "file",
             "exists": true,
-            "size_bytes": 25626,
-            "sha256": "a0913d09c706d17221a4bd8f5e863a021cd52d7c05d7d60b55b46963a4a1c85b",
+            "size_bytes": 28406,
+            "sha256": "7f5fc2f28d891d11ce6682bf4b4d34b7a5daa9e600cb3df79e3bf2840d3738ba",
             "columns": [
               "frame",
               "motion_regime",
@@ -5759,6 +5761,8 @@
               "visual_prior_reason",
               "overlay_prior_reason",
               "pose_lock_reason",
+              "vlm_pose_refine_disabled",
+              "vlm_gate_optimizer_mode",
               "decision_source"
             ],
             "rows": 192
@@ -5768,8 +5772,8 @@
             "source_scope": "repository",
             "kind": "file",
             "exists": true,
-            "size_bytes": 60251,
-            "sha256": "965bab3c67362b2dd6660da006980a845fc2ffbc172629b6ae26e8e52a2a15f4",
+            "size_bytes": 66411,
+            "sha256": "6be830feb150bdd15cd904f609fa40ca77e808e3266307522830804bddf5b53f",
             "columns": [
               "frame",
               "time",
@@ -5789,11 +5793,12 @@
               "fy",
               "cx",
               "cy",
-              "line_rmse_px",
-              "endpoint_rmse_px",
-              "side_ratio_rmse_px",
-              "rail_rmse_px",
-              "source"
+              "da3_mask_depth_m",
+              "da3_depth_conf",
+              "residual_norm",
+              "source",
+              "se3_schema",
+              "pose_lock_reason"
             ],
             "rows": 192
           },
@@ -5849,16 +5854,16 @@
             "source_scope": "repository",
             "kind": "file",
             "exists": true,
-            "size_bytes": 73195,
-            "sha256": "34be567417199a71ca792991bead31fc32609d356afa59b821071372bc0eb979"
+            "size_bytes": 376152,
+            "sha256": "731139313d2842a907ba9c085ee7424bd67c699407dd62e1249233979e887b79"
           },
           {
             "path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage4/vlm_gates.csv",
             "source_scope": "repository",
             "kind": "file",
             "exists": true,
-            "size_bytes": 973,
-            "sha256": "5bd463362739fe8270982d4cb16bef00f7e0c140bff46ebd3287ffe76cd26a9e",
+            "size_bytes": 1040,
+            "sha256": "57c4d25f608529f0cdef2c9f106aad1999cccdcd1a01f3909f5bca57f8d08641",
             "columns": [
               "case_name",
               "stage",
@@ -5880,8 +5885,8 @@
             "source_scope": "repository",
             "kind": "file",
             "exists": true,
-            "size_bytes": 953,
-            "sha256": "2bde86e9ada0878d4e99a3ba75ea8dd61020ef25a17befbdd4edede1325062e6",
+            "size_bytes": 791,
+            "sha256": "b4e8b8f3a761a8b5e32873885e237658b5095751dc21d988d45dace5d685f7c5",
             "columns": [
               "case_name",
               "stage",
@@ -5893,7 +5898,7 @@
               "residual_reweight",
               "reason"
             ],
-            "rows": 9
+            "rows": 7
           }
         ],
         "stage5": [
@@ -6022,8 +6027,8 @@
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 3206,
-          "sha256": "a1675ae5105fb8a08af6d282259eacee2764fe65e06911544efdd5c9e60fd6a7",
+          "size_bytes": 3247,
+          "sha256": "6ddde1bfbd54266041e6f85679b2c31aa371c72776dbb1a672e188ffc3b1459c",
           "columns": [
             "case_name",
             "stage",
@@ -6045,8 +6050,8 @@
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 3413,
-          "sha256": "55babc8e3180cb624ebab2ce03bd9b1d6b8059efcb47288b16da9c0045f584ab",
+          "size_bytes": 3224,
+          "sha256": "5b8be30fc2d4a176c63ce4875eb69195de7f20369951a396162f9bbf2c209afa",
           "columns": [
             "case_name",
             "stage",
@@ -6058,7 +6063,7 @@
             "residual_reweight",
             "reason"
           ],
-          "rows": 36
+          "rows": 34
         }
       ],
       "outputs": {
@@ -6067,8 +6072,8 @@
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 60251,
-          "sha256": "965bab3c67362b2dd6660da006980a845fc2ffbc172629b6ae26e8e52a2a15f4",
+          "size_bytes": 66411,
+          "sha256": "6be830feb150bdd15cd904f609fa40ca77e808e3266307522830804bddf5b53f",
           "columns": [
             "frame",
             "time",
@@ -6088,11 +6093,12 @@
             "fy",
             "cx",
             "cy",
-            "line_rmse_px",
-            "endpoint_rmse_px",
-            "side_ratio_rmse_px",
-            "rail_rmse_px",
-            "source"
+            "da3_mask_depth_m",
+            "da3_depth_conf",
+            "residual_norm",
+            "source",
+            "se3_schema",
+            "pose_lock_reason"
           ],
           "rows": 192
         },
@@ -6295,9 +6301,9 @@
           "source_scope": "repository",
           "kind": "directory",
           "exists": true,
-          "file_count": 0,
-          "size_bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "file_count": 240,
+          "size_bytes": 788494,
+          "sha256": "60ee3ddd450d5fff69fc1ca891d1da0535ad924e0ef8b5602ace8347664c0e6d"
         },
         {
           "path": "samples_known_object/11_stick/results/tracking/object_center_trajectory.csv",
@@ -7191,6 +7197,37 @@
               "overlay_prior_reason",
               "pose_lock_reason",
               "decision_source"
+            ],
+            "rows": 240
+          },
+          {
+            "path": "samples_known_object/11_stick/results/benchmark_vlm_qwen/line_contact_lock_metrics.json",
+            "source_scope": "repository",
+            "kind": "file",
+            "exists": true,
+            "size_bytes": 876,
+            "sha256": "8192c3430ac5dca05ae282935967566c55b763f09ac65b93f38b90711cf0b221"
+          },
+          {
+            "path": "samples_known_object/11_stick/results/benchmark_vlm_qwen/line_contact_lock_blend_debug.csv",
+            "source_scope": "repository",
+            "kind": "file",
+            "exists": true,
+            "size_bytes": 40195,
+            "sha256": "73f54e099ddf7225d90416c90a77e70cf0984e2980f0d85e93d9aada0cd893fb",
+            "columns": [
+              "frame",
+              "blend_visible_weight",
+              "visible_len_px",
+              "contact_len_px",
+              "angle_gap_deg",
+              "center_gap_px",
+              "mean_palm_to_visible_line_px",
+              "left_local_s_source",
+              "right_local_s_source",
+              "left_local_s_used",
+              "right_local_s_used",
+              "blend_reason"
             ],
             "rows": 240
           },

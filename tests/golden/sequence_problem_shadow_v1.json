@@ -82,12 +82,11 @@
         "temporal_velocity": 1
       },
       "gap_ids": [
-        "semantic_graph_solver_private",
         "unsupported_loss_term:E_audio"
       ],
-      "attempt_id": "shadow-6195e8447f47",
+      "attempt_id": "shadow-01d045be9780",
       "validation_errors": [],
-      "canonical_sha256": "6195e8447f470fd77e3c19bfe9d445f30b6b81a2d7b41f3809f02d98cf3d6af4"
+      "canonical_sha256": "01d045be9780bed8b7e04b977fbc731751ee96c96d8bcddf5ba5499cf35b5ea3"
     },
     "stick": {
       "state_model": "translation3_with_line_orientation_prior",

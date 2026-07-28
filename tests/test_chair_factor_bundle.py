@@ -15,7 +15,7 @@ from scripts.shared.generic_contact_pipeline.core.factors import (
 REPO = Path(__file__).resolve().parents[1]
 
 
-def test_chair_factor_bundle_keeps_solver_gap_blocking_until_private_solver_gap_is_removed() -> None:
+def test_chair_factor_bundle_is_ready_after_current_run_seed_and_factor_coverage() -> None:
     profile = load_case_profile("chair")
     bundle = build_chair_factor_executor_bundle(profile, REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen")
 
@@ -23,8 +23,9 @@ def test_chair_factor_bundle_keeps_solver_gap_blocking_until_private_solver_gap_
     assert bundle["solver_executed"] is False
     assert bundle["accepted_outputs_written"] is False
     assert bundle["baseline_pose_read"] is False
-    assert bundle["status"] == "blocked_by_private_solver_gap"
+    assert bundle["status"] == "ready_for_candidate_executor"
     assert bundle["compatibility_gap_id"] == "semantic_graph_solver_private"
+    assert bundle["compatibility_gap_status"] == "nonblocking"
     assert bundle["missing_required_factor_kinds"] == []
     assert "joint_limit" in bundle["available_factor_kinds"]
     assert "gauge_constraint" in bundle["available_factor_kinds"]
@@ -34,7 +35,7 @@ def test_chair_factor_bundle_keeps_solver_gap_blocking_until_private_solver_gap_
 def test_chair_factor_bundle_validator_rejects_false_gap_closure() -> None:
     profile = load_case_profile("chair")
     bundle = build_chair_factor_executor_bundle(profile, REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen")
-    bundle["status"] = "ready_for_candidate_executor"
+    bundle["blocking_reasons"] = ["semantic_graph_solver_private still present in factor gap ledger"]
     bundle["compatibility_gap_status"] = "nonblocking"
     bundle["solver_executed"] = True
 
@@ -44,7 +45,7 @@ def test_chair_factor_bundle_validator_rejects_false_gap_closure() -> None:
     assert any("semantic_graph_solver_private must remain blocking" in error for error in errors)
 
 
-def test_chair_factor_bundle_cli_reports_private_solver_gap(tmp_path: Path) -> None:
+def test_chair_factor_bundle_cli_reports_ready_candidate_executor(tmp_path: Path) -> None:
     out = tmp_path / "chair_factor_bundle.json"
     completed = subprocess.run(
         [
@@ -59,7 +60,7 @@ def test_chair_factor_bundle_cli_reports_private_solver_gap(tmp_path: Path) -> N
         capture_output=True,
     )
 
-    assert "status=blocked_by_private_solver_gap" in completed.stdout
+    assert "status=ready_for_candidate_executor" in completed.stdout
     assert "missing=none" in completed.stdout
     payload = json.loads(out.read_text())
     assert payload["mode"] == "chair_generic_factor_executor_bundle_shadow"

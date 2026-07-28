@@ -59,13 +59,12 @@
         "temporal_velocity": 1
       },
       "gap_ids": [
-        "semantic_graph_solver_private",
         "unsupported_loss_term:E_audio"
       ],
       "unmapped_nonempty_fields": [
         "E_audio"
       ],
-      "canonical_sha256": "0f1ecf5835f7fb75c2cf99989fcaf287f66f1a03c41739733bc80bd99e6c1b94"
+      "canonical_sha256": "f0548b59922f288e0ddc824a68c89b54d4de919440f2a2b23d69354e0d2e5929"
     },
     "stick": {
       "factor_count": 5,

@@ -20,18 +20,18 @@ def _diagnostics() -> dict[str, object]:
     return build_chair_contact_diagnostics(profile.result_dir)
 
 
-def test_chair_contact_diagnostics_keep_canonical_seed_gap_blocking() -> None:
+def test_chair_contact_diagnostics_marks_current_run_seed_gap_nonblocking() -> None:
     diagnostics = _diagnostics()
     assert diagnostics["mode"] == "generic_chair_contact_diagnostics"
     assert diagnostics["solver_executed"] is False
     assert diagnostics["accepted_outputs_written"] is False
     assert diagnostics["baseline_pose_read"] is False
     assert diagnostics["compatibility_gap_id"] == "semantic_graph_solver_private"
-    assert diagnostics["compatibility_gap_status"] == "blocking"
+    assert diagnostics["compatibility_gap_status"] == "nonblocking"
     summary = diagnostics["summary"]
-    assert summary["seed_policy"] == "rebuilt_from_mainline_saved2d"
-    assert summary["seed_is_current_run"] is False
-    assert "mainline_pose_csv" in summary["historical_seed_reference_fields"]
+    assert summary["seed_policy"] == "current_stage3_observation_fit"
+    assert summary["seed_is_current_run"] is True
+    assert summary["historical_seed_reference_fields"] == []
     assert validate_chair_contact_diagnostics(diagnostics) == []
 
 
@@ -47,6 +47,7 @@ def test_chair_contact_diagnostics_capture_pairprop_contact_quality() -> None:
 def test_chair_contact_diagnostics_validator_rejects_false_gap_closure() -> None:
     diagnostics = _diagnostics()
     diagnostics["compatibility_gap_status"] = "nonblocking"
+    diagnostics["summary"]["seed_is_current_run"] = False
     diagnostics["summary"]["median_optimized_contact_gap_m"] = -1.0
     diagnostics["solver_executed"] = True
     errors = validate_chair_contact_diagnostics(diagnostics)

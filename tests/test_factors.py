@@ -83,7 +83,7 @@ def test_specialized_legacy_paths_remain_explicit_gaps() -> None:
     chair = build_factor_shadow(load_case_profile("chair"), REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen")
     stick = build_factor_shadow(load_case_profile("stick"), REPO / "samples_known_object/11_stick/results/benchmark_vlm_qwen")
     assert [gap["gap_id"] for gap in mug["gaps"]] == ["phase_snapshot_fallback"]
-    assert "semantic_graph_solver_private" in [gap["gap_id"] for gap in chair["gaps"]]
+    assert "semantic_graph_solver_private" not in [gap["gap_id"] for gap in chair["gaps"]]
     assert [gap["gap_id"] for gap in stick["gaps"]] == ["line_contact_lock_special_refinement"]
 
 

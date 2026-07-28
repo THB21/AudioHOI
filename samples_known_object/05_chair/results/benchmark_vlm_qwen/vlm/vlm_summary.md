@@ -1,17 +1,17 @@
 # VLM Verification Summary: chair
 
-Mode: local Qwen-VL forced-choice verification.
+Mode: mixed stage decisions (dry_run, qwen_vl).
 
 - Total queries: 36
 - Total result rows: 36
 
 ## Stage Decisions
 
-- stage0: pass blocking=False gates={'pass': 1} `/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage0/stage_decision.json`
-- stage1: pass blocking=False gates={'pass': 6} `/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage1/stage_decision.json`
-- stage2: pass blocking=False gates={'pass': 5} `/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage2/stage_decision.json`
-- stage3: pass blocking=False gates={'pass': 3} `/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage3/stage_decision.json`
-- stage4: pass_with_unclear_frames blocking=False gates={'pass': 4, 'unclear': 6} `/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage4/stage_decision.json`
-- stage5: pass blocking=False gates={'pass': 3} `/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage5/stage_decision.json`
-- stage6: pass_with_unclear_frames blocking=False gates={'unclear': 2, 'pass': 1} `/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage6/stage_decision.json`
-- stage7: pass_with_report_only_failures blocking=False gates={'reject': 5} `/mnt/hdd/AudioHOI/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage7/stage_decision.json`
+- stage0: pass blocking=False gates={'pass': 1} `/mnt/hdd/AudioHOI-migrate-chair-case/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage0/stage_decision.json`
+- stage1: pass blocking=False gates={'pass': 6} `/mnt/hdd/AudioHOI-migrate-chair-case/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage1/stage_decision.json`
+- stage2: pass blocking=False gates={'pass': 5} `/mnt/hdd/AudioHOI-migrate-chair-case/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage2/stage_decision.json`
+- stage3: pass blocking=False gates={'pass': 3} `/mnt/hdd/AudioHOI-migrate-chair-case/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage3/stage_decision.json`
+- stage4: not_blocking_dry_run blocking=False gates={'not_evaluated': 10} `/mnt/hdd/AudioHOI-migrate-chair-case/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage4/stage_decision.json`
+- stage5: pass blocking=False gates={'pass': 3} `/mnt/hdd/AudioHOI-migrate-chair-case/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage5/stage_decision.json`
+- stage6: pass_with_unclear_frames blocking=False gates={'unclear': 2, 'pass': 1} `/mnt/hdd/AudioHOI-migrate-chair-case/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage6/stage_decision.json`
+- stage7: pass_with_report_only_failures blocking=False gates={'reject': 5} `/mnt/hdd/AudioHOI-migrate-chair-case/samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage7/stage_decision.json`

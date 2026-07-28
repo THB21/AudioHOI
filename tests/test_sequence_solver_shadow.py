@@ -121,7 +121,7 @@ def test_sequence_problem_verifier_cli_reports_all_cases() -> None:
     lines = completed.stdout.strip().splitlines()
     assert len(lines) == len(CASE_DIRECTORIES)
     assert lines[0].startswith("basketball: state=translation3")
-    assert any("semantic_graph_solver_private" in line for line in lines)
+    assert any("unsupported_loss_term:E_audio" in line for line in lines)
 
 
 def test_sequence_solver_shadow_diagnostics_never_execute_or_write() -> None:
@@ -154,10 +154,12 @@ def test_sequence_solver_shadow_diagnostics_block_only_required_unmigrated_mecha
         REPO / "samples_known_object/11_stick/results/benchmark_vlm_qwen",
     )
     assert mug["blocking_gap_ids"] == ["phase_snapshot_fallback"]
-    assert chair["blocking_gap_ids"] == ["semantic_graph_solver_private"]
+    assert chair["blocking_gap_ids"] == []
+    assert chair["nonblocking_gap_ids"] == ["unsupported_loss_term:E_audio"]
     assert stick["blocking_gap_ids"] == []
     assert stick["nonblocking_gap_ids"] == ["line_contact_lock_special_refinement"]
-    assert all(item["status"] == "blocked_by_known_gaps" for item in (mug, chair))
+    assert mug["status"] == "blocked_by_known_gaps"
+    assert chair["status"] == "ready_for_future_shadow_solve"
     assert stick["status"] == "ready_for_future_shadow_solve"
 
 
@@ -189,7 +191,8 @@ def test_sequence_solver_diagnostics_export_cli_writes_reviewable_manifest(tmp_p
     payload = json.loads(out.read_text())
     assert json.loads(completed.stdout) == payload
     assert payload["mode"] == "generic_sequence_solver_shadow_diagnostics"
-    assert payload["blocking_gap_ids"] == ["semantic_graph_solver_private"]
+    assert payload["blocking_gap_ids"] == []
+    assert payload["nonblocking_gap_ids"] == ["unsupported_loss_term:E_audio"]
 
 
 def test_sequence_solver_diagnostics_verifier_cli_reports_all_cases() -> None:
@@ -206,10 +209,14 @@ def test_sequence_solver_diagnostics_verifier_cli_reports_all_cases() -> None:
     lines = completed.stdout.strip().splitlines()
     assert len(lines) == len(CASE_DIRECTORIES)
     assert lines[0].startswith("basketball: status=ready_for_future_shadow_solve")
-    assert any("blocking_gaps=[semantic_graph_solver_private]" in line for line in lines)
+    assert any(
+        line.startswith("chair: status=ready_for_future_shadow_solve")
+        and "blocking_gaps=[] nonblocking_gaps=[unsupported_loss_term:E_audio]" in line
+        for line in lines
+    )
 
 
-def test_candidate_sandbox_manifest_allows_ready_ball_cases_only() -> None:
+def test_candidate_sandbox_manifest_allows_ready_ball_and_chair_cases() -> None:
     basketball = build_candidate_sandbox_manifest(
         load_case_profile("basketball"),
         REPO / "samples_known_object/01_basketball/results/benchmark_vlm_qwen",
@@ -221,9 +228,10 @@ def test_candidate_sandbox_manifest_allows_ready_ball_cases_only() -> None:
     assert basketball["eligible_for_candidate_sandbox"] is True
     assert basketball["planned_artifacts"] == SPHERE_SANDBOX_ARTIFACTS
     assert basketball["accepted_outputs_written"] is False
-    assert chair["eligible_for_candidate_sandbox"] is False
-    assert chair["planned_artifacts"] == []
-    assert chair["blocking_gap_ids"] == ["semantic_graph_solver_private"]
+    assert chair["eligible_for_candidate_sandbox"] is True
+    assert chair["planned_artifacts"] == [SANDBOX_MANIFEST_NAME]
+    assert chair["blocking_gap_ids"] == []
+    assert chair["nonblocking_gap_ids"] == ["unsupported_loss_term:E_audio"]
     assert validate_candidate_sandbox_manifest(basketball) == []
     assert validate_candidate_sandbox_manifest(chair) == []
 
@@ -254,8 +262,8 @@ def test_candidate_sandbox_validation_rejects_accepted_output_names() -> None:
 
 def test_candidate_sandbox_validation_rejects_inconsistent_gap_eligibility() -> None:
     blocked = build_candidate_sandbox_manifest(
-        load_case_profile("chair"),
-        REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
+        load_case_profile("mug"),
+        REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen",
     )
     blocked["eligible_for_candidate_sandbox"] = True
     blocked["status"] = "sandbox_ready"
@@ -333,4 +341,4 @@ def test_candidate_sandbox_verifier_cli_reports_all_cases() -> None:
     lines = completed.stdout.strip().splitlines()
     assert len(lines) == len(CASE_DIRECTORIES)
     assert lines[0].startswith("basketball: status=sandbox_ready eligible=True")
-    assert any("chair: status=blocked_by_known_gaps eligible=False" in line for line in lines)
+    assert any("chair: status=sandbox_ready eligible=True" in line for line in lines)

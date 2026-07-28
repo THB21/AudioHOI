@@ -1,0 +1,10 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+chair,stage4,artifact:object_pose,pass,keep_outputs,0,1,0,object_pose exists
+chair,stage4,artifact:motion_regime,pass,keep_outputs,0,1,0,motion_regime exists
+chair,stage4,artifact:optimizer_decisions,pass,keep_outputs,0,1,0,optimizer_decisions exists
+chair,stage4,artifact:physical_smooth_residuals,pass,keep_outputs,0,1,0,physical_smooth_residuals exists
+chair,stage4,artifact:pose_jump_audit,pass,keep_outputs,0,1,0,pose_jump_audit exists
+chair,stage4,pose_jump_audit,pass,report_locked_solved_pose_spikes_only,0,1,0,4 spike rows are reported only because trusted solved pose lock is active
+chair,stage4,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+chair,stage4,llm_csv:sequence_optimizer_contract,pass,keep_outputs,0,1,0,sequence optimizer decisions enabled
+chair,stage4,llm_csv:pose_jump_audit,pass,keep_outputs,0,1,0,4 spikes reported under trusted pose lock

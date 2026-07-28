@@ -1,0 +1,530 @@
+{
+  "schema_version": 4,
+  "case_name": "chair",
+  "result_name": "benchmark_vlm_qwen",
+  "stage": "stage4",
+  "attempt_id": "000003",
+  "status": "completed",
+  "trigger": "scheduled_pipeline_stage",
+  "parent_attempt_id": null,
+  "started_at": "2026-07-28T18:00:39.885840+00:00",
+  "finished_at": "2026-07-28T18:01:40.978597+00:00",
+  "metadata": {
+    "from_stage": "stage4",
+    "to_stage": "stage4"
+  },
+  "artifacts_before": {
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv": {
+      "sha256": "fb82c2e626fca0908ef9c3024304dee1afd1097c77c47621f6d5c3ab6fccb969",
+      "size_bytes": 66220
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/motion_regime.csv": {
+      "sha256": "28b9641698e0bdf32d69a804b88618e62ac3357e57891a6e82057159b77c5577",
+      "size_bytes": 17436
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/physical_smooth_residuals.csv": {
+      "sha256": "10adc1308db6a264760886bcc18be9d9529c49fbb26140874d847476113a450a",
+      "size_bytes": 17855
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/pose_jump_audit.csv": {
+      "sha256": "3dbbbf924ffc4f41dc57b80cd0277e9ec1025e212436b92d68bcb34519a83638",
+      "size_bytes": 20746
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/optimizer_decisions.csv": {
+      "sha256": "7f5fc2f28d891d11ce6682bf4b4d34b7a5daa9e600cb3df79e3bf2840d3738ba",
+      "size_bytes": 28406
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose.csv": {
+      "sha256": "6be830feb150bdd15cd904f609fa40ca77e808e3266307522830804bddf5b53f",
+      "size_bytes": 66411
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_contact_points.csv": {
+      "sha256": "dd1ffe19c9b90aaffd71b4680d4edb5f754650bd20eb2dee07f0d4e907239acc",
+      "size_bytes": 51714
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_phase.csv": {
+      "sha256": "bc1785727fd1522a6436fa5a67b2cd827d5506c22e598b15092e26cdf520031c",
+      "size_bytes": 15058
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/stage4_metrics.json": {
+      "sha256": "731139313d2842a907ba9c085ee7424bd67c699407dd62e1249233979e887b79",
+      "size_bytes": 376152
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage4/vlm_gates.csv": {
+      "sha256": "57c4d25f608529f0cdef2c9f106aad1999cccdcd1a01f3909f5bca57f8d08641",
+      "size_bytes": 1040
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/stage_audit/stage4/stage_audit_gates.csv": {
+      "sha256": "201b95ef07cc60a7f6252620118e87e45a7bde5baf80e04e9a943d526c8f7b69",
+      "size_bytes": 1004
+    }
+  },
+  "artifacts_after": {
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv": {
+      "sha256": "fb82c2e626fca0908ef9c3024304dee1afd1097c77c47621f6d5c3ab6fccb969",
+      "size_bytes": 66220
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/motion_regime.csv": {
+      "sha256": "28b9641698e0bdf32d69a804b88618e62ac3357e57891a6e82057159b77c5577",
+      "size_bytes": 17436
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/physical_smooth_residuals.csv": {
+      "sha256": "10adc1308db6a264760886bcc18be9d9529c49fbb26140874d847476113a450a",
+      "size_bytes": 17855
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/pose_jump_audit.csv": {
+      "sha256": "3dbbbf924ffc4f41dc57b80cd0277e9ec1025e212436b92d68bcb34519a83638",
+      "size_bytes": 20746
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/optimizer_decisions.csv": {
+      "sha256": "7f5fc2f28d891d11ce6682bf4b4d34b7a5daa9e600cb3df79e3bf2840d3738ba",
+      "size_bytes": 28406
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose.csv": {
+      "sha256": "6be830feb150bdd15cd904f609fa40ca77e808e3266307522830804bddf5b53f",
+      "size_bytes": 66411
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_contact_points.csv": {
+      "sha256": "dd1ffe19c9b90aaffd71b4680d4edb5f754650bd20eb2dee07f0d4e907239acc",
+      "size_bytes": 51714
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_phase.csv": {
+      "sha256": "bc1785727fd1522a6436fa5a67b2cd827d5506c22e598b15092e26cdf520031c",
+      "size_bytes": 15058
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/stage4_metrics.json": {
+      "sha256": "731139313d2842a907ba9c085ee7424bd67c699407dd62e1249233979e887b79",
+      "size_bytes": 376152
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage4/vlm_gates.csv": {
+      "sha256": "57c4d25f608529f0cdef2c9f106aad1999cccdcd1a01f3909f5bca57f8d08641",
+      "size_bytes": 1040
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/stage_audit/stage4/stage_audit_gates.csv": {
+      "sha256": "b4e8b8f3a761a8b5e32873885e237658b5095751dc21d988d45dace5d685f7c5",
+      "size_bytes": 791
+    }
+  },
+  "stored_artifacts": {
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/motion_regime.csv": {
+      "algorithm": "sha256",
+      "sha256": "28b9641698e0bdf32d69a804b88618e62ac3357e57891a6e82057159b77c5577",
+      "size_bytes": 17436,
+      "canonical_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/motion_regime.csv",
+      "blob_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/provenance/artifact_store/sha256/28/28b9641698e0bdf32d69a804b88618e62ac3357e57891a6e82057159b77c5577"
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_contact_points.csv": {
+      "algorithm": "sha256",
+      "sha256": "dd1ffe19c9b90aaffd71b4680d4edb5f754650bd20eb2dee07f0d4e907239acc",
+      "size_bytes": 51714,
+      "canonical_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_contact_points.csv",
+      "blob_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/provenance/artifact_store/sha256/dd/dd1ffe19c9b90aaffd71b4680d4edb5f754650bd20eb2dee07f0d4e907239acc"
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_phase.csv": {
+      "algorithm": "sha256",
+      "sha256": "bc1785727fd1522a6436fa5a67b2cd827d5506c22e598b15092e26cdf520031c",
+      "size_bytes": 15058,
+      "canonical_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_phase.csv",
+      "blob_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/provenance/artifact_store/sha256/bc/bc1785727fd1522a6436fa5a67b2cd827d5506c22e598b15092e26cdf520031c"
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose.csv": {
+      "algorithm": "sha256",
+      "sha256": "6be830feb150bdd15cd904f609fa40ca77e808e3266307522830804bddf5b53f",
+      "size_bytes": 66411,
+      "canonical_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose.csv",
+      "blob_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/provenance/artifact_store/sha256/6b/6be830feb150bdd15cd904f609fa40ca77e808e3266307522830804bddf5b53f"
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv": {
+      "algorithm": "sha256",
+      "sha256": "fb82c2e626fca0908ef9c3024304dee1afd1097c77c47621f6d5c3ab6fccb969",
+      "size_bytes": 66220,
+      "canonical_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose_pre_smooth.csv",
+      "blob_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/provenance/artifact_store/sha256/fb/fb82c2e626fca0908ef9c3024304dee1afd1097c77c47621f6d5c3ab6fccb969"
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/optimizer_decisions.csv": {
+      "algorithm": "sha256",
+      "sha256": "7f5fc2f28d891d11ce6682bf4b4d34b7a5daa9e600cb3df79e3bf2840d3738ba",
+      "size_bytes": 28406,
+      "canonical_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+      "blob_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/provenance/artifact_store/sha256/7f/7f5fc2f28d891d11ce6682bf4b4d34b7a5daa9e600cb3df79e3bf2840d3738ba"
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/physical_smooth_residuals.csv": {
+      "algorithm": "sha256",
+      "sha256": "10adc1308db6a264760886bcc18be9d9529c49fbb26140874d847476113a450a",
+      "size_bytes": 17855,
+      "canonical_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+      "blob_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/provenance/artifact_store/sha256/10/10adc1308db6a264760886bcc18be9d9529c49fbb26140874d847476113a450a"
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/pose_jump_audit.csv": {
+      "algorithm": "sha256",
+      "sha256": "3dbbbf924ffc4f41dc57b80cd0277e9ec1025e212436b92d68bcb34519a83638",
+      "size_bytes": 20746,
+      "canonical_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/pose_jump_audit.csv",
+      "blob_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/provenance/artifact_store/sha256/3d/3dbbbf924ffc4f41dc57b80cd0277e9ec1025e212436b92d68bcb34519a83638"
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/stage4_metrics.json": {
+      "algorithm": "sha256",
+      "sha256": "731139313d2842a907ba9c085ee7424bd67c699407dd62e1249233979e887b79",
+      "size_bytes": 376152,
+      "canonical_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/stage4_metrics.json",
+      "blob_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/provenance/artifact_store/sha256/73/731139313d2842a907ba9c085ee7424bd67c699407dd62e1249233979e887b79"
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/stage_audit/stage4/stage_audit_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "b4e8b8f3a761a8b5e32873885e237658b5095751dc21d988d45dace5d685f7c5",
+      "size_bytes": 791,
+      "canonical_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/stage_audit/stage4/stage_audit_gates.csv",
+      "blob_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/provenance/artifact_store/sha256/b4/b4e8b8f3a761a8b5e32873885e237658b5095751dc21d988d45dace5d685f7c5"
+    },
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage4/vlm_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "57c4d25f608529f0cdef2c9f106aad1999cccdcd1a01f3909f5bca57f8d08641",
+      "size_bytes": 1040,
+      "canonical_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/vlm/stage4/vlm_gates.csv",
+      "blob_path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/provenance/artifact_store/sha256/57/57c4d25f608529f0cdef2c9f106aad1999cccdcd1a01f3909f5bca57f8d08641"
+    }
+  },
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "chair",
+    "result_name": "benchmark_vlm_qwen",
+    "stage": "stage4",
+    "status": "pass",
+    "artifacts": [
+      {
+        "artifact_key": "object_pose",
+        "path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose.csv",
+        "adapter": "se3_pose_v1",
+        "required": true,
+        "columns": [
+          "frame",
+          "time",
+          "tx",
+          "ty",
+          "tz",
+          "qx",
+          "qy",
+          "qz",
+          "qw",
+          "rx_delta",
+          "ry_delta",
+          "rz_delta",
+          "rear_joint_angle",
+          "seat_joint_angle",
+          "fx",
+          "fy",
+          "cx",
+          "cy",
+          "da3_mask_depth_m",
+          "da3_depth_conf",
+          "residual_norm",
+          "source",
+          "se3_schema",
+          "pose_lock_reason"
+        ],
+        "required_columns": [
+          "frame",
+          "time",
+          "tx",
+          "ty",
+          "tz",
+          "qw",
+          "qx",
+          "qy",
+          "qz"
+        ],
+        "extension_columns": [
+          "rx_delta",
+          "ry_delta",
+          "rz_delta",
+          "rear_joint_angle",
+          "seat_joint_angle",
+          "fx",
+          "fy",
+          "cx",
+          "cy",
+          "da3_mask_depth_m",
+          "da3_depth_conf",
+          "residual_norm",
+          "source",
+          "se3_schema",
+          "pose_lock_reason"
+        ],
+        "row_count": 192,
+        "adapted_examples": [
+          {
+            "frame": 1,
+            "time": 0.0,
+            "translation": [
+              0.616483,
+              0.898351,
+              5.002413
+            ],
+            "quaternion_wxyz": [
+              0.560214,
+              0.610364,
+              0.394572,
+              -0.397404
+            ]
+          },
+          {
+            "frame": 2,
+            "time": 0.041667,
+            "translation": [
+              0.616483,
+              0.898351,
+              5.002413
+            ],
+            "quaternion_wxyz": [
+              0.560214,
+              0.610364,
+              0.394572,
+              -0.397404
+            ]
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      },
+      {
+        "artifact_key": "motion_regime",
+        "path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/motion_regime.csv",
+        "adapter": "motion_regime_v1",
+        "required": false,
+        "columns": [
+          "frame",
+          "time",
+          "motion_regime",
+          "motion_speed_score",
+          "contact_observed",
+          "contact_persistent",
+          "pose_anchor_allowed",
+          "source"
+        ],
+        "required_columns": [
+          "frame",
+          "time",
+          "motion_regime",
+          "motion_speed_score",
+          "contact_observed",
+          "contact_persistent",
+          "pose_anchor_allowed",
+          "source"
+        ],
+        "extension_columns": [],
+        "row_count": 192,
+        "adapted_examples": [
+          {
+            "frame": 1,
+            "time": 0.0
+          },
+          {
+            "frame": 2,
+            "time": 0.041667
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      },
+      {
+        "artifact_key": "physical_smooth_residuals",
+        "path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/physical_smooth_residuals.csv",
+        "adapter": "physical_smooth_residual_v1",
+        "required": false,
+        "columns": [
+          "frame",
+          "se3_velocity_spike",
+          "se3_accel_spike",
+          "raw_se3_velocity_spike",
+          "raw_se3_accel_spike",
+          "raw_velocity_score",
+          "raw_accel_score",
+          "final_velocity_score",
+          "final_accel_score",
+          "se3_smoothed",
+          "pose_locked",
+          "delta_translation_m",
+          "delta_rotation_rad",
+          "trust_weight",
+          "anchor_residual_enabled",
+          "anchor_residual_count",
+          "anchor_residual_m"
+        ],
+        "required_columns": [
+          "frame",
+          "se3_velocity_spike",
+          "se3_accel_spike",
+          "delta_translation_m",
+          "delta_rotation_rad",
+          "trust_weight",
+          "anchor_residual_enabled",
+          "anchor_residual_count",
+          "anchor_residual_m"
+        ],
+        "extension_columns": [
+          "raw_se3_velocity_spike",
+          "raw_se3_accel_spike",
+          "raw_velocity_score",
+          "raw_accel_score",
+          "final_velocity_score",
+          "final_accel_score",
+          "se3_smoothed",
+          "pose_locked"
+        ],
+        "row_count": 192,
+        "adapted_examples": [
+          {
+            "frame": 1
+          },
+          {
+            "frame": 2
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      },
+      {
+        "artifact_key": "optimizer_decisions",
+        "path": "samples_known_object/05_chair/results/benchmark_vlm_qwen/optimizer_decisions.csv",
+        "adapter": "optimizer_decision_v1",
+        "required": false,
+        "columns": [
+          "frame",
+          "motion_regime",
+          "sequence_se3_optimizer_enabled",
+          "visual_residual_enabled",
+          "contact_anchor_residual_enabled",
+          "depth_residual_enabled",
+          "geometry_residual_enabled",
+          "velocity_residual_enabled",
+          "acceleration_residual_enabled",
+          "static_freeze_residual_enabled",
+          "boundary_freeze_interpolation_enabled",
+          "static_tail_freeze_enabled",
+          "trust_weight",
+          "smooth_weight",
+          "accel_weight",
+          "feedback_reoptimized",
+          "feedback_reweight_reason",
+          "visual_prior_reason",
+          "overlay_prior_reason",
+          "pose_lock_reason",
+          "vlm_pose_refine_disabled",
+          "vlm_gate_optimizer_mode",
+          "decision_source"
+        ],
+        "required_columns": [
+          "frame",
+          "motion_regime",
+          "sequence_se3_optimizer_enabled",
+          "visual_residual_enabled",
+          "contact_anchor_residual_enabled",
+          "depth_residual_enabled",
+          "geometry_residual_enabled",
+          "velocity_residual_enabled",
+          "acceleration_residual_enabled",
+          "trust_weight",
+          "smooth_weight",
+          "accel_weight",
+          "decision_source"
+        ],
+        "extension_columns": [
+          "static_freeze_residual_enabled",
+          "boundary_freeze_interpolation_enabled",
+          "static_tail_freeze_enabled",
+          "feedback_reoptimized",
+          "feedback_reweight_reason",
+          "visual_prior_reason",
+          "overlay_prior_reason",
+          "pose_lock_reason",
+          "vlm_pose_refine_disabled",
+          "vlm_gate_optimizer_mode"
+        ],
+        "row_count": 192,
+        "adapted_examples": [
+          {
+            "frame": 1
+          },
+          {
+            "frame": 2
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      }
+    ],
+    "errors": []
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage4",
+    "plugins": [
+      {
+        "kind": "refinement",
+        "name": "small_se3",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.policies.small_se3",
+        "entrypoint": "apply",
+        "requires": [
+          "pose.se3",
+          "anchor.local_xyz"
+        ],
+        "provides": [
+          "pose.seed_refined"
+        ],
+        "role": "compatibility_adapter",
+        "plugin_id": "refinement:small_se3"
+      },
+      {
+        "kind": "refinement",
+        "name": "anchor_propagate_freeze",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.policies.anchor_propagate_freeze",
+        "entrypoint": "apply",
+        "requires": [
+          "pose.se3",
+          "anchor.local_xyz"
+        ],
+        "provides": [
+          "pose.seed_refined"
+        ],
+        "role": "compatibility_adapter",
+        "plugin_id": "refinement:anchor_propagate_freeze"
+      },
+      {
+        "kind": "refinement",
+        "name": "sequence_se3_optimizer",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.sequence_se3_optimizer",
+        "entrypoint": "smooth_quaternion_pose_sequence",
+        "requires": [
+          "pose.se3"
+        ],
+        "provides": [
+          "pose.sequence_refined"
+        ],
+        "role": "mainline_marker_and_implementation",
+        "plugin_id": "refinement:sequence_se3_optimizer"
+      }
+    ],
+    "final_capabilities": [
+      "anchor.local_xyz",
+      "articulation.support",
+      "contact.candidates",
+      "geometry.semantic_segments",
+      "input.audio",
+      "input.video",
+      "observation.semantic_graph",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [
+    "samples_known_object/05_chair/results/benchmark_vlm_qwen/stage_audit/stage4/stage_audit_gates.csv"
+  ],
+  "result_summary": {
+    "stage_status": "",
+    "vlm_decision": "not_run",
+    "stage_audit_decision": "pass",
+    "rerun_requested": false
+  }
+}

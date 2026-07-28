@@ -13,10 +13,15 @@ Stage 3/4 调度或 accepted outputs。
 
 ## 当前诊断结论
 
-canonical `benchmark_vlm_qwen` 的 Stage 4 pairprop pose 被接受，但其 seed provenance
-仍是 `rebuilt_from_mainline_saved2d`，并记录 `mainline_pose_csv`。因此
-`semantic_graph_solver_private` 必须继续是 blocking gap；不能因为 pairprop contact quality
-通过就宣称 chair 已完成算法级泛化。
+canonical `benchmark_vlm_qwen` 的 Stage 4 已用 current-run
+`object_pose_init.csv` 重新执行。pairprop seed provenance 现在是
+`current_stage3_observation_fit`，不再记录 `mainline_pose_csv` 等 historical seed reference。
+contact chord initializer、2D gauge、articulation optimization 和 freeze invariant gate 通过；
+因此 `semantic_graph_solver_private` 从 blocking gap 降级为 nonblocking compatibility marker。
+
+这一步关闭的是 chair 的 historical/rebuilt seed gap 和 private-solver blocking ledger；
+不是宣称 chair 已经写入 accepted-output generic executor。当前 candidate sandbox 仍只写 safe
+manifest/residual coverage，不写 `object_pose.csv` 等 accepted outputs。
 
 ## 本分支新增 gate
 
@@ -24,7 +29,8 @@ canonical `benchmark_vlm_qwen` 的 Stage 4 pairprop pose 被接受，但其 seed
 证据：
 
 - `solver_executed=false`、`accepted_outputs_written=false`、`baseline_pose_read=false`；
-- 固定追踪 `semantic_graph_solver_private`；
+- 固定追踪 `semantic_graph_solver_private`，但 current-run seed + constraint quality pass 时
+  状态为 nonblocking；
 - 记录 seed policy、historical seed reference fields、active frame count、pairprop
   contact median/P90 gap、per-frame metric rows、standard/constraint quality gate；
 - validator 会拒绝把 historical/rebuilt seed 状态伪装成 nonblocking gap，也会拒绝
@@ -36,9 +42,8 @@ canonical `benchmark_vlm_qwen` 的 Stage 4 pairprop pose 被接受，但其 seed
 `chair_generic_factor_executor_bundle_shadow` 进一步记录 generic executor 的最小因子
 覆盖条件：`point_reprojection`、`contact_distance`、`joint_limit` 和
 `gauge_constraint`。canonical chair 现在已有 2D/contact、`joint_limit` 和
-`gauge_constraint` shadow factors；bundle 状态从 missing-factor 阶段推进为
-`blocked_by_private_solver_gap`，因为这些 factors 仍未由 generic executor 实际消费，
-`semantic_graph_solver_private` 继续 blocking。
+`gauge_constraint` shadow factors；并且 factor ledger 已消费 contact diagnostics 的
+nonblocking 结论，bundle 状态推进为 `ready_for_candidate_executor`。
 
 `chair_generic_factor_executor_candidate_attempt` 是 isolated candidate executor 的安全外壳：
 它只把 factor bundle、contact diagnostics、candidate dir、forbidden accepted output names
@@ -54,8 +59,8 @@ chair per-frame residual loop 现在已复用 core `FactorResidualEvaluator` 组
 `FactorResidualEvaluator` 现在也覆盖 `joint_limit` 与 `gauge_constraint` residual block；
 chair candidate attempt 会记录 supported residual blocks，并在 sandbox 写入
 `chair_generic_factor_residuals.json` 覆盖率 manifest；validator 会拒绝 required factor
-缺失、solver execution、accepted output write 或 baseline pose read。此处仍只是算术能力
-和 provenance 能力，不等于已经运行 isolated optimizer。
+缺失、accepted output write 或 baseline pose read。此处仍只是算术能力、provenance 能力
+和 executor readiness，不等于已经运行 accepted-output isolated optimizer。
 
 ## 后续接受标准
 
@@ -70,5 +75,6 @@ chair candidate attempt 会记录 supported residual blocks，并在 sandbox 写
 4. candidate 输出先进入 isolated result directory；禁止覆盖 canonical `benchmark_vlm_qwen`。
    当前已建立 attempt/residual coverage manifest 外壳；下一步才替换为实际 generic
    executor 输出。
-5. semantic 2D、contact median/P90、freeze、pose lock 和六路 render 均不退化后，才可
-   关闭 `semantic_graph_solver_private`。
+5. `semantic_graph_solver_private` blocking 已关闭；下一步是在 isolated candidate dir 中
+   运行真实 generic factor executor，并在 semantic 2D、contact median/P90、freeze、
+   pose lock 和六路 render 不退化后，才允许替换 canonical accepted outputs。

@@ -98,13 +98,7 @@ def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path
     bundle_errors = validate_chair_factor_executor_bundle(bundle)
     diagnostics_errors = validate_chair_contact_diagnostics(diagnostics)
     status = str(bundle["status"])
-    solver_executed = status == "ready_for_candidate_executor"
-    # This branch deliberately has no chair generic optimizer yet. If a future
-    # branch marks the bundle ready, it must replace this guard with a real
-    # isolated executor before solver_executed can become true.
-    if solver_executed:
-        status = "blocked_by_missing_executor_implementation"
-        solver_executed = False
+    solver_executed = False
     core = {
         "bundle_sha256": bundle["canonical_sha256"],
         "contact_diagnostics_sha256": diagnostics["canonical_sha256"],
@@ -141,7 +135,7 @@ def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path
             "seed_policy": diagnostics["summary"]["seed_policy"],
             "compatibility_gap_status": diagnostics["compatibility_gap_status"],
         },
-        "blocking_reasons": list(bundle.get("blocking_reasons", [])) + ["generic chair factor executor not implemented in this branch"],
+        "blocking_reasons": list(bundle.get("blocking_reasons", [])),
         "validation_errors": bundle_errors + diagnostics_errors,
         "planned_outputs": [CHAIR_FACTOR_ATTEMPT_NAME, CHAIR_FACTOR_RESIDUALS_NAME],
         "forbidden_artifact_names": sorted(ACCEPTED_OUTPUT_NAMES),

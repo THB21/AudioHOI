@@ -229,7 +229,13 @@ def test_candidate_sandbox_manifest_allows_ready_ball_and_chair_cases() -> None:
     assert basketball["planned_artifacts"] == SPHERE_SANDBOX_ARTIFACTS
     assert basketball["accepted_outputs_written"] is False
     assert chair["eligible_for_candidate_sandbox"] is True
-    assert chair["planned_artifacts"] == [SANDBOX_MANIFEST_NAME]
+    assert chair["planned_artifacts"] == [
+        SANDBOX_MANIFEST_NAME,
+        "generic_chair_factor_candidate.csv",
+        "generic_chair_factor_residuals.csv",
+        "chair_generic_factor_executor_attempt.json",
+        "chair_generic_factor_residuals.json",
+    ]
     assert chair["blocking_gap_ids"] == []
     assert chair["nonblocking_gap_ids"] == ["unsupported_loss_term:E_audio"]
     assert validate_candidate_sandbox_manifest(basketball) == []

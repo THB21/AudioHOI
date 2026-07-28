@@ -109,7 +109,7 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 | `refactor/migrate-ball-cases` | basketball/football 迁移 | done | typed sphere candidate 与旧 exact seed 两 case byte-identical；switched Stage1–7、audit、render 与全量门禁通过 |
 | `refactor/migrate-line-case` | stick 迁移 | in_progress | LineS/contact/时序指标不退化；无 line 专用 optimizer；当前已收紧 `LineS` 归一化 contact gate |
 | `refactor/migrate-mug-case` | mug rigid mesh + periodic feature phase 迁移 | in_progress | generic Stage 1 body/phase、Stage 1–4 关键 CSV、六路 render 均与独立 fresh baseline byte-identical；Stage 1–7 attempts/contracts pass；待 Stage 3/4 统一 factor executor |
-| `refactor/migrate-chair-case` | chair URDF + articulated DOF + two-hand contact 迁移 | in_progress | chair current-run Stage4 seed 已替换 historical/rebuilt seed；contact diagnostics/factor ledger 将 `semantic_graph_solver_private` 降为 nonblocking；factor bundle 已 ready for candidate executor；candidate 仍只写 safe manifest，不写 accepted outputs |
+| `refactor/migrate-chair-case` | chair URDF + articulated DOF + two-hand contact 迁移 | in_progress | chair current-run Stage4 seed 已替换 historical/rebuilt seed；contact diagnostics/factor ledger 将 `semantic_graph_solver_private` 降为 nonblocking；factor bundle 已 ready for candidate executor；candidate sandbox 已物化安全 pose/residual artifact，不写 accepted outputs |
 | `refactor/heldout-generalization` | 未见对象与退化条件验证 | pending | 满足下述零专用 solver 验收 |
 
 每个分支从前一已接受提交建立新 worktree；一个分支只迁移一个 IR 或一个对象族。
@@ -242,8 +242,9 @@ python scripts/shared/generic_contact_pipeline/tools/sync_golden_inputs.py \
   seed。`semantic_graph_solver_private` 现在是 nonblocking compatibility marker，不再阻塞
   sequence shadow/candidate sandbox。chair factor bundle 显式要求
   `point_reprojection`、`contact_distance`、`joint_limit`、`gauge_constraint`，这些 factor
-  kinds 已齐，bundle 已 ready for candidate executor；candidate attempt 仍只允许写 safe
-  manifest/residual coverage，不写 `object_pose.csv` 等 accepted outputs。
+  kinds 已齐，bundle 已 ready for candidate executor；candidate sandbox 已物化安全命名的
+  `generic_chair_factor_candidate.csv` 与 `generic_chair_factor_residuals.csv`，并继续禁止写
+  `object_pose.csv` 等 accepted outputs。
 
 因此，“泛化修复”计划覆盖观测、接触、姿态三层；球类已从 shadow 进入真实连续求解，
 其余路径仍按 line、rigid periodic feature、articulated URDF 分支逐一迁移。

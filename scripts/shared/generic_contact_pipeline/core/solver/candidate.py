@@ -24,6 +24,13 @@ SPHERE_SANDBOX_ARTIFACTS = [
     SPHERE_RESIDUAL_NAME,
     SPHERE_ATTEMPT_NAME,
 ]
+CHAIR_SANDBOX_ARTIFACTS = [
+    SANDBOX_MANIFEST_NAME,
+    "generic_chair_factor_candidate.csv",
+    "generic_chair_factor_residuals.csv",
+    "chair_generic_factor_executor_attempt.json",
+    "chair_generic_factor_residuals.json",
+]
 
 
 def _canonical_hash(value: object) -> str:
@@ -41,7 +48,15 @@ def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
     eligible = diagnostics["status"] == "ready_for_future_shadow_solve"
     status = "sandbox_ready" if eligible else "blocked_by_known_gaps"
     is_sphere = profile.component("pose_model") == "translation3" and profile.component("geometry_model") == "sphere_proxy"
-    planned_artifacts = (SPHERE_SANDBOX_ARTIFACTS if is_sphere else [SANDBOX_MANIFEST_NAME]) if eligible else []
+    is_chair = profile.case_name == "chair"
+    if eligible and is_sphere:
+        planned_artifacts = SPHERE_SANDBOX_ARTIFACTS
+    elif eligible and is_chair:
+        planned_artifacts = CHAIR_SANDBOX_ARTIFACTS
+    elif eligible:
+        planned_artifacts = [SANDBOX_MANIFEST_NAME]
+    else:
+        planned_artifacts = []
     canonical_payload = {
         "attempt_id": diagnostics["attempt_id"],
         "status": status,
@@ -127,7 +142,12 @@ def validate_candidate_sandbox_manifest(manifest: dict[str, object]) -> list[str
         overlap = sorted(str(item) for item in planned if Path(str(item)).name in forbidden)
         if overlap:
             errors.append(f"planned artifacts include accepted output names: {overlap}")
-        expected = SPHERE_SANDBOX_ARTIFACTS if manifest.get("geometry_kind") == "sphere" else [SANDBOX_MANIFEST_NAME]
+        if manifest.get("geometry_kind") == "sphere":
+            expected = SPHERE_SANDBOX_ARTIFACTS
+        elif manifest.get("sample_id") == "chair":
+            expected = CHAIR_SANDBOX_ARTIFACTS
+        else:
+            expected = [SANDBOX_MANIFEST_NAME]
         if eligible and planned != expected:
             errors.append(f"eligible sandbox must plan exactly the safe artifacts: {expected}")
         if not eligible and planned:

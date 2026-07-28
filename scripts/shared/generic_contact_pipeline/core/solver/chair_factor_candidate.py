@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from ..base.config import CaseProfile
-from ..base.io import repo_relative_value, write_json
+from ..base.io import read_csv, repo_relative_value, write_csv, write_json
 from ..factors import build_chair_factor_executor_bundle, build_factor_shadow, validate_chair_factor_executor_bundle
 from .candidate import ACCEPTED_OUTPUT_NAMES
 from .chair_diagnostics import build_chair_contact_diagnostics, validate_chair_contact_diagnostics
@@ -13,6 +13,14 @@ from .chair_diagnostics import build_chair_contact_diagnostics, validate_chair_c
 
 CHAIR_FACTOR_ATTEMPT_NAME = "chair_generic_factor_executor_attempt.json"
 CHAIR_FACTOR_RESIDUALS_NAME = "chair_generic_factor_residuals.json"
+CHAIR_FACTOR_CANDIDATE_NAME = "generic_chair_factor_candidate.csv"
+CHAIR_FACTOR_RESIDUAL_TABLE_NAME = "generic_chair_factor_residuals.csv"
+CHAIR_FACTOR_SAFE_OUTPUTS = [
+    CHAIR_FACTOR_ATTEMPT_NAME,
+    CHAIR_FACTOR_RESIDUALS_NAME,
+    CHAIR_FACTOR_CANDIDATE_NAME,
+    CHAIR_FACTOR_RESIDUAL_TABLE_NAME,
+]
 CHAIR_SUPPORTED_RESIDUAL_BLOCKS = (
     "point_reprojection",
     "contact_distance",
@@ -26,6 +34,58 @@ CHAIR_SUPPORTED_RESIDUAL_BLOCKS = (
 def _canonical_hash(value: object) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(payload).hexdigest()
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _pairprop_pose_path(result_dir: Path) -> Path:
+    return result_dir / "stage4_pairprop_contact_refine/object_pose_pairprop_generic.csv"
+
+
+def _pairprop_metrics_path(result_dir: Path) -> Path:
+    return result_dir / "stage4_pairprop_contact_refine/pairprop_contact_refine_metrics.json"
+
+
+def _chair_residual_rows(metrics: dict[str, object]) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    raw_rows = metrics.get("metrics", [])
+    if not isinstance(raw_rows, list):
+        return rows
+    for item in raw_rows:
+        if not isinstance(item, dict):
+            continue
+        init = item.get("contact_chord_initializer", {})
+        gauge = item.get("contact_chord_2d_gauge", {})
+        if not isinstance(init, dict):
+            init = {}
+        if not isinstance(gauge, dict):
+            gauge = {}
+        rows.append(
+            {
+                "frame": item.get("frame", ""),
+                "cost": item.get("cost", ""),
+                "median_contact_gap_m": item.get("median_contact_gap_m", ""),
+                "contact_chord_initializer_used": init.get("used", ""),
+                "contact_chord_correspondence_count": init.get("correspondence_count", ""),
+                "local_chord_length_m": init.get("local_chord_length_m", ""),
+                "palm_chord_length_m": init.get("palm_chord_length_m", ""),
+                "theoretical_min_gap_m": init.get("theoretical_min_gap_m", ""),
+                "seed_median_contact_gap_m": init.get("seed_median_contact_gap_m", ""),
+                "rotation_from_stage3_rad": init.get("rotation_from_stage3_rad", ""),
+                "contact_chord_2d_gauge_used": gauge.get("used", ""),
+                "contact_chord_2d_gauge_success": gauge.get("success", ""),
+                "twist_rad": gauge.get("twist_rad", ""),
+                "initial_cost": gauge.get("initial_cost", ""),
+                "gauge_cost": gauge.get("cost", ""),
+                "cost_nonincreasing": gauge.get("cost_nonincreasing", ""),
+                "rear_joint_angle": gauge.get("rear_joint_angle", ""),
+                "seat_joint_angle": gauge.get("seat_joint_angle", ""),
+                "contact_chord_constraint_preserved": item.get("contact_chord_constraint_preserved", ""),
+            }
+        )
+    return rows
 
 
 def build_chair_factor_residual_coverage(profile: CaseProfile, result_dir: Path) -> dict[str, object]:
@@ -99,16 +159,27 @@ def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path
     diagnostics_errors = validate_chair_contact_diagnostics(diagnostics)
     status = str(bundle["status"])
     solver_executed = False
+    pose_path = _pairprop_pose_path(result_dir)
+    metrics_path = _pairprop_metrics_path(result_dir)
+    pose_rows = read_csv(pose_path) if pose_path.exists() else []
+    metrics = json.loads(metrics_path.read_text()) if metrics_path.exists() else {}
+    residual_rows = _chair_residual_rows(metrics)
+    materialized = status == "ready_for_candidate_executor" and bool(pose_rows) and bool(residual_rows)
     core = {
         "bundle_sha256": bundle["canonical_sha256"],
         "contact_diagnostics_sha256": diagnostics["canonical_sha256"],
         "status": status,
+        "isolated_candidate_materialized": materialized,
         "missing_required_factor_kinds": bundle["missing_required_factor_kinds"],
         "compatibility_gap_id": bundle["compatibility_gap_id"],
         "compatibility_gap_status": bundle["compatibility_gap_status"],
         "supported_residual_blocks": list(CHAIR_SUPPORTED_RESIDUAL_BLOCKS),
         "validation_error_count": len(bundle_errors) + len(diagnostics_errors),
         "candidate_dir": str(repo_relative_value(candidate_dir)),
+        "candidate_pose_sha256": _sha256(pose_path) if pose_path.exists() else None,
+        "residual_metrics_sha256": _sha256(metrics_path) if metrics_path.exists() else None,
+        "candidate_pose_rows": len(pose_rows),
+        "residual_rows": len(residual_rows),
     }
     canonical = _canonical_hash(core)
     return {
@@ -122,8 +193,21 @@ def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path
         "solver_executed": solver_executed,
         "accepted_outputs_written": False,
         "baseline_pose_read": False,
+        "isolated_candidate_materialized": materialized,
         "missing_required_factor_kinds": bundle["missing_required_factor_kinds"],
         "supported_residual_blocks": list(CHAIR_SUPPORTED_RESIDUAL_BLOCKS),
+        "candidate_pose": {
+            "planned_output": CHAIR_FACTOR_CANDIDATE_NAME,
+            "source": str(repo_relative_value(pose_path)),
+            "source_sha256": _sha256(pose_path) if pose_path.exists() else None,
+            "rows": len(pose_rows),
+        },
+        "residual_table": {
+            "planned_output": CHAIR_FACTOR_RESIDUAL_TABLE_NAME,
+            "source": str(repo_relative_value(metrics_path)),
+            "source_sha256": _sha256(metrics_path) if metrics_path.exists() else None,
+            "rows": len(residual_rows),
+        },
         "bundle": {
             "canonical_sha256": bundle["canonical_sha256"],
             "status": bundle["status"],
@@ -137,7 +221,7 @@ def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path
         },
         "blocking_reasons": list(bundle.get("blocking_reasons", [])),
         "validation_errors": bundle_errors + diagnostics_errors,
-        "planned_outputs": [CHAIR_FACTOR_ATTEMPT_NAME, CHAIR_FACTOR_RESIDUALS_NAME],
+        "planned_outputs": list(CHAIR_FACTOR_SAFE_OUTPUTS),
         "forbidden_artifact_names": sorted(ACCEPTED_OUTPUT_NAMES),
         "canonical_sha256": canonical,
     }
@@ -152,7 +236,7 @@ def validate_chair_factor_executor_candidate(attempt: dict[str, object]) -> list
     if attempt.get("baseline_pose_read") is not False:
         errors.append("chair factor candidate must not read baseline pose")
     planned = attempt.get("planned_outputs", [])
-    if not isinstance(planned, list) or planned != [CHAIR_FACTOR_ATTEMPT_NAME, CHAIR_FACTOR_RESIDUALS_NAME]:
+    if not isinstance(planned, list) or planned != CHAIR_FACTOR_SAFE_OUTPUTS:
         errors.append("chair factor candidate must only plan safe attempt/residual manifests")
     forbidden = set(ACCEPTED_OUTPUT_NAMES)
     overlap = sorted(str(item) for item in planned if Path(str(item)).name in forbidden) if isinstance(planned, list) else []
@@ -162,6 +246,15 @@ def validate_chair_factor_executor_candidate(attempt: dict[str, object]) -> list
         errors.append("blocked chair factor candidate must not execute solver")
     if attempt.get("candidate_dir") == attempt.get("canonical_result_dir"):
         errors.append("chair factor candidate dir must not equal canonical result dir")
+    if attempt.get("status") == "ready_for_candidate_executor":
+        if attempt.get("isolated_candidate_materialized") is not True:
+            errors.append("ready chair factor candidate must materialize isolated candidate artifacts")
+        candidate_pose = attempt.get("candidate_pose", {})
+        residual_table = attempt.get("residual_table", {})
+        if not isinstance(candidate_pose, dict) or int(candidate_pose.get("rows", 0) or 0) <= 0:
+            errors.append("ready chair factor candidate must record candidate pose rows")
+        if not isinstance(residual_table, dict) or int(residual_table.get("rows", 0) or 0) <= 0:
+            errors.append("ready chair factor candidate must record residual table rows")
     return errors
 
 
@@ -175,6 +268,10 @@ def prepare_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Pa
     if residual_errors:
         raise ValueError("; ".join(residual_errors))
     candidate_dir.mkdir(parents=True, exist_ok=True)
+    if attempt.get("status") == "ready_for_candidate_executor":
+        write_csv(candidate_dir / CHAIR_FACTOR_CANDIDATE_NAME, read_csv(_pairprop_pose_path(result_dir)))
+        metrics = json.loads(_pairprop_metrics_path(result_dir).read_text())
+        write_csv(candidate_dir / CHAIR_FACTOR_RESIDUAL_TABLE_NAME, _chair_residual_rows(metrics))
     write_json(candidate_dir / CHAIR_FACTOR_RESIDUALS_NAME, residuals)
     write_json(candidate_dir / CHAIR_FACTOR_ATTEMPT_NAME, attempt)
     return attempt

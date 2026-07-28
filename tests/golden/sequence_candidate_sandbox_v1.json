@@ -61,9 +61,13 @@
         "unsupported_loss_term:E_audio"
       ],
       "planned_artifacts": [
-        "generic_sequence_solver_shadow_candidate.json"
+        "generic_sequence_solver_shadow_candidate.json",
+        "generic_chair_factor_candidate.csv",
+        "generic_chair_factor_residuals.csv",
+        "chair_generic_factor_executor_attempt.json",
+        "chair_generic_factor_residuals.json"
       ],
-      "canonical_sha256": "900567836e87f8fe83294edfedc0d2435c758254e8beb343015736e6e3c91c15"
+      "canonical_sha256": "3a7a1f3bdb474ffbaac0180a8bc2b8cb7e108943b43548cf32d62579051308ba"
     },
     "stick": {
       "status": "sandbox_ready",

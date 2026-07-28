@@ -20,8 +20,9 @@ contact chord initializer、2D gauge、articulation optimization 和 freeze inva
 因此 `semantic_graph_solver_private` 从 blocking gap 降级为 nonblocking compatibility marker。
 
 这一步关闭的是 chair 的 historical/rebuilt seed gap 和 private-solver blocking ledger；
-不是宣称 chair 已经写入 accepted-output generic executor。当前 candidate sandbox 仍只写 safe
-manifest/residual coverage，不写 `object_pose.csv` 等 accepted outputs。
+不是宣称 chair 已经写入 canonical accepted outputs。当前 candidate sandbox 会在隔离目录
+物化 `generic_chair_factor_candidate.csv` 与 `generic_chair_factor_residuals.csv`，同时写
+attempt/residual coverage manifest；仍不写 `object_pose.csv` 等 accepted outputs。
 
 ## 本分支新增 gate
 
@@ -46,9 +47,9 @@ manifest/residual coverage，不写 `object_pose.csv` 等 accepted outputs。
 nonblocking 结论，bundle 状态推进为 `ready_for_candidate_executor`。
 
 `chair_generic_factor_executor_candidate_attempt` 是 isolated candidate executor 的安全外壳：
-它只把 factor bundle、contact diagnostics、candidate dir、forbidden accepted output names
-和 blocking reasons 写入 candidate sandbox。当前 `solver_executed=false`，只允许写
-`chair_generic_factor_executor_attempt.json`，禁止生成或覆盖 `object_pose.csv` 等
+它把 factor bundle、contact diagnostics、candidate dir、forbidden accepted output names
+和 source artifact hashes 写入 candidate sandbox。当前 `solver_executed=false`，但 ready
+状态会物化安全命名的 candidate pose/residual table；禁止生成或覆盖 `object_pose.csv` 等
 accepted outputs。
 
 chair per-frame residual loop 现在已复用 core `FactorResidualEvaluator` 组装
@@ -73,8 +74,8 @@ chair candidate attempt 会记录 supported residual blocks，并在 sandbox 写
    kind，required residual assembly 已进入 core evaluator；下一步需要 isolated
    candidate executor 实际产出 pose candidate。
 4. candidate 输出先进入 isolated result directory；禁止覆盖 canonical `benchmark_vlm_qwen`。
-   当前已建立 attempt/residual coverage manifest 外壳；下一步才替换为实际 generic
-   executor 输出。
+   当前已建立 attempt/residual coverage manifest，并物化安全命名的 chair candidate pose /
+   residual table；下一步才允许执行可替代 canonical 输出的真实 generic optimizer。
 5. `semantic_graph_solver_private` blocking 已关闭；下一步是在 isolated candidate dir 中
    运行真实 generic factor executor，并在 semantic 2D、contact median/P90、freeze、
    pose lock 和六路 render 不退化后，才允许替换 canonical accepted outputs。

@@ -250,6 +250,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
         "residual_boundary": {
             "supported_count": residual_boundary_shadow["supported_count"],
             "pending_count": residual_boundary_shadow["pending_count"],
+            "pending_gap_ids": [gap["gap_id"] for gap in residual_boundary_shadow["pending_gap_records"]],
             "canonical_sha256": residual_boundary_shadow["canonical_sha256"],
         },
         "gaps": factor_shadow["gaps"],

@@ -127,10 +127,28 @@ def validate_sequence_problem_shadow(problem: dict[str, object]) -> list[str]:
         if residual_boundary.get("accepted_outputs_written") is not False:
             errors.append("residual_boundary must not write accepted outputs")
         records = residual_boundary.get("records", [])
+        pending_gap_records = residual_boundary.get("pending_gap_records", [])
         if not isinstance(records, list) or not records:
             errors.append("residual_boundary must include records")
         elif int(residual_boundary.get("supported_count", 0)) + int(residual_boundary.get("pending_count", 0)) != len(records):
             errors.append("residual_boundary counts must match records")
+        if int(residual_boundary.get("pending_count", 0)) > 0:
+            if not isinstance(pending_gap_records, list) or not pending_gap_records:
+                errors.append("residual_boundary pending residuals require gap records")
+            else:
+                pending_factor_ids = {
+                    str(record.get("factor_id"))
+                    for record in records
+                    if isinstance(record, dict) and record.get("status") == "pending_generic_residual"
+                }
+                gap_factor_ids = {
+                    str(factor_id)
+                    for gap in pending_gap_records
+                    if isinstance(gap, dict)
+                    for factor_id in gap.get("factor_ids", [])
+                }
+                if pending_factor_ids != gap_factor_ids:
+                    errors.append("residual_boundary gap records must cover pending factor ids")
         if isinstance(attempt_ledger, dict) and residual_boundary.get("attempt_id") != attempt_ledger.get("attempt_id"):
             errors.append("residual_boundary attempt_id must match attempt_ledger")
 

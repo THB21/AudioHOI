@@ -33,6 +33,21 @@ class ResidualBoundaryRecord:
 
 
 @dataclass(frozen=True)
+class ResidualGapRecord:
+    gap_id: str
+    residual_fn_ref: str
+    factor_ids: tuple[str, ...]
+    reason: str
+    status: str = "pending_generic_residual"
+
+    def __post_init__(self) -> None:
+        if not self.gap_id or not self.residual_fn_ref or not self.factor_ids or not self.reason:
+            raise ValueError("ResidualGapRecord requires gap id, residual ref, factor ids, and reason")
+        if self.status != "pending_generic_residual":
+            raise ValueError("residual gap status must be pending_generic_residual")
+
+
+@dataclass(frozen=True)
 class GenericResidualBoundary:
     schema_version: int
     attempt_id: str
@@ -40,6 +55,7 @@ class GenericResidualBoundary:
     supported_count: int
     pending_count: int
     records: tuple[ResidualBoundaryRecord, ...]
+    pending_gap_records: tuple[ResidualGapRecord, ...]
     case_dispatch_used: bool
     residuals_executed: bool
     solver_executed: bool
@@ -53,6 +69,8 @@ class GenericResidualBoundary:
             raise ValueError("residual boundary must remain planned_not_executed")
         if self.supported_count + self.pending_count != len(self.records):
             raise ValueError("residual boundary counts must match records")
+        if self.pending_count and not self.pending_gap_records:
+            raise ValueError("pending residuals require gap records")
         if self.case_dispatch_used or self.residuals_executed or self.solver_executed or self.accepted_outputs_written:
             raise ValueError("residual boundary must not dispatch, execute residuals, solve, or write accepted outputs")
 
@@ -66,9 +84,14 @@ def residual_boundary_record(record: ResidualBoundaryRecord) -> dict[str, object
     return asdict(record)
 
 
+def residual_gap_record(record: ResidualGapRecord) -> dict[str, object]:
+    return asdict(record)
+
+
 def residual_boundary_ledger_record(boundary: GenericResidualBoundary) -> dict[str, object]:
     payload = asdict(boundary)
     payload["records"] = [residual_boundary_record(record) for record in boundary.records]
+    payload["pending_gap_records"] = [residual_gap_record(record) for record in boundary.pending_gap_records]
     return payload
 
 
@@ -97,6 +120,19 @@ def build_generic_residual_boundary(
         )
     supported = sum(1 for record in boundary_records if record.status == "supported_not_executed")
     pending = sum(1 for record in boundary_records if record.status == "pending_generic_residual")
+    pending_by_ref: dict[str, list[str]] = {}
+    for record in boundary_records:
+        if record.status == "pending_generic_residual":
+            pending_by_ref.setdefault(record.residual_fn_ref, []).append(record.factor_id)
+    pending_gap_records = tuple(
+        ResidualGapRecord(
+            gap_id=f"missing_generic_residual:{residual_ref.removeprefix('shadow_residual::')}",
+            residual_fn_ref=residual_ref,
+            factor_ids=tuple(sorted(factor_ids)),
+            reason="no FactorResidualEvaluator capability is registered for this compiled residual_fn_ref",
+        )
+        for residual_ref, factor_ids in sorted(pending_by_ref.items())
+    )
     payload = {
         "schema_version": 1,
         "attempt_id": attempt.attempt_id,
@@ -104,6 +140,7 @@ def build_generic_residual_boundary(
         "supported_count": supported,
         "pending_count": pending,
         "records": [residual_boundary_record(record) for record in boundary_records],
+        "pending_gap_records": [residual_gap_record(record) for record in pending_gap_records],
         "case_dispatch_used": False,
         "residuals_executed": False,
         "solver_executed": False,
@@ -116,6 +153,7 @@ def build_generic_residual_boundary(
         supported_count=supported,
         pending_count=pending,
         records=tuple(boundary_records),
+        pending_gap_records=pending_gap_records,
         case_dispatch_used=False,
         residuals_executed=False,
         solver_executed=False,

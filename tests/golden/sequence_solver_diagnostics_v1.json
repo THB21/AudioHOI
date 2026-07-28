@@ -2,7 +2,7 @@
   "schema_version": 1,
   "cases": {
     "basketball": {
-      "problem_sha256": "3e30897b404899be047537754fa690d1072d1991d52c0d825a6dae8d40a1a10f",
+      "problem_sha256": "e890ad1bc1db56b6a5b20be3dea60be9df633713a831e891f9cb47a72a5d752b",
       "attempt_id": "generic-attempt-aad3c1bf209a",
       "status": "ready_for_future_shadow_solve",
       "blocking_gap_ids": [],
@@ -17,10 +17,10 @@
       "accepted_outputs_written": false,
       "baseline_pose_read": false,
       "validation_errors": [],
-      "canonical_sha256": "3829570a34f0dda1e87169e11075ba244af38906c5c00b56a6d0b9939e5f09e7"
+      "canonical_sha256": "28319f741f2be0cee792b456a223be67d798fd4caafdf5a7a3108ad7a961f813"
     },
     "football": {
-      "problem_sha256": "635a600b6fa21c88054e1bcbf389e3ebcb3debabe98bbb02ba70810676124820",
+      "problem_sha256": "8ea38698a0a63f2f56507052b524761c38ce6af7ad7a610648bdf82e8b6495a4",
       "attempt_id": "generic-attempt-9baf8ad8fcd7",
       "status": "ready_for_future_shadow_solve",
       "blocking_gap_ids": [],
@@ -35,10 +35,10 @@
       "accepted_outputs_written": false,
       "baseline_pose_read": false,
       "validation_errors": [],
-      "canonical_sha256": "9536ee687d674dac2f655805bbe16fb542196035afad7ff9135587accddf8309"
+      "canonical_sha256": "b4cb75ac28924c02f463abc1f257dbcb81af4a7303799da29395b3eada4fe504"
     },
     "mug": {
-      "problem_sha256": "0e11856e78997caf3fac8097d64b995decf60bccd0db3f84217fb185cdb0a89c",
+      "problem_sha256": "4279ada751f27ee670100ebba901176c888a159ab413869aef97907a53d8f2db",
       "attempt_id": "generic-attempt-5e65dc595a39",
       "status": "ready_for_future_shadow_solve",
       "blocking_gap_ids": [],
@@ -53,10 +53,10 @@
       "accepted_outputs_written": false,
       "baseline_pose_read": false,
       "validation_errors": [],
-      "canonical_sha256": "339411b27a5c5455b194a77b3722705170fa03bc577ec397bf785dc809f696c4"
+      "canonical_sha256": "573fd6bf4c87216cc5a1fd3fa5bd4f0abe08d182cb9afee9137109ab818fcf09"
     },
     "chair": {
-      "problem_sha256": "6250c34b956a05308eebafff3f813c0ef969af2056730958ccb727154b201202",
+      "problem_sha256": "e9d4ded97fb648c8a73aacfbc3b9130a358ad6ae46898451a333475e19fe5766",
       "attempt_id": "generic-attempt-9b8263355dbd",
       "status": "ready_for_future_shadow_solve",
       "blocking_gap_ids": [],
@@ -71,10 +71,10 @@
       "accepted_outputs_written": false,
       "baseline_pose_read": false,
       "validation_errors": [],
-      "canonical_sha256": "342c8d0b03adc2ba5de55f89a19a1acb93ca5c2f1272fcbbccd5a995fba14dfa"
+      "canonical_sha256": "825aa0042f49b3ce2195e5360473f45cd23d2d40dea32d9cd17605e5f8adbc40"
     },
     "stick": {
-      "problem_sha256": "abc174b5ed2a0eb7fb16122b80326f417b5166d27b1031ddbcdc45e3011038bf",
+      "problem_sha256": "2f1ddd43e9c81b9a6f92a4060041d59ec804971b88ff9c2bb7b9d07a1b061a64",
       "attempt_id": "generic-attempt-7b79b1b6dd46",
       "status": "ready_for_future_shadow_solve",
       "blocking_gap_ids": [],
@@ -91,7 +91,7 @@
       "accepted_outputs_written": false,
       "baseline_pose_read": false,
       "validation_errors": [],
-      "canonical_sha256": "37fef640010aad0ff2ce16084925279483e7445e30dec9dab2916d7e2c2e603b"
+      "canonical_sha256": "12d95d09d3d5da4ee46f60ee86b9f2af392fbbf4059e1c254d8703b0c750bf43"
     }
   }
 }

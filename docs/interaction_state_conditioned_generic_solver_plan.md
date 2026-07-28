@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger 和 residual evaluation boundary；暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 继续把 residual boundary 推进到 residual block parity / missing residual gap 列表；保持不 solve、不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary 和 pending residual gap ledger；暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 继续按 residual gap ledger 补通用 residual block，优先 depth / regularization / support / audio / periodic phase；保持不 solve、不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1404,3 +1404,11 @@ YYYY-MM-DD:
 - change: 新增 `core/solver/residual_boundary.py`，把 `compiled_factor_shadow.records[*].residual_fn_ref` 映射到已有 `FactorResidualEvaluator` capabilities，输出 `GenericResidualBoundary` coverage ledger；该 ledger 记录 supported / pending residual blocks、`residuals_executed=False`、`case_dispatch_used=False`，并接入 `build_sequence_problem_shadow()` 与 diagnostics。
 - verification: 轻量范围 40 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
 - remaining gap: 当前只是 residual boundary coverage，不执行 residual 数值；五 case 仍存在 pending generic residuals（例如 metric_depth、regularization、audio/support/periodic 等），下一步应把这些 pending 项显式整理为 residual gap ledger 并逐步补齐通用 residual block。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update
+- change: `GenericResidualBoundary` 新增 `pending_gap_records`，按 `residual_fn_ref` 聚合缺失通用 residual block，记录 `missing_generic_residual:*` gap id、factor ids 和原因；sequence problem summary 与 diagnostics 现在显式报告 residual gap ids。
+- verification: 轻量范围 40 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
+- remaining gap: 当前五 case residual gaps 为 depth / regularization / periodic phase / audio / support；下一步应优先新增通用 residual stub/capability，使这些 gap 从 pending 迁到 supported_not_executed，再进入 residual parity。

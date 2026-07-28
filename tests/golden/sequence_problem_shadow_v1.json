@@ -17,7 +17,11 @@
       "attempt_ledger_sha256": "106c91b8ae8d8b203098e102220f6d28a5c4afc8d35e9e98ea055b86eb19681c",
       "residual_boundary_supported": 7,
       "residual_boundary_pending": 3,
-      "residual_boundary_sha256": "64bf4bb984c2dfe89d5ca908191b489a819ff11db0e7e6d6241a2bf8f3c508c3",
+      "residual_boundary_gap_ids": [
+        "missing_generic_residual:metric_depth",
+        "missing_generic_residual:regularization"
+      ],
+      "residual_boundary_sha256": "42aa72c3d1799e300f5f646169e8f6657100fd661f6ea206ef4a3410db1d23c8",
       "state_model": "translation3",
       "geometry_kind": "sphere",
       "measurement_count": 768,
@@ -69,7 +73,7 @@
       "gap_ids": [],
       "attempt_id": "generic-attempt-aad3c1bf209a",
       "validation_errors": [],
-      "canonical_sha256": "3e30897b404899be047537754fa690d1072d1991d52c0d825a6dae8d40a1a10f"
+      "canonical_sha256": "e890ad1bc1db56b6a5b20be3dea60be9df633713a831e891f9cb47a72a5d752b"
     },
     "football": {
       "sequence_contract_sha256": "84e7bd88b308df0b7075431dd3ef75895553dc4144e2d645ad8a8649b404240b",
@@ -87,7 +91,11 @@
       "attempt_ledger_sha256": "7b0733bfa7d62366536800d9bd65ec17527d5e954345b13cbf1c84367536afe7",
       "residual_boundary_supported": 7,
       "residual_boundary_pending": 3,
-      "residual_boundary_sha256": "ed1e209d79481409818e4e3609a9b8156b85cc97163183b0906f41ca98c6a86d",
+      "residual_boundary_gap_ids": [
+        "missing_generic_residual:metric_depth",
+        "missing_generic_residual:regularization"
+      ],
+      "residual_boundary_sha256": "d3a9baf62eaa9ac277a70a9fa5a64785c76f354121e6e61fed436335adb058ae",
       "state_model": "translation3",
       "geometry_kind": "sphere",
       "measurement_count": 968,
@@ -140,7 +148,7 @@
       "gap_ids": [],
       "attempt_id": "generic-attempt-9baf8ad8fcd7",
       "validation_errors": [],
-      "canonical_sha256": "635a600b6fa21c88054e1bcbf389e3ebcb3debabe98bbb02ba70810676124820"
+      "canonical_sha256": "8ea38698a0a63f2f56507052b524761c38ce6af7ad7a610648bdf82e8b6495a4"
     },
     "mug": {
       "sequence_contract_sha256": "a860d6144efe320559be67666c7177d579d8e7e6bfa136a3a3db468b56b0639f",
@@ -158,7 +166,11 @@
       "attempt_ledger_sha256": "bc5dc0105ce8ef5765dfbd7700fa53a32c316cb58fddc4b13004287c54487fe1",
       "residual_boundary_supported": 4,
       "residual_boundary_pending": 2,
-      "residual_boundary_sha256": "9977e708ca9b3b6eb3612fa1772454ede2eec0e36f812c4c9010451b09fa3878",
+      "residual_boundary_gap_ids": [
+        "missing_generic_residual:periodic_phase_prior",
+        "missing_generic_residual:regularization"
+      ],
+      "residual_boundary_sha256": "0ebfe2ce384031a2896f32777ad541663ae2079d72ef4e86f988c0d59e015e1c",
       "state_model": "rigid6_plus_phase",
       "geometry_kind": "rigid_mesh",
       "measurement_count": 1359,
@@ -204,7 +216,7 @@
       "gap_ids": [],
       "attempt_id": "generic-attempt-5e65dc595a39",
       "validation_errors": [],
-      "canonical_sha256": "0e11856e78997caf3fac8097d64b995decf60bccd0db3f84217fb185cdb0a89c"
+      "canonical_sha256": "4279ada751f27ee670100ebba901176c888a159ab413869aef97907a53d8f2db"
     },
     "chair": {
       "sequence_contract_sha256": "769dd54a9ab48b544933eeb674d4487e4f35ba4ef5381a8261a549d26937a5d1",
@@ -222,7 +234,13 @@
       "attempt_ledger_sha256": "c8650b6bcdc1f9f82f8e95a4e8771f31da9cedc2779c55f956eeba21cbe9cd87",
       "residual_boundary_supported": 9,
       "residual_boundary_pending": 4,
-      "residual_boundary_sha256": "e39eee9f025709774997d9ac502649123b36cbd2dd4ff25109e738b1e7b279d2",
+      "residual_boundary_gap_ids": [
+        "missing_generic_residual:audio_event_prior",
+        "missing_generic_residual:metric_depth",
+        "missing_generic_residual:regularization",
+        "missing_generic_residual:support_and_penetration"
+      ],
+      "residual_boundary_sha256": "ce83c5d0ae61377a53b73ea7ac5bbed8add090c2642d3913d3d5adc41bf2b0e7",
       "state_model": "semantic_graph_6d",
       "geometry_kind": "articulated_urdf",
       "measurement_count": 1014,
@@ -281,7 +299,7 @@
       "gap_ids": [],
       "attempt_id": "generic-attempt-9b8263355dbd",
       "validation_errors": [],
-      "canonical_sha256": "6250c34b956a05308eebafff3f813c0ef969af2056730958ccb727154b201202"
+      "canonical_sha256": "e9d4ded97fb648c8a73aacfbc3b9130a358ad6ae46898451a333475e19fe5766"
     },
     "stick": {
       "sequence_contract_sha256": "75a09bd0e1293abb49ad4657aa797ea4d242f66359ef83230cf0b3c712cdb776",
@@ -299,7 +317,10 @@
       "attempt_ledger_sha256": "3828ffcaa36897446be6caa0243a1d826a0ed8b2c0e37bda121e1cdeb3779620",
       "residual_boundary_supported": 4,
       "residual_boundary_pending": 1,
-      "residual_boundary_sha256": "03ce9c35d94669919b1a4735c606771af9a8116430ec6d5c66d30dbffdbec583",
+      "residual_boundary_gap_ids": [
+        "missing_generic_residual:regularization"
+      ],
+      "residual_boundary_sha256": "b9c71eae2dcd347e81a34f1c7d03ea4d3987e6555212b4a0b48035842dea520b",
       "state_model": "translation3_with_line_orientation_prior",
       "geometry_kind": "line_capsule",
       "measurement_count": 960,
@@ -346,7 +367,7 @@
       ],
       "attempt_id": "generic-attempt-7b79b1b6dd46",
       "validation_errors": [],
-      "canonical_sha256": "abc174b5ed2a0eb7fb16122b80326f417b5166d27b1031ddbcdc45e3011038bf"
+      "canonical_sha256": "2f1ddd43e9c81b9a6f92a4060041d59ec804971b88ff9c2bb7b9d07a1b061a64"
     }
   }
 }

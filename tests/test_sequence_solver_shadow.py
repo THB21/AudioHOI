@@ -69,6 +69,8 @@ def test_sequence_problem_shadow_is_plan_only_and_never_consumes_legacy_pose() -
     assert problem["residual_boundary"]["case_dispatch_used"] is False
     assert problem["residual_boundary"]["residuals_executed"] is False
     assert problem["residual_boundary"]["supported_count"] + problem["residual_boundary"]["pending_count"] == problem["inputs"]["compiled_factor_shadow"]["count"]
+    if problem["residual_boundary"]["pending_count"]:
+        assert problem["residual_boundary"]["pending_gap_records"]
     assert problem["attempt_plan"]["attempt_id"] == problem["attempt_ledger"]["attempt_id"]
     assert problem["attempt_plan"]["writes"] == []
     assert problem["attempt_plan"]["initializer_status"] == "not_executed"
@@ -219,11 +221,14 @@ def test_generic_residual_boundary_maps_compiled_factors_without_executing() -> 
     assert boundary.status == "planned_not_executed"
     assert boundary.supported_count == 1
     assert boundary.pending_count == 1
+    assert len(boundary.pending_gap_records) == 1
     assert boundary.case_dispatch_used is False
     assert boundary.residuals_executed is False
     by_factor = {record.factor_id: record for record in boundary.records}
     assert by_factor["point_reprojection:center"].evaluator_ref == "FactorResidualEvaluator.point_reprojection"
     assert by_factor["audio_event_prior:impact"].status == "pending_generic_residual"
+    assert boundary.pending_gap_records[0].gap_id == "missing_generic_residual:audio_event_prior"
+    assert boundary.pending_gap_records[0].factor_ids == ("audio_event_prior:impact",)
 
 
 def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> None:

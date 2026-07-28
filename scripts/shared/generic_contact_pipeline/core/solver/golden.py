@@ -32,6 +32,7 @@ def sequence_problem_summary(case_name: str, result_dir: Path) -> dict[str, obje
         "attempt_ledger_sha256": problem["attempt_ledger"]["canonical_sha256"],
         "residual_boundary_supported": problem["residual_boundary"]["supported_count"],
         "residual_boundary_pending": problem["residual_boundary"]["pending_count"],
+        "residual_boundary_gap_ids": [gap["gap_id"] for gap in problem["residual_boundary"]["pending_gap_records"]],
         "residual_boundary_sha256": problem["residual_boundary"]["canonical_sha256"],
         "state_model": problem["state_contract"]["state_model"],
         "geometry_kind": problem["state_contract"]["geometry_kind"],

@@ -116,6 +116,7 @@ def build_sequence_solver_shadow_diagnostics(profile: CaseProfile, result_dir: P
                 "residual_evaluation_status": problem["attempt_ledger"]["residual_evaluation_status"],
                 "residual_boundary_supported": problem["residual_boundary"]["supported_count"],
                 "residual_boundary_pending": problem["residual_boundary"]["pending_count"],
+                "residual_boundary_gap_ids": [gap["gap_id"] for gap in problem["residual_boundary"]["pending_gap_records"]],
             },
         ),
     ]

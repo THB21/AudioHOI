@@ -37,8 +37,14 @@ def build_chair_factor_executor_bundle(profile: CaseProfile, result_dir: Path) -
     available = sorted(str(kind) for kind, count in by_kind.items() if int(count or 0) > 0) if isinstance(by_kind, dict) else []
     missing = sorted(kind for kind in CHAIR_REQUIRED_EXECUTOR_FACTOR_KINDS if kind not in available)
     gap_ids = [str(gap.get("gap_id")) for gap in factor_shadow.get("gaps", []) if isinstance(gap, dict)]
-    ready = not missing and "semantic_graph_solver_private" not in gap_ids
-    status = "ready_for_candidate_executor" if ready else "blocked_by_missing_factor_contracts"
+    private_gap_present = "semantic_graph_solver_private" in gap_ids
+    ready = not missing and not private_gap_present
+    if ready:
+        status = "ready_for_candidate_executor"
+    elif missing:
+        status = "blocked_by_missing_factor_contracts"
+    else:
+        status = "blocked_by_private_solver_gap"
     gap_status = "nonblocking" if ready else "blocking"
     payload = {
         "schema_version": 1,
@@ -59,9 +65,7 @@ def build_chair_factor_executor_bundle(profile: CaseProfile, result_dir: Path) -
             reason
             for reason in (
                 "missing required factors: " + ",".join(missing) if missing else "",
-                "semantic_graph_solver_private still present in factor gap ledger"
-                if "semantic_graph_solver_private" in gap_ids
-                else "",
+                "semantic_graph_solver_private still present in factor gap ledger" if private_gap_present else "",
             )
             if reason
         ],
@@ -103,8 +107,14 @@ def validate_chair_factor_executor_bundle(bundle: dict[str, object]) -> list[str
     gap_status = bundle.get("compatibility_gap_status")
     if missing and status == "ready_for_candidate_executor":
         errors.append("chair factor bundle cannot be ready with missing required factors")
+    if not missing and status == "blocked_by_missing_factor_contracts":
+        errors.append("chair factor bundle cannot report missing-factor status when no required factors are missing")
     if missing and gap_status != "blocking":
         errors.append("chair factor bundle with missing required factors must remain blocking")
+    blocking_reasons = bundle.get("blocking_reasons", [])
+    private_gap_present = isinstance(blocking_reasons, list) and any("semantic_graph_solver_private" in str(reason) for reason in blocking_reasons)
+    if private_gap_present and gap_status != "blocking":
+        errors.append("chair factor bundle with semantic_graph_solver_private must remain blocking")
     if gap_status == "nonblocking" and status != "ready_for_candidate_executor":
         errors.append("nonblocking gap requires ready_for_candidate_executor status")
     required = bundle.get("required_factor_kinds", [])

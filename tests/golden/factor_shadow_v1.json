@@ -45,9 +45,11 @@
       "canonical_sha256": "b68be8f866deb3e10d8e29c92f8400d8f92b315aec41cb3ed4ee8b1a6283e840"
     },
     "chair": {
-      "factor_count": 9,
+      "factor_count": 12,
       "factor_kinds": {
         "contact_distance": 1,
+        "gauge_constraint": 1,
+        "joint_limit": 2,
         "metric_depth": 1,
         "point_reprojection": 2,
         "pose_prior": 1,
@@ -63,7 +65,7 @@
       "unmapped_nonempty_fields": [
         "E_audio"
       ],
-      "canonical_sha256": "3070822169006141a460cfba552bdda6b984b3279a33726693fafde59d845ed1"
+      "canonical_sha256": "0f1ecf5835f7fb75c2cf99989fcaf287f66f1a03c41739733bc80bd99e6c1b94"
     },
     "stick": {
       "factor_count": 5,

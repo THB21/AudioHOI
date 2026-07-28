@@ -58,8 +58,8 @@
       "canonical_sha256": "c690d18875a614fcd3d9064e662b1b75bc8ff0275bd5caa822ab0183ed870676"
     },
     "chair": {
-      "problem_sha256": "d9e440d13d559fa6ede62042318003c1f112985fc45461665317f5f2be99dafe",
-      "attempt_id": "shadow-d9e440d13d55",
+      "problem_sha256": "6195e8447f470fd77e3c19bfe9d445f30b6b81a2d7b41f3809f02d98cf3d6af4",
+      "attempt_id": "shadow-6195e8447f47",
       "status": "blocked_by_known_gaps",
       "blocking_gap_ids": [
         "semantic_graph_solver_private"
@@ -77,7 +77,7 @@
       "accepted_outputs_written": false,
       "baseline_pose_read": false,
       "validation_errors": [],
-      "canonical_sha256": "82e2eadaa9723f0336df53005e1098732ef35f20b20cb5010d423cb8490f172d"
+      "canonical_sha256": "59dd93dc6770f16f348869092c8adb24051daba3f7f058532aa8eac63fe2cb16"
     },
     "stick": {
       "problem_sha256": "7fa5bb649e59d797f6305e4e4a24fb44201ac91e70eb309f0fea73af4607c16b",

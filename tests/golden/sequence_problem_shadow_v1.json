@@ -68,9 +68,11 @@
       "measurement_count": 1014,
       "measurement_frames": 192,
       "contact_count": 317,
-      "factor_count": 9,
+      "factor_count": 12,
       "factor_kinds": {
         "contact_distance": 1,
+        "gauge_constraint": 1,
+        "joint_limit": 2,
         "metric_depth": 1,
         "point_reprojection": 2,
         "pose_prior": 1,
@@ -83,9 +85,9 @@
         "semantic_graph_solver_private",
         "unsupported_loss_term:E_audio"
       ],
-      "attempt_id": "shadow-d9e440d13d55",
+      "attempt_id": "shadow-6195e8447f47",
       "validation_errors": [],
-      "canonical_sha256": "d9e440d13d559fa6ede62042318003c1f112985fc45461665317f5f2be99dafe"
+      "canonical_sha256": "6195e8447f470fd77e3c19bfe9d445f30b6b81a2d7b41f3809f02d98cf3d6af4"
     },
     "stick": {
       "state_model": "translation3_with_line_orientation_prior",

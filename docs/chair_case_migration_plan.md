@@ -35,9 +35,10 @@ canonical `benchmark_vlm_qwen` 的 Stage 4 pairprop pose 被接受，但其 seed
 
 `chair_generic_factor_executor_bundle_shadow` 进一步记录 generic executor 的最小因子
 覆盖条件：`point_reprojection`、`contact_distance`、`joint_limit` 和
-`gauge_constraint`。canonical chair 当前已有 2D/contact/shadow factors，但缺
-`joint_limit` 与 `gauge_constraint` 可执行因子，因此 bundle 状态保持
-`blocked_by_missing_factor_contracts`，`semantic_graph_solver_private` 继续 blocking。
+`gauge_constraint`。canonical chair 现在已有 2D/contact、`joint_limit` 和
+`gauge_constraint` shadow factors；bundle 状态从 missing-factor 阶段推进为
+`blocked_by_private_solver_gap`，因为这些 factors 仍未由 generic executor 实际消费，
+`semantic_graph_solver_private` 继续 blocking。
 
 ## 后续接受标准
 
@@ -46,8 +47,8 @@ canonical `benchmark_vlm_qwen` 的 Stage 4 pairprop pose 被接受，但其 seed
 2. URDF joint propagation 已建立 `ArticulatedKinematicProvider` core contract；
    chair solver 现在通过 data-rule provider 调用 rear/seat/side-stretcher 传播语义。
 3. twist rank deficiency、semantic 2D line factors、joint limits 和 contact distance
-   进入 generic Factor IR；其中 `joint_limit` 与 `gauge_constraint` 必须从 missing
-   contract 变为 available factor kind。
+   进入 generic Factor IR；`joint_limit` 与 `gauge_constraint` 已是 available factor
+   kind，下一步需要进入 isolated candidate executor。
 4. candidate 输出先进入 isolated result directory；禁止覆盖 canonical `benchmark_vlm_qwen`。
 5. semantic 2D、contact median/P90、freeze、pose lock 和六路 render 均不退化后，才可
    关闭 `semantic_graph_solver_private`。

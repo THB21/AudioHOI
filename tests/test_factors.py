@@ -70,6 +70,14 @@ def test_ball_factor_shadow_exposes_depth_contact_and_temporal_terms() -> None:
     assert kinds["temporal_velocity"] >= 1
 
 
+def test_chair_factor_shadow_exposes_joint_limit_and_gauge_terms() -> None:
+    result_dir = REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen"
+    shadow = build_factor_shadow(load_case_profile("chair"), result_dir)
+    kinds = shadow["factors"]["by_kind"]
+    assert kinds["joint_limit"] == 2
+    assert kinds["gauge_constraint"] == 1
+
+
 def test_specialized_legacy_paths_remain_explicit_gaps() -> None:
     mug = build_factor_shadow(load_case_profile("mug"), REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen")
     chair = build_factor_shadow(load_case_profile("chair"), REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen")

@@ -53,9 +53,9 @@
       "status": "blocked_by_known_gaps",
       "eligible_for_candidate_sandbox": false,
       "candidate_dir": "samples_known_object/05_chair/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_chair",
-      "attempt_id": "shadow-d9e440d13d55",
-      "problem_sha256": "d9e440d13d559fa6ede62042318003c1f112985fc45461665317f5f2be99dafe",
-      "diagnostics_sha256": "82e2eadaa9723f0336df53005e1098732ef35f20b20cb5010d423cb8490f172d",
+      "attempt_id": "shadow-6195e8447f47",
+      "problem_sha256": "6195e8447f470fd77e3c19bfe9d445f30b6b81a2d7b41f3809f02d98cf3d6af4",
+      "diagnostics_sha256": "59dd93dc6770f16f348869092c8adb24051daba3f7f058532aa8eac63fe2cb16",
       "blocking_gap_ids": [
         "semantic_graph_solver_private"
       ],
@@ -63,7 +63,7 @@
         "unsupported_loss_term:E_audio"
       ],
       "planned_artifacts": [],
-      "canonical_sha256": "8b95663069b86557516aa6af36f443fde704e481d2a3276dfd1ba0dc8284541a"
+      "canonical_sha256": "89d0c31e2e5f0b66a0029b1042d7bd8ca95a1c730543759b0f2839429c173bf4"
     },
     "stick": {
       "status": "sandbox_ready",

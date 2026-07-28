@@ -109,7 +109,7 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 | `refactor/migrate-ball-cases` | basketball/football 迁移 | done | typed sphere candidate 与旧 exact seed 两 case byte-identical；switched Stage1–7、audit、render 与全量门禁通过 |
 | `refactor/migrate-line-case` | stick 迁移 | in_progress | LineS/contact/时序指标不退化；无 line 专用 optimizer；当前已收紧 `LineS` 归一化 contact gate |
 | `refactor/migrate-mug-case` | mug rigid mesh + periodic feature phase 迁移 | in_progress | generic Stage 1 body/phase、Stage 1–4 关键 CSV、六路 render 均与独立 fresh baseline byte-identical；Stage 1–7 attempts/contracts pass；待 Stage 3/4 统一 factor executor |
-| `refactor/migrate-chair-case` | chair URDF + articulated DOF + two-hand contact 迁移 | in_progress | chair diagnostics、two-point `RigidCorrespondenceInitializer`、`ArticulatedKinematicProvider`、factor bundle readiness 已建立；`joint_limit`/`gauge_constraint` 缺失前 solver gap 继续 blocking |
+| `refactor/migrate-chair-case` | chair URDF + articulated DOF + two-hand contact 迁移 | in_progress | chair diagnostics、two-point `RigidCorrespondenceInitializer`、`ArticulatedKinematicProvider`、`joint_limit`/`gauge_constraint` Factor IR 已建立；generic executor 未消费前 solver gap 继续 blocking |
 | `refactor/heldout-generalization` | 未见对象与退化条件验证 | pending | 满足下述零专用 solver 验收 |
 
 每个分支从前一已接受提交建立新 worktree；一个分支只迁移一个 IR 或一个对象族。
@@ -240,7 +240,8 @@ python scripts/shared/generic_contact_pipeline/tools/sync_golden_inputs.py \
   initializer 和 articulated joint propagation 已提升为通用 core contract；canonical
   `rebuilt_from_mainline_saved2d` seed 仍使 `semantic_graph_solver_private` 保持
   blocking。chair factor bundle 现在显式要求 `point_reprojection`、`contact_distance`、
-  `joint_limit`、`gauge_constraint`，当前缺 `joint_limit` 和 `gauge_constraint`。
+  `joint_limit`、`gauge_constraint`；这些 factor kinds 已齐，但尚未由 isolated
+  generic executor 消费。
 
 因此，“泛化修复”计划覆盖观测、接触、姿态三层；球类已从 shadow 进入真实连续求解，
 其余路径仍按 line、rigid periodic feature、articulated URDF 分支逐一迁移。

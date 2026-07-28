@@ -193,6 +193,54 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
         )
         summaries.append(FactorEnergySummary("object_contact_points:contact_active", FactorKind.CONTACT_DISTANCE, active_contact_rows, 0.0))
 
+    adapter = stage3_metrics.get("adapter", {}) if isinstance(stage3_metrics.get("adapter"), dict) else {}
+    if profile.case_name == "chair" or adapter.get("component") == "semantic_graph_6d" or adapter.get("solver"):
+        for joint_id, field in (
+            ("joint.front_to_rear", "rear_joint_angle"),
+            ("joint.front_to_seat", "seat_joint_angle"),
+        ):
+            factors.append(
+                FactorSpec(
+                    factor_id=f"joint_limit:{joint_id}",
+                    kind=FactorKind.JOINT_LIMIT,
+                    frame_count=len(per_frame_rows),
+                    input_refs=(
+                        FactorInputRef("state", "StateSpec", joint_id),
+                        FactorInputRef("geometry", "GeometryDescriptor", "articulated_urdf"),
+                    ),
+                    residual_unit="radian_bound_violation",
+                    weight_source=f"state_spec_bound:{joint_id}",
+                    gate_source=None,
+                    residual_source=_source(
+                        result_dir / "stage3_metrics.json",
+                        ("adapter", "semantic_graph_6d", field),
+                        "state_spec_joint_limit_shadow",
+                    ),
+                )
+            )
+            summaries.append(FactorEnergySummary(f"state_spec_bound:{joint_id}", FactorKind.JOINT_LIMIT, len(per_frame_rows), 0.0))
+        factors.append(
+            FactorSpec(
+                factor_id="gauge_constraint:contact_chord_twist",
+                kind=FactorKind.GAUGE_CONSTRAINT,
+                frame_count=active_contact_rows,
+                input_refs=_input_refs(FactorKind.GAUGE_CONSTRAINT)
+                + (
+                    FactorInputRef("constraint", "ContactConstraintIR", "two_hand_toprail_endpoint"),
+                    FactorInputRef("measurement", "MeasurementIR", "semantic_graph_2d"),
+                ),
+                residual_unit="twist_gauge",
+                weight_source="contact_chord_2d_gauge_shadow",
+                gate_source="contact_chord_constraint_gate in stage4_metrics.json",
+                residual_source=_source(
+                    result_dir / "stage4_metrics.json",
+                    ("compatibility_adapters", "generic_pairprop_summary", "contact_chord_2d_gauge"),
+                    "chair_contact_chord_gauge_shadow",
+                ),
+            )
+        )
+        summaries.append(FactorEnergySummary("contact_chord:gauge_constraint", FactorKind.GAUGE_CONSTRAINT, active_contact_rows, 0.0))
+
     if per_frame_rows and any(row.get("vlm_contact_gate", "") for row in per_frame_rows):
         mapped.add("vlm_contact_gate")
     if per_frame_rows and any(row.get("vlm_anchor_gate", "") for row in per_frame_rows):
@@ -206,7 +254,6 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
             mapped.add(field)
 
     gaps: list[FactorGap] = []
-    adapter = stage3_metrics.get("adapter", {}) if isinstance(stage3_metrics.get("adapter"), dict) else {}
     phase = adapter.get("phase_reconstruction", {}) if isinstance(adapter.get("phase_reconstruction"), dict) else {}
     if phase.get("snapshot_fallback_used"):
         gaps.append(

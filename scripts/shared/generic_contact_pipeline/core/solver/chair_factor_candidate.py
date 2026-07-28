@@ -445,6 +445,8 @@ def prepare_chair_factor_executor_candidate(
         metrics_source = executed_metrics_path or _pairprop_metrics_path(result_dir)
         metrics = json.loads(metrics_source.read_text())
         write_csv(candidate_dir / CHAIR_FACTOR_RESIDUAL_TABLE_NAME, _chair_residual_rows(metrics))
+        if execute_solver and executed_metrics_path is not None and executed_metrics_path.exists():
+            executed_metrics_path.unlink()
     write_json(candidate_dir / CHAIR_FACTOR_RESIDUALS_NAME, residuals)
     write_json(candidate_dir / CHAIR_FACTOR_ATTEMPT_NAME, attempt)
     return attempt

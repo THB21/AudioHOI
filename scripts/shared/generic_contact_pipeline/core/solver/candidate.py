@@ -252,7 +252,7 @@ def write_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
         elif profile.case_name == "chair":
             from .chair_factor_candidate import prepare_chair_factor_executor_candidate
 
-            prepare_chair_factor_executor_candidate(profile, result_dir, target_dir)
+            prepare_chair_factor_executor_candidate(profile, result_dir, target_dir, execute_solver=True)
         elif profile.case_name == "stick":
             prepare_line_contact_candidate(result_dir, target_dir)
         write_json(target_dir / SANDBOX_MANIFEST_NAME, manifest)

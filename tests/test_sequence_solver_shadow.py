@@ -346,6 +346,10 @@ def test_candidate_sandbox_materialize_writes_chair_safe_candidate_artifacts(tmp
         "chair_generic_factor_executor_attempt.json",
         "chair_generic_factor_residuals.json",
     }
+    attempt = json.loads((candidate_dir / "chair_generic_factor_executor_attempt.json").read_text())
+    assert attempt["solver_executed"] is True
+    assert attempt["executor_scope"] == "isolated_candidate_dir"
+    assert attempt["candidate_pose"]["source"] == "isolated_chair_factor_executor"
     assert not (candidate_dir / "object_pose.csv").exists()
     assert not (candidate_dir / "object_contact_points.csv").exists()
 

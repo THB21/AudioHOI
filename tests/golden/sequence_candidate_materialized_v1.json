@@ -41,10 +41,10 @@
           "attempt": {
             "accepted_outputs_written": false,
             "baseline_pose_read": false,
-            "executor_scope": "source_artifact_materialization",
+            "executor_scope": "isolated_candidate_dir",
             "isolated_candidate_materialized": true,
             "mode": "chair_generic_factor_executor_candidate_attempt",
-            "solver_executed": false
+            "solver_executed": true
           }
         },
         "chair_generic_factor_residuals.json": {

@@ -2,12 +2,28 @@ from __future__ import annotations
 
 import hashlib
 import json
+import csv
 from pathlib import Path
 
 from ..base.io import REPO
 
 
 DEFAULT_PROJECTED_PERIODIC_GOLDEN = REPO / "tests/golden/mug_projected_periodic_migration_v1.json"
+BODY_CANDIDATE_NAME = "generic_periodic_body_candidate.csv"
+PHASE_CANDIDATE_NAME = "generic_periodic_phase_candidate.csv"
+PROJECTED_PERIODIC_ATTEMPT_NAME = "generic_projected_periodic_attempt.json"
+PROJECTED_PERIODIC_SAFE_OUTPUTS = (
+    BODY_CANDIDATE_NAME,
+    PHASE_CANDIDATE_NAME,
+    PROJECTED_PERIODIC_ATTEMPT_NAME,
+)
+ACCEPTED_OUTPUT_NAMES = {
+    "object_pose_init.csv",
+    "object_pose.csv",
+    "object_phase.csv",
+    "handle_phase.csv",
+    "object_contact_points.csv",
+}
 SWITCHED_RESULT_NAME = "generic_mug_periodic_switched_v1"
 SWITCHED_OUTPUTS = (
     "observation_seed/body_pose.csv",
@@ -37,6 +53,73 @@ SWITCHED_LOSS_ARTIFACTS = (
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _read_csv(path: Path) -> list[dict[str, str]]:
+    with path.open(newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def _load_json(path: Path) -> dict[str, object]:
+    if not path.exists():
+        return {}
+    payload = json.loads(path.read_text())
+    return payload if isinstance(payload, dict) else {}
+
+
+def validate_projected_periodic_candidate_attempt(attempt: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    if attempt.get("mode") != "generic_projected_periodic_candidate":
+        errors.append("projected-periodic candidate mode must be generic_projected_periodic_candidate")
+    if attempt.get("solver_executed") is not True:
+        errors.append("projected-periodic candidate must execute solver")
+    if attempt.get("executor_scope") != "isolated_candidate_dir":
+        errors.append("projected-periodic candidate must record isolated_candidate_dir scope")
+    if attempt.get("accepted_outputs_written") is not False:
+        errors.append("projected-periodic candidate must not write accepted outputs")
+    if attempt.get("baseline_pose_read") is not False:
+        errors.append("projected-periodic candidate must not read baseline pose")
+    if attempt.get("historical_phase_read") is not False:
+        errors.append("projected-periodic candidate must not read historical phase")
+    if attempt.get("body_candidate_artifact") != BODY_CANDIDATE_NAME:
+        errors.append("projected-periodic body candidate artifact name is not safe")
+    if attempt.get("phase_candidate_artifact") != PHASE_CANDIDATE_NAME:
+        errors.append("projected-periodic phase candidate artifact name is not safe")
+    if int(attempt.get("frames", 0) or 0) <= 0:
+        errors.append("projected-periodic candidate must record positive frame count")
+    return errors
+
+
+def verify_materialized_projected_periodic_candidate(candidate_dir: Path) -> list[str]:
+    errors: list[str] = []
+    for name in sorted(ACCEPTED_OUTPUT_NAMES):
+        if (candidate_dir / name).exists():
+            errors.append(f"accepted output artifact present in projected-periodic candidate dir: {name}")
+    for name in PROJECTED_PERIODIC_SAFE_OUTPUTS:
+        if not (candidate_dir / name).exists():
+            errors.append(f"missing planned output {name}")
+
+    attempt_path = candidate_dir / PROJECTED_PERIODIC_ATTEMPT_NAME
+    attempt = _load_json(attempt_path)
+    if not attempt:
+        return errors + [f"missing or invalid attempt manifest {PROJECTED_PERIODIC_ATTEMPT_NAME}"]
+    errors.extend(validate_projected_periodic_candidate_attempt(attempt))
+
+    body_path = candidate_dir / BODY_CANDIDATE_NAME
+    phase_path = candidate_dir / PHASE_CANDIDATE_NAME
+    if body_path.exists():
+        body_rows = _read_csv(body_path)
+        if len(body_rows) != int(attempt.get("frames", 0) or 0):
+            errors.append("projected-periodic body row count does not match attempt frames")
+        if _sha256(body_path) != attempt.get("body_candidate_sha256"):
+            errors.append("projected-periodic body candidate sha256 does not match attempt")
+    if phase_path.exists():
+        phase_rows = _read_csv(phase_path)
+        if len(phase_rows) != int(attempt.get("frames", 0) or 0):
+            errors.append("projected-periodic phase row count does not match attempt frames")
+        if _sha256(phase_path) != attempt.get("phase_candidate_sha256"):
+            errors.append("projected-periodic phase candidate sha256 does not match attempt")
+    return errors
 
 
 def _latest_stage_attempt(result_dir: Path, stage: str) -> dict[str, object]:

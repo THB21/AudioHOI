@@ -443,3 +443,27 @@ def test_candidate_sandbox_verifier_cli_materializes_and_verifies_chair_candidat
     assert (chair_dir / "generic_chair_factor_candidate.csv").exists()
     assert (chair_dir / "generic_chair_factor_residuals.csv").exists()
     assert not (chair_dir / "object_pose.csv").exists()
+
+
+def test_candidate_sandbox_verifier_cli_materializes_and_verifies_mug_candidate(tmp_path: Path) -> None:
+    candidate_root = tmp_path / "candidate_root"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/shared/generic_contact_pipeline/tools/verify_candidate_sandbox.py",
+            "--materialize-mug-candidates",
+            "--candidate-root",
+            str(candidate_root),
+        ],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    mug_dir = candidate_root / "benchmark_vlm_qwen_mug"
+    assert "mug_materialized=True" in completed.stdout
+    assert (mug_dir / "generic_periodic_body_candidate.csv").exists()
+    assert (mug_dir / "generic_periodic_phase_candidate.csv").exists()
+    assert not (mug_dir / "object_pose.csv").exists()
+    assert not (mug_dir / "object_phase.csv").exists()

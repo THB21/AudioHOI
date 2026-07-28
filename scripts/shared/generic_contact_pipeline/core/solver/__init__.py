@@ -56,6 +56,7 @@ from .projected_periodic_golden import (
     DEFAULT_PROJECTED_PERIODIC_GOLDEN,
     build_projected_periodic_regression_summary,
     verify_projected_periodic_regression,
+    verify_materialized_projected_periodic_candidate,
 )
 from .rigid_correspondence import RigidCorrespondenceInitializer
 from .line_diagnostics import (
@@ -123,6 +124,7 @@ __all__ = [
     "validate_chair_factor_executor_candidate",
     "validate_chair_factor_residual_coverage",
     "verify_materialized_chair_factor_candidate",
+    "verify_materialized_projected_periodic_candidate",
     "validate_sequence_problem_shadow",
     "verify_candidate_sandbox_summary",
     "verify_sequence_problem_summary",

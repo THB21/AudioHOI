@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
+from scripts.shared.generic_contact_pipeline.core.base.config import load_case_profile
+from scripts.shared.generic_contact_pipeline.core.solver import write_candidate_sandbox_manifest
 from scripts.shared.generic_contact_pipeline.components.geometry.mug_periodic import (
     MugPeriodicGeometryProvider,
     adapt_mug_periodic_observations,
@@ -77,6 +81,29 @@ def test_periodic_seed_outputs_are_stage1_attempt_artifacts() -> None:
         "periodic_feature_phase",
         "periodic_observation_report",
     }.issubset(STAGE_ARTIFACT_KEYS["stage1"])
+
+
+def test_materialized_mug_periodic_candidate_verifier_cli_reports_candidate(tmp_path: Path) -> None:
+    candidate_dir = tmp_path / "mug_candidate"
+    write_candidate_sandbox_manifest(
+        load_case_profile("mug"),
+        REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen",
+        candidate_dir,
+    )
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/shared/generic_contact_pipeline/tools/verify_mug_periodic_candidate.py",
+            "--candidate-dir",
+            str(candidate_dir),
+        ],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    assert "mug: periodic_candidate materialized=True body_rows=240 phase_rows=240" in completed.stdout
 
 
 @pytest.mark.repository_data

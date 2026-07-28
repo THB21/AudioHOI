@@ -43,12 +43,18 @@ def main() -> None:
         action="store_true",
         help="Materialize and verify basketball/football sphere safe candidate artifacts in candidate-root.",
     )
+    parser.add_argument(
+        "--materialize-all-candidates",
+        action="store_true",
+        help="Materialize and verify all supported safe candidate artifacts in candidate-root.",
+    )
     parser.add_argument("--candidate-root", type=Path, help="Root for materialized candidate artifacts.")
     args = parser.parse_args()
     if (
         args.materialize_chair_candidates
         or args.materialize_mug_candidates
         or args.materialize_sphere_candidates
+        or args.materialize_all_candidates
     ) and args.candidate_root is None:
         raise SystemExit("--materialize-* candidates requires --candidate-root")
 
@@ -57,7 +63,10 @@ def main() -> None:
     for case_name in CANONICAL_CASE_DIRECTORIES:
         summary = actual["cases"][case_name]
         materialized_note = ""
-        if args.materialize_chair_candidates and case_name == "chair" and summary["eligible_for_candidate_sandbox"] is True:
+        materialize_chair = args.materialize_chair_candidates or args.materialize_all_candidates
+        materialize_mug = args.materialize_mug_candidates or args.materialize_all_candidates
+        materialize_sphere = args.materialize_sphere_candidates or args.materialize_all_candidates
+        if materialize_chair and case_name == "chair" and summary["eligible_for_candidate_sandbox"] is True:
             profile = with_runtime_overrides(load_case_profile(case_name), result_name=args.result_name)
             result_dir = REPO / "samples_known_object" / CANONICAL_CASE_DIRECTORIES[case_name] / "results" / args.result_name
             candidate_dir = args.candidate_root / f"{args.result_name}_{case_name}"
@@ -65,7 +74,7 @@ def main() -> None:
             candidate_errors = verify_materialized_chair_factor_candidate(profile, result_dir, candidate_dir)
             errors.extend(f"{case_name}: {error}" for error in candidate_errors)
             materialized_note = f" chair_materialized={not candidate_errors}"
-        if args.materialize_mug_candidates and case_name == "mug" and summary["eligible_for_candidate_sandbox"] is True:
+        if materialize_mug and case_name == "mug" and summary["eligible_for_candidate_sandbox"] is True:
             profile = with_runtime_overrides(load_case_profile(case_name), result_name=args.result_name)
             result_dir = REPO / "samples_known_object" / CANONICAL_CASE_DIRECTORIES[case_name] / "results" / args.result_name
             candidate_dir = args.candidate_root / f"{args.result_name}_{case_name}"
@@ -74,7 +83,7 @@ def main() -> None:
             errors.extend(f"{case_name}: {error}" for error in candidate_errors)
             materialized_note = f" mug_materialized={not candidate_errors}"
         if (
-            args.materialize_sphere_candidates
+            materialize_sphere
             and case_name in {"basketball", "football"}
             and summary["eligible_for_candidate_sandbox"] is True
         ):

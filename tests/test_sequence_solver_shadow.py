@@ -491,3 +491,35 @@ def test_candidate_sandbox_verifier_cli_materializes_and_verifies_sphere_candida
         assert (candidate_dir / "generic_sphere_sequence_candidate.csv").exists()
         assert (candidate_dir / "generic_sphere_sequence_residuals.csv").exists()
         assert not (candidate_dir / "object_pose.csv").exists()
+
+
+def test_candidate_sandbox_verifier_cli_materializes_all_supported_candidates(tmp_path: Path) -> None:
+    candidate_root = tmp_path / "candidate_root"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/shared/generic_contact_pipeline/tools/verify_candidate_sandbox.py",
+            "--materialize-all-candidates",
+            "--candidate-root",
+            str(candidate_root),
+        ],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    expected_artifacts = {
+        "basketball": ("generic_sphere_sequence_candidate.csv", "generic_sphere_sequence_residuals.csv"),
+        "football": ("generic_sphere_sequence_candidate.csv", "generic_sphere_sequence_residuals.csv"),
+        "mug": ("generic_periodic_body_candidate.csv", "generic_periodic_phase_candidate.csv"),
+        "chair": ("generic_chair_factor_candidate.csv", "generic_chair_factor_residuals.csv"),
+    }
+    for case_name, artifacts in expected_artifacts.items():
+        candidate_dir = candidate_root / f"benchmark_vlm_qwen_{case_name}"
+        assert f"{case_name}_materialized=True" in completed.stdout
+        for artifact in artifacts:
+            assert (candidate_dir / artifact).exists()
+        assert not (candidate_dir / "object_pose.csv").exists()
+
+    assert "stick_materialized" not in completed.stdout

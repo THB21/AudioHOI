@@ -231,6 +231,9 @@ python scripts/shared/generic_contact_pipeline/tools/sync_golden_inputs.py \
 - mug Stage 1 已由 object-agnostic projected-periodic core 加 geometry provider 求解，
   body/phase、下游关键 CSV 和六路 render 与 fresh baseline byte-identical；Stage 1–7
   attempts/contracts pass。Stage 3/4 仍使用现有 pose/refinement plugin。
+- candidate sandbox 的 eligibility 已与 gap ledger 强绑定：mug 的 Stage 1
+  projected-periodic 进展不能自动关闭 Stage 3/4 的 sequence-solver blocking gap，
+  `sandbox_ready` 不允许携带 blocking gap。
 - chair/stick 仍未由同一 generic factor executor 求解；line contact 可继续保留为
   nonblocking compatibility mechanism。
 

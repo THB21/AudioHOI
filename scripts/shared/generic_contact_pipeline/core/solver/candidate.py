@@ -90,6 +90,26 @@ def validate_candidate_sandbox_manifest(manifest: dict[str, object]) -> list[str
     if manifest.get("baseline_pose_read") is not False:
         errors.append("candidate sandbox must not read baseline pose")
 
+    eligible = manifest.get("eligible_for_candidate_sandbox") is True
+    status = str(manifest.get("status", ""))
+    blocking_gap_ids = manifest.get("blocking_gap_ids", [])
+    nonblocking_gap_ids = manifest.get("nonblocking_gap_ids", [])
+    if not isinstance(blocking_gap_ids, list):
+        errors.append("blocking_gap_ids must be a list")
+        blocking_gap_ids = []
+    if not isinstance(nonblocking_gap_ids, list):
+        errors.append("nonblocking_gap_ids must be a list")
+    if eligible:
+        if status != "sandbox_ready":
+            errors.append("eligible sandbox must have status=sandbox_ready")
+        if blocking_gap_ids:
+            errors.append("eligible sandbox must not carry blocking gaps")
+    else:
+        if status != "blocked_by_known_gaps":
+            errors.append("blocked sandbox must have status=blocked_by_known_gaps")
+        if not blocking_gap_ids:
+            errors.append("blocked sandbox must record at least one blocking gap")
+
     candidate_dir = Path(str(manifest.get("candidate_dir", "")))
     canonical_result_dir = Path(str(manifest.get("canonical_result_dir", "")))
     if not str(candidate_dir):
@@ -107,7 +127,6 @@ def validate_candidate_sandbox_manifest(manifest: dict[str, object]) -> list[str
         overlap = sorted(str(item) for item in planned if Path(str(item)).name in forbidden)
         if overlap:
             errors.append(f"planned artifacts include accepted output names: {overlap}")
-        eligible = manifest.get("eligible_for_candidate_sandbox") is True
         expected = SPHERE_SANDBOX_ARTIFACTS if manifest.get("geometry_kind") == "sphere" else [SANDBOX_MANIFEST_NAME]
         if eligible and planned != expected:
             errors.append(f"eligible sandbox must plan exactly the safe artifacts: {expected}")

@@ -252,6 +252,28 @@ def test_candidate_sandbox_validation_rejects_accepted_output_names() -> None:
     assert any("accepted output names" in error for error in errors)
 
 
+def test_candidate_sandbox_validation_rejects_inconsistent_gap_eligibility() -> None:
+    blocked = build_candidate_sandbox_manifest(
+        load_case_profile("chair"),
+        REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
+    )
+    blocked["eligible_for_candidate_sandbox"] = True
+    blocked["status"] = "sandbox_ready"
+    blocked["planned_artifacts"] = blocked["planned_artifacts"] or ["generic_sequence_solver_shadow_candidate.json"]
+    errors = validate_candidate_sandbox_manifest(blocked)
+    assert any("eligible sandbox must not carry blocking gaps" in error for error in errors)
+
+    ready = build_candidate_sandbox_manifest(
+        load_case_profile("basketball"),
+        REPO / "samples_known_object/01_basketball/results/benchmark_vlm_qwen",
+    )
+    ready["eligible_for_candidate_sandbox"] = False
+    ready["status"] = "blocked_by_known_gaps"
+    ready["planned_artifacts"] = []
+    errors = validate_candidate_sandbox_manifest(ready)
+    assert any("blocked sandbox must record at least one blocking gap" in error for error in errors)
+
+
 def test_candidate_sandbox_materialize_writes_only_manifest(tmp_path: Path) -> None:
     candidate_dir = tmp_path / "ball_candidate"
     manifest = write_candidate_sandbox_manifest(

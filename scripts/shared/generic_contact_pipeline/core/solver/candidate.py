@@ -161,5 +161,10 @@ def write_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
     if errors:
         raise ValueError("; ".join(errors))
     if manifest["eligible_for_candidate_sandbox"] is True:
-        write_json(Path(str(manifest["candidate_dir"])) / SANDBOX_MANIFEST_NAME, manifest)
+        target_dir = Path(str(manifest["candidate_dir"]))
+        if profile.case_name == "chair":
+            from .chair_factor_candidate import prepare_chair_factor_executor_candidate
+
+            prepare_chair_factor_executor_candidate(profile, result_dir, target_dir)
+        write_json(target_dir / SANDBOX_MANIFEST_NAME, manifest)
     return manifest

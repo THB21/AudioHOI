@@ -467,3 +467,27 @@ def test_candidate_sandbox_verifier_cli_materializes_and_verifies_mug_candidate(
     assert (mug_dir / "generic_periodic_phase_candidate.csv").exists()
     assert not (mug_dir / "object_pose.csv").exists()
     assert not (mug_dir / "object_phase.csv").exists()
+
+
+def test_candidate_sandbox_verifier_cli_materializes_and_verifies_sphere_candidates(tmp_path: Path) -> None:
+    candidate_root = tmp_path / "candidate_root"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/shared/generic_contact_pipeline/tools/verify_candidate_sandbox.py",
+            "--materialize-sphere-candidates",
+            "--candidate-root",
+            str(candidate_root),
+        ],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    for case_name in ("basketball", "football"):
+        candidate_dir = candidate_root / f"benchmark_vlm_qwen_{case_name}"
+        assert f"{case_name}_materialized=True" in completed.stdout
+        assert (candidate_dir / "generic_sphere_sequence_candidate.csv").exists()
+        assert (candidate_dir / "generic_sphere_sequence_residuals.csv").exists()
+        assert not (candidate_dir / "object_pose.csv").exists()

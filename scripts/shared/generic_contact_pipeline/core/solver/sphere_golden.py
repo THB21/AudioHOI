@@ -21,6 +21,14 @@ PRIMARY_RENDER_ARTIFACTS = (
     "with_human/side_yz.mp4",
 )
 LOSS_TERMS = ("E_total", "E_visual", "E_mask", "E_contact", "E_support", "E_smooth", "E_reg")
+SPHERE_SAFE_OUTPUTS = (SPHERE_CANDIDATE_NAME, SPHERE_RESIDUAL_NAME, SPHERE_ATTEMPT_NAME)
+ACCEPTED_OUTPUT_NAMES = {
+    "object_pose_init.csv",
+    "object_pose.csv",
+    "object_phase.csv",
+    "handle_phase.csv",
+    "object_contact_points.csv",
+}
 
 
 def _sha256(path: Path) -> str:
@@ -30,6 +38,64 @@ def _sha256(path: Path) -> str:
 def _csv_rows(path: Path) -> int:
     with path.open(newline="") as handle:
         return sum(1 for _ in csv.DictReader(handle))
+
+
+def _load_json(path: Path) -> dict[str, object]:
+    if not path.exists():
+        return {}
+    payload = json.loads(path.read_text())
+    return payload if isinstance(payload, dict) else {}
+
+
+def validate_sphere_sequence_candidate_attempt(attempt: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    if attempt.get("mode") != "generic_sphere_sequence_candidate":
+        errors.append("sphere sequence candidate mode must be generic_sphere_sequence_candidate")
+    if attempt.get("solver_executed") is not True:
+        errors.append("sphere sequence candidate must execute solver")
+    if attempt.get("executor_scope") != "isolated_candidate_dir":
+        errors.append("sphere sequence candidate must record isolated_candidate_dir scope")
+    if attempt.get("accepted_outputs_written") is not False:
+        errors.append("sphere sequence candidate must not write accepted outputs")
+    if attempt.get("baseline_pose_read") is not False:
+        errors.append("sphere sequence candidate must not read baseline pose")
+    if attempt.get("candidate_artifact") != SPHERE_CANDIDATE_NAME:
+        errors.append("sphere sequence candidate artifact name is not safe")
+    if attempt.get("residual_artifact") != SPHERE_RESIDUAL_NAME:
+        errors.append("sphere sequence residual artifact name is not safe")
+    if int(attempt.get("frames", 0) or 0) <= 0:
+        errors.append("sphere sequence candidate must record positive frame count")
+    return errors
+
+
+def verify_materialized_sphere_sequence_candidate(candidate_dir: Path) -> list[str]:
+    errors: list[str] = []
+    for name in sorted(ACCEPTED_OUTPUT_NAMES):
+        if (candidate_dir / name).exists():
+            errors.append(f"accepted output artifact present in sphere sequence candidate dir: {name}")
+    for name in SPHERE_SAFE_OUTPUTS:
+        if not (candidate_dir / name).exists():
+            errors.append(f"missing planned output {name}")
+
+    attempt = _load_json(candidate_dir / SPHERE_ATTEMPT_NAME)
+    if not attempt:
+        return errors + [f"missing or invalid attempt manifest {SPHERE_ATTEMPT_NAME}"]
+    errors.extend(validate_sphere_sequence_candidate_attempt(attempt))
+
+    candidate_path = candidate_dir / SPHERE_CANDIDATE_NAME
+    residual_path = candidate_dir / SPHERE_RESIDUAL_NAME
+    frames = int(attempt.get("frames", 0) or 0)
+    if candidate_path.exists():
+        if _csv_rows(candidate_path) != frames:
+            errors.append("sphere sequence candidate row count does not match attempt frames")
+        if _sha256(candidate_path) != attempt.get("candidate_sha256"):
+            errors.append("sphere sequence candidate sha256 does not match attempt")
+    if residual_path.exists():
+        if _csv_rows(residual_path) != frames:
+            errors.append("sphere sequence residual row count does not match attempt frames")
+        if _sha256(residual_path) != attempt.get("residual_sha256"):
+            errors.append("sphere sequence residual sha256 does not match attempt")
+    return errors
 
 
 def _loss_term_summary(path: Path) -> dict[str, dict[str, float]]:

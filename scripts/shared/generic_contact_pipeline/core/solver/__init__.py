@@ -42,6 +42,7 @@ from .sphere_sequence import (
 from .sphere_golden import (
     DEFAULT_SPHERE_SEQUENCE_GOLDEN,
     build_sphere_sequence_regression_summary,
+    verify_materialized_sphere_sequence_candidate,
     verify_sphere_sequence_regression,
 )
 from .projected_periodic_sequence import (
@@ -124,6 +125,7 @@ __all__ = [
     "validate_chair_factor_executor_candidate",
     "validate_chair_factor_residual_coverage",
     "verify_materialized_chair_factor_candidate",
+    "verify_materialized_sphere_sequence_candidate",
     "verify_materialized_projected_periodic_candidate",
     "validate_sequence_problem_shadow",
     "verify_candidate_sandbox_summary",

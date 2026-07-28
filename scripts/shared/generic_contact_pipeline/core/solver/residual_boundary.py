@@ -17,6 +17,7 @@ SUPPORTED_RESIDUAL_REFS = {
     "shadow_residual::temporal_acceleration": "FactorResidualEvaluator.temporal_delta",
     "shadow_residual::joint_limit": "FactorResidualEvaluator.joint_limit",
     "shadow_residual::gauge_constraint": "FactorResidualEvaluator.gauge_constraint",
+    "shadow_residual::regularization": "FactorResidualEvaluator.regularization",
 }
 
 

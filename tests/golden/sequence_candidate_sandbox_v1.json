@@ -1,14 +1,12 @@
 {
-  "schema_version": 1,
   "cases": {
     "basketball": {
-      "status": "sandbox_ready",
-      "eligible_for_candidate_sandbox": true,
-      "candidate_dir": "samples_known_object/01_basketball/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_basketball",
       "attempt_id": "generic-attempt-aad3c1bf209a",
-      "problem_sha256": "6ccfd1e89c9d57af3cd48b1d199fce1c9c16dbe306e39dd063ab1ab38c4e2904",
-      "diagnostics_sha256": "fc38615772ec70ea2edbaa385b20bd9cf0b9292e681764f3e2c7eb32f335021f",
       "blocking_gap_ids": [],
+      "candidate_dir": "samples_known_object/01_basketball/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_basketball",
+      "canonical_sha256": "35ce74355296339b6d1a80d78a7d47c4e441cb5eb6b902cf9641f6ddaafe5a17",
+      "diagnostics_sha256": "8f466f20245b76b1631773b4293dea85e113ed066240fd5384a89059173b9a3e",
+      "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
         "generic_sequence_solver_shadow_candidate.json",
@@ -16,50 +14,16 @@
         "generic_sphere_sequence_residuals.csv",
         "generic_sphere_sequence_attempt.json"
       ],
-      "canonical_sha256": "35ce74355296339b6d1a80d78a7d47c4e441cb5eb6b902cf9641f6ddaafe5a17"
-    },
-    "football": {
-      "status": "sandbox_ready",
-      "eligible_for_candidate_sandbox": true,
-      "candidate_dir": "samples_known_object/10_football/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_football",
-      "attempt_id": "generic-attempt-9baf8ad8fcd7",
-      "problem_sha256": "0efa0ae6fed7d2b7ba7779a30ad00add06af64bf55b64e6c1210ce5726a0f850",
-      "diagnostics_sha256": "7ac81a06d96903d14017de42765b85085880602d197e890181b8681d0e4a0e98",
-      "blocking_gap_ids": [],
-      "nonblocking_gap_ids": [],
-      "planned_artifacts": [
-        "generic_sequence_solver_shadow_candidate.json",
-        "generic_sphere_sequence_candidate.csv",
-        "generic_sphere_sequence_residuals.csv",
-        "generic_sphere_sequence_attempt.json"
-      ],
-      "canonical_sha256": "809ca4cb384e85610f078afd735454c56ac2054b24232818976477d12a664ca5"
-    },
-    "mug": {
-      "status": "sandbox_ready",
-      "eligible_for_candidate_sandbox": true,
-      "candidate_dir": "samples_known_object/02_mug/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_mug",
-      "attempt_id": "generic-attempt-5e65dc595a39",
-      "problem_sha256": "4279ada751f27ee670100ebba901176c888a159ab413869aef97907a53d8f2db",
-      "diagnostics_sha256": "573fd6bf4c87216cc5a1fd3fa5bd4f0abe08d182cb9afee9137109ab818fcf09",
-      "blocking_gap_ids": [],
-      "nonblocking_gap_ids": [],
-      "planned_artifacts": [
-        "generic_sequence_solver_shadow_candidate.json",
-        "generic_periodic_body_candidate.csv",
-        "generic_periodic_phase_candidate.csv",
-        "generic_projected_periodic_attempt.json"
-      ],
-      "canonical_sha256": "f09576a37dc3b13fb862adee4dd423360bebc793324121474b66953ce31cb808"
+      "problem_sha256": "1c8e7e812ac3acc2b29b42d48aac34cc31c5c415ea5693cb102a020d5e34023b",
+      "status": "sandbox_ready"
     },
     "chair": {
-      "status": "sandbox_ready",
-      "eligible_for_candidate_sandbox": true,
-      "candidate_dir": "samples_known_object/05_chair/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_chair",
       "attempt_id": "generic-attempt-9b8263355dbd",
-      "problem_sha256": "667fc6abc79bc9282511574c2b2d9ba5ed5aa8f947887cfe982b8614559a3d40",
-      "diagnostics_sha256": "f6ea1c5e5c241a2269bd348094ea0dc29a3207716b3c61373d34e5037906a3ae",
       "blocking_gap_ids": [],
+      "candidate_dir": "samples_known_object/05_chair/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_chair",
+      "canonical_sha256": "b1b5375e681155a3069b9fd690ef842f86f883ef97080b3b327f9e32bd659005",
+      "diagnostics_sha256": "f579d57777ac28a3df09f58234b46e105eb4219a500c27939ce482cdd2669b7a",
+      "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
         "generic_sequence_solver_shadow_candidate.json",
@@ -68,16 +32,50 @@
         "chair_generic_factor_executor_attempt.json",
         "chair_generic_factor_residuals.json"
       ],
-      "canonical_sha256": "b1b5375e681155a3069b9fd690ef842f86f883ef97080b3b327f9e32bd659005"
+      "problem_sha256": "6c2c8d3cf0d56c841666ea8e2b2f5c26f8b74396221d4bb26b98fc973bd0a107",
+      "status": "sandbox_ready"
+    },
+    "football": {
+      "attempt_id": "generic-attempt-9baf8ad8fcd7",
+      "blocking_gap_ids": [],
+      "candidate_dir": "samples_known_object/10_football/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_football",
+      "canonical_sha256": "809ca4cb384e85610f078afd735454c56ac2054b24232818976477d12a664ca5",
+      "diagnostics_sha256": "4658f7354bea251738855af058e2e1ce8b3a6bfcdc64b9f233c6eb8df2a51ad9",
+      "eligible_for_candidate_sandbox": true,
+      "nonblocking_gap_ids": [],
+      "planned_artifacts": [
+        "generic_sequence_solver_shadow_candidate.json",
+        "generic_sphere_sequence_candidate.csv",
+        "generic_sphere_sequence_residuals.csv",
+        "generic_sphere_sequence_attempt.json"
+      ],
+      "problem_sha256": "1ba5d62129f2d06b2e02629ccb8067c3d693be2a587603da77ec229f1f655560",
+      "status": "sandbox_ready"
+    },
+    "mug": {
+      "attempt_id": "generic-attempt-5e65dc595a39",
+      "blocking_gap_ids": [],
+      "candidate_dir": "samples_known_object/02_mug/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_mug",
+      "canonical_sha256": "f09576a37dc3b13fb862adee4dd423360bebc793324121474b66953ce31cb808",
+      "diagnostics_sha256": "6d0e17212cadef2d6fce42c3c179b3c07ab4ac2f89f384776553c41489107914",
+      "eligible_for_candidate_sandbox": true,
+      "nonblocking_gap_ids": [],
+      "planned_artifacts": [
+        "generic_sequence_solver_shadow_candidate.json",
+        "generic_periodic_body_candidate.csv",
+        "generic_periodic_phase_candidate.csv",
+        "generic_projected_periodic_attempt.json"
+      ],
+      "problem_sha256": "aca82291506da0f8c0cbb035aa483e08a99b1895018bbad2cfb9b373c14cc3d8",
+      "status": "sandbox_ready"
     },
     "stick": {
-      "status": "sandbox_ready",
-      "eligible_for_candidate_sandbox": true,
-      "candidate_dir": "samples_known_object/11_stick/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_stick",
       "attempt_id": "generic-attempt-7b79b1b6dd46",
-      "problem_sha256": "2f1ddd43e9c81b9a6f92a4060041d59ec804971b88ff9c2bb7b9d07a1b061a64",
-      "diagnostics_sha256": "12d95d09d3d5da4ee46f60ee86b9f2af392fbbf4059e1c254d8703b0c750bf43",
       "blocking_gap_ids": [],
+      "candidate_dir": "samples_known_object/11_stick/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_stick",
+      "canonical_sha256": "cbc0afe5fd1560d6073c729cc221b5e525eab1e7724908ef16ca417b7f484a6e",
+      "diagnostics_sha256": "8d8470b84db653ce4fe7db01626f32c275090841ba67a515384a46260b442789",
+      "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [
         "line_contact_lock_special_refinement"
       ],
@@ -87,7 +85,9 @@
         "generic_line_contact_residuals.csv",
         "generic_line_contact_attempt.json"
       ],
-      "canonical_sha256": "cbc0afe5fd1560d6073c729cc221b5e525eab1e7724908ef16ca417b7f484a6e"
+      "problem_sha256": "5831f589f3909466df90b1c66be8bb22fbd54bea021bdedbbbc375cdeeed84cc",
+      "status": "sandbox_ready"
     }
-  }
+  },
+  "schema_version": 1
 }

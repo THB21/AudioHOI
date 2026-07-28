@@ -1,44 +1,25 @@
 {
-  "schema_version": 1,
   "cases": {
     "basketball": {
-      "sequence_contract_sha256": "f4157289f84e8cded4cecf2a4f3b09e30f59753b483e0c0b31ebc5241b234e3d",
-      "sequence_contract_state_spec": "translation3:sphere",
-      "sequence_contract_compiled_factors": 10,
-      "runtime_executor_id": "generic_sequence_executor",
-      "runtime_case_dispatch_used": false,
-      "runtime_plan_sha256": "5971491e64fb91c6ed19eb26e8d632cc114dd5c74486b71ac94e6ec74cc0f9cf",
-      "executor_prepare_status": "prepared_not_executed",
-      "executor_prepare_case_dispatch_used": false,
-      "executor_prepare_sha256": "18647cd9ac21a7e6ab60c8cd217f663f5e6adb13aff8f6f37b0eb22b3e20abe4",
-      "attempt_ledger_status": "attempt_planned_not_executed",
+      "attempt_id": "generic-attempt-aad3c1bf209a",
       "attempt_ledger_case_dispatch_used": false,
       "attempt_ledger_residual_status": "not_executed",
       "attempt_ledger_sha256": "106c91b8ae8d8b203098e102220f6d28a5c4afc8d35e9e98ea055b86eb19681c",
-      "residual_boundary_supported": 8,
-      "residual_boundary_pending": 2,
-      "residual_boundary_gap_ids": [
-        "missing_generic_residual:regularization"
-      ],
-      "residual_boundary_sha256": "a5c1b76c2531f1be6671462ad06662e845da39e8770717959e7b2dd9f3fc2a8f",
-      "state_model": "translation3",
-      "geometry_kind": "sphere",
-      "measurement_count": 768,
-      "measurement_frames": 192,
+      "attempt_ledger_status": "attempt_planned_not_executed",
+      "canonical_sha256": "1c8e7e812ac3acc2b29b42d48aac34cc31c5c415ea5693cb102a020d5e34023b",
+      "compiled_factor_count": 10,
+      "compiled_factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
       "contact_count": 192,
-      "interaction_frame_count": 192,
-      "interaction_interval_count": 73,
-      "interaction_contact_states": {
-        "active": 21,
-        "inactive": 108,
-        "persistent": 42,
-        "release": 21
-      },
-      "interaction_motion_modes": {
-        "attached": 56,
-        "free": 129,
-        "supported_static": 7
-      },
+      "executor_prepare_case_dispatch_used": false,
+      "executor_prepare_sha256": "18647cd9ac21a7e6ab60c8cd217f663f5e6adb13aff8f6f37b0eb22b3e20abe4",
+      "executor_prepare_status": "prepared_not_executed",
       "factor_activation_policies": {
         "always_on_state_or_geometry_regularizer": 3,
         "contact_state_controls_contact_distance": 2,
@@ -51,15 +32,6 @@
         "downweighted_frames": 45,
         "inactive_frames": 216
       },
-      "compiled_factor_count": 10,
-      "compiled_factor_kinds": {
-        "contact_distance": 2,
-        "metric_depth": 1,
-        "pose_prior": 1,
-        "regularization": 2,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 3
-      },
       "factor_count": 10,
       "factor_kinds": {
         "contact_distance": 2,
@@ -70,200 +42,42 @@
         "temporal_velocity": 3
       },
       "gap_ids": [],
-      "attempt_id": "generic-attempt-aad3c1bf209a",
-      "validation_errors": [],
-      "canonical_sha256": "6ccfd1e89c9d57af3cd48b1d199fce1c9c16dbe306e39dd063ab1ab38c4e2904"
-    },
-    "football": {
-      "sequence_contract_sha256": "84e7bd88b308df0b7075431dd3ef75895553dc4144e2d645ad8a8649b404240b",
-      "sequence_contract_state_spec": "translation3:sphere",
-      "sequence_contract_compiled_factors": 10,
-      "runtime_executor_id": "generic_sequence_executor",
-      "runtime_case_dispatch_used": false,
-      "runtime_plan_sha256": "3aae1a99e4620dbfdee15a0345c31a12db5473cf8a1d84194214835a9e2fef1e",
-      "executor_prepare_status": "prepared_not_executed",
-      "executor_prepare_case_dispatch_used": false,
-      "executor_prepare_sha256": "025598b84ce9ac0c18f211cf031e34a7ff1ba4e2a40ec6b34f299bfa4c301e34",
-      "attempt_ledger_status": "attempt_planned_not_executed",
-      "attempt_ledger_case_dispatch_used": false,
-      "attempt_ledger_residual_status": "not_executed",
-      "attempt_ledger_sha256": "7b0733bfa7d62366536800d9bd65ec17527d5e954345b13cbf1c84367536afe7",
-      "residual_boundary_supported": 8,
-      "residual_boundary_pending": 2,
-      "residual_boundary_gap_ids": [
-        "missing_generic_residual:regularization"
-      ],
-      "residual_boundary_sha256": "ef3b00a652ac10fe07b6f0b9bf6fa0c1ddd4f5500cc7cc3208f9a21e639177ac",
-      "state_model": "translation3",
       "geometry_kind": "sphere",
-      "measurement_count": 968,
-      "measurement_frames": 242,
-      "contact_count": 242,
-      "interaction_frame_count": 242,
-      "interaction_interval_count": 58,
       "interaction_contact_states": {
-        "active": 57,
-        "inactive": 161,
-        "persistent": 10,
-        "release": 14
+        "active": 21,
+        "inactive": 108,
+        "persistent": 42,
+        "release": 21
       },
+      "interaction_frame_count": 192,
+      "interaction_interval_count": 73,
       "interaction_motion_modes": {
-        "attached": 16,
-        "ballistic": 6,
-        "free": 169,
-        "supported_static": 51
+        "attached": 56,
+        "free": 129,
+        "supported_static": 7
       },
-      "factor_activation_policies": {
-        "always_on_state_or_geometry_regularizer": 3,
-        "contact_state_controls_contact_distance": 2,
-        "interaction_state_controls_acceleration_smoothness": 1,
-        "motion_mode_controls_velocity_smoothness": 3,
-        "visibility_state_controls_visual_observation": 1
-      },
-      "factor_activation_totals": {
-        "active_frames": 2044,
-        "downweighted_frames": 54,
-        "inactive_frames": 322
-      },
-      "compiled_factor_count": 10,
-      "compiled_factor_kinds": {
-        "contact_distance": 2,
-        "metric_depth": 1,
-        "pose_prior": 1,
-        "regularization": 2,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 3
-      },
-      "factor_count": 10,
-      "factor_kinds": {
-        "contact_distance": 2,
-        "metric_depth": 1,
-        "pose_prior": 1,
-        "regularization": 2,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 3
-      },
-      "gap_ids": [],
-      "attempt_id": "generic-attempt-9baf8ad8fcd7",
-      "validation_errors": [],
-      "canonical_sha256": "0efa0ae6fed7d2b7ba7779a30ad00add06af64bf55b64e6c1210ce5726a0f850"
-    },
-    "mug": {
-      "sequence_contract_sha256": "a860d6144efe320559be67666c7177d579d8e7e6bfa136a3a3db468b56b0639f",
-      "sequence_contract_state_spec": "rigid6_plus_phase:rigid_mesh",
-      "sequence_contract_compiled_factors": 6,
-      "runtime_executor_id": "generic_sequence_executor",
+      "measurement_count": 768,
+      "measurement_frames": 192,
+      "residual_boundary_gap_ids": [],
+      "residual_boundary_pending": 0,
+      "residual_boundary_sha256": "b5d3011393a92948726f02e1e596653b2ea42778d4a34c9d4b07bb457c8102d4",
+      "residual_boundary_supported": 10,
       "runtime_case_dispatch_used": false,
-      "runtime_plan_sha256": "b9343410cd434c949684191d9ad1d443bbfebf7e5c3fd8589d6a6d1a9a259dc4",
-      "executor_prepare_status": "prepared_not_executed",
-      "executor_prepare_case_dispatch_used": false,
-      "executor_prepare_sha256": "59c6d27135a7ba90a1d38ae16d02c73b379585ea48d70dd786f4e0b756d956ad",
-      "attempt_ledger_status": "attempt_planned_not_executed",
-      "attempt_ledger_case_dispatch_used": false,
-      "attempt_ledger_residual_status": "not_executed",
-      "attempt_ledger_sha256": "bc5dc0105ce8ef5765dfbd7700fa53a32c316cb58fddc4b13004287c54487fe1",
-      "residual_boundary_supported": 4,
-      "residual_boundary_pending": 2,
-      "residual_boundary_gap_ids": [
-        "missing_generic_residual:periodic_phase_prior",
-        "missing_generic_residual:regularization"
-      ],
-      "residual_boundary_sha256": "0ebfe2ce384031a2896f32777ad541663ae2079d72ef4e86f988c0d59e015e1c",
-      "state_model": "rigid6_plus_phase",
-      "geometry_kind": "rigid_mesh",
-      "measurement_count": 1359,
-      "measurement_frames": 240,
-      "contact_count": 240,
-      "interaction_frame_count": 240,
-      "interaction_interval_count": 13,
-      "interaction_contact_states": {
-        "inactive": 240
-      },
-      "interaction_motion_modes": {
-        "free": 240
-      },
-      "factor_activation_policies": {
-        "always_on_state_or_geometry_regularizer": 3,
-        "contact_state_controls_contact_distance": 1,
-        "interaction_state_controls_acceleration_smoothness": 1,
-        "motion_mode_controls_velocity_smoothness": 1
-      },
-      "factor_activation_totals": {
-        "active_frames": 1200,
-        "downweighted_frames": 0,
-        "inactive_frames": 240
-      },
-      "compiled_factor_count": 6,
-      "compiled_factor_kinds": {
-        "contact_distance": 1,
-        "periodic_phase_prior": 1,
-        "pose_prior": 1,
-        "regularization": 1,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 1
-      },
-      "factor_count": 6,
-      "factor_kinds": {
-        "contact_distance": 1,
-        "periodic_phase_prior": 1,
-        "pose_prior": 1,
-        "regularization": 1,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 1
-      },
-      "gap_ids": [],
-      "attempt_id": "generic-attempt-5e65dc595a39",
-      "validation_errors": [],
-      "canonical_sha256": "4279ada751f27ee670100ebba901176c888a159ab413869aef97907a53d8f2db"
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_plan_sha256": "5971491e64fb91c6ed19eb26e8d632cc114dd5c74486b71ac94e6ec74cc0f9cf",
+      "sequence_contract_compiled_factors": 10,
+      "sequence_contract_sha256": "f4157289f84e8cded4cecf2a4f3b09e30f59753b483e0c0b31ebc5241b234e3d",
+      "sequence_contract_state_spec": "translation3:sphere",
+      "state_model": "translation3",
+      "validation_errors": []
     },
     "chair": {
-      "sequence_contract_sha256": "769dd54a9ab48b544933eeb674d4487e4f35ba4ef5381a8261a549d26937a5d1",
-      "sequence_contract_state_spec": "semantic_graph_6d:articulated",
-      "sequence_contract_compiled_factors": 13,
-      "runtime_executor_id": "generic_sequence_executor",
-      "runtime_case_dispatch_used": false,
-      "runtime_plan_sha256": "509d556e7143377c7a293bd91c1757bcdc471395f3f473c5ec2b3e1e9e1ab4f4",
-      "executor_prepare_status": "prepared_not_executed",
-      "executor_prepare_case_dispatch_used": false,
-      "executor_prepare_sha256": "47cff940dbc68ebf8524cb05a417b427afec46b89c5fed94fec4df1f0bb05560",
-      "attempt_ledger_status": "attempt_planned_not_executed",
+      "attempt_id": "generic-attempt-9b8263355dbd",
       "attempt_ledger_case_dispatch_used": false,
       "attempt_ledger_residual_status": "not_executed",
       "attempt_ledger_sha256": "c8650b6bcdc1f9f82f8e95a4e8771f31da9cedc2779c55f956eeba21cbe9cd87",
-      "residual_boundary_supported": 11,
-      "residual_boundary_pending": 2,
-      "residual_boundary_gap_ids": [
-        "missing_generic_residual:audio_event_prior",
-        "missing_generic_residual:regularization"
-      ],
-      "residual_boundary_sha256": "641cc441f0f1c5e99a7829c6b57997df212232b9e5b3b30e86a8c739ecb7cb72",
-      "state_model": "semantic_graph_6d",
-      "geometry_kind": "articulated_urdf",
-      "measurement_count": 1014,
-      "measurement_frames": 192,
-      "contact_count": 317,
-      "interaction_frame_count": 192,
-      "interaction_interval_count": 1,
-      "interaction_contact_states": {
-        "inactive": 192
-      },
-      "interaction_motion_modes": {
-        "free": 192
-      },
-      "factor_activation_policies": {
-        "always_on_state_or_geometry_regularizer": 5,
-        "audio_event_ids_control_audio_alignment": 1,
-        "contact_state_controls_contact_distance": 1,
-        "interaction_state_controls_acceleration_smoothness": 1,
-        "motion_mode_controls_velocity_smoothness": 1,
-        "support_state_controls_support_penetration": 1,
-        "visibility_state_controls_visual_observation": 3
-      },
-      "factor_activation_totals": {
-        "active_frames": 1920,
-        "downweighted_frames": 0,
-        "inactive_frames": 576
-      },
+      "attempt_ledger_status": "attempt_planned_not_executed",
+      "canonical_sha256": "6c2c8d3cf0d56c841666ea8e2b2f5c26f8b74396221d4bb26b98fc973bd0a107",
       "compiled_factor_count": 13,
       "compiled_factor_kinds": {
         "audio_event_prior": 1,
@@ -277,6 +91,24 @@
         "support_and_penetration": 1,
         "temporal_acceleration": 1,
         "temporal_velocity": 1
+      },
+      "contact_count": 317,
+      "executor_prepare_case_dispatch_used": false,
+      "executor_prepare_sha256": "47cff940dbc68ebf8524cb05a417b427afec46b89c5fed94fec4df1f0bb05560",
+      "executor_prepare_status": "prepared_not_executed",
+      "factor_activation_policies": {
+        "always_on_state_or_geometry_regularizer": 5,
+        "audio_event_ids_control_audio_alignment": 1,
+        "contact_state_controls_contact_distance": 1,
+        "interaction_state_controls_acceleration_smoothness": 1,
+        "motion_mode_controls_velocity_smoothness": 1,
+        "support_state_controls_support_penetration": 1,
+        "visibility_state_controls_visual_observation": 3
+      },
+      "factor_activation_totals": {
+        "active_frames": 1920,
+        "downweighted_frames": 0,
+        "inactive_frames": 576
       },
       "factor_count": 13,
       "factor_kinds": {
@@ -293,44 +125,190 @@
         "temporal_velocity": 1
       },
       "gap_ids": [],
-      "attempt_id": "generic-attempt-9b8263355dbd",
-      "validation_errors": [],
-      "canonical_sha256": "667fc6abc79bc9282511574c2b2d9ba5ed5aa8f947887cfe982b8614559a3d40"
+      "geometry_kind": "articulated_urdf",
+      "interaction_contact_states": {
+        "inactive": 192
+      },
+      "interaction_frame_count": 192,
+      "interaction_interval_count": 1,
+      "interaction_motion_modes": {
+        "free": 192
+      },
+      "measurement_count": 1014,
+      "measurement_frames": 192,
+      "residual_boundary_gap_ids": [
+        "missing_generic_residual:audio_event_prior"
+      ],
+      "residual_boundary_pending": 1,
+      "residual_boundary_sha256": "d32cc9ea992a4d7fd94d2c126df4783d0c7e4e70c694430fcfb94a85e8d14410",
+      "residual_boundary_supported": 12,
+      "runtime_case_dispatch_used": false,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_plan_sha256": "509d556e7143377c7a293bd91c1757bcdc471395f3f473c5ec2b3e1e9e1ab4f4",
+      "sequence_contract_compiled_factors": 13,
+      "sequence_contract_sha256": "769dd54a9ab48b544933eeb674d4487e4f35ba4ef5381a8261a549d26937a5d1",
+      "sequence_contract_state_spec": "semantic_graph_6d:articulated",
+      "state_model": "semantic_graph_6d",
+      "validation_errors": []
+    },
+    "football": {
+      "attempt_id": "generic-attempt-9baf8ad8fcd7",
+      "attempt_ledger_case_dispatch_used": false,
+      "attempt_ledger_residual_status": "not_executed",
+      "attempt_ledger_sha256": "7b0733bfa7d62366536800d9bd65ec17527d5e954345b13cbf1c84367536afe7",
+      "attempt_ledger_status": "attempt_planned_not_executed",
+      "canonical_sha256": "1ba5d62129f2d06b2e02629ccb8067c3d693be2a587603da77ec229f1f655560",
+      "compiled_factor_count": 10,
+      "compiled_factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
+      "contact_count": 242,
+      "executor_prepare_case_dispatch_used": false,
+      "executor_prepare_sha256": "025598b84ce9ac0c18f211cf031e34a7ff1ba4e2a40ec6b34f299bfa4c301e34",
+      "executor_prepare_status": "prepared_not_executed",
+      "factor_activation_policies": {
+        "always_on_state_or_geometry_regularizer": 3,
+        "contact_state_controls_contact_distance": 2,
+        "interaction_state_controls_acceleration_smoothness": 1,
+        "motion_mode_controls_velocity_smoothness": 3,
+        "visibility_state_controls_visual_observation": 1
+      },
+      "factor_activation_totals": {
+        "active_frames": 2044,
+        "downweighted_frames": 54,
+        "inactive_frames": 322
+      },
+      "factor_count": 10,
+      "factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
+      "gap_ids": [],
+      "geometry_kind": "sphere",
+      "interaction_contact_states": {
+        "active": 57,
+        "inactive": 161,
+        "persistent": 10,
+        "release": 14
+      },
+      "interaction_frame_count": 242,
+      "interaction_interval_count": 58,
+      "interaction_motion_modes": {
+        "attached": 16,
+        "ballistic": 6,
+        "free": 169,
+        "supported_static": 51
+      },
+      "measurement_count": 968,
+      "measurement_frames": 242,
+      "residual_boundary_gap_ids": [],
+      "residual_boundary_pending": 0,
+      "residual_boundary_sha256": "c80d1b03bf4f1fe6c7941196259e42881a3ff83b336698fb730f093192955f34",
+      "residual_boundary_supported": 10,
+      "runtime_case_dispatch_used": false,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_plan_sha256": "3aae1a99e4620dbfdee15a0345c31a12db5473cf8a1d84194214835a9e2fef1e",
+      "sequence_contract_compiled_factors": 10,
+      "sequence_contract_sha256": "84e7bd88b308df0b7075431dd3ef75895553dc4144e2d645ad8a8649b404240b",
+      "sequence_contract_state_spec": "translation3:sphere",
+      "state_model": "translation3",
+      "validation_errors": []
+    },
+    "mug": {
+      "attempt_id": "generic-attempt-5e65dc595a39",
+      "attempt_ledger_case_dispatch_used": false,
+      "attempt_ledger_residual_status": "not_executed",
+      "attempt_ledger_sha256": "bc5dc0105ce8ef5765dfbd7700fa53a32c316cb58fddc4b13004287c54487fe1",
+      "attempt_ledger_status": "attempt_planned_not_executed",
+      "canonical_sha256": "aca82291506da0f8c0cbb035aa483e08a99b1895018bbad2cfb9b373c14cc3d8",
+      "compiled_factor_count": 6,
+      "compiled_factor_kinds": {
+        "contact_distance": 1,
+        "periodic_phase_prior": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
+      "contact_count": 240,
+      "executor_prepare_case_dispatch_used": false,
+      "executor_prepare_sha256": "59c6d27135a7ba90a1d38ae16d02c73b379585ea48d70dd786f4e0b756d956ad",
+      "executor_prepare_status": "prepared_not_executed",
+      "factor_activation_policies": {
+        "always_on_state_or_geometry_regularizer": 3,
+        "contact_state_controls_contact_distance": 1,
+        "interaction_state_controls_acceleration_smoothness": 1,
+        "motion_mode_controls_velocity_smoothness": 1
+      },
+      "factor_activation_totals": {
+        "active_frames": 1200,
+        "downweighted_frames": 0,
+        "inactive_frames": 240
+      },
+      "factor_count": 6,
+      "factor_kinds": {
+        "contact_distance": 1,
+        "periodic_phase_prior": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
+      "gap_ids": [],
+      "geometry_kind": "rigid_mesh",
+      "interaction_contact_states": {
+        "inactive": 240
+      },
+      "interaction_frame_count": 240,
+      "interaction_interval_count": 13,
+      "interaction_motion_modes": {
+        "free": 240
+      },
+      "measurement_count": 1359,
+      "measurement_frames": 240,
+      "residual_boundary_gap_ids": [
+        "missing_generic_residual:periodic_phase_prior"
+      ],
+      "residual_boundary_pending": 1,
+      "residual_boundary_sha256": "9add7b185480d7dc3cebe3591491f26283ed20f852f8146240b721dcf12b5a76",
+      "residual_boundary_supported": 5,
+      "runtime_case_dispatch_used": false,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_plan_sha256": "b9343410cd434c949684191d9ad1d443bbfebf7e5c3fd8589d6a6d1a9a259dc4",
+      "sequence_contract_compiled_factors": 6,
+      "sequence_contract_sha256": "a860d6144efe320559be67666c7177d579d8e7e6bfa136a3a3db468b56b0639f",
+      "sequence_contract_state_spec": "rigid6_plus_phase:rigid_mesh",
+      "state_model": "rigid6_plus_phase",
+      "validation_errors": []
     },
     "stick": {
-      "sequence_contract_sha256": "75a09bd0e1293abb49ad4657aa797ea4d242f66359ef83230cf0b3c712cdb776",
-      "sequence_contract_state_spec": "translation3:line_capsule",
-      "sequence_contract_compiled_factors": 5,
-      "runtime_executor_id": "generic_sequence_executor",
-      "runtime_case_dispatch_used": false,
-      "runtime_plan_sha256": "903a35e1a88fcdcbe319ce0f2b8d2b7b73a6ae922ca0c6015509a7cd29a61ffa",
-      "executor_prepare_status": "prepared_not_executed",
-      "executor_prepare_case_dispatch_used": false,
-      "executor_prepare_sha256": "ed924e287ddf643cc39c0b0c3a776002ba77f2ba38fa01bf63e13d9398b7b811",
-      "attempt_ledger_status": "attempt_planned_not_executed",
+      "attempt_id": "generic-attempt-7b79b1b6dd46",
       "attempt_ledger_case_dispatch_used": false,
       "attempt_ledger_residual_status": "not_executed",
       "attempt_ledger_sha256": "3828ffcaa36897446be6caa0243a1d826a0ed8b2c0e37bda121e1cdeb3779620",
-      "residual_boundary_supported": 4,
-      "residual_boundary_pending": 1,
-      "residual_boundary_gap_ids": [
-        "missing_generic_residual:regularization"
-      ],
-      "residual_boundary_sha256": "b9c71eae2dcd347e81a34f1c7d03ea4d3987e6555212b4a0b48035842dea520b",
-      "state_model": "translation3_with_line_orientation_prior",
-      "geometry_kind": "line_capsule",
-      "measurement_count": 960,
-      "measurement_frames": 240,
+      "attempt_ledger_status": "attempt_planned_not_executed",
+      "canonical_sha256": "5831f589f3909466df90b1c66be8bb22fbd54bea021bdedbbbc375cdeeed84cc",
+      "compiled_factor_count": 5,
+      "compiled_factor_kinds": {
+        "contact_distance": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
       "contact_count": 480,
-      "interaction_frame_count": 240,
-      "interaction_interval_count": 2,
-      "interaction_contact_states": {
-        "active": 1,
-        "persistent": 239
-      },
-      "interaction_motion_modes": {
-        "attached": 240
-      },
+      "executor_prepare_case_dispatch_used": false,
+      "executor_prepare_sha256": "ed924e287ddf643cc39c0b0c3a776002ba77f2ba38fa01bf63e13d9398b7b811",
+      "executor_prepare_status": "prepared_not_executed",
       "factor_activation_policies": {
         "always_on_state_or_geometry_regularizer": 2,
         "contact_state_controls_contact_distance": 1,
@@ -341,14 +319,6 @@
         "active_frames": 1200,
         "downweighted_frames": 0,
         "inactive_frames": 0
-      },
-      "compiled_factor_count": 5,
-      "compiled_factor_kinds": {
-        "contact_distance": 1,
-        "pose_prior": 1,
-        "regularization": 1,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 1
       },
       "factor_count": 5,
       "factor_kinds": {
@@ -361,9 +331,31 @@
       "gap_ids": [
         "line_contact_lock_special_refinement"
       ],
-      "attempt_id": "generic-attempt-7b79b1b6dd46",
-      "validation_errors": [],
-      "canonical_sha256": "2f1ddd43e9c81b9a6f92a4060041d59ec804971b88ff9c2bb7b9d07a1b061a64"
+      "geometry_kind": "line_capsule",
+      "interaction_contact_states": {
+        "active": 1,
+        "persistent": 239
+      },
+      "interaction_frame_count": 240,
+      "interaction_interval_count": 2,
+      "interaction_motion_modes": {
+        "attached": 240
+      },
+      "measurement_count": 960,
+      "measurement_frames": 240,
+      "residual_boundary_gap_ids": [],
+      "residual_boundary_pending": 0,
+      "residual_boundary_sha256": "3f0ed3e35ba898b8036d1a31dcb7ac1bd0a837e29e92679cb5d2e59434477e20",
+      "residual_boundary_supported": 5,
+      "runtime_case_dispatch_used": false,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_plan_sha256": "903a35e1a88fcdcbe319ce0f2b8d2b7b73a6ae922ca0c6015509a7cd29a61ffa",
+      "sequence_contract_compiled_factors": 5,
+      "sequence_contract_sha256": "75a09bd0e1293abb49ad4657aa797ea4d242f66359ef83230cf0b3c712cdb776",
+      "sequence_contract_state_spec": "translation3:line_capsule",
+      "state_model": "translation3_with_line_orientation_prior",
+      "validation_errors": []
     }
-  }
+  },
+  "schema_version": 1
 }

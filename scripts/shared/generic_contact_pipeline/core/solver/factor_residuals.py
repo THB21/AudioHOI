@@ -71,3 +71,8 @@ class FactorResidualEvaluator:
 
     def gauge_constraint(self, values: np.ndarray, *, target: float, weight: float, sigma: float) -> np.ndarray:
         return (float(weight) * (values - float(target)) / float(sigma)).astype(float)
+
+    def regularization(self, values: np.ndarray, target: np.ndarray, *, weight: float, scales: np.ndarray) -> np.ndarray:
+        if values.shape != target.shape or values.shape != scales.shape:
+            raise ValueError("regularization residuals require matching value, target, and scale arrays")
+        return (float(weight) * (values - target) / scales).astype(float)

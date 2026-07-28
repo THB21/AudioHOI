@@ -92,3 +92,16 @@ def test_factor_residual_evaluator_supports_joint_limit_and_gauge_blocks() -> No
 
     np.testing.assert_allclose(joint, [-10.0, 0.0, 0.0, 6.0])
     np.testing.assert_allclose(gauge, [1.0, -2.0])
+
+
+def test_factor_residual_evaluator_supports_generic_regularization_block() -> None:
+    evaluator = FactorResidualEvaluator()
+
+    residual = evaluator.regularization(
+        values=np.array([1.0, -2.0, 0.5], dtype=float),
+        target=np.array([0.0, -1.0, 0.5], dtype=float),
+        weight=0.3,
+        scales=np.array([0.5, 2.0, 0.25], dtype=float),
+    )
+
+    np.testing.assert_allclose(residual, [0.6, -0.15, 0.0])

@@ -35,6 +35,7 @@ from scripts.shared.generic_contact_pipeline.components.render.scenes.render_cha
 from scripts.shared.generic_contact_pipeline.components.refinement.solvers.contact_chord_initializer import (  # noqa: E402
     align_contact_chord,
 )
+from scripts.shared.generic_contact_pipeline.core.solver.factor_residuals import FactorResidualEvaluator  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.state import ArticulatedKinematicProvider, SegmentJointRule  # noqa: E402
 
 POSE_KEYS = ["rx_delta", "ry_delta", "rz_delta", "tx", "ty", "tz", "rear_joint_angle", "seat_joint_angle"]
@@ -344,16 +345,32 @@ def optimize_contact_frame(
     def full_params(x: np.ndarray) -> np.ndarray:
         return x if args.optimize_articulation else np.concatenate([x, joint_vals])
 
+    residuals = FactorResidualEvaluator()
+
     def residual(x: np.ndarray) -> np.ndarray:
         params = full_params(x)
         vals: list[float] = []
+        predicted_uvs: list[np.ndarray] = []
+        target_uvs: list[np.ndarray] = []
         for sid in segment_ids:
             if sid not in target_2d:
                 continue
             cam = segment_cam(params, sid, segs)
             uv, valid = project_cam(cam, k)
             if np.all(valid):
-                vals.extend((args.w_2d * (uv - target_2d[sid]).reshape(-1) / args.sigma_px).tolist())
+                predicted_uvs.append(uv)
+                target_uvs.append(target_2d[sid])
+        if predicted_uvs:
+            vals.extend(
+                residuals.point_reprojection(
+                    np.vstack(predicted_uvs),
+                    np.vstack(target_uvs),
+                    weight=args.w_2d,
+                    sigma_px=args.sigma_px,
+                ).tolist()
+            )
+        contact_anchors: list[np.ndarray] = []
+        contact_targets: list[np.ndarray] = []
         for contact in contacts:
             hand = palm.get(contact.get("hand_side", ""))
             if hand is None:
@@ -362,12 +379,39 @@ def optimize_contact_frame(
             if not np.all(np.isfinite(local)):
                 continue
             anchor = point_cam(params, local)
-            vals.extend((args.w_contact * (anchor - hand) / args.sigma_contact_m).tolist())
-        vals.extend((args.w_prior_rot * (x[:3] - ref[:3]) / args.rot_bound).tolist())
-        vals.extend((args.w_prior_xy * (x[3:5] - ref[3:5]) / args.xy_bound).tolist())
-        vals.extend((args.w_prior_z * (x[5:6] - init[5:6]) / args.z_bound).tolist())
+            contact_anchors.append(anchor)
+            contact_targets.append(hand)
+        if contact_anchors:
+            vals.extend(
+                residuals.contact_distance(
+                    np.vstack(contact_anchors),
+                    np.vstack(contact_targets),
+                    weight=args.w_contact,
+                    sigma_m=args.sigma_contact_m,
+                ).tolist()
+            )
+        vals.extend(
+            residuals.pose_prior(
+                x,
+                ref,
+                init,
+                rot_bound=args.rot_bound,
+                xy_bound=args.xy_bound,
+                z_bound=args.z_bound,
+                w_prior_rot=args.w_prior_rot,
+                w_prior_xy=args.w_prior_xy,
+                w_prior_z=args.w_prior_z,
+            ).tolist()
+        )
         if prev is not None:
-            vals.extend((args.w_temporal * (x[:6] - prev[:6]) / np.array([0.06, 0.06, 0.06, 0.08, 0.08, 0.12])).tolist())
+            vals.extend(
+                residuals.temporal_delta(
+                    x,
+                    prev,
+                    weight=args.w_temporal,
+                    scales=np.array([0.06, 0.06, 0.06, 0.08, 0.08, 0.12], dtype=float),
+                ).tolist()
+            )
         return np.asarray(vals, dtype=float)
 
     res = least_squares(residual, np.clip(x0, bounds[0], bounds[1]), bounds=bounds, loss="soft_l1", f_scale=1.0, max_nfev=args.max_nfev)

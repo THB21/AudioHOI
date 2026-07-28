@@ -16,6 +16,7 @@ from .diagnostics_golden import (
     build_canonical_sequence_solver_diagnostics_summary,
     verify_sequence_solver_diagnostics_summary,
 )
+from .factor_residuals import FactorResidualEvaluator
 from .candidate import (
     SANDBOX_MANIFEST_NAME,
     SPHERE_SANDBOX_ARTIFACTS,
@@ -79,6 +80,7 @@ __all__ = [
     "DEFAULT_SPHERE_SEQUENCE_GOLDEN",
     "DEFAULT_PROJECTED_PERIODIC_GOLDEN",
     "CHAIR_FACTOR_ATTEMPT_NAME",
+    "FactorResidualEvaluator",
     "SANDBOX_MANIFEST_NAME",
     "SPHERE_SANDBOX_ARTIFACTS",
     "SPHERE_ATTEMPT_NAME",

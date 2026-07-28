@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 from ..base.config import CaseProfile
-from ..base.io import copy_file, read_csv, repo_relative_value, write_csv, write_json
+from ..base.io import REPO, copy_file, read_csv, repo_relative_value, write_csv, write_json
+from ..base.runtime import runtime_python
 from ..factors import build_chair_factor_executor_bundle, build_factor_shadow, validate_chair_factor_executor_bundle
 from .candidate import ACCEPTED_OUTPUT_NAMES
 from .chair_diagnostics import build_chair_contact_diagnostics, validate_chair_contact_diagnostics
@@ -46,6 +48,14 @@ def _pairprop_pose_path(result_dir: Path) -> Path:
 
 def _pairprop_metrics_path(result_dir: Path) -> Path:
     return result_dir / "stage4_pairprop_contact_refine/pairprop_contact_refine_metrics.json"
+
+
+def _candidate_executor_metrics_path(candidate_dir: Path) -> Path:
+    return candidate_dir / ".generic_chair_factor_executor_metrics.json"
+
+
+def _gated_contacts_path(result_dir: Path) -> Path:
+    return result_dir / "stage4_generic_refine/object_contact_points_vlm_gated.csv"
 
 
 def _chair_residual_rows(metrics: dict[str, object]) -> list[dict[str, object]]:
@@ -150,7 +160,80 @@ def validate_chair_factor_residual_coverage(payload: dict[str, object]) -> list[
     return errors
 
 
-def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path, candidate_dir: Path) -> dict[str, object]:
+def _run_isolated_chair_factor_executor(profile: CaseProfile, result_dir: Path, candidate_dir: Path) -> tuple[Path, Path]:
+    if profile.case_name != "chair":
+        raise ValueError("isolated chair factor executor only supports the chair case")
+    candidate_dir.mkdir(parents=True, exist_ok=True)
+    pose_path = candidate_dir / CHAIR_FACTOR_CANDIDATE_NAME
+    metrics_path = _candidate_executor_metrics_path(candidate_dir)
+    script = REPO / "scripts/shared/generic_contact_pipeline/components/refinement/solvers/chair_twohand_endpoint_se3.py"
+    seed_csv = result_dir / "object_pose_init.csv"
+    contacts_csv = _gated_contacts_path(result_dir)
+    segments_csv = result_dir / "object_local_segments.csv"
+    for name, path in {
+        "current-run chair seed": seed_csv,
+        "gated contacts": contacts_csv,
+        "object local segments": segments_csv,
+    }.items():
+        if not path.exists():
+            raise FileNotFoundError(f"missing {name}: {path}")
+    cmd = [
+        runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
+        str(script),
+        "--ref-pose-csv",
+        str(seed_csv),
+        "--init-pose-csv",
+        str(seed_csv),
+        "--contacts-csv",
+        str(contacts_csv),
+        "--segments-csv",
+        str(segments_csv),
+        "--out-csv",
+        str(pose_path),
+        "--metrics-json",
+        str(metrics_path),
+        "--rot-bound",
+        "0.55",
+        "--xy-bound",
+        "0.45",
+        "--z-bound",
+        "1.25",
+        "--w-contact",
+        "2.0",
+        "--w-2d",
+        "0.35",
+        "--w-prior-rot",
+        "0.06",
+        "--w-prior-xy",
+        "0.05",
+        "--w-prior-z",
+        "0.03",
+        "--w-temporal",
+        "0.35",
+        "--sigma-contact-m",
+        "0.035",
+        "--sigma-px",
+        "7.5",
+        "--max-nfev",
+        "240",
+        "--contact-chord-init",
+        "--contact-chord-2d-gauge",
+        "--optimize-articulation",
+        "--preserve-contact-chord-constraint",
+    ]
+    subprocess.run(cmd, cwd=REPO, check=True, text=True, capture_output=True)
+    return pose_path, metrics_path
+
+
+def build_chair_factor_executor_candidate(
+    profile: CaseProfile,
+    result_dir: Path,
+    candidate_dir: Path,
+    *,
+    solver_executed: bool = False,
+    pose_path: Path | None = None,
+    metrics_path: Path | None = None,
+) -> dict[str, object]:
     if profile.case_name != "chair":
         raise ValueError("chair factor executor candidate only supports the chair case")
     bundle = build_chair_factor_executor_bundle(profile, result_dir)
@@ -158,13 +241,14 @@ def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path
     bundle_errors = validate_chair_factor_executor_bundle(bundle)
     diagnostics_errors = validate_chair_contact_diagnostics(diagnostics)
     status = str(bundle["status"])
-    solver_executed = False
-    pose_path = _pairprop_pose_path(result_dir)
-    metrics_path = _pairprop_metrics_path(result_dir)
+    pose_path = pose_path or _pairprop_pose_path(result_dir)
+    metrics_path = metrics_path or _pairprop_metrics_path(result_dir)
     pose_rows = read_csv(pose_path) if pose_path.exists() else []
     metrics = json.loads(metrics_path.read_text()) if metrics_path.exists() else {}
     residual_rows = _chair_residual_rows(metrics)
     materialized = status == "ready_for_candidate_executor" and bool(pose_rows) and bool(residual_rows)
+    candidate_source = "isolated_chair_factor_executor" if solver_executed else str(repo_relative_value(pose_path))
+    residual_source = "isolated_chair_factor_executor" if solver_executed else str(repo_relative_value(metrics_path))
     core = {
         "bundle_sha256": bundle["canonical_sha256"],
         "contact_diagnostics_sha256": diagnostics["canonical_sha256"],
@@ -180,6 +264,8 @@ def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path
         "residual_metrics_sha256": _sha256(metrics_path) if metrics_path.exists() else None,
         "candidate_pose_rows": len(pose_rows),
         "residual_rows": len(residual_rows),
+        "solver_executed": solver_executed,
+        "executor_scope": "isolated_candidate_dir" if solver_executed else "source_artifact_materialization",
     }
     canonical = _canonical_hash(core)
     return {
@@ -191,6 +277,7 @@ def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path
         "candidate_dir": str(repo_relative_value(candidate_dir)),
         "status": status,
         "solver_executed": solver_executed,
+        "executor_scope": "isolated_candidate_dir" if solver_executed else "source_artifact_materialization",
         "accepted_outputs_written": False,
         "baseline_pose_read": False,
         "isolated_candidate_materialized": materialized,
@@ -198,13 +285,13 @@ def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path
         "supported_residual_blocks": list(CHAIR_SUPPORTED_RESIDUAL_BLOCKS),
         "candidate_pose": {
             "planned_output": CHAIR_FACTOR_CANDIDATE_NAME,
-            "source": str(repo_relative_value(pose_path)),
+            "source": candidate_source,
             "source_sha256": _sha256(pose_path) if pose_path.exists() else None,
             "rows": len(pose_rows),
         },
         "residual_table": {
             "planned_output": CHAIR_FACTOR_RESIDUAL_TABLE_NAME,
-            "source": str(repo_relative_value(metrics_path)),
+            "source": residual_source,
             "source_sha256": _sha256(metrics_path) if metrics_path.exists() else None,
             "rows": len(residual_rows),
         },
@@ -235,6 +322,8 @@ def validate_chair_factor_executor_candidate(attempt: dict[str, object]) -> list
         errors.append("chair factor candidate must not write accepted outputs")
     if attempt.get("baseline_pose_read") is not False:
         errors.append("chair factor candidate must not read baseline pose")
+    if attempt.get("solver_executed") is True and attempt.get("executor_scope") != "isolated_candidate_dir":
+        errors.append("executed chair factor candidate must record isolated_candidate_dir scope")
     planned = attempt.get("planned_outputs", [])
     if not isinstance(planned, list) or planned != CHAIR_FACTOR_SAFE_OUTPUTS:
         errors.append("chair factor candidate must only plan safe attempt/residual manifests")
@@ -323,8 +412,25 @@ def verify_materialized_chair_factor_candidate(profile: CaseProfile, result_dir:
     return errors
 
 
-def prepare_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path, candidate_dir: Path) -> dict[str, object]:
-    attempt = build_chair_factor_executor_candidate(profile, result_dir, candidate_dir)
+def prepare_chair_factor_executor_candidate(
+    profile: CaseProfile,
+    result_dir: Path,
+    candidate_dir: Path,
+    *,
+    execute_solver: bool = False,
+) -> dict[str, object]:
+    executed_pose_path: Path | None = None
+    executed_metrics_path: Path | None = None
+    if execute_solver:
+        executed_pose_path, executed_metrics_path = _run_isolated_chair_factor_executor(profile, result_dir, candidate_dir)
+    attempt = build_chair_factor_executor_candidate(
+        profile,
+        result_dir,
+        candidate_dir,
+        solver_executed=execute_solver,
+        pose_path=executed_pose_path,
+        metrics_path=executed_metrics_path,
+    )
     errors = validate_chair_factor_executor_candidate(attempt)
     if errors:
         raise ValueError("; ".join(errors))
@@ -334,8 +440,10 @@ def prepare_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Pa
         raise ValueError("; ".join(residual_errors))
     candidate_dir.mkdir(parents=True, exist_ok=True)
     if attempt.get("status") == "ready_for_candidate_executor":
-        copy_file(_pairprop_pose_path(result_dir), candidate_dir / CHAIR_FACTOR_CANDIDATE_NAME)
-        metrics = json.loads(_pairprop_metrics_path(result_dir).read_text())
+        if not execute_solver:
+            copy_file(_pairprop_pose_path(result_dir), candidate_dir / CHAIR_FACTOR_CANDIDATE_NAME)
+        metrics_source = executed_metrics_path or _pairprop_metrics_path(result_dir)
+        metrics = json.loads(metrics_source.read_text())
         write_csv(candidate_dir / CHAIR_FACTOR_RESIDUAL_TABLE_NAME, _chair_residual_rows(metrics))
     write_json(candidate_dir / CHAIR_FACTOR_RESIDUALS_NAME, residuals)
     write_json(candidate_dir / CHAIR_FACTOR_ATTEMPT_NAME, attempt)

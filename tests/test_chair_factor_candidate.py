@@ -142,6 +142,34 @@ def test_materialized_chair_factor_candidate_verifier_cli_reports_candidate(tmp_
     assert "chair: factor_candidate materialized=True" in completed.stdout
 
 
+def test_chair_factor_candidate_cli_execute_solver_writes_isolated_solution(tmp_path: Path) -> None:
+    candidate_dir = tmp_path / "chair_candidate"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/shared/generic_contact_pipeline/tools/prepare_chair_factor_candidate.py",
+            "--candidate-dir",
+            str(candidate_dir),
+            "--execute-solver",
+        ],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    attempt = json.loads((candidate_dir / CHAIR_FACTOR_ATTEMPT_NAME).read_text())
+    assert json.loads(completed.stdout) == attempt
+    assert attempt["solver_executed"] is True
+    assert attempt["accepted_outputs_written"] is False
+    assert attempt["baseline_pose_read"] is False
+    assert attempt["executor_scope"] == "isolated_candidate_dir"
+    assert attempt["candidate_pose"]["source"] == "isolated_chair_factor_executor"
+    assert (candidate_dir / CHAIR_FACTOR_CANDIDATE_NAME).exists()
+    assert (candidate_dir / CHAIR_FACTOR_RESIDUAL_TABLE_NAME).exists()
+    assert not (candidate_dir / "object_pose.csv").exists()
+
+
 def test_chair_factor_residual_coverage_validator_rejects_false_coverage() -> None:
     payload = build_chair_factor_residual_coverage(
         load_case_profile("chair"),

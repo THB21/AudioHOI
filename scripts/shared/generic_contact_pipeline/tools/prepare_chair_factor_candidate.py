@@ -21,12 +21,13 @@ def main() -> None:
     parser.add_argument("--case", default="chair")
     parser.add_argument("--result-name", default="benchmark_vlm_qwen")
     parser.add_argument("--candidate-dir", type=Path)
+    parser.add_argument("--execute-solver", action="store_true", help="Run isolated chair factor executor inside candidate-dir.")
     args = parser.parse_args()
     if args.case != "chair":
         raise SystemExit("chair factor candidate currently supports --case chair")
     profile = with_runtime_overrides(load_case_profile(args.case), result_name=args.result_name)
     candidate_dir = args.candidate_dir or default_candidate_dir(profile.result_dir, profile.case_name)
-    attempt = prepare_chair_factor_executor_candidate(profile, profile.result_dir, candidate_dir)
+    attempt = prepare_chair_factor_executor_candidate(profile, profile.result_dir, candidate_dir, execute_solver=args.execute_solver)
     print(json.dumps(attempt, indent=2, ensure_ascii=False))
 
 

@@ -54,6 +54,7 @@ def build_sequence_solver_shadow_diagnostics(profile: CaseProfile, result_dir: P
             reads=[
                 "sequence_problem_contract:canonical",
                 "runtime_plan:canonical",
+                "executor_prepare:canonical",
                 problem["inputs"]["measurement_shadow"]["source"]["path"],
                 problem["inputs"]["contact_constraint_shadow"]["source"]["path"],
                 "interaction_state_shadow:canonical",
@@ -65,6 +66,7 @@ def build_sequence_solver_shadow_diagnostics(profile: CaseProfile, result_dir: P
                 "validation_error_count": len(validation_errors),
                 "sequence_contract_sha256": problem["sequence_problem_contract"]["canonical_sha256"],
                 "runtime_plan_sha256": problem["runtime_plan"]["canonical_sha256"],
+                "executor_prepare_sha256": problem["executor_prepare"]["canonical_sha256"],
                 "case_dispatch_used": problem["runtime_plan"]["case_dispatch_used"],
                 "measurement_count": problem["inputs"]["measurement_shadow"]["count"],
                 "contact_count": problem["inputs"]["contact_constraint_shadow"]["count"],

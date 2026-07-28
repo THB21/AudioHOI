@@ -19,6 +19,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     build_sequence_problem_shadow,
     build_sequence_problem_contract,
     build_generic_executor_runtime_plan,
+    GenericSequenceExecutor,
     build_sequence_solver_shadow_diagnostics,
     validate_candidate_sandbox_manifest,
     validate_sequence_problem_shadow,
@@ -58,6 +59,9 @@ def test_sequence_problem_shadow_is_plan_only_and_never_consumes_legacy_pose() -
     assert problem["runtime_plan"]["executor_id"] == "generic_sequence_executor"
     assert problem["runtime_plan"]["case_dispatch_used"] is False
     assert problem["runtime_plan"]["solver_executed"] is False
+    assert problem["executor_prepare"]["status"] == "prepared_not_executed"
+    assert problem["executor_prepare"]["case_dispatch_used"] is False
+    assert problem["executor_prepare"]["solver_executed"] is False
     assert problem["attempt_plan"]["writes"] == []
     assert problem["attempt_plan"]["initializer_status"] == "not_executed"
     assert validate_sequence_problem_shadow(problem) == []
@@ -127,6 +131,42 @@ def test_generic_executor_runtime_plan_uses_contract_not_case_dispatch() -> None
     assert plan.solver_executed is False
     assert plan.accepted_outputs_written is False
     assert plan.compiled_factor_ids == ("point_reprojection:center",)
+
+
+def test_generic_sequence_executor_prepare_is_contract_only_and_non_executing() -> None:
+    state_contract = {
+        "spec_id": "rigid6:heldout_mesh",
+        "geometry_kind": "rigid_mesh",
+        "required_dofs": ["root.translation", "root.rotation"],
+    }
+    measurement_shadow = {"measurements": {"count": 8, "canonical_sha256": "m" * 64}}
+    contact_shadow = {"constraints": {"count": 2, "canonical_sha256": "c" * 64}}
+    interaction_shadow = {"frame_count": 8, "canonical_sha256": "i" * 64}
+    compiled_factor_shadow = {
+        "count": 2,
+        "canonical_sha256": "f" * 64,
+        "records": [
+            {"factor_id": "point_reprojection:center"},
+            {"factor_id": "support_and_penetration:floor"},
+        ],
+    }
+    contract = build_sequence_problem_contract(
+        sample_id="heldout_mesh_object",
+        state_contract=state_contract,
+        measurement_shadow=measurement_shadow,
+        contact_shadow=contact_shadow,
+        interaction_shadow=interaction_shadow,
+        compiled_factor_shadow=compiled_factor_shadow,
+    )
+    runtime_plan = build_generic_executor_runtime_plan(contract, compiled_factor_shadow)
+    prepared = GenericSequenceExecutor().prepare(contract, runtime_plan, compiled_factor_shadow)
+
+    assert prepared.executor_id == "generic_sequence_executor"
+    assert prepared.status == "prepared_not_executed"
+    assert prepared.case_dispatch_used is False
+    assert prepared.solver_executed is False
+    assert prepared.accepted_outputs_written is False
+    assert prepared.compiled_factor_count == 2
 
 
 def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> None:

@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract` 和 `GenericExecutorRuntimePlan`；暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 继续把 runtime boundary 推进到只接受 `SequenceProblemContract + CompiledFactor` 的 executor skeleton；保持 residual parity，不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan` 和 `GenericSequenceExecutor.prepare()` skeleton；暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 继续把 `GenericSequenceExecutor.prepare()` 推进到 residual evaluation / attempt ledger 的统一入口；保持 residual parity，不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1380,3 +1380,11 @@ YYYY-MM-DD:
 - change: 新增 `core/solver/runtime.py`，定义 `GenericExecutorRuntimePlan`，要求 executor id 固定为 `generic_sequence_executor`、`case_dispatch_used=False`、`solver_executed=False`、`accepted_outputs_written=False`；`build_sequence_problem_shadow()` 和 diagnostics 开始携带 `runtime_plan`，并验证 runtime plan 与 `SequenceProblemContract` / `compiled_factor_shadow` 对齐。
 - verification: 轻量范围 38 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
 - remaining gap: runtime plan 仍是 `not_executed` 边界声明，下一步要做 executor skeleton，使其入口参数只接受 contract / compiled factors，并逐步把现有 geometry-family candidate 执行器挂到该入口下，而不是在 candidate 层按 case 分派。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update
+- change: `core/solver/runtime.py` 新增 `GenericSequenceExecutor.prepare()` 和 `GenericExecutorPrepareResult`，只接受 `SequenceProblemContract`、`GenericExecutorRuntimePlan` 和 `compiled_factor_shadow`，校验 compiled factor id 与 contract 对齐，并返回 `prepared_not_executed` manifest；`build_sequence_problem_shadow()` 和 diagnostics 开始携带 `executor_prepare`。
+- verification: 轻量范围 39 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
+- remaining gap: executor skeleton 仍不执行 residual / solve；下一步应把 generic residual evaluation 或 attempt ledger 接到 `GenericSequenceExecutor.prepare()` 之后，继续保持不按 case 分派。

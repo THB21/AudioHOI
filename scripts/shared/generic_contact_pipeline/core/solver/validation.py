@@ -66,6 +66,25 @@ def validate_sequence_problem_shadow(problem: dict[str, object]) -> list[str]:
         if isinstance(sequence_contract, dict) and runtime_plan.get("sequence_contract_sha256") != sequence_contract.get("canonical_sha256"):
             errors.append("runtime_plan sequence_contract_sha256 must match sequence_problem_contract")
 
+    executor_prepare = problem.get("executor_prepare", {})
+    if not isinstance(executor_prepare, dict):
+        errors.append("executor_prepare must be recorded")
+    else:
+        if executor_prepare.get("executor_id") != "generic_sequence_executor":
+            errors.append("executor_prepare executor_id must be generic_sequence_executor")
+        if executor_prepare.get("status") != "prepared_not_executed":
+            errors.append("executor_prepare must remain prepared_not_executed")
+        if executor_prepare.get("case_dispatch_used") is not False:
+            errors.append("executor_prepare must not use case dispatch")
+        if executor_prepare.get("solver_executed") is not False:
+            errors.append("executor_prepare must not execute solver")
+        if executor_prepare.get("accepted_outputs_written") is not False:
+            errors.append("executor_prepare must not write accepted outputs")
+        if isinstance(sequence_contract, dict) and executor_prepare.get("sequence_contract_sha256") != sequence_contract.get("canonical_sha256"):
+            errors.append("executor_prepare sequence_contract_sha256 must match sequence_problem_contract")
+        if isinstance(runtime_plan, dict) and executor_prepare.get("runtime_plan_sha256") != runtime_plan.get("canonical_sha256"):
+            errors.append("executor_prepare runtime_plan_sha256 must match runtime_plan")
+
     inputs = problem.get("inputs", {})
     if not isinstance(inputs, dict):
         errors.append("inputs must be recorded")
@@ -144,6 +163,9 @@ def validate_sequence_problem_shadow(problem: dict[str, object]) -> list[str]:
         if isinstance(runtime_plan, dict) and isinstance(compiled, dict):
             if runtime_plan.get("compiled_factor_count") != compiled.get("count"):
                 errors.append("runtime_plan compiled_factor_count must match compiled_factor_shadow count")
+        if isinstance(executor_prepare, dict) and isinstance(compiled, dict):
+            if executor_prepare.get("compiled_factor_count") != compiled.get("count"):
+                errors.append("executor_prepare compiled_factor_count must match compiled_factor_shadow count")
 
     attempt_plan = problem.get("attempt_plan", {})
     if not isinstance(attempt_plan, dict):

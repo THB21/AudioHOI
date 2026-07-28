@@ -33,6 +33,64 @@ class GenericExecutorRuntimePlan:
             raise ValueError("runtime plan compiled factor ids/count mismatch")
 
 
+@dataclass(frozen=True)
+class GenericExecutorPrepareResult:
+    schema_version: int
+    executor_id: str
+    status: str
+    sequence_contract_sha256: str
+    runtime_plan_sha256: str
+    compiled_factor_count: int
+    case_dispatch_used: bool
+    solver_executed: bool
+    accepted_outputs_written: bool
+    canonical_sha256: str
+
+    def __post_init__(self) -> None:
+        if self.executor_id != "generic_sequence_executor":
+            raise ValueError("prepare result must target generic_sequence_executor")
+        if self.status != "prepared_not_executed":
+            raise ValueError("prepare result must not execute")
+        if self.case_dispatch_used:
+            raise ValueError("generic executor prepare must not use case dispatch")
+        if self.solver_executed or self.accepted_outputs_written:
+            raise ValueError("generic executor prepare must not solve or write accepted outputs")
+
+
+class GenericSequenceExecutor:
+    executor_id = "generic_sequence_executor"
+
+    def prepare(
+        self,
+        contract: SequenceProblemContract,
+        runtime_plan: GenericExecutorRuntimePlan,
+        compiled_factor_shadow: dict[str, object],
+    ) -> GenericExecutorPrepareResult:
+        if runtime_plan.sequence_contract_sha256 != contract.canonical_sha256:
+            raise ValueError("runtime plan must match SequenceProblemContract")
+        records = compiled_factor_shadow.get("records", [])
+        if not isinstance(records, list):
+            records = []
+        compiled_factor_ids = tuple(str(record.get("factor_id")) for record in records if isinstance(record, dict) and record.get("factor_id"))
+        if compiled_factor_ids != contract.compiled_factor_ids:
+            raise ValueError("compiled factors must match SequenceProblemContract")
+        payload = {
+            "schema_version": 1,
+            "executor_id": self.executor_id,
+            "status": "prepared_not_executed",
+            "sequence_contract_sha256": contract.canonical_sha256,
+            "runtime_plan_sha256": runtime_plan.canonical_sha256,
+            "compiled_factor_count": len(compiled_factor_ids),
+            "case_dispatch_used": False,
+            "solver_executed": False,
+            "accepted_outputs_written": False,
+        }
+        return GenericExecutorPrepareResult(
+            **payload,
+            canonical_sha256=_canonical_hash(payload),
+        )
+
+
 def _canonical_hash(value: object) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(payload).hexdigest()
@@ -40,6 +98,10 @@ def _canonical_hash(value: object) -> str:
 
 def runtime_plan_record(plan: GenericExecutorRuntimePlan) -> dict[str, object]:
     return asdict(plan)
+
+
+def prepare_result_record(result: GenericExecutorPrepareResult) -> dict[str, object]:
+    return asdict(result)
 
 
 def build_generic_executor_runtime_plan(

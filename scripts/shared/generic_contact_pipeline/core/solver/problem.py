@@ -19,7 +19,7 @@ from ..interaction import build_interaction_timeline, frame_record, interaction_
 from ..interaction.types import InteractionTimeline
 from ..measurements.shadow import build_measurement_shadow
 from .problem_contract import build_sequence_problem_contract, sequence_problem_contract_record
-from .runtime import build_generic_executor_runtime_plan, runtime_plan_record
+from .runtime import GenericSequenceExecutor, build_generic_executor_runtime_plan, prepare_result_record, runtime_plan_record
 
 
 def _canonical_hash(value: object) -> str:
@@ -206,11 +206,14 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
     sequence_contract_shadow = sequence_problem_contract_record(sequence_contract)
     runtime_plan = build_generic_executor_runtime_plan(sequence_contract, compiled_factor_shadow)
     runtime_plan_shadow = runtime_plan_record(runtime_plan)
+    executor_prepare = GenericSequenceExecutor().prepare(sequence_contract, runtime_plan, compiled_factor_shadow)
+    executor_prepare_shadow = prepare_result_record(executor_prepare)
     factor_requirements = _factor_requirements(factor_shadow)
     factor_kinds = Counter(str(item["kind"]) for item in factor_requirements)
     problem_core = {
         "sequence_problem_contract": sequence_contract_shadow,
         "runtime_plan": runtime_plan_shadow,
+        "executor_prepare": executor_prepare_shadow,
         "state_contract": state_contract,
         "measurements": measurement_shadow["measurements"],
         "constraints": contact_shadow["constraints"],
@@ -251,6 +254,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
         "state_contract": state_contract,
         "sequence_problem_contract": sequence_contract_shadow,
         "runtime_plan": runtime_plan_shadow,
+        "executor_prepare": executor_prepare_shadow,
         "inputs": {
             "measurement_shadow": {
                 "source": measurement_shadow["source"],

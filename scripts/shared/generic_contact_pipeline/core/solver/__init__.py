@@ -36,7 +36,14 @@ from .candidate_golden import (
 )
 from .problem import build_sequence_problem_shadow
 from .problem_contract import SequenceProblemContract, build_sequence_problem_contract, sequence_problem_contract_record
-from .runtime import GenericExecutorRuntimePlan, build_generic_executor_runtime_plan, runtime_plan_record
+from .runtime import (
+    GenericExecutorPrepareResult,
+    GenericExecutorRuntimePlan,
+    GenericSequenceExecutor,
+    build_generic_executor_runtime_plan,
+    prepare_result_record,
+    runtime_plan_record,
+)
 from .sphere_sequence import (
     SPHERE_ATTEMPT_NAME,
     SPHERE_CANDIDATE_NAME,
@@ -106,7 +113,9 @@ __all__ = [
     "CHAIR_FACTOR_RESIDUALS_NAME",
     "CHAIR_SANDBOX_ARTIFACTS",
     "FactorResidualEvaluator",
+    "GenericExecutorPrepareResult",
     "GenericExecutorRuntimePlan",
+    "GenericSequenceExecutor",
     "LINE_CONTACT_ATTEMPT_NAME",
     "LINE_CONTACT_CANDIDATE_NAME",
     "LINE_CONTACT_RESIDUAL_NAME",
@@ -163,4 +172,5 @@ __all__ = [
     "solve_projected_periodic_sequence",
     "sequence_problem_contract_record",
     "runtime_plan_record",
+    "prepare_result_record",
 ]

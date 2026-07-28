@@ -15,13 +15,12 @@
       "attempt_ledger_case_dispatch_used": false,
       "attempt_ledger_residual_status": "not_executed",
       "attempt_ledger_sha256": "106c91b8ae8d8b203098e102220f6d28a5c4afc8d35e9e98ea055b86eb19681c",
-      "residual_boundary_supported": 7,
-      "residual_boundary_pending": 3,
+      "residual_boundary_supported": 8,
+      "residual_boundary_pending": 2,
       "residual_boundary_gap_ids": [
-        "missing_generic_residual:metric_depth",
         "missing_generic_residual:regularization"
       ],
-      "residual_boundary_sha256": "42aa72c3d1799e300f5f646169e8f6657100fd661f6ea206ef4a3410db1d23c8",
+      "residual_boundary_sha256": "a5c1b76c2531f1be6671462ad06662e845da39e8770717959e7b2dd9f3fc2a8f",
       "state_model": "translation3",
       "geometry_kind": "sphere",
       "measurement_count": 768,
@@ -73,7 +72,7 @@
       "gap_ids": [],
       "attempt_id": "generic-attempt-aad3c1bf209a",
       "validation_errors": [],
-      "canonical_sha256": "e890ad1bc1db56b6a5b20be3dea60be9df633713a831e891f9cb47a72a5d752b"
+      "canonical_sha256": "6ccfd1e89c9d57af3cd48b1d199fce1c9c16dbe306e39dd063ab1ab38c4e2904"
     },
     "football": {
       "sequence_contract_sha256": "84e7bd88b308df0b7075431dd3ef75895553dc4144e2d645ad8a8649b404240b",
@@ -89,13 +88,12 @@
       "attempt_ledger_case_dispatch_used": false,
       "attempt_ledger_residual_status": "not_executed",
       "attempt_ledger_sha256": "7b0733bfa7d62366536800d9bd65ec17527d5e954345b13cbf1c84367536afe7",
-      "residual_boundary_supported": 7,
-      "residual_boundary_pending": 3,
+      "residual_boundary_supported": 8,
+      "residual_boundary_pending": 2,
       "residual_boundary_gap_ids": [
-        "missing_generic_residual:metric_depth",
         "missing_generic_residual:regularization"
       ],
-      "residual_boundary_sha256": "d3a9baf62eaa9ac277a70a9fa5a64785c76f354121e6e61fed436335adb058ae",
+      "residual_boundary_sha256": "ef3b00a652ac10fe07b6f0b9bf6fa0c1ddd4f5500cc7cc3208f9a21e639177ac",
       "state_model": "translation3",
       "geometry_kind": "sphere",
       "measurement_count": 968,
@@ -148,7 +146,7 @@
       "gap_ids": [],
       "attempt_id": "generic-attempt-9baf8ad8fcd7",
       "validation_errors": [],
-      "canonical_sha256": "8ea38698a0a63f2f56507052b524761c38ce6af7ad7a610648bdf82e8b6495a4"
+      "canonical_sha256": "0efa0ae6fed7d2b7ba7779a30ad00add06af64bf55b64e6c1210ce5726a0f850"
     },
     "mug": {
       "sequence_contract_sha256": "a860d6144efe320559be67666c7177d579d8e7e6bfa136a3a3db468b56b0639f",
@@ -232,15 +230,13 @@
       "attempt_ledger_case_dispatch_used": false,
       "attempt_ledger_residual_status": "not_executed",
       "attempt_ledger_sha256": "c8650b6bcdc1f9f82f8e95a4e8771f31da9cedc2779c55f956eeba21cbe9cd87",
-      "residual_boundary_supported": 9,
-      "residual_boundary_pending": 4,
+      "residual_boundary_supported": 11,
+      "residual_boundary_pending": 2,
       "residual_boundary_gap_ids": [
         "missing_generic_residual:audio_event_prior",
-        "missing_generic_residual:metric_depth",
-        "missing_generic_residual:regularization",
-        "missing_generic_residual:support_and_penetration"
+        "missing_generic_residual:regularization"
       ],
-      "residual_boundary_sha256": "ce83c5d0ae61377a53b73ea7ac5bbed8add090c2642d3913d3d5adc41bf2b0e7",
+      "residual_boundary_sha256": "641cc441f0f1c5e99a7829c6b57997df212232b9e5b3b30e86a8c739ecb7cb72",
       "state_model": "semantic_graph_6d",
       "geometry_kind": "articulated_urdf",
       "measurement_count": 1014,
@@ -299,7 +295,7 @@
       "gap_ids": [],
       "attempt_id": "generic-attempt-9b8263355dbd",
       "validation_errors": [],
-      "canonical_sha256": "e9d4ded97fb648c8a73aacfbc3b9130a358ad6ae46898451a333475e19fe5766"
+      "canonical_sha256": "667fc6abc79bc9282511574c2b2d9ba5ed5aa8f947887cfe982b8614559a3d40"
     },
     "stick": {
       "sequence_contract_sha256": "75a09bd0e1293abb49ad4657aa797ea4d242f66359ef83230cf0b3c712cdb776",

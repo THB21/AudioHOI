@@ -25,6 +25,25 @@ def test_factor_residual_evaluator_matches_legacy_weighted_point_and_contact_blo
     np.testing.assert_allclose(contact, [-0.5, 1.0, -1.5])
 
 
+def test_factor_residual_evaluator_supports_depth_and_support_penetration_blocks() -> None:
+    evaluator = FactorResidualEvaluator()
+
+    depth = evaluator.metric_depth(
+        predicted_depth_m=np.array([1.0, 1.4, 2.2], dtype=float),
+        target_depth_m=np.array([0.9, 1.5, 2.0], dtype=float),
+        weight=0.5,
+        sigma_m=0.1,
+    )
+    support = evaluator.support_penetration(
+        signed_distance_m=np.array([0.05, -0.02, -0.08], dtype=float),
+        weight=2.0,
+        sigma_m=0.04,
+    )
+
+    np.testing.assert_allclose(depth, [0.5, -0.5, 1.0])
+    np.testing.assert_allclose(support, [0.0, -1.0, -4.0])
+
+
 def test_factor_residual_evaluator_matches_legacy_pose_prior_and_temporal_blocks() -> None:
     evaluator = FactorResidualEvaluator()
     x = np.array([0.2, -0.1, 0.3, 1.0, 2.0, 3.0], dtype=float)

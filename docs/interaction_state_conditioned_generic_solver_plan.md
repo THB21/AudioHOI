@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary 和 pending residual gap ledger；暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 继续按 residual gap ledger 补通用 residual block，优先 depth / regularization / support / audio / periodic phase；保持不 solve、不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary 和 pending residual gap ledger；`metric_depth` 与 `support_and_penetration` 已从 pending gap 迁到 supported residual capability；暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 继续按 residual gap ledger 补通用 residual block，优先 `regularization` / `audio_event_prior` / `periodic_phase_prior`；保持不 solve、不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1412,3 +1412,11 @@ YYYY-MM-DD:
 - change: `GenericResidualBoundary` 新增 `pending_gap_records`，按 `residual_fn_ref` 聚合缺失通用 residual block，记录 `missing_generic_residual:*` gap id、factor ids 和原因；sequence problem summary 与 diagnostics 现在显式报告 residual gap ids。
 - verification: 轻量范围 40 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
 - remaining gap: 当前五 case residual gaps 为 depth / regularization / periodic phase / audio / support；下一步应优先新增通用 residual stub/capability，使这些 gap 从 pending 迁到 supported_not_executed，再进入 residual parity。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update
+- change: `FactorResidualEvaluator` 新增通用 `metric_depth()` 和 `support_penetration()` residual capability；`GenericResidualBoundary` 将 `shadow_residual::metric_depth` 与 `shadow_residual::support_and_penetration` 映射为 supported，并刷新 sequence problem / diagnostics / candidate sandbox golden。depth / support 已不再是 pending residual gap，但仍是 `supported_not_executed`，未进入真实 solve。
+- verification: 轻量范围 44 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
+- remaining gap: residual boundary 仍不执行数值 residual / solve；当前 pending residual gaps 收敛为 `regularization`、mug `periodic_phase_prior`、chair `audio_event_prior`。`stick` 仍保留 `line_contact_lock_special_refinement` 为 nonblocking sandbox gap。

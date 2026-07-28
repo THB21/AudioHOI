@@ -6,8 +6,8 @@
       "eligible_for_candidate_sandbox": true,
       "candidate_dir": "samples_known_object/01_basketball/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_basketball",
       "attempt_id": "generic-attempt-aad3c1bf209a",
-      "problem_sha256": "e890ad1bc1db56b6a5b20be3dea60be9df633713a831e891f9cb47a72a5d752b",
-      "diagnostics_sha256": "28319f741f2be0cee792b456a223be67d798fd4caafdf5a7a3108ad7a961f813",
+      "problem_sha256": "6ccfd1e89c9d57af3cd48b1d199fce1c9c16dbe306e39dd063ab1ab38c4e2904",
+      "diagnostics_sha256": "fc38615772ec70ea2edbaa385b20bd9cf0b9292e681764f3e2c7eb32f335021f",
       "blocking_gap_ids": [],
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -23,8 +23,8 @@
       "eligible_for_candidate_sandbox": true,
       "candidate_dir": "samples_known_object/10_football/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_football",
       "attempt_id": "generic-attempt-9baf8ad8fcd7",
-      "problem_sha256": "8ea38698a0a63f2f56507052b524761c38ce6af7ad7a610648bdf82e8b6495a4",
-      "diagnostics_sha256": "b4cb75ac28924c02f463abc1f257dbcb81af4a7303799da29395b3eada4fe504",
+      "problem_sha256": "0efa0ae6fed7d2b7ba7779a30ad00add06af64bf55b64e6c1210ce5726a0f850",
+      "diagnostics_sha256": "7ac81a06d96903d14017de42765b85085880602d197e890181b8681d0e4a0e98",
       "blocking_gap_ids": [],
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -57,8 +57,8 @@
       "eligible_for_candidate_sandbox": true,
       "candidate_dir": "samples_known_object/05_chair/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_chair",
       "attempt_id": "generic-attempt-9b8263355dbd",
-      "problem_sha256": "e9d4ded97fb648c8a73aacfbc3b9130a358ad6ae46898451a333475e19fe5766",
-      "diagnostics_sha256": "825aa0042f49b3ce2195e5360473f45cd23d2d40dea32d9cd17605e5f8adbc40",
+      "problem_sha256": "667fc6abc79bc9282511574c2b2d9ba5ed5aa8f947887cfe982b8614559a3d40",
+      "diagnostics_sha256": "f6ea1c5e5c241a2269bd348094ea0dc29a3207716b3c61373d34e5037906a3ae",
       "blocking_gap_ids": [],
       "nonblocking_gap_ids": [],
       "planned_artifacts": [

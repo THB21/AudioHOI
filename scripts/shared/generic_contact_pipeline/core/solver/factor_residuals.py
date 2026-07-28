@@ -23,6 +23,15 @@ class FactorResidualEvaluator:
             raise ValueError("contact distance residuals require matching (N, 3) arrays")
         return (float(weight) * (anchors - targets).reshape(-1) / float(sigma_m)).astype(float)
 
+    def metric_depth(self, predicted_depth_m: np.ndarray, target_depth_m: np.ndarray, *, weight: float, sigma_m: float) -> np.ndarray:
+        if predicted_depth_m.shape != target_depth_m.shape:
+            raise ValueError("metric depth residuals require matching depth arrays")
+        return (float(weight) * (predicted_depth_m.reshape(-1) - target_depth_m.reshape(-1)) / float(sigma_m)).astype(float)
+
+    def support_penetration(self, signed_distance_m: np.ndarray, *, weight: float, sigma_m: float) -> np.ndarray:
+        penetration = np.minimum(signed_distance_m.reshape(-1), 0.0)
+        return (float(weight) * penetration / float(sigma_m)).astype(float)
+
     def pose_prior(
         self,
         x: np.ndarray,

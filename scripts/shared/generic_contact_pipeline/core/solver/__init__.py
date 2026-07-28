@@ -55,6 +55,10 @@ from .projected_periodic_golden import (
     build_projected_periodic_regression_summary,
     verify_projected_periodic_regression,
 )
+from .line_diagnostics import (
+    build_line_contact_diagnostics,
+    validate_line_contact_diagnostics,
+)
 from .validation import validate_sequence_problem_shadow
 
 __all__ = [
@@ -82,8 +86,10 @@ __all__ = [
     "build_sequence_solver_shadow_diagnostics",
     "build_sphere_sequence_regression_summary",
     "build_projected_periodic_regression_summary",
+    "build_line_contact_diagnostics",
     "default_candidate_dir",
     "validate_candidate_sandbox_manifest",
+    "validate_line_contact_diagnostics",
     "validate_sequence_problem_shadow",
     "verify_candidate_sandbox_summary",
     "verify_sequence_problem_summary",

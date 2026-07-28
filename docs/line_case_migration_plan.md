@@ -34,6 +34,18 @@ Stage 4 provenance 现在显式记录 `line_contact_lock_metrics.json` 和
 `line_contact_lock_blend_debug.csv`。这一步不改变 line solver 输出，但把此前 policy
 私有的 residual/acceptance 证据纳入 stage attempt/artifact snapshot，后续迁移时可直接比较。
 
+`generic_line_contact_diagnostics` 现在以只读方式汇总这些 Stage 4 artifacts：
+
+- `solver_executed=false`、`accepted_outputs_written=false`、`baseline_pose_read=false`；
+- 固定记录 `line_contact_lock_special_refinement` 为 nonblocking compatibility gap；
+- 汇总 pose/contact/blend 行数、SE(3) refined 帧数、overlay error、3D contact gap、
+  anchor count 和 `LineS` 来源/范围；
+- validator 会拒绝越界 `LineS`、solver execution、accepted output write，或提前关闭
+  compatibility gap。
+
+这使 line-contact residual/acceptance 证据可以机器校验，但还没有把
+`line_contact_lock` 替换成 generic factor executor。
+
 ## 后续迁移接受标准
 
 1. 把当前 `line_contact_lock` 的输入拆成 Measurement IR、ContactConstraint IR、

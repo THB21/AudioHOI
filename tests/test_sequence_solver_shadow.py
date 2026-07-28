@@ -21,6 +21,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     build_generic_executor_runtime_plan,
     GenericSequenceExecutor,
     build_generic_residual_boundary,
+    build_generic_residual_execution_plan,
     build_sequence_solver_shadow_diagnostics,
     validate_candidate_sandbox_manifest,
     validate_sequence_problem_shadow,
@@ -71,6 +72,11 @@ def test_sequence_problem_shadow_is_plan_only_and_never_consumes_legacy_pose() -
     assert problem["residual_boundary"]["supported_count"] + problem["residual_boundary"]["pending_count"] == problem["inputs"]["compiled_factor_shadow"]["count"]
     if problem["residual_boundary"]["pending_count"]:
         assert problem["residual_boundary"]["pending_gap_records"]
+    assert problem["residual_execution_plan"]["case_dispatch_used"] is False
+    assert problem["residual_execution_plan"]["residuals_executed"] is False
+    assert problem["residual_execution_plan"]["record_count"] == problem["inputs"]["compiled_factor_shadow"]["count"]
+    assert problem["residual_execution_plan"]["ready_count"] == problem["residual_boundary"]["supported_count"]
+    assert problem["residual_execution_plan"]["blocked_count"] == problem["residual_boundary"]["pending_count"]
     assert problem["attempt_plan"]["attempt_id"] == problem["attempt_ledger"]["attempt_id"]
     assert problem["attempt_plan"]["writes"] == []
     assert problem["attempt_plan"]["initializer_status"] == "not_executed"
@@ -228,6 +234,64 @@ def test_generic_residual_boundary_maps_compiled_factors_without_executing() -> 
     assert by_factor["point_reprojection:center"].evaluator_ref == "FactorResidualEvaluator.point_reprojection"
     assert by_factor["audio_event_prior:impact"].evaluator_ref == "FactorResidualEvaluator.audio_event_prior"
     assert by_factor["audio_event_prior:impact"].status == "supported_not_executed"
+
+
+def test_generic_residual_execution_plan_records_inputs_without_executing() -> None:
+    state_contract = {
+        "spec_id": "translation3:heldout_sphere",
+        "geometry_kind": "sphere",
+        "required_dofs": ["root.translation"],
+    }
+    measurement_shadow = {"measurements": {"count": 6, "canonical_sha256": "m" * 64}}
+    contact_shadow = {"constraints": {"count": 1, "canonical_sha256": "c" * 64}}
+    interaction_shadow = {"frame_count": 6, "canonical_sha256": "i" * 64}
+    compiled_factor_shadow = {
+        "count": 1,
+        "canonical_sha256": "f" * 64,
+        "records": [
+            {
+                "factor_id": "audio_event_prior:impact",
+                "kind": "audio_event_prior",
+                "residual_fn_ref": "shadow_residual::audio_event_prior",
+                "input_ids": [
+                    "state:StateSpec:root",
+                    "measurement:AudioEventIR:audio_events",
+                    "constraint:ContactConstraintIR:audio_contact_phase",
+                ],
+                "gate_provenance": ["activation_policy:audio_event_aligned"],
+            },
+        ],
+    }
+    contract = build_sequence_problem_contract(
+        sample_id="heldout_audio_sphere",
+        state_contract=state_contract,
+        measurement_shadow=measurement_shadow,
+        contact_shadow=contact_shadow,
+        interaction_shadow=interaction_shadow,
+        compiled_factor_shadow=compiled_factor_shadow,
+    )
+    runtime_plan = build_generic_executor_runtime_plan(contract, compiled_factor_shadow)
+    executor = GenericSequenceExecutor()
+    prepared = executor.prepare(contract, runtime_plan, compiled_factor_shadow)
+    attempt = executor.plan_attempt(contract, runtime_plan, prepared)
+    boundary = build_generic_residual_boundary(attempt, compiled_factor_shadow)
+    residual_plan = build_generic_residual_execution_plan(attempt, compiled_factor_shadow, boundary)
+
+    assert residual_plan.status == "planned_not_executed"
+    assert residual_plan.residuals_executed is False
+    assert residual_plan.case_dispatch_used is False
+    assert residual_plan.ready_count == 1
+    assert residual_plan.blocked_count == 0
+    record = residual_plan.records[0]
+    assert record.factor_id == "audio_event_prior:impact"
+    assert record.evaluator_ref == "FactorResidualEvaluator.audio_event_prior"
+    assert record.input_ids == (
+        "state:StateSpec:root",
+        "measurement:AudioEventIR:audio_events",
+        "constraint:ContactConstraintIR:audio_contact_phase",
+    )
+    assert record.gate_provenance == ("activation_policy:audio_event_aligned",)
+    assert record.status == "ready_not_executed"
 
 
 def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> None:

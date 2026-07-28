@@ -80,6 +80,53 @@ class GenericResidualBoundary:
             raise ValueError("residual boundary must not dispatch, execute residuals, solve, or write accepted outputs")
 
 
+@dataclass(frozen=True)
+class ResidualExecutionPlanRecord:
+    factor_id: str
+    residual_fn_ref: str
+    evaluator_ref: str
+    input_ids: tuple[str, ...]
+    gate_provenance: tuple[str, ...]
+    status: str
+
+    def __post_init__(self) -> None:
+        if not self.factor_id or not self.residual_fn_ref or not self.evaluator_ref:
+            raise ValueError("ResidualExecutionPlanRecord requires factor id, residual ref, and evaluator ref")
+        if not self.input_ids:
+            raise ValueError("residual execution plan records require input ids")
+        if self.status not in {"ready_not_executed", "blocked_pending_residual"}:
+            raise ValueError("invalid residual execution plan status")
+
+
+@dataclass(frozen=True)
+class GenericResidualExecutionPlan:
+    schema_version: int
+    attempt_id: str
+    status: str
+    boundary_sha256: str
+    record_count: int
+    ready_count: int
+    blocked_count: int
+    records: tuple[ResidualExecutionPlanRecord, ...]
+    case_dispatch_used: bool
+    residuals_executed: bool
+    solver_executed: bool
+    accepted_outputs_written: bool
+    canonical_sha256: str
+
+    def __post_init__(self) -> None:
+        if not self.attempt_id.startswith("generic-attempt-"):
+            raise ValueError("residual execution plan must attach to a generic attempt")
+        if self.status != "planned_not_executed":
+            raise ValueError("residual execution plan must remain planned_not_executed")
+        if self.record_count != len(self.records):
+            raise ValueError("residual execution plan record count mismatch")
+        if self.ready_count + self.blocked_count != self.record_count:
+            raise ValueError("residual execution plan ready/blocked count mismatch")
+        if self.case_dispatch_used or self.residuals_executed or self.solver_executed or self.accepted_outputs_written:
+            raise ValueError("residual execution plan must not dispatch, execute residuals, solve, or write accepted outputs")
+
+
 def _canonical_hash(value: object) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(payload).hexdigest()
@@ -97,6 +144,16 @@ def residual_boundary_ledger_record(boundary: GenericResidualBoundary) -> dict[s
     payload = asdict(boundary)
     payload["records"] = [residual_boundary_record(record) for record in boundary.records]
     payload["pending_gap_records"] = [residual_gap_record(record) for record in boundary.pending_gap_records]
+    return payload
+
+
+def residual_execution_plan_record(record: ResidualExecutionPlanRecord) -> dict[str, object]:
+    return asdict(record)
+
+
+def residual_execution_plan_ledger_record(plan: GenericResidualExecutionPlan) -> dict[str, object]:
+    payload = asdict(plan)
+    payload["records"] = [residual_execution_plan_record(record) for record in plan.records]
     return payload
 
 
@@ -159,6 +216,72 @@ def build_generic_residual_boundary(
         pending_count=pending,
         records=tuple(boundary_records),
         pending_gap_records=pending_gap_records,
+        case_dispatch_used=False,
+        residuals_executed=False,
+        solver_executed=False,
+        accepted_outputs_written=False,
+        canonical_sha256=_canonical_hash(payload),
+    )
+
+
+def build_generic_residual_execution_plan(
+    attempt: GenericExecutorAttemptLedger,
+    compiled_factor_shadow: dict[str, object],
+    boundary: GenericResidualBoundary,
+) -> GenericResidualExecutionPlan:
+    if boundary.attempt_id != attempt.attempt_id:
+        raise ValueError("residual execution plan must match attempt ledger")
+    records = compiled_factor_shadow.get("records", [])
+    if not isinstance(records, list):
+        records = []
+    boundary_by_factor = {record.factor_id: record for record in boundary.records}
+    plan_records: list[ResidualExecutionPlanRecord] = []
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        factor_id = str(record.get("factor_id", ""))
+        boundary_record = boundary_by_factor.get(factor_id)
+        if boundary_record is None:
+            raise ValueError(f"missing residual boundary record for factor {factor_id}")
+        input_ids = tuple(str(item) for item in record.get("input_ids", []) if item)
+        gate_provenance = tuple(str(item) for item in record.get("gate_provenance", []) if item)
+        plan_records.append(
+            ResidualExecutionPlanRecord(
+                factor_id=factor_id,
+                residual_fn_ref=boundary_record.residual_fn_ref,
+                evaluator_ref=boundary_record.evaluator_ref,
+                input_ids=input_ids,
+                gate_provenance=gate_provenance,
+                status="ready_not_executed"
+                if boundary_record.status == "supported_not_executed"
+                else "blocked_pending_residual",
+            )
+        )
+    ready = sum(1 for record in plan_records if record.status == "ready_not_executed")
+    blocked = sum(1 for record in plan_records if record.status == "blocked_pending_residual")
+    payload = {
+        "schema_version": 1,
+        "attempt_id": attempt.attempt_id,
+        "status": "planned_not_executed",
+        "boundary_sha256": boundary.canonical_sha256,
+        "record_count": len(plan_records),
+        "ready_count": ready,
+        "blocked_count": blocked,
+        "records": [residual_execution_plan_record(record) for record in plan_records],
+        "case_dispatch_used": False,
+        "residuals_executed": False,
+        "solver_executed": False,
+        "accepted_outputs_written": False,
+    }
+    return GenericResidualExecutionPlan(
+        schema_version=1,
+        attempt_id=attempt.attempt_id,
+        status="planned_not_executed",
+        boundary_sha256=boundary.canonical_sha256,
+        record_count=len(plan_records),
+        ready_count=ready,
+        blocked_count=blocked,
+        records=tuple(plan_records),
         case_dispatch_used=False,
         residuals_executed=False,
         solver_executed=False,

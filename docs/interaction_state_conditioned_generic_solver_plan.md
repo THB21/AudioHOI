@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary 和 pending residual gap ledger；五个 canonical case 的 `metric_depth`、`support_and_penetration`、`regularization`、`periodic_phase_prior`、`audio_event_prior` 均已从 pending gap 迁到 supported residual capability；暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 进入 generic residual execution / parity 边界：先让 attempt ledger 记录 residual block execution plan / required runtime inputs，再逐项做旧 residual parity；保持不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger 和 residual execution plan；五个 canonical case 的 residual capability pending 已清零，execution plan 均为 ready / not executed；暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 进入 generic residual execution / parity：先选 basketball / football 的 point、depth、contact、temporal residual 做数值执行与旧 residual 对齐；保持不 solve、不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1444,3 +1444,11 @@ YYYY-MM-DD:
 - change: `FactorResidualEvaluator` 新增通用 `audio_event_prior()` residual capability，表达 predicted interaction/contact transition time 与 observed audio event time 的秒级对齐残差；`GenericResidualBoundary` 将 `shadow_residual::audio_event_prior` 映射为 supported，并刷新 sequence problem / diagnostics / candidate sandbox golden。五个 canonical case 的 residual boundary pending count 已全部为 0；同时从 diagnostics nonblocking compatibility gap 白名单移除旧的 `unsupported_loss_term:E_audio`，避免 audio 回退被静默降级。
 - verification: 先跑新增测试确认 RED：`AttributeError: 'FactorResidualEvaluator' object has no attribute 'audio_event_prior'`；实现后轻量范围 47 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
 - remaining gap: residual capability 层 pending 清零，但 residual boundary 仍是 `supported_not_executed`，尚未执行 residual 数值、未做旧 residual parity、未 solve、未写 accepted output；`stick` 仍保留 `line_contact_lock_special_refinement` 为 nonblocking sandbox gap。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update
+- change: 新增 generic `ResidualExecutionPlan`，从 `CompiledFactor` 和 `GenericResidualBoundary` 生成每个 factor 的 evaluator ref、input ids、gate provenance、ready / blocked 状态，并接入 `build_sequence_problem_shadow()`、diagnostics reads 和 golden summary。五个 canonical case 的 residual execution plan 均为 ready / not executed，blocked count 为 0。
+- verification: 先跑新增测试确认 RED：`ImportError: cannot import name 'build_generic_residual_execution_plan'`；实现后轻量范围 48 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
+- remaining gap: residual execution plan 仍不执行 residual 数值、不 solve、不写 accepted；下一步应选择球类通用 residual block 做数值执行 / 旧 residual parity，再推广到 mug / chair / stick。

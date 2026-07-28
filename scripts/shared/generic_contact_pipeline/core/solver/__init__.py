@@ -48,10 +48,15 @@ from .runtime import (
 )
 from .residual_boundary import (
     GenericResidualBoundary,
+    GenericResidualExecutionPlan,
+    ResidualExecutionPlanRecord,
     ResidualBoundaryRecord,
     build_generic_residual_boundary,
+    build_generic_residual_execution_plan,
     residual_boundary_ledger_record,
     residual_boundary_record,
+    residual_execution_plan_ledger_record,
+    residual_execution_plan_record,
 )
 from .sphere_sequence import (
     SPHERE_ATTEMPT_NAME,

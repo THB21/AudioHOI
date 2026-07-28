@@ -19,7 +19,7 @@ from ..interaction import build_interaction_timeline, frame_record, interaction_
 from ..interaction.types import InteractionTimeline
 from ..measurements.shadow import build_measurement_shadow
 from .problem_contract import build_sequence_problem_contract, sequence_problem_contract_record
-from .residual_boundary import build_generic_residual_boundary, residual_boundary_ledger_record
+from .residual_boundary import build_generic_residual_boundary, build_generic_residual_execution_plan, residual_boundary_ledger_record, residual_execution_plan_ledger_record
 from .runtime import GenericSequenceExecutor, attempt_ledger_record, build_generic_executor_runtime_plan, prepare_result_record, runtime_plan_record
 
 
@@ -214,6 +214,8 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
     attempt_ledger_shadow = attempt_ledger_record(attempt_ledger)
     residual_boundary = build_generic_residual_boundary(attempt_ledger, compiled_factor_shadow)
     residual_boundary_shadow = residual_boundary_ledger_record(residual_boundary)
+    residual_execution_plan = build_generic_residual_execution_plan(attempt_ledger, compiled_factor_shadow, residual_boundary)
+    residual_execution_plan_shadow = residual_execution_plan_ledger_record(residual_execution_plan)
     factor_requirements = _factor_requirements(factor_shadow)
     factor_kinds = Counter(str(item["kind"]) for item in factor_requirements)
     problem_core = {
@@ -222,6 +224,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
         "executor_prepare": executor_prepare_shadow,
         "attempt_ledger": attempt_ledger_shadow,
         "residual_boundary": residual_boundary_shadow,
+        "residual_execution_plan": residual_execution_plan_shadow,
         "state_contract": state_contract,
         "measurements": measurement_shadow["measurements"],
         "constraints": contact_shadow["constraints"],
@@ -253,6 +256,12 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
             "pending_gap_ids": [gap["gap_id"] for gap in residual_boundary_shadow["pending_gap_records"]],
             "canonical_sha256": residual_boundary_shadow["canonical_sha256"],
         },
+        "residual_execution_plan": {
+            "record_count": residual_execution_plan_shadow["record_count"],
+            "ready_count": residual_execution_plan_shadow["ready_count"],
+            "blocked_count": residual_execution_plan_shadow["blocked_count"],
+            "canonical_sha256": residual_execution_plan_shadow["canonical_sha256"],
+        },
         "gaps": factor_shadow["gaps"],
     }
     canonical_sha256 = _canonical_hash(problem_core)
@@ -270,6 +279,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
         "executor_prepare": executor_prepare_shadow,
         "attempt_ledger": attempt_ledger_shadow,
         "residual_boundary": residual_boundary_shadow,
+        "residual_execution_plan": residual_execution_plan_shadow,
         "inputs": {
             "measurement_shadow": {
                 "source": measurement_shadow["source"],

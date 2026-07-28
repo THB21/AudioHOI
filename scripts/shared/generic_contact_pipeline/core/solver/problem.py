@@ -11,6 +11,7 @@ from ..base.config import CaseProfile
 from ..base.io import repo_relative_value
 from ..contact_constraints.shadow import build_contact_constraint_shadow
 from ..factors.shadow import build_factor_shadow
+from ..interaction import build_interaction_timeline, frame_record, interaction_intervals
 from ..measurements.shadow import build_measurement_shadow
 
 
@@ -93,6 +94,46 @@ def _factor_requirements(factor_shadow: dict[str, Any]) -> list[dict[str, object
     return requirements
 
 
+def _interaction_state_shadow(profile: CaseProfile, result_dir: Path) -> dict[str, object]:
+    timeline = build_interaction_timeline(profile.case_name, result_dir)
+    frames = [frame_record(state) for state in timeline.frames]
+    frames = repo_relative_value(frames)
+    intervals = interaction_intervals(timeline)
+    contact_states = Counter(str(record["contact_state"]) for record in frames)
+    contact_modes = Counter(str(record["contact_mode"]) for record in frames)
+    motion_modes = Counter(str(record["motion_mode"]) for record in frames)
+    visibility_states = Counter(str(record["visibility_state"]) for record in frames)
+    core = {
+        "schema_version": timeline.schema_version,
+        "sample_id": timeline.sample_id,
+        "target_entity_id": timeline.target_entity_id,
+        "frame_count": len(frames),
+        "frames": frames,
+        "intervals": intervals,
+        "metrics": timeline.metrics,
+    }
+    return {
+        "source": {
+            "producer": "interaction_state_timeline_shadow",
+            "inputs": [
+                str(repo_relative_value(result_dir / "object_observations.csv")),
+                str(repo_relative_value(result_dir / "contact_state_frames.csv")),
+                str(repo_relative_value(result_dir / "contact_candidates_internal/audio_events.csv")),
+                str(repo_relative_value(result_dir / "events/audio_events.csv")),
+            ],
+        },
+        "frame_count": len(frames),
+        "interval_count": len(intervals),
+        "by_visibility_state": dict(sorted(visibility_states.items())),
+        "by_contact_state": dict(sorted(contact_states.items())),
+        "by_contact_mode": dict(sorted(contact_modes.items())),
+        "by_motion_mode": dict(sorted(motion_modes.items())),
+        "metrics": timeline.metrics,
+        "canonical_sha256": _canonical_hash(core),
+        "consumed_by_solver": False,
+    }
+
+
 def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dict[str, object]:
     """Build a deterministic generic-solver problem manifest without solving it.
 
@@ -107,6 +148,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
     measurement_shadow["source"]["path"] = str(repo_relative_value(observation_csv))
     contact_shadow = build_contact_constraint_shadow(profile.case_name, contact_csv, _read_csv(contact_csv))
     contact_shadow["source"]["path"] = str(repo_relative_value(contact_csv))
+    interaction_shadow = _interaction_state_shadow(profile, result_dir)
     factor_shadow = build_factor_shadow(profile, result_dir)
     state_contract = _profile_state_contract(profile)
     factor_requirements = _factor_requirements(factor_shadow)
@@ -115,6 +157,15 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
         "state_contract": state_contract,
         "measurements": measurement_shadow["measurements"],
         "constraints": contact_shadow["constraints"],
+        "interactions": {
+            "frame_count": interaction_shadow["frame_count"],
+            "interval_count": interaction_shadow["interval_count"],
+            "by_visibility_state": interaction_shadow["by_visibility_state"],
+            "by_contact_state": interaction_shadow["by_contact_state"],
+            "by_contact_mode": interaction_shadow["by_contact_mode"],
+            "by_motion_mode": interaction_shadow["by_motion_mode"],
+            "canonical_sha256": interaction_shadow["canonical_sha256"],
+        },
         "factor_kinds": dict(sorted(factor_kinds.items())),
         "factor_requirements": factor_requirements,
         "gaps": factor_shadow["gaps"],
@@ -144,6 +195,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
                 "canonical_sha256": contact_shadow["constraints"]["canonical_sha256"],
                 "consumed_by_solver": False,
             },
+            "interaction_state_shadow": interaction_shadow,
             "factor_shadow": {
                 "canonical_sha256": factor_shadow["canonical_sha256"],
                 "factor_count": factor_shadow["factors"]["count"],

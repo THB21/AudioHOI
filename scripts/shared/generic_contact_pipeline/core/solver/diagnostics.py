@@ -54,12 +54,14 @@ def build_sequence_solver_shadow_diagnostics(profile: CaseProfile, result_dir: P
             reads=[
                 problem["inputs"]["measurement_shadow"]["source"]["path"],
                 problem["inputs"]["contact_constraint_shadow"]["source"]["path"],
+                "interaction_state_shadow:canonical",
                 "factor_shadow:canonical",
             ],
             diagnostics={
                 "validation_error_count": len(validation_errors),
                 "measurement_count": problem["inputs"]["measurement_shadow"]["count"],
                 "contact_count": problem["inputs"]["contact_constraint_shadow"]["count"],
+                "interaction_frame_count": problem["inputs"]["interaction_state_shadow"]["frame_count"],
                 "factor_count": problem["inputs"]["factor_shadow"]["factor_count"],
             },
         ),

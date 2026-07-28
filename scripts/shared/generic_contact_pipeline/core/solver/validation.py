@@ -60,6 +60,21 @@ def validate_sequence_problem_shadow(problem: dict[str, object]) -> list[str]:
                 errors.append("contact_constraint_shadow must remain unconsumed")
         else:
             errors.append("contact_constraint_shadow must be recorded")
+        interaction = inputs.get("interaction_state_shadow", {})
+        if isinstance(interaction, dict):
+            if interaction.get("consumed_by_solver") is not False:
+                errors.append("interaction_state_shadow must remain unconsumed")
+            if not interaction.get("frame_count"):
+                errors.append("interaction_state_shadow missing frame_count")
+            if not interaction.get("canonical_sha256"):
+                errors.append("interaction_state_shadow missing canonical_sha256")
+            metrics = interaction.get("metrics", {})
+            if not isinstance(metrics, dict):
+                errors.append("interaction_state_shadow metrics must be recorded")
+            elif metrics.get("final_pose_read") is not False:
+                errors.append("interaction_state_shadow must not read final or baseline pose")
+        else:
+            errors.append("interaction_state_shadow must be recorded")
         factor = inputs.get("factor_shadow", {})
         if not isinstance(factor, dict):
             errors.append("factor_shadow must be recorded")

@@ -45,6 +45,8 @@ def test_sequence_problem_shadow_is_plan_only_and_never_consumes_legacy_pose() -
     assert problem["accepted_outputs_written"] is False
     assert problem["baseline_pose_read"] is False
     assert problem["state_contract"]["baseline_pose_read"] is False
+    assert problem["inputs"]["interaction_state_shadow"]["consumed_by_solver"] is False
+    assert problem["inputs"]["interaction_state_shadow"]["metrics"]["final_pose_read"] is False
     assert problem["attempt_plan"]["writes"] == []
     assert problem["attempt_plan"]["initializer_status"] == "not_executed"
     assert validate_sequence_problem_shadow(problem) == []
@@ -56,6 +58,7 @@ def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> 
     payload = json.dumps(problem, sort_keys=True)
     assert "object_pose_init.csv" not in payload
     assert "physical6d_seed" not in payload
+    assert "interaction_state_shadow" in payload
     assert problem["state_contract"]["state_model"] == "semantic_graph_6d"
     assert problem["state_contract"]["geometry_kind"] == "articulated_urdf"
 

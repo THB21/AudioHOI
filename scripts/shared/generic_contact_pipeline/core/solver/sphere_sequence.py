@@ -361,6 +361,7 @@ def solve_sphere_sequence_candidate(
         "solver_executed": True,
         "accepted_outputs_written": False,
         "baseline_pose_read": False,
+        "executor_scope": "isolated_candidate_dir",
         "canonical_result_dir": str(repo_relative_value(result_dir)),
         "candidate_dir": str(repo_relative_value(candidate_dir)),
         "inputs": input_records,

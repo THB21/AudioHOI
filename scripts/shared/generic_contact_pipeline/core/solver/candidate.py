@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 from ..base.config import CaseProfile
 from ..base.io import repo_relative_value, write_json
+from ..base.runtime import runtime_python
 from .diagnostics import build_sequence_solver_shadow_diagnostics
 from .sphere_sequence import SPHERE_ATTEMPT_NAME, SPHERE_CANDIDATE_NAME, SPHERE_RESIDUAL_NAME
 
@@ -40,6 +42,43 @@ def _canonical_hash(value: object) -> str:
 
 def default_candidate_dir(result_dir: Path, case_name: str) -> Path:
     return result_dir.parents[0] / "generic_sequence_solver_shadow" / f"{result_dir.name}_{case_name}"
+
+
+def _sphere_contact_events_path(result_dir: Path) -> Path:
+    contact_events = result_dir / "contact_events.csv"
+    if contact_events.exists():
+        return contact_events
+    return result_dir / "contact_candidates_internal/contact_candidates_labeled.csv"
+
+
+def _run_isolated_sphere_sequence_executor(profile: CaseProfile, result_dir: Path, candidate_dir: Path) -> None:
+    if profile.component("pose_model") != "translation3" or profile.component("geometry_model") != "sphere_proxy":
+        raise ValueError("isolated sphere sequence executor requires translation3 + sphere_proxy")
+    inputs = {
+        "contact events": _sphere_contact_events_path(result_dir),
+        "human sites": result_dir / "human_sites.csv",
+        "support geometry": result_dir / "support_geometry.json",
+    }
+    for name, path in inputs.items():
+        if not path.exists():
+            raise FileNotFoundError(f"missing {name}: {path}")
+    cmd = [
+        runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
+        str(Path(__file__).resolve().parents[2] / "tools/solve_sphere_sequence_candidate.py"),
+        "--case",
+        profile.case_name,
+        "--result-dir",
+        str(result_dir),
+        "--contact-events-csv",
+        str(inputs["contact events"]),
+        "--human-sites-csv",
+        str(inputs["human sites"]),
+        "--support-geometry-json",
+        str(inputs["support geometry"]),
+        "--candidate-dir",
+        str(candidate_dir),
+    ]
+    subprocess.run(cmd, cwd=Path(__file__).resolve().parents[5], check=True, text=True, capture_output=True)
 
 
 def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, candidate_dir: Path | None = None) -> dict[str, object]:
@@ -162,7 +201,9 @@ def write_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
         raise ValueError("; ".join(errors))
     if manifest["eligible_for_candidate_sandbox"] is True:
         target_dir = Path(str(manifest["candidate_dir"]))
-        if profile.case_name == "chair":
+        if profile.component("pose_model") == "translation3" and profile.component("geometry_model") == "sphere_proxy":
+            _run_isolated_sphere_sequence_executor(profile, result_dir, target_dir)
+        elif profile.case_name == "chair":
             from .chair_factor_candidate import prepare_chair_factor_executor_candidate
 
             prepare_chair_factor_executor_candidate(profile, result_dir, target_dir)

@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from scripts.shared.generic_contact_pipeline.core.base.config import load_case_profile
 from scripts.shared.generic_contact_pipeline.core.solver import (
     SANDBOX_MANIFEST_NAME,
@@ -288,16 +290,28 @@ def test_candidate_sandbox_validation_rejects_inconsistent_gap_eligibility() -> 
     assert any("blocked sandbox must record at least one blocking gap" in error for error in errors)
 
 
-def test_candidate_sandbox_materialize_writes_ball_manifest_only(tmp_path: Path) -> None:
-    candidate_dir = tmp_path / "ball_candidate"
+@pytest.mark.parametrize("case_name", ["basketball", "football"])
+def test_candidate_sandbox_materialize_writes_sphere_safe_candidate_artifacts(case_name: str, tmp_path: Path) -> None:
+    candidate_dir = tmp_path / f"{case_name}_candidate"
     manifest = write_candidate_sandbox_manifest(
-        load_case_profile("basketball"),
-        REPO / "samples_known_object/01_basketball/results/benchmark_vlm_qwen",
+        load_case_profile(case_name),
+        REPO / f"samples_known_object/{CASE_DIRECTORIES[case_name]}/results/benchmark_vlm_qwen",
         candidate_dir,
     )
     written = candidate_dir / SANDBOX_MANIFEST_NAME
     assert written.exists()
     assert json.loads(written.read_text()) == manifest
+    assert {path.name for path in candidate_dir.iterdir()} == {
+        SANDBOX_MANIFEST_NAME,
+        "generic_sphere_sequence_candidate.csv",
+        "generic_sphere_sequence_residuals.csv",
+        "generic_sphere_sequence_attempt.json",
+    }
+    attempt = json.loads((candidate_dir / "generic_sphere_sequence_attempt.json").read_text())
+    assert attempt["solver_executed"] is True
+    assert attempt["accepted_outputs_written"] is False
+    assert attempt["baseline_pose_read"] is False
+    assert attempt["executor_scope"] == "isolated_candidate_dir"
     assert not (candidate_dir / "object_pose_init.csv").exists()
     assert not (candidate_dir / "object_pose.csv").exists()
 

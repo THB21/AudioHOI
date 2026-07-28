@@ -18,6 +18,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     build_canonical_sequence_solver_diagnostics_summary,
     build_sequence_problem_shadow,
     build_sequence_problem_contract,
+    build_generic_executor_runtime_plan,
     build_sequence_solver_shadow_diagnostics,
     validate_candidate_sandbox_manifest,
     validate_sequence_problem_shadow,
@@ -54,6 +55,9 @@ def test_sequence_problem_shadow_is_plan_only_and_never_consumes_legacy_pose() -
     assert problem["inputs"]["compiled_factor_shadow"]["count"] == problem["inputs"]["factor_shadow"]["factor_count"]
     assert problem["sequence_problem_contract"]["consumed_by_solver"] is False
     assert problem["sequence_problem_contract"]["compiled_factor_count"] == problem["inputs"]["compiled_factor_shadow"]["count"]
+    assert problem["runtime_plan"]["executor_id"] == "generic_sequence_executor"
+    assert problem["runtime_plan"]["case_dispatch_used"] is False
+    assert problem["runtime_plan"]["solver_executed"] is False
     assert problem["attempt_plan"]["writes"] == []
     assert problem["attempt_plan"]["initializer_status"] == "not_executed"
     assert validate_sequence_problem_shadow(problem) == []
@@ -91,6 +95,38 @@ def test_sequence_problem_contract_is_generic_executor_input_boundary() -> None:
     assert contract.compiled_factor_ids == ("point_reprojection:center", "contact_distance:handle")
     assert contract.consumed_by_solver is False
     assert all(name not in contract.canonical_sha256 for name in ("basketball", "football", "mug", "chair", "stick"))
+
+
+def test_generic_executor_runtime_plan_uses_contract_not_case_dispatch() -> None:
+    state_contract = {
+        "spec_id": "translation3:small_sphere",
+        "geometry_kind": "sphere",
+        "required_dofs": ["root.translation"],
+    }
+    measurement_shadow = {"measurements": {"count": 4, "canonical_sha256": "m" * 64}}
+    contact_shadow = {"constraints": {"count": 1, "canonical_sha256": "c" * 64}}
+    interaction_shadow = {"frame_count": 4, "canonical_sha256": "i" * 64}
+    compiled_factor_shadow = {
+        "count": 1,
+        "canonical_sha256": "f" * 64,
+        "records": [{"factor_id": "point_reprojection:center"}],
+    }
+    contract = build_sequence_problem_contract(
+        sample_id="heldout_pingpong",
+        state_contract=state_contract,
+        measurement_shadow=measurement_shadow,
+        contact_shadow=contact_shadow,
+        interaction_shadow=interaction_shadow,
+        compiled_factor_shadow=compiled_factor_shadow,
+    )
+    plan = build_generic_executor_runtime_plan(contract, compiled_factor_shadow)
+
+    assert plan.executor_id == "generic_sequence_executor"
+    assert plan.status == "not_executed"
+    assert plan.case_dispatch_used is False
+    assert plan.solver_executed is False
+    assert plan.accepted_outputs_written is False
+    assert plan.compiled_factor_ids == ("point_reprojection:center",)
 
 
 def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> None:

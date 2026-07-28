@@ -5,6 +5,9 @@
       "sequence_contract_sha256": "f4157289f84e8cded4cecf2a4f3b09e30f59753b483e0c0b31ebc5241b234e3d",
       "sequence_contract_state_spec": "translation3:sphere",
       "sequence_contract_compiled_factors": 10,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_case_dispatch_used": false,
+      "runtime_plan_sha256": "5971491e64fb91c6ed19eb26e8d632cc114dd5c74486b71ac94e6ec74cc0f9cf",
       "state_model": "translation3",
       "geometry_kind": "sphere",
       "measurement_count": 768,
@@ -54,14 +57,17 @@
         "temporal_velocity": 3
       },
       "gap_ids": [],
-      "attempt_id": "shadow-119e8b9b03a3",
+      "attempt_id": "shadow-5e812a227052",
       "validation_errors": [],
-      "canonical_sha256": "119e8b9b03a3b292347000d0e48f7b83669e5ab2115694ec10e2fc71f0f4a16a"
+      "canonical_sha256": "5e812a2270529f3b8fe0d4005ed96461be07ced820e07bb5704335e2dc402444"
     },
     "football": {
       "sequence_contract_sha256": "84e7bd88b308df0b7075431dd3ef75895553dc4144e2d645ad8a8649b404240b",
       "sequence_contract_state_spec": "translation3:sphere",
       "sequence_contract_compiled_factors": 10,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_case_dispatch_used": false,
+      "runtime_plan_sha256": "3aae1a99e4620dbfdee15a0345c31a12db5473cf8a1d84194214835a9e2fef1e",
       "state_model": "translation3",
       "geometry_kind": "sphere",
       "measurement_count": 968,
@@ -112,14 +118,17 @@
         "temporal_velocity": 3
       },
       "gap_ids": [],
-      "attempt_id": "shadow-25528a513337",
+      "attempt_id": "shadow-32a76e0afb41",
       "validation_errors": [],
-      "canonical_sha256": "25528a513337249a3787ddf945a7fe6f6ea965111bddec1b9cf1ef5563593aa2"
+      "canonical_sha256": "32a76e0afb416ba599b7e18b4957140c540f1e7ea0dd9c3b1c7dcc24aba25700"
     },
     "mug": {
       "sequence_contract_sha256": "a860d6144efe320559be67666c7177d579d8e7e6bfa136a3a3db468b56b0639f",
       "sequence_contract_state_spec": "rigid6_plus_phase:rigid_mesh",
       "sequence_contract_compiled_factors": 6,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_case_dispatch_used": false,
+      "runtime_plan_sha256": "b9343410cd434c949684191d9ad1d443bbfebf7e5c3fd8589d6a6d1a9a259dc4",
       "state_model": "rigid6_plus_phase",
       "geometry_kind": "rigid_mesh",
       "measurement_count": 1359,
@@ -163,14 +172,17 @@
         "temporal_velocity": 1
       },
       "gap_ids": [],
-      "attempt_id": "shadow-7bf855000071",
+      "attempt_id": "shadow-9d1c23de93dd",
       "validation_errors": [],
-      "canonical_sha256": "7bf855000071cd8580632ec739a2e15ab2f86d6c3fe99324e608452e3c88acc8"
+      "canonical_sha256": "9d1c23de93ddf088d469e84af75b092b2a69f4e255510e009084b4500fdb3303"
     },
     "chair": {
       "sequence_contract_sha256": "769dd54a9ab48b544933eeb674d4487e4f35ba4ef5381a8261a549d26937a5d1",
       "sequence_contract_state_spec": "semantic_graph_6d:articulated",
       "sequence_contract_compiled_factors": 13,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_case_dispatch_used": false,
+      "runtime_plan_sha256": "509d556e7143377c7a293bd91c1757bcdc471395f3f473c5ec2b3e1e9e1ab4f4",
       "state_model": "semantic_graph_6d",
       "geometry_kind": "articulated_urdf",
       "measurement_count": 1014,
@@ -227,14 +239,17 @@
         "temporal_velocity": 1
       },
       "gap_ids": [],
-      "attempt_id": "shadow-ee33bc5fff16",
+      "attempt_id": "shadow-50fcc30cabbb",
       "validation_errors": [],
-      "canonical_sha256": "ee33bc5fff1644775002edef76ebfb0190f9e5c4a27cc6853b789554fc54236f"
+      "canonical_sha256": "50fcc30cabbb85253f1a536256813508a1df3624ddc8023d6c0f13b731bf63b7"
     },
     "stick": {
       "sequence_contract_sha256": "75a09bd0e1293abb49ad4657aa797ea4d242f66359ef83230cf0b3c712cdb776",
       "sequence_contract_state_spec": "translation3:line_capsule",
       "sequence_contract_compiled_factors": 5,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_case_dispatch_used": false,
+      "runtime_plan_sha256": "903a35e1a88fcdcbe319ce0f2b8d2b7b73a6ae922ca0c6015509a7cd29a61ffa",
       "state_model": "translation3_with_line_orientation_prior",
       "geometry_kind": "line_capsule",
       "measurement_count": 960,
@@ -279,9 +294,9 @@
       "gap_ids": [
         "line_contact_lock_special_refinement"
       ],
-      "attempt_id": "shadow-e1dbb608ffd1",
+      "attempt_id": "shadow-7d35b3e141e5",
       "validation_errors": [],
-      "canonical_sha256": "e1dbb608ffd1be607a2942db692e14368247ae5368a3608ed58ab5d799c76d2c"
+      "canonical_sha256": "7d35b3e141e578f7f26264c95468e125bbc5a42ea188af6c2b3fc4a9430d41ba"
     }
   }
 }

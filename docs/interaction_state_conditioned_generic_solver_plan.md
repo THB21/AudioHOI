@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract 和 generic `SequenceProblemContract`；暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 继续把 `SequenceProblemContract + CompiledFactor` 从 shadow 边界推进到 runtime factor executor 输入；保持 residual parity，不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract` 和 `GenericExecutorRuntimePlan`；暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 继续把 runtime boundary 推进到只接受 `SequenceProblemContract + CompiledFactor` 的 executor skeleton；保持 residual parity，不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1372,3 +1372,11 @@ YYYY-MM-DD:
 - change: 新增 `core/solver/problem_contract.py`，把 `StateSpec`、geometry kind、Measurement shadow、ContactConstraint shadow、InteractionState shadow 和 CompiledFactor shadow 固化为 generic `SequenceProblemContract`；`build_sequence_problem_shadow()`、diagnostics 和 golden summary 开始携带该 contract 的 canonical hash 和 count 对齐检查。
 - verification: 轻量范围 37 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
 - remaining gap: `SequenceProblemContract` 仍是 shadow-only、`consumed_by_solver=False`，下一步需要把 runtime executor 的入口改成消费该 contract / compiled factors，而不是从 case adapter 直接选择 executor。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update
+- change: 新增 `core/solver/runtime.py`，定义 `GenericExecutorRuntimePlan`，要求 executor id 固定为 `generic_sequence_executor`、`case_dispatch_used=False`、`solver_executed=False`、`accepted_outputs_written=False`；`build_sequence_problem_shadow()` 和 diagnostics 开始携带 `runtime_plan`，并验证 runtime plan 与 `SequenceProblemContract` / `compiled_factor_shadow` 对齐。
+- verification: 轻量范围 38 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
+- remaining gap: runtime plan 仍是 `not_executed` 边界声明，下一步要做 executor skeleton，使其入口参数只接受 contract / compiled factors，并逐步把现有 geometry-family candidate 执行器挂到该入口下，而不是在 candidate 层按 case 分派。

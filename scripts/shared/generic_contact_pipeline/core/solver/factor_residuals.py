@@ -76,3 +76,9 @@ class FactorResidualEvaluator:
         if values.shape != target.shape or values.shape != scales.shape:
             raise ValueError("regularization residuals require matching value, target, and scale arrays")
         return (float(weight) * (values - target) / scales).astype(float)
+
+    def periodic_phase_prior(self, values: np.ndarray, target: np.ndarray, *, weight: float, sigma_rad: float) -> np.ndarray:
+        if values.shape != target.shape:
+            raise ValueError("periodic phase residuals require matching phase arrays")
+        wrapped = (values - target + np.pi) % (2.0 * np.pi) - np.pi
+        return (float(weight) * wrapped.reshape(-1) / float(sigma_rad)).astype(float)

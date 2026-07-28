@@ -57,7 +57,7 @@
       "blocking_gap_ids": [],
       "candidate_dir": "samples_known_object/02_mug/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_mug",
       "canonical_sha256": "f09576a37dc3b13fb862adee4dd423360bebc793324121474b66953ce31cb808",
-      "diagnostics_sha256": "6d0e17212cadef2d6fce42c3c179b3c07ab4ac2f89f384776553c41489107914",
+      "diagnostics_sha256": "7bff7c429431e2975105581c923521f222d749819fe5e5dd3c034a7d45982585",
       "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -66,7 +66,7 @@
         "generic_periodic_phase_candidate.csv",
         "generic_projected_periodic_attempt.json"
       ],
-      "problem_sha256": "aca82291506da0f8c0cbb035aa483e08a99b1895018bbad2cfb9b373c14cc3d8",
+      "problem_sha256": "8bf05dd163b54ec58057a99626c51813130f7399f546be746fa2e7da8dbf6fe6",
       "status": "sandbox_ready"
     },
     "stick": {

@@ -105,3 +105,16 @@ def test_factor_residual_evaluator_supports_generic_regularization_block() -> No
     )
 
     np.testing.assert_allclose(residual, [0.6, -0.15, 0.0])
+
+
+def test_factor_residual_evaluator_supports_wrapped_periodic_phase_prior_block() -> None:
+    evaluator = FactorResidualEvaluator()
+
+    residual = evaluator.periodic_phase_prior(
+        values=np.array([np.pi - 0.1, -np.pi + 0.2, 0.5], dtype=float),
+        target=np.array([-np.pi + 0.1, np.pi - 0.2, 0.5], dtype=float),
+        weight=0.5,
+        sigma_rad=0.1,
+    )
+
+    np.testing.assert_allclose(residual, [-1.0, 2.0, 0.0])

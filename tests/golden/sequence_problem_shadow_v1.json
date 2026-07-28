@@ -229,7 +229,7 @@
       "attempt_ledger_residual_status": "not_executed",
       "attempt_ledger_sha256": "bc5dc0105ce8ef5765dfbd7700fa53a32c316cb58fddc4b13004287c54487fe1",
       "attempt_ledger_status": "attempt_planned_not_executed",
-      "canonical_sha256": "aca82291506da0f8c0cbb035aa483e08a99b1895018bbad2cfb9b373c14cc3d8",
+      "canonical_sha256": "8bf05dd163b54ec58057a99626c51813130f7399f546be746fa2e7da8dbf6fe6",
       "compiled_factor_count": 6,
       "compiled_factor_kinds": {
         "contact_distance": 1,
@@ -275,12 +275,10 @@
       },
       "measurement_count": 1359,
       "measurement_frames": 240,
-      "residual_boundary_gap_ids": [
-        "missing_generic_residual:periodic_phase_prior"
-      ],
-      "residual_boundary_pending": 1,
-      "residual_boundary_sha256": "9add7b185480d7dc3cebe3591491f26283ed20f852f8146240b721dcf12b5a76",
-      "residual_boundary_supported": 5,
+      "residual_boundary_gap_ids": [],
+      "residual_boundary_pending": 0,
+      "residual_boundary_sha256": "3d4ffcdb988571f2e74150b2343d0016297dda3691eb7f863f856017cb013d74",
+      "residual_boundary_supported": 6,
       "runtime_case_dispatch_used": false,
       "runtime_executor_id": "generic_sequence_executor",
       "runtime_plan_sha256": "b9343410cd434c949684191d9ad1d443bbfebf7e5c3fd8589d6a6d1a9a259dc4",

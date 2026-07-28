@@ -59,7 +59,7 @@
       "attempt_id": "generic-attempt-5e65dc595a39",
       "baseline_pose_read": false,
       "blocking_gap_ids": [],
-      "canonical_sha256": "6d0e17212cadef2d6fce42c3c179b3c07ab4ac2f89f384776553c41489107914",
+      "canonical_sha256": "7bff7c429431e2975105581c923521f222d749819fe5e5dd3c034a7d45982585",
       "nonblocking_gap_ids": [],
       "phase_statuses": {
         "assemble_problem": "pass",
@@ -67,7 +67,7 @@
         "initialize_state": "not_executed",
         "solve_sequence": "not_executed"
       },
-      "problem_sha256": "aca82291506da0f8c0cbb035aa483e08a99b1895018bbad2cfb9b373c14cc3d8",
+      "problem_sha256": "8bf05dd163b54ec58057a99626c51813130f7399f546be746fa2e7da8dbf6fe6",
       "solver_executed": false,
       "status": "ready_for_future_shadow_solve",
       "validation_errors": []

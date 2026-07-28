@@ -22,7 +22,7 @@
       "blocking_gap_ids": [],
       "candidate_dir": "samples_known_object/05_chair/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_chair",
       "canonical_sha256": "b1b5375e681155a3069b9fd690ef842f86f883ef97080b3b327f9e32bd659005",
-      "diagnostics_sha256": "f579d57777ac28a3df09f58234b46e105eb4219a500c27939ce482cdd2669b7a",
+      "diagnostics_sha256": "ed501559ee4abc3110e3b55def1bca6e19de64832bbaab38870766782bbc33f1",
       "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -32,7 +32,7 @@
         "chair_generic_factor_executor_attempt.json",
         "chair_generic_factor_residuals.json"
       ],
-      "problem_sha256": "6c2c8d3cf0d56c841666ea8e2b2f5c26f8b74396221d4bb26b98fc973bd0a107",
+      "problem_sha256": "fef11b40316f570a259274fbe7f1bf9f26e481ec07acffa25c883ae94d0baf3e",
       "status": "sandbox_ready"
     },
     "football": {

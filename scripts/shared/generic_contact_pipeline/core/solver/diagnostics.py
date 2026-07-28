@@ -11,7 +11,6 @@ from .validation import validate_sequence_problem_shadow
 
 NONBLOCKING_COMPATIBILITY_GAPS = {
     "line_contact_lock_special_refinement",
-    "unsupported_loss_term:E_audio",
 }
 
 

@@ -219,16 +219,15 @@ def test_generic_residual_boundary_maps_compiled_factors_without_executing() -> 
     boundary = build_generic_residual_boundary(attempt, compiled_factor_shadow)
 
     assert boundary.status == "planned_not_executed"
-    assert boundary.supported_count == 1
-    assert boundary.pending_count == 1
-    assert len(boundary.pending_gap_records) == 1
+    assert boundary.supported_count == 2
+    assert boundary.pending_count == 0
+    assert boundary.pending_gap_records == ()
     assert boundary.case_dispatch_used is False
     assert boundary.residuals_executed is False
     by_factor = {record.factor_id: record for record in boundary.records}
     assert by_factor["point_reprojection:center"].evaluator_ref == "FactorResidualEvaluator.point_reprojection"
-    assert by_factor["audio_event_prior:impact"].status == "pending_generic_residual"
-    assert boundary.pending_gap_records[0].gap_id == "missing_generic_residual:audio_event_prior"
-    assert boundary.pending_gap_records[0].factor_ids == ("audio_event_prior:impact",)
+    assert by_factor["audio_event_prior:impact"].evaluator_ref == "FactorResidualEvaluator.audio_event_prior"
+    assert by_factor["audio_event_prior:impact"].status == "supported_not_executed"
 
 
 def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> None:

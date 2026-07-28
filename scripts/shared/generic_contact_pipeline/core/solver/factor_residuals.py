@@ -82,3 +82,19 @@ class FactorResidualEvaluator:
             raise ValueError("periodic phase residuals require matching phase arrays")
         wrapped = (values - target + np.pi) % (2.0 * np.pi) - np.pi
         return (float(weight) * wrapped.reshape(-1) / float(sigma_rad)).astype(float)
+
+    def audio_event_prior(
+        self,
+        predicted_event_time_s: np.ndarray,
+        observed_event_time_s: np.ndarray,
+        *,
+        weight: float,
+        sigma_s: float,
+    ) -> np.ndarray:
+        if predicted_event_time_s.shape != observed_event_time_s.shape:
+            raise ValueError("audio event residuals require matching predicted and observed event time arrays")
+        return (
+            float(weight)
+            * (predicted_event_time_s.reshape(-1) - observed_event_time_s.reshape(-1))
+            / float(sigma_s)
+        ).astype(float)

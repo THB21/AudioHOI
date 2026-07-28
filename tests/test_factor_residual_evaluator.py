@@ -118,3 +118,16 @@ def test_factor_residual_evaluator_supports_wrapped_periodic_phase_prior_block()
     )
 
     np.testing.assert_allclose(residual, [-1.0, 2.0, 0.0])
+
+
+def test_factor_residual_evaluator_supports_audio_event_timing_prior_block() -> None:
+    evaluator = FactorResidualEvaluator()
+
+    residual = evaluator.audio_event_prior(
+        predicted_event_time_s=np.array([0.12, 0.30, 0.55], dtype=float),
+        observed_event_time_s=np.array([0.10, 0.34, 0.50], dtype=float),
+        weight=0.25,
+        sigma_s=0.02,
+    )
+
+    np.testing.assert_allclose(residual, [0.25, -0.5, 0.625])

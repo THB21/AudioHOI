@@ -19,6 +19,7 @@ SUPPORTED_RESIDUAL_REFS = {
     "shadow_residual::gauge_constraint": "FactorResidualEvaluator.gauge_constraint",
     "shadow_residual::regularization": "FactorResidualEvaluator.regularization",
     "shadow_residual::periodic_phase_prior": "FactorResidualEvaluator.periodic_phase_prior",
+    "shadow_residual::audio_event_prior": "FactorResidualEvaluator.audio_event_prior",
 }
 
 

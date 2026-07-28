@@ -110,6 +110,30 @@ def validate_sequence_problem_shadow(problem: dict[str, object]) -> list[str]:
         if isinstance(executor_prepare, dict) and attempt_ledger.get("prepare_sha256") != executor_prepare.get("canonical_sha256"):
             errors.append("attempt_ledger prepare_sha256 must match executor_prepare")
 
+    residual_boundary = problem.get("residual_boundary", {})
+    if not isinstance(residual_boundary, dict):
+        errors.append("residual_boundary must be recorded")
+    else:
+        if not str(residual_boundary.get("attempt_id", "")).startswith("generic-attempt-"):
+            errors.append("residual_boundary must attach to generic attempt")
+        if residual_boundary.get("status") != "planned_not_executed":
+            errors.append("residual_boundary must remain planned_not_executed")
+        if residual_boundary.get("case_dispatch_used") is not False:
+            errors.append("residual_boundary must not use case dispatch")
+        if residual_boundary.get("residuals_executed") is not False:
+            errors.append("residual_boundary must not execute residuals")
+        if residual_boundary.get("solver_executed") is not False:
+            errors.append("residual_boundary must not execute solver")
+        if residual_boundary.get("accepted_outputs_written") is not False:
+            errors.append("residual_boundary must not write accepted outputs")
+        records = residual_boundary.get("records", [])
+        if not isinstance(records, list) or not records:
+            errors.append("residual_boundary must include records")
+        elif int(residual_boundary.get("supported_count", 0)) + int(residual_boundary.get("pending_count", 0)) != len(records):
+            errors.append("residual_boundary counts must match records")
+        if isinstance(attempt_ledger, dict) and residual_boundary.get("attempt_id") != attempt_ledger.get("attempt_id"):
+            errors.append("residual_boundary attempt_id must match attempt_ledger")
+
     inputs = problem.get("inputs", {})
     if not isinstance(inputs, dict):
         errors.append("inputs must be recorded")
@@ -194,6 +218,10 @@ def validate_sequence_problem_shadow(problem: dict[str, object]) -> list[str]:
         if isinstance(attempt_ledger, dict) and isinstance(compiled, dict):
             if attempt_ledger.get("compiled_factor_count") != compiled.get("count"):
                 errors.append("attempt_ledger compiled_factor_count must match compiled_factor_shadow count")
+        if isinstance(residual_boundary, dict) and isinstance(compiled, dict):
+            records = residual_boundary.get("records", [])
+            if isinstance(records, list) and len(records) != compiled.get("count"):
+                errors.append("residual_boundary record count must match compiled_factor_shadow count")
 
     attempt_plan = problem.get("attempt_plan", {})
     if not isinstance(attempt_plan, dict):

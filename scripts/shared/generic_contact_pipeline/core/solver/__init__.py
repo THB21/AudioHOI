@@ -46,6 +46,13 @@ from .runtime import (
     prepare_result_record,
     runtime_plan_record,
 )
+from .residual_boundary import (
+    GenericResidualBoundary,
+    ResidualBoundaryRecord,
+    build_generic_residual_boundary,
+    residual_boundary_ledger_record,
+    residual_boundary_record,
+)
 from .sphere_sequence import (
     SPHERE_ATTEMPT_NAME,
     SPHERE_CANDIDATE_NAME,
@@ -118,7 +125,9 @@ __all__ = [
     "GenericExecutorPrepareResult",
     "GenericExecutorRuntimePlan",
     "GenericExecutorAttemptLedger",
+    "GenericResidualBoundary",
     "GenericSequenceExecutor",
+    "ResidualBoundaryRecord",
     "LINE_CONTACT_ATTEMPT_NAME",
     "LINE_CONTACT_CANDIDATE_NAME",
     "LINE_CONTACT_RESIDUAL_NAME",
@@ -142,6 +151,7 @@ __all__ = [
     "build_canonical_sequence_problem_summary",
     "build_canonical_sequence_solver_diagnostics_summary",
     "build_generic_executor_runtime_plan",
+    "build_generic_residual_boundary",
     "build_sequence_problem_shadow",
     "build_sequence_problem_contract",
     "build_sequence_solver_shadow_diagnostics",
@@ -177,4 +187,6 @@ __all__ = [
     "runtime_plan_record",
     "prepare_result_record",
     "attempt_ledger_record",
+    "residual_boundary_ledger_record",
+    "residual_boundary_record",
 ]

@@ -20,6 +20,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     build_sequence_problem_contract,
     build_generic_executor_runtime_plan,
     GenericSequenceExecutor,
+    build_generic_residual_boundary,
     build_sequence_solver_shadow_diagnostics,
     validate_candidate_sandbox_manifest,
     validate_sequence_problem_shadow,
@@ -65,6 +66,9 @@ def test_sequence_problem_shadow_is_plan_only_and_never_consumes_legacy_pose() -
     assert problem["attempt_ledger"]["attempt_id"].startswith("generic-attempt-")
     assert problem["attempt_ledger"]["case_dispatch_used"] is False
     assert problem["attempt_ledger"]["residual_evaluation_status"] == "not_executed"
+    assert problem["residual_boundary"]["case_dispatch_used"] is False
+    assert problem["residual_boundary"]["residuals_executed"] is False
+    assert problem["residual_boundary"]["supported_count"] + problem["residual_boundary"]["pending_count"] == problem["inputs"]["compiled_factor_shadow"]["count"]
     assert problem["attempt_plan"]["attempt_id"] == problem["attempt_ledger"]["attempt_id"]
     assert problem["attempt_plan"]["writes"] == []
     assert problem["attempt_plan"]["initializer_status"] == "not_executed"
@@ -179,6 +183,47 @@ def test_generic_sequence_executor_prepare_is_contract_only_and_non_executing() 
     assert attempt.residual_evaluation_status == "not_executed"
     assert attempt.solver_executed is False
     assert attempt.accepted_outputs_written is False
+
+
+def test_generic_residual_boundary_maps_compiled_factors_without_executing() -> None:
+    state_contract = {
+        "spec_id": "translation3:heldout_sphere",
+        "geometry_kind": "sphere",
+        "required_dofs": ["root.translation"],
+    }
+    measurement_shadow = {"measurements": {"count": 6, "canonical_sha256": "m" * 64}}
+    contact_shadow = {"constraints": {"count": 1, "canonical_sha256": "c" * 64}}
+    interaction_shadow = {"frame_count": 6, "canonical_sha256": "i" * 64}
+    compiled_factor_shadow = {
+        "count": 2,
+        "canonical_sha256": "f" * 64,
+        "records": [
+            {"factor_id": "point_reprojection:center", "residual_fn_ref": "shadow_residual::point_reprojection"},
+            {"factor_id": "audio_event_prior:impact", "residual_fn_ref": "shadow_residual::audio_event_prior"},
+        ],
+    }
+    contract = build_sequence_problem_contract(
+        sample_id="heldout_audio_sphere",
+        state_contract=state_contract,
+        measurement_shadow=measurement_shadow,
+        contact_shadow=contact_shadow,
+        interaction_shadow=interaction_shadow,
+        compiled_factor_shadow=compiled_factor_shadow,
+    )
+    runtime_plan = build_generic_executor_runtime_plan(contract, compiled_factor_shadow)
+    executor = GenericSequenceExecutor()
+    prepared = executor.prepare(contract, runtime_plan, compiled_factor_shadow)
+    attempt = executor.plan_attempt(contract, runtime_plan, prepared)
+    boundary = build_generic_residual_boundary(attempt, compiled_factor_shadow)
+
+    assert boundary.status == "planned_not_executed"
+    assert boundary.supported_count == 1
+    assert boundary.pending_count == 1
+    assert boundary.case_dispatch_used is False
+    assert boundary.residuals_executed is False
+    by_factor = {record.factor_id: record for record in boundary.records}
+    assert by_factor["point_reprojection:center"].evaluator_ref == "FactorResidualEvaluator.point_reprojection"
+    assert by_factor["audio_event_prior:impact"].status == "pending_generic_residual"
 
 
 def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> None:

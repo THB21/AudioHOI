@@ -44,6 +44,8 @@ def stage_paths(profile: CaseProfile) -> dict[str, Path]:
         "physical_smooth_residuals": base / "physical_smooth_residuals.csv",
         "pose_jump_audit": base / "pose_jump_audit.csv",
         "optimizer_decisions": base / "optimizer_decisions.csv",
+        "line_contact_lock_metrics": base / "line_contact_lock_metrics.json",
+        "line_contact_lock_blend_debug": base / "line_contact_lock_blend_debug.csv",
         "object_pose": base / "object_pose.csv",
         "object_contact_points": base / "object_contact_points.csv",
         "object_phase": base / "object_phase.csv",

@@ -10,7 +10,9 @@ from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts.shared.generic_contact_pipeline.core.provenance.attempts import StageAttempt
+from scripts.shared.generic_contact_pipeline.core.base.config import load_case_profile, with_runtime_overrides
+from scripts.shared.generic_contact_pipeline.core.base.schema import stage_paths
+from scripts.shared.generic_contact_pipeline.core.provenance.attempts import STAGE_ARTIFACT_KEYS, StageAttempt
 from scripts.shared.generic_contact_pipeline.core.provenance.artifact_store import (
     ArtifactStore,
     verify_attempt_artifacts,
@@ -82,6 +84,14 @@ class PipelineProvenanceTest(unittest.TestCase):
             self.assertTrue(any(path.endswith("/results/da3") for path in paths), case_name)
             self.assertTrue(any(path.endswith("/results/gvhmr") for path in paths), case_name)
             self.assertTrue(any(path.endswith("/results/segmentation/masks") for path in paths), case_name)
+
+    def test_stage4_records_line_contact_lock_artifacts_for_stick(self) -> None:
+        self.assertIn("line_contact_lock_metrics", STAGE_ARTIFACT_KEYS["stage4"])
+        self.assertIn("line_contact_lock_blend_debug", STAGE_ARTIFACT_KEYS["stage4"])
+        profile = with_runtime_overrides(load_case_profile("stick"), result_name="benchmark_vlm_qwen")
+        paths = stage_paths(profile)
+        self.assertTrue(paths["line_contact_lock_metrics"].is_file())
+        self.assertTrue(paths["line_contact_lock_blend_debug"].is_file())
 
     def test_artifact_record_includes_csv_contract_and_hash(self) -> None:
         with TemporaryDirectory() as tmp:

@@ -30,6 +30,10 @@ loss、阈值、Stage 3/4 调度或 accepted outputs。
 - 所有 `LineS.s` 都在 `[0, 1]`；
 - 越界 `LineS(42.0)` 被 contract 拒绝。
 
+Stage 4 provenance 现在显式记录 `line_contact_lock_metrics.json` 和
+`line_contact_lock_blend_debug.csv`。这一步不改变 line solver 输出，但把此前 policy
+私有的 residual/acceptance 证据纳入 stage attempt/artifact snapshot，后续迁移时可直接比较。
+
 ## 后续迁移接受标准
 
 1. 把当前 `line_contact_lock` 的输入拆成 Measurement IR、ContactConstraint IR、

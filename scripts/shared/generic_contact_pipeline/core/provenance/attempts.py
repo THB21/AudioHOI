@@ -31,7 +31,7 @@ STAGE_ARTIFACT_KEYS: dict[str, tuple[str, ...]] = {
     "stage4": (
         "object_pose_pre_smooth", "motion_regime", "physical_smooth_residuals",
         "pose_jump_audit", "optimizer_decisions", "sphere_candidate", "sphere_residuals",
-        "sphere_attempt", "object_pose",
+        "sphere_attempt", "line_contact_lock_metrics", "line_contact_lock_blend_debug", "object_pose",
         "object_contact_points", "object_phase", "stage4_metrics",
     ),
     "stage5": ("render_manifest", "stage5_metrics"),

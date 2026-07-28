@@ -107,7 +107,7 @@ contact point 和可选 Jacobian。sphere、line/capsule、rigid mesh、articula
 | `refactor/factor-registry` | 通用 factor registry、residual trace、组合校验 | done | Factor IR shadow/verifier/validator 已建立；98 tests；decoded golden 通过；不被 solver 消费 |
 | `refactor/generic-sequence-solver` | 通用初始化、单帧/序列求解、deterministic attempt provenance | done | sequence problem/diagnostics/candidate sandbox 已建立；116 tests；不读取 baseline pose；不写 accepted 输出 |
 | `refactor/migrate-ball-cases` | basketball/football 迁移 | done | typed sphere candidate 与旧 exact seed 两 case byte-identical；switched Stage1–7、audit、render 与全量门禁通过 |
-| `refactor/migrate-line-case` | stick 迁移 | pending | LineS/contact/时序指标不退化；无 line 专用 optimizer |
+| `refactor/migrate-line-case` | stick 迁移 | in_progress | LineS/contact/时序指标不退化；无 line 专用 optimizer；当前已收紧 `LineS` 归一化 contact gate |
 | `refactor/migrate-mug-case` | mug rigid mesh + periodic feature phase 迁移 | in_progress | generic Stage 1 body/phase、Stage 1–4 关键 CSV、六路 render 均与独立 fresh baseline byte-identical；Stage 1–7 attempts/contracts pass；待 Stage 3/4 统一 factor executor |
 | `refactor/migrate-chair-case` | chair URDF + articulated DOF + two-hand contact 迁移 | pending | semantic 2D、contact P90、freeze、render 不退化 |
 | `refactor/heldout-generalization` | 未见对象与退化条件验证 | pending | 满足下述零专用 solver 验收 |

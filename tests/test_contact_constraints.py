@@ -11,6 +11,7 @@ from scripts.shared.generic_contact_pipeline.core.contact_constraints import (
     ContactConstraint,
     FrameInterval,
     HumanSite,
+    LineS,
     LocalXYZ,
     apply_contact_state_gate,
     adapt_legacy_contact_rows,
@@ -66,6 +67,22 @@ def test_shadow_is_deterministic_and_reports_unmapped_fields() -> None:
     assert first["consumed_by_solver"] is False
     assert first["constraints"]["by_coordinate"] == {"line_s": 480}
     assert "palm_to_line_px" in first["coverage"]["unmapped_nonempty_fields"]
+
+
+def test_stick_line_s_contacts_are_normalized_line_coordinates() -> None:
+    path = REPO / "samples_known_object/11_stick/results/benchmark_vlm_qwen/object_contact_points.csv"
+    with path.open(newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    result = adapt_legacy_contact_rows("stick", rows, str(path.relative_to(REPO)))
+    coordinates = [item.object_coordinate for item in result.constraints]
+    assert coordinates
+    assert all(isinstance(coordinate, LineS) for coordinate in coordinates)
+    assert all(0.0 <= coordinate.s <= 1.0 for coordinate in coordinates if isinstance(coordinate, LineS))
+
+
+def test_line_s_rejects_pixel_or_metric_coordinates() -> None:
+    with pytest.raises(ValueError, match=r"within \[0, 1\]"):
+        LineS(42.0)
 
 
 def test_shadow_hash_is_independent_of_absolute_worktree_prefix() -> None:

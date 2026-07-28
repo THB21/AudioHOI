@@ -64,6 +64,8 @@ class LineS:
     def __post_init__(self) -> None:
         if not isfinite(self.s):
             raise ValueError("LineS must be finite")
+        if not 0.0 <= self.s <= 1.0:
+            raise ValueError("LineS must be normalized within [0, 1]")
 
 
 @dataclass(frozen=True)

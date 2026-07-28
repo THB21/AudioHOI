@@ -6,19 +6,19 @@
       "dependencies": {
         "mug_handle_phase_source": {
           "selected_candidate_id": "observation_derived_axial_phase",
-          "resolution": "generated_stage_output",
+          "resolution": "selected_existing_file",
           "rerun_readiness": "ready",
           "solved_seed_dependency": false
         },
         "mug_contact_export_pose": {
           "selected_candidate_id": "observation_derived_body_pose",
-          "resolution": "generated_stage_output",
+          "resolution": "selected_existing_file",
           "rerun_readiness": "ready",
           "solved_seed_dependency": false
         },
         "mug_body_pose_seed": {
           "selected_candidate_id": "observation_derived_body_pose",
-          "resolution": "generated_stage_output",
+          "resolution": "selected_existing_file",
           "rerun_readiness": "ready",
           "solved_seed_dependency": false
         }

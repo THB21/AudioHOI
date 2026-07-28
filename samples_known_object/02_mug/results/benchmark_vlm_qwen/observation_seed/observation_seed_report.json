@@ -1,0 +1,28 @@
+{
+  "body_fit_success_frames": 171,
+  "body_pose_csv": "/mnt/hdd/AudioHOI-migrate-mug-case/samples_known_object/02_mug/results/generic_mug_migration_baseline_v1/observation_seed/body_pose.csv",
+  "body_residual_rms_median": 0.062125177995631053,
+  "body_residual_rms_p90": 0.11284063399067092,
+  "historical_solved_seed_used": false,
+  "inputs": {
+    "observations_sha256": "f7877ab449f623c1b44afbe785c917e638857099fabd8ed15b658425739b3b39",
+    "proxy_depth_sha256": "51d5a084c72c6a692ce4196cfc4213b7ecb42298096ae4cf239cdaac5c3927b2"
+  },
+  "mesh_root": "/mnt/hdd/AudioHOI-migrate-mug-case/samples_known_object/02_mug/articraft/materialized_mug_mesh",
+  "observations_csv": "/mnt/hdd/AudioHOI-migrate-mug-case/samples_known_object/02_mug/results/object_observations/object_observations.csv",
+  "phase": {
+    "handle_reprojection_max_px": 14.332741122386455,
+    "handle_reprojection_median_px": 6.961615635162186,
+    "handle_reprojection_p90_px": 9.271629474168572,
+    "hidden_or_unobserved_frames": 81,
+    "phase_gauge": "body_yaw_zero_observable_axial_angle_in_phase",
+    "phase_grid_step_deg": 0.5,
+    "phase_smooth_sigma_frames": 1.5,
+    "visible_frames": 159
+  },
+  "phase_source": "/mnt/hdd/AudioHOI-migrate-mug-case/samples_known_object/02_mug/results/generic_mug_migration_baseline_v1/observation_seed/axial_phase.csv",
+  "policy": "observation_derived_body_pose_and_axial_phase",
+  "proxy_depth_csv": "/mnt/hdd/AudioHOI-migrate-mug-case/samples_known_object/02_mug/results/generic_mug_migration_baseline_v1/object_proxy_observations_internal/object_proxy_observations.csv",
+  "rows": 240,
+  "schema_version": 1
+}

@@ -96,6 +96,9 @@ def _input_refs(kind: FactorKind) -> tuple[FactorInputRef, ...]:
     if kind == FactorKind.AUDIO_EVENT_PRIOR:
         refs.append(FactorInputRef("measurement", "AudioEventIR", "audio_events"))
         refs.append(FactorInputRef("constraint", "ContactConstraintIR", "audio_contact_phase"))
+    if kind == FactorKind.PERIODIC_PHASE_PRIOR:
+        refs.append(FactorInputRef("measurement", "MeasurementIR", "periodic_feature_observation"))
+        refs.append(FactorInputRef("state", "StateSpec", "body_yaw_zero_observable_axial_angle_in_phase"))
     if kind == FactorKind.GAUGE_CONSTRAINT:
         refs.append(FactorInputRef("state", "StateSpec", "gauge_constraints"))
     return tuple(refs)
@@ -124,6 +127,26 @@ def _chair_private_solver_gap_is_resolved(profile: CaseProfile, result_dir: Path
     except Exception:
         return False
     return diagnostics.get("compatibility_gap_status") == "nonblocking" and not validate_chair_contact_diagnostics(diagnostics)
+
+
+def _mug_periodic_phase_prior_is_resolved(result_dir: Path) -> tuple[bool, int, dict[str, object]]:
+    seed_dir = result_dir / "observation_seed"
+    phase_csv = seed_dir / "axial_phase.csv"
+    report_json = seed_dir / "observation_seed_report.json"
+    if not phase_csv.exists() or not report_json.exists():
+        return False, 0, {}
+    report = _read_json(report_json)
+    if report.get("historical_solved_seed_used") is not False:
+        return False, 0, report
+    if report.get("policy") != "observation_derived_body_pose_and_axial_phase":
+        return False, 0, report
+    phase = report.get("phase", {})
+    if not isinstance(phase, dict) or phase.get("phase_gauge") != "body_yaw_zero_observable_axial_angle_in_phase":
+        return False, 0, report
+    phase_rows = _read_csv(phase_csv)
+    if not phase_rows:
+        return False, 0, report
+    return True, len(phase_rows), report
 
 
 def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptationResult:
@@ -265,6 +288,35 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
         )
         summaries.append(FactorEnergySummary("contact_chord:gauge_constraint", FactorKind.GAUGE_CONSTRAINT, active_contact_rows, 0.0))
 
+    mug_phase_prior_resolved = False
+    if profile.case_name == "mug":
+        mug_phase_prior_resolved, mug_phase_rows, _mug_phase_report = _mug_periodic_phase_prior_is_resolved(result_dir)
+        if mug_phase_prior_resolved:
+            factors.append(
+                FactorSpec(
+                    factor_id="periodic_phase_prior:observation_seed_axial_phase",
+                    kind=FactorKind.PERIODIC_PHASE_PRIOR,
+                    frame_count=mug_phase_rows,
+                    input_refs=_input_refs(FactorKind.PERIODIC_PHASE_PRIOR),
+                    residual_unit="radian_phase_prior",
+                    weight_source="observation_derived_body_pose_and_axial_phase",
+                    gate_source="visible/interpolated handle phase in observation_seed/axial_phase.csv",
+                    residual_source=_source(
+                        result_dir / "observation_seed/axial_phase.csv",
+                        ("m17_phase_rad", "m43_phase_rad", "vlm_visibility", "source"),
+                        "projected_periodic_phase_prior_shadow",
+                    ),
+                )
+            )
+            summaries.append(
+                FactorEnergySummary(
+                    "observation_seed:periodic_phase_prior",
+                    FactorKind.PERIODIC_PHASE_PRIOR,
+                    mug_phase_rows,
+                    0.0,
+                )
+            )
+
     if per_frame_rows and any(row.get("vlm_contact_gate", "") for row in per_frame_rows):
         mapped.add("vlm_contact_gate")
     if per_frame_rows and any(row.get("vlm_anchor_gate", "") for row in per_frame_rows):
@@ -279,7 +331,7 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
 
     gaps: list[FactorGap] = []
     phase = adapter.get("phase_reconstruction", {}) if isinstance(adapter.get("phase_reconstruction"), dict) else {}
-    if phase.get("snapshot_fallback_used"):
+    if phase.get("snapshot_fallback_used") and not (profile.case_name == "mug" and mug_phase_prior_resolved):
         gaps.append(
             FactorGap(
                 "phase_snapshot_fallback",

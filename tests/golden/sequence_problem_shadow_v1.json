@@ -47,20 +47,19 @@
       "measurement_count": 1359,
       "measurement_frames": 240,
       "contact_count": 240,
-      "factor_count": 5,
+      "factor_count": 6,
       "factor_kinds": {
         "contact_distance": 1,
+        "periodic_phase_prior": 1,
         "pose_prior": 1,
         "regularization": 1,
         "temporal_acceleration": 1,
         "temporal_velocity": 1
       },
-      "gap_ids": [
-        "phase_snapshot_fallback"
-      ],
-      "attempt_id": "shadow-47760fc4ae57",
+      "gap_ids": [],
+      "attempt_id": "shadow-730d2e2940c6",
       "validation_errors": [],
-      "canonical_sha256": "47760fc4ae5716ee51c8ce1ec5ce8f51a272068f977682ca20810ce4d5bf0058"
+      "canonical_sha256": "730d2e2940c6497eca8152a6d8f2aa5daf677b04af2f2ce7229c0797fdeb48f9"
     },
     "chair": {
       "state_model": "semantic_graph_6d",

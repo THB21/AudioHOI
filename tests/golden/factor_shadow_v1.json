@@ -30,19 +30,18 @@
       "canonical_sha256": "6e40428624bb09a9b1692ff67da45e03f83523bafacfe107584a2de655f5f2ea"
     },
     "mug": {
-      "factor_count": 5,
+      "factor_count": 6,
       "factor_kinds": {
         "contact_distance": 1,
+        "periodic_phase_prior": 1,
         "pose_prior": 1,
         "regularization": 1,
         "temporal_acceleration": 1,
         "temporal_velocity": 1
       },
-      "gap_ids": [
-        "phase_snapshot_fallback"
-      ],
+      "gap_ids": [],
       "unmapped_nonempty_fields": [],
-      "canonical_sha256": "b68be8f866deb3e10d8e29c92f8400d8f92b315aec41cb3ed4ee8b1a6283e840"
+      "canonical_sha256": "f9b82710484f73f0c71d00c25aa280c2cb4756f95e06b1e4a861469456f6eced"
     },
     "chair": {
       "factor_count": 13,

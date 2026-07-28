@@ -155,12 +155,12 @@ def test_sequence_solver_shadow_diagnostics_block_only_required_unmigrated_mecha
         load_case_profile("stick"),
         REPO / "samples_known_object/11_stick/results/benchmark_vlm_qwen",
     )
-    assert mug["blocking_gap_ids"] == ["phase_snapshot_fallback"]
+    assert mug["blocking_gap_ids"] == []
     assert chair["blocking_gap_ids"] == []
     assert chair["nonblocking_gap_ids"] == []
     assert stick["blocking_gap_ids"] == []
     assert stick["nonblocking_gap_ids"] == ["line_contact_lock_special_refinement"]
-    assert mug["status"] == "blocked_by_known_gaps"
+    assert mug["status"] == "ready_for_future_shadow_solve"
     assert chair["status"] == "ready_for_future_shadow_solve"
     assert stick["status"] == "ready_for_future_shadow_solve"
 
@@ -270,12 +270,13 @@ def test_candidate_sandbox_validation_rejects_accepted_output_names() -> None:
 
 def test_candidate_sandbox_validation_rejects_inconsistent_gap_eligibility() -> None:
     blocked = build_candidate_sandbox_manifest(
-        load_case_profile("mug"),
-        REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen",
+        load_case_profile("basketball"),
+        REPO / "samples_known_object/01_basketball/results/benchmark_vlm_qwen",
     )
     blocked["eligible_for_candidate_sandbox"] = True
     blocked["status"] = "sandbox_ready"
     blocked["planned_artifacts"] = blocked["planned_artifacts"] or ["generic_sequence_solver_shadow_candidate.json"]
+    blocked["blocking_gap_ids"] = ["synthetic_blocking_gap"]
     errors = validate_candidate_sandbox_manifest(blocked)
     assert any("eligible sandbox must not carry blocking gaps" in error for error in errors)
 

@@ -17,6 +17,7 @@ class FactorKind(str, Enum):
     TEMPORAL_ACCELERATION = "temporal_acceleration"
     STATIC_FREEZE = "static_freeze"
     AUDIO_EVENT_PRIOR = "audio_event_prior"
+    PERIODIC_PHASE_PRIOR = "periodic_phase_prior"
     JOINT_LIMIT = "joint_limit"
     GAUGE_CONSTRAINT = "gauge_constraint"
     POSE_PRIOR = "pose_prior"

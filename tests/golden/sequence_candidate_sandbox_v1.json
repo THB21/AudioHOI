@@ -36,18 +36,18 @@
       "canonical_sha256": "65360453057246b0859498794231b92f4353fbe6eb3b6626abcf62b658cb85b6"
     },
     "mug": {
-      "status": "blocked_by_known_gaps",
-      "eligible_for_candidate_sandbox": false,
+      "status": "sandbox_ready",
+      "eligible_for_candidate_sandbox": true,
       "candidate_dir": "samples_known_object/02_mug/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_mug",
-      "attempt_id": "shadow-47760fc4ae57",
-      "problem_sha256": "47760fc4ae5716ee51c8ce1ec5ce8f51a272068f977682ca20810ce4d5bf0058",
-      "diagnostics_sha256": "c690d18875a614fcd3d9064e662b1b75bc8ff0275bd5caa822ab0183ed870676",
-      "blocking_gap_ids": [
-        "phase_snapshot_fallback"
-      ],
+      "attempt_id": "shadow-730d2e2940c6",
+      "problem_sha256": "730d2e2940c6497eca8152a6d8f2aa5daf677b04af2f2ce7229c0797fdeb48f9",
+      "diagnostics_sha256": "298b7c22d685b1ec61676a05b42f18ba814df44a879cd42789398a7f79816414",
+      "blocking_gap_ids": [],
       "nonblocking_gap_ids": [],
-      "planned_artifacts": [],
-      "canonical_sha256": "fa4e0dafbda1d45a172ca1e4964099fdda48118ac34865524c14cd8767d07efc"
+      "planned_artifacts": [
+        "generic_sequence_solver_shadow_candidate.json"
+      ],
+      "canonical_sha256": "259f253453d6d7f8d3669256e95e6090730c0df1a9bec8d7076173aa461fd89e"
     },
     "chair": {
       "status": "sandbox_ready",

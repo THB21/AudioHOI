@@ -70,6 +70,24 @@ def test_ball_factor_shadow_exposes_depth_contact_and_temporal_terms() -> None:
     assert kinds["temporal_velocity"] >= 1
 
 
+def test_mug_factor_shadow_maps_periodic_phase_prior_without_snapshot_gap() -> None:
+    result_dir = REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen"
+    shadow = build_factor_shadow(load_case_profile("mug"), result_dir)
+    gap_ids = [gap["gap_id"] for gap in shadow["gaps"]]
+    assert "phase_snapshot_fallback" not in gap_ids
+    phase_factors = [
+        factor
+        for factor in shadow["factors"]["records"]
+        if factor["factor_id"] == "periodic_phase_prior:observation_seed_axial_phase"
+    ]
+    assert len(phase_factors) == 1
+    assert phase_factors[0]["kind"] == FactorKind.PERIODIC_PHASE_PRIOR
+    assert phase_factors[0]["frame_count"] == 240
+    input_roles = {(ref["role"], ref["source_ir"], ref["source_id"]) for ref in phase_factors[0]["input_refs"]}
+    assert ("measurement", "MeasurementIR", "periodic_feature_observation") in input_roles
+    assert ("state", "StateSpec", "body_yaw_zero_observable_axial_angle_in_phase") in input_roles
+
+
 def test_chair_factor_shadow_exposes_joint_limit_and_gauge_terms() -> None:
     result_dir = REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen"
     shadow = build_factor_shadow(load_case_profile("chair"), result_dir)
@@ -102,7 +120,7 @@ def test_specialized_legacy_paths_remain_explicit_gaps() -> None:
     mug = build_factor_shadow(load_case_profile("mug"), REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen")
     chair = build_factor_shadow(load_case_profile("chair"), REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen")
     stick = build_factor_shadow(load_case_profile("stick"), REPO / "samples_known_object/11_stick/results/benchmark_vlm_qwen")
-    assert [gap["gap_id"] for gap in mug["gaps"]] == ["phase_snapshot_fallback"]
+    assert [gap["gap_id"] for gap in mug["gaps"]] == []
     assert "semantic_graph_solver_private" not in [gap["gap_id"] for gap in chair["gaps"]]
     assert [gap["gap_id"] for gap in stick["gaps"]] == ["line_contact_lock_special_refinement"]
 

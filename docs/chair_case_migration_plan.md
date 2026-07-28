@@ -53,8 +53,9 @@ chair per-frame residual loop 现在已复用 core `FactorResidualEvaluator` 组
 
 `FactorResidualEvaluator` 现在也覆盖 `joint_limit` 与 `gauge_constraint` residual block；
 chair candidate attempt 会记录 supported residual blocks，并在 sandbox 写入
-`chair_generic_factor_residuals.json` 覆盖率 manifest。此处仍只是算术能力和
-provenance 能力，不等于已经运行 isolated optimizer。
+`chair_generic_factor_residuals.json` 覆盖率 manifest；validator 会拒绝 required factor
+缺失、solver execution、accepted output write 或 baseline pose read。此处仍只是算术能力
+和 provenance 能力，不等于已经运行 isolated optimizer。
 
 ## 后续接受标准
 

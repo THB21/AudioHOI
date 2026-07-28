@@ -9,8 +9,10 @@ from scripts.shared.generic_contact_pipeline.core.base.config import load_case_p
 from scripts.shared.generic_contact_pipeline.core.solver import (
     CHAIR_FACTOR_ATTEMPT_NAME,
     CHAIR_FACTOR_RESIDUALS_NAME,
+    build_chair_factor_residual_coverage,
     prepare_chair_factor_executor_candidate,
     validate_chair_factor_executor_candidate,
+    validate_chair_factor_residual_coverage,
 )
 
 
@@ -42,6 +44,7 @@ def test_chair_factor_candidate_attempt_writes_only_safe_manifest(tmp_path: Path
     assert residuals["residual_evaluator_executed"] is True
     assert residuals["solver_executed"] is False
     assert residuals["required_factor_kinds_present"] is True
+    assert validate_chair_factor_residual_coverage(residuals) == []
     assert not (candidate_dir / "object_pose.csv").exists()
     assert validate_chair_factor_executor_candidate(attempt) == []
 
@@ -64,3 +67,19 @@ def test_chair_factor_candidate_cli_writes_reviewable_attempt(tmp_path: Path) ->
     assert "blocked_by_private_solver_gap" in completed.stdout
     payload = json.loads((candidate_dir / CHAIR_FACTOR_ATTEMPT_NAME).read_text())
     assert payload["mode"] == "chair_generic_factor_executor_candidate_attempt"
+
+
+def test_chair_factor_residual_coverage_validator_rejects_false_coverage() -> None:
+    payload = build_chair_factor_residual_coverage(
+        load_case_profile("chair"),
+        REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
+    )
+    payload["required_factor_kinds_present"] = False
+    payload["solver_executed"] = True
+    payload["accepted_outputs_written"] = True
+
+    errors = validate_chair_factor_residual_coverage(payload)
+
+    assert any("required factor kinds" in error for error in errors)
+    assert any("must not execute solver" in error for error in errors)
+    assert any("must not write accepted outputs" in error for error in errors)

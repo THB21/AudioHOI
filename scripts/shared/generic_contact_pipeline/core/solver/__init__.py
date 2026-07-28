@@ -72,6 +72,7 @@ from .chair_factor_candidate import (
     build_chair_factor_residual_coverage,
     prepare_chair_factor_executor_candidate,
     validate_chair_factor_executor_candidate,
+    validate_chair_factor_residual_coverage,
 )
 from .validation import validate_sequence_problem_shadow
 
@@ -113,6 +114,7 @@ __all__ = [
     "validate_line_contact_diagnostics",
     "validate_chair_contact_diagnostics",
     "validate_chair_factor_executor_candidate",
+    "validate_chair_factor_residual_coverage",
     "validate_sequence_problem_shadow",
     "verify_candidate_sandbox_summary",
     "verify_sequence_problem_summary",

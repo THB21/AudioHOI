@@ -66,6 +66,30 @@ def build_chair_factor_residual_coverage(profile: CaseProfile, result_dir: Path)
     return payload
 
 
+def validate_chair_factor_residual_coverage(payload: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    if payload.get("mode") != "chair_generic_factor_residual_coverage":
+        errors.append("chair factor residual coverage mode must be chair_generic_factor_residual_coverage")
+    if payload.get("residual_evaluator_executed") is not True:
+        errors.append("chair factor residual coverage must execute the residual evaluator")
+    if payload.get("solver_executed") is not False:
+        errors.append("chair factor residual coverage must not execute solver")
+    if payload.get("accepted_outputs_written") is not False:
+        errors.append("chair factor residual coverage must not write accepted outputs")
+    if payload.get("baseline_pose_read") is not False:
+        errors.append("chair factor residual coverage must not read baseline pose")
+    if payload.get("required_factor_kinds_present") is not True:
+        errors.append("chair factor residual coverage must have all required factor kinds present")
+    by_kind = payload.get("factor_ids_by_kind", {})
+    if not isinstance(by_kind, dict):
+        errors.append("chair factor residual coverage must record factor ids by kind")
+        by_kind = {}
+    for kind in ("point_reprojection", "contact_distance", "joint_limit", "gauge_constraint"):
+        if kind not in by_kind:
+            errors.append(f"chair factor residual coverage missing required factor kind {kind}")
+    return errors
+
+
 def build_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Path, candidate_dir: Path) -> dict[str, object]:
     if profile.case_name != "chair":
         raise ValueError("chair factor executor candidate only supports the chair case")
@@ -152,7 +176,11 @@ def prepare_chair_factor_executor_candidate(profile: CaseProfile, result_dir: Pa
     errors = validate_chair_factor_executor_candidate(attempt)
     if errors:
         raise ValueError("; ".join(errors))
+    residuals = build_chair_factor_residual_coverage(profile, result_dir)
+    residual_errors = validate_chair_factor_residual_coverage(residuals)
+    if residual_errors:
+        raise ValueError("; ".join(residual_errors))
     candidate_dir.mkdir(parents=True, exist_ok=True)
-    write_json(candidate_dir / CHAIR_FACTOR_RESIDUALS_NAME, build_chair_factor_residual_coverage(profile, result_dir))
+    write_json(candidate_dir / CHAIR_FACTOR_RESIDUALS_NAME, residuals)
     write_json(candidate_dir / CHAIR_FACTOR_ATTEMPT_NAME, attempt)
     return attempt

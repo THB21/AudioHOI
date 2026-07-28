@@ -37,9 +37,11 @@ from .candidate_golden import (
 from .problem import build_sequence_problem_shadow
 from .problem_contract import SequenceProblemContract, build_sequence_problem_contract, sequence_problem_contract_record
 from .runtime import (
+    GenericExecutorAttemptLedger,
     GenericExecutorPrepareResult,
     GenericExecutorRuntimePlan,
     GenericSequenceExecutor,
+    attempt_ledger_record,
     build_generic_executor_runtime_plan,
     prepare_result_record,
     runtime_plan_record,
@@ -115,6 +117,7 @@ __all__ = [
     "FactorResidualEvaluator",
     "GenericExecutorPrepareResult",
     "GenericExecutorRuntimePlan",
+    "GenericExecutorAttemptLedger",
     "GenericSequenceExecutor",
     "LINE_CONTACT_ATTEMPT_NAME",
     "LINE_CONTACT_CANDIDATE_NAME",
@@ -173,4 +176,5 @@ __all__ = [
     "sequence_problem_contract_record",
     "runtime_plan_record",
     "prepare_result_record",
+    "attempt_ledger_record",
 ]

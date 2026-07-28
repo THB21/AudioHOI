@@ -62,6 +62,10 @@ def test_sequence_problem_shadow_is_plan_only_and_never_consumes_legacy_pose() -
     assert problem["executor_prepare"]["status"] == "prepared_not_executed"
     assert problem["executor_prepare"]["case_dispatch_used"] is False
     assert problem["executor_prepare"]["solver_executed"] is False
+    assert problem["attempt_ledger"]["attempt_id"].startswith("generic-attempt-")
+    assert problem["attempt_ledger"]["case_dispatch_used"] is False
+    assert problem["attempt_ledger"]["residual_evaluation_status"] == "not_executed"
+    assert problem["attempt_plan"]["attempt_id"] == problem["attempt_ledger"]["attempt_id"]
     assert problem["attempt_plan"]["writes"] == []
     assert problem["attempt_plan"]["initializer_status"] == "not_executed"
     assert validate_sequence_problem_shadow(problem) == []
@@ -159,7 +163,9 @@ def test_generic_sequence_executor_prepare_is_contract_only_and_non_executing() 
         compiled_factor_shadow=compiled_factor_shadow,
     )
     runtime_plan = build_generic_executor_runtime_plan(contract, compiled_factor_shadow)
-    prepared = GenericSequenceExecutor().prepare(contract, runtime_plan, compiled_factor_shadow)
+    executor = GenericSequenceExecutor()
+    prepared = executor.prepare(contract, runtime_plan, compiled_factor_shadow)
+    attempt = executor.plan_attempt(contract, runtime_plan, prepared)
 
     assert prepared.executor_id == "generic_sequence_executor"
     assert prepared.status == "prepared_not_executed"
@@ -167,6 +173,12 @@ def test_generic_sequence_executor_prepare_is_contract_only_and_non_executing() 
     assert prepared.solver_executed is False
     assert prepared.accepted_outputs_written is False
     assert prepared.compiled_factor_count == 2
+    assert attempt.attempt_id.startswith("generic-attempt-")
+    assert attempt.status == "attempt_planned_not_executed"
+    assert attempt.case_dispatch_used is False
+    assert attempt.residual_evaluation_status == "not_executed"
+    assert attempt.solver_executed is False
+    assert attempt.accepted_outputs_written is False
 
 
 def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> None:
@@ -227,7 +239,7 @@ def test_sequence_problem_export_cli_writes_reviewable_manifest(tmp_path: Path) 
     payload = json.loads(out.read_text())
     assert json.loads(completed.stdout) == payload
     assert payload["mode"] == "generic_sequence_solver_shadow"
-    assert payload["attempt_plan"]["attempt_id"].startswith("shadow-")
+    assert payload["attempt_plan"]["attempt_id"].startswith("generic-attempt-")
 
 
 def test_sequence_problem_verifier_cli_reports_all_cases() -> None:

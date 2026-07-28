@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan` 和 `GenericSequenceExecutor.prepare()` skeleton；暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 继续把 `GenericSequenceExecutor.prepare()` 推进到 residual evaluation / attempt ledger 的统一入口；保持 residual parity，不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton 和 generic attempt ledger；暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 继续把 generic attempt ledger 推进到 residual evaluation boundary；保持 residual parity，不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1388,3 +1388,11 @@ YYYY-MM-DD:
 - change: `core/solver/runtime.py` 新增 `GenericSequenceExecutor.prepare()` 和 `GenericExecutorPrepareResult`，只接受 `SequenceProblemContract`、`GenericExecutorRuntimePlan` 和 `compiled_factor_shadow`，校验 compiled factor id 与 contract 对齐，并返回 `prepared_not_executed` manifest；`build_sequence_problem_shadow()` 和 diagnostics 开始携带 `executor_prepare`。
 - verification: 轻量范围 39 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
 - remaining gap: executor skeleton 仍不执行 residual / solve；下一步应把 generic residual evaluation 或 attempt ledger 接到 `GenericSequenceExecutor.prepare()` 之后，继续保持不按 case 分派。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update
+- change: `GenericSequenceExecutor` 新增 `plan_attempt()`，生成 deterministic `generic-attempt-*` ledger；attempt ledger 绑定 `SequenceProblemContract`、runtime plan 和 prepare manifest，记录 `residual_evaluation_status=not_executed`、`case_dispatch_used=False`、`solver_executed=False`、`accepted_outputs_written=False`。`attempt_plan.attempt_id` 改为来自 generic attempt ledger，而不是旧 `shadow-*` hash。
+- verification: 轻量范围 39 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
+- remaining gap: attempt ledger 仍未执行 residual evaluation；下一步应把 `FactorResidualEvaluator` 以 generic residual boundary 接到 attempt ledger 下，先做 residual block coverage / parity，不做 solve。

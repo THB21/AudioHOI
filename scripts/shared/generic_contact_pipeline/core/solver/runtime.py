@@ -57,6 +57,37 @@ class GenericExecutorPrepareResult:
             raise ValueError("generic executor prepare must not solve or write accepted outputs")
 
 
+@dataclass(frozen=True)
+class GenericExecutorAttemptLedger:
+    schema_version: int
+    attempt_id: str
+    executor_id: str
+    status: str
+    sequence_contract_sha256: str
+    runtime_plan_sha256: str
+    prepare_sha256: str
+    compiled_factor_count: int
+    case_dispatch_used: bool
+    residual_evaluation_status: str
+    solver_executed: bool
+    accepted_outputs_written: bool
+    canonical_sha256: str
+
+    def __post_init__(self) -> None:
+        if self.executor_id != "generic_sequence_executor":
+            raise ValueError("attempt ledger must target generic_sequence_executor")
+        if not self.attempt_id.startswith("generic-attempt-"):
+            raise ValueError("attempt_id must be deterministic generic-attempt id")
+        if self.status != "attempt_planned_not_executed":
+            raise ValueError("attempt ledger must remain planned/not executed")
+        if self.residual_evaluation_status != "not_executed":
+            raise ValueError("residual evaluation must remain not_executed in this branch")
+        if self.case_dispatch_used:
+            raise ValueError("generic attempt ledger must not use case dispatch")
+        if self.solver_executed or self.accepted_outputs_written:
+            raise ValueError("generic attempt ledger must not solve or write accepted outputs")
+
+
 class GenericSequenceExecutor:
     executor_id = "generic_sequence_executor"
 
@@ -90,6 +121,38 @@ class GenericSequenceExecutor:
             canonical_sha256=_canonical_hash(payload),
         )
 
+    def plan_attempt(
+        self,
+        contract: SequenceProblemContract,
+        runtime_plan: GenericExecutorRuntimePlan,
+        prepared: GenericExecutorPrepareResult,
+    ) -> GenericExecutorAttemptLedger:
+        if runtime_plan.sequence_contract_sha256 != contract.canonical_sha256:
+            raise ValueError("runtime plan must match SequenceProblemContract")
+        if prepared.sequence_contract_sha256 != contract.canonical_sha256:
+            raise ValueError("prepare result must match SequenceProblemContract")
+        if prepared.runtime_plan_sha256 != runtime_plan.canonical_sha256:
+            raise ValueError("prepare result must match runtime plan")
+        payload = {
+            "schema_version": 1,
+            "executor_id": self.executor_id,
+            "status": "attempt_planned_not_executed",
+            "sequence_contract_sha256": contract.canonical_sha256,
+            "runtime_plan_sha256": runtime_plan.canonical_sha256,
+            "prepare_sha256": prepared.canonical_sha256,
+            "compiled_factor_count": contract.compiled_factor_count,
+            "case_dispatch_used": False,
+            "residual_evaluation_status": "not_executed",
+            "solver_executed": False,
+            "accepted_outputs_written": False,
+        }
+        attempt_hash = _canonical_hash(payload)
+        return GenericExecutorAttemptLedger(
+            **payload,
+            attempt_id=f"generic-attempt-{attempt_hash[:12]}",
+            canonical_sha256=_canonical_hash({"attempt_id": f"generic-attempt-{attempt_hash[:12]}", **payload}),
+        )
+
 
 def _canonical_hash(value: object) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
@@ -102,6 +165,10 @@ def runtime_plan_record(plan: GenericExecutorRuntimePlan) -> dict[str, object]:
 
 def prepare_result_record(result: GenericExecutorPrepareResult) -> dict[str, object]:
     return asdict(result)
+
+
+def attempt_ledger_record(ledger: GenericExecutorAttemptLedger) -> dict[str, object]:
+    return asdict(ledger)
 
 
 def build_generic_executor_runtime_plan(

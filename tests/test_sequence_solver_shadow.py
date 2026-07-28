@@ -548,3 +548,24 @@ def test_candidate_sandbox_verifier_cli_materializes_all_supported_candidates(tm
         assert not (candidate_dir / "object_pose.csv").exists()
 
     assert "stick_materialized=True" in completed.stdout
+
+
+def test_candidate_sandbox_verifier_cli_checks_materialized_candidate_golden(tmp_path: Path) -> None:
+    candidate_root = tmp_path / "candidate_root"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/shared/generic_contact_pipeline/tools/verify_candidate_sandbox.py",
+            "--materialize-all-candidates",
+            "--candidate-root",
+            str(candidate_root),
+            "--materialized-golden",
+            "tests/golden/sequence_candidate_materialized_v1.json",
+        ],
+        cwd=REPO,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    assert "materialized_golden_verified=True" in completed.stdout

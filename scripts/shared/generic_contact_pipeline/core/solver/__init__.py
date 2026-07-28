@@ -28,7 +28,10 @@ from .candidate import (
 )
 from .candidate_golden import (
     DEFAULT_CANDIDATE_SANDBOX_GOLDEN,
+    DEFAULT_MATERIALIZED_CANDIDATE_GOLDEN,
     build_canonical_candidate_sandbox_summary,
+    build_materialized_candidate_summary,
+    verify_materialized_candidate_summary,
     verify_candidate_sandbox_summary,
 )
 from .problem import build_sequence_problem_shadow
@@ -91,6 +94,7 @@ from .validation import validate_sequence_problem_shadow
 __all__ = [
     "DEFAULT_SEQUENCE_DIAGNOSTICS_GOLDEN",
     "DEFAULT_CANDIDATE_SANDBOX_GOLDEN",
+    "DEFAULT_MATERIALIZED_CANDIDATE_GOLDEN",
     "DEFAULT_SEQUENCE_PROBLEM_GOLDEN",
     "DEFAULT_SPHERE_SEQUENCE_GOLDEN",
     "DEFAULT_PROJECTED_PERIODIC_GOLDEN",
@@ -118,6 +122,7 @@ __all__ = [
     "SphereSequenceParameters",
     "build_candidate_sandbox_manifest",
     "build_canonical_candidate_sandbox_summary",
+    "build_materialized_candidate_summary",
     "build_canonical_sequence_problem_summary",
     "build_canonical_sequence_solver_diagnostics_summary",
     "build_sequence_problem_shadow",
@@ -136,6 +141,7 @@ __all__ = [
     "validate_chair_factor_executor_candidate",
     "validate_chair_factor_residual_coverage",
     "verify_materialized_chair_factor_candidate",
+    "verify_materialized_candidate_summary",
     "verify_materialized_line_contact_candidate",
     "verify_materialized_sphere_sequence_candidate",
     "verify_materialized_projected_periodic_candidate",

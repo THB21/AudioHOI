@@ -14,6 +14,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (  # noqa: E402
     DEFAULT_CANDIDATE_SANDBOX_GOLDEN,
     build_canonical_candidate_sandbox_summary,
     verify_candidate_sandbox_summary,
+    verify_materialized_candidate_summary,
     write_candidate_sandbox_manifest,
     verify_materialized_chair_factor_candidate,
     verify_materialized_line_contact_candidate,
@@ -50,12 +51,19 @@ def main() -> None:
         help="Materialize and verify all supported safe candidate artifacts in candidate-root.",
     )
     parser.add_argument("--candidate-root", type=Path, help="Root for materialized candidate artifacts.")
+    parser.add_argument(
+        "--materialized-golden",
+        type=Path,
+        default=None,
+        help="Verify materialized candidate artifact hashes against this frozen manifest.",
+    )
     args = parser.parse_args()
     if (
         args.materialize_chair_candidates
         or args.materialize_mug_candidates
         or args.materialize_sphere_candidates
         or args.materialize_all_candidates
+        or args.materialized_golden is not None
     ) and args.candidate_root is None:
         raise SystemExit("--materialize-* candidates requires --candidate-root")
 
@@ -110,6 +118,15 @@ def main() -> None:
             f"candidate_dir={summary['candidate_dir']} nonblocking_gaps=[{nonblocking}] "
             f"{summary['canonical_sha256']}{materialized_note}"
         )
+    if args.materialized_golden is not None:
+        materialized_errors = verify_materialized_candidate_summary(
+            args.materialized_golden,
+            candidate_root=args.candidate_root,
+            result_name=args.result_name,
+        )
+        errors.extend(materialized_errors)
+        if not materialized_errors:
+            print("materialized_golden_verified=True")
     if errors:
         for error in errors:
             print(error, file=sys.stderr)

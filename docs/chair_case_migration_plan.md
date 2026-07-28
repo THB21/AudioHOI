@@ -40,6 +40,12 @@ canonical `benchmark_vlm_qwen` 的 Stage 4 pairprop pose 被接受，但其 seed
 `blocked_by_private_solver_gap`，因为这些 factors 仍未由 generic executor 实际消费，
 `semantic_graph_solver_private` 继续 blocking。
 
+`chair_generic_factor_executor_candidate_attempt` 是 isolated candidate executor 的安全外壳：
+它只把 factor bundle、contact diagnostics、candidate dir、forbidden accepted output names
+和 blocking reasons 写入 candidate sandbox。当前 `solver_executed=false`，只允许写
+`chair_generic_factor_executor_attempt.json`，禁止生成或覆盖 `object_pose.csv` 等
+accepted outputs。
+
 ## 后续接受标准
 
 1. contact chord initializer 已提升为通用 `RigidCorrespondenceInitializer` core contract；
@@ -50,5 +56,6 @@ canonical `benchmark_vlm_qwen` 的 Stage 4 pairprop pose 被接受，但其 seed
    进入 generic Factor IR；`joint_limit` 与 `gauge_constraint` 已是 available factor
    kind，下一步需要进入 isolated candidate executor。
 4. candidate 输出先进入 isolated result directory；禁止覆盖 canonical `benchmark_vlm_qwen`。
+   当前已建立 attempt manifest 外壳；下一步才替换为实际 generic executor 输出。
 5. semantic 2D、contact median/P90、freeze、pose lock 和六路 render 均不退化后，才可
    关闭 `semantic_graph_solver_private`。

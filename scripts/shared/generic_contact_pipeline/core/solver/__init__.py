@@ -64,6 +64,12 @@ from .chair_diagnostics import (
     build_chair_contact_diagnostics,
     validate_chair_contact_diagnostics,
 )
+from .chair_factor_candidate import (
+    CHAIR_FACTOR_ATTEMPT_NAME,
+    build_chair_factor_executor_candidate,
+    prepare_chair_factor_executor_candidate,
+    validate_chair_factor_executor_candidate,
+)
 from .validation import validate_sequence_problem_shadow
 
 __all__ = [
@@ -72,6 +78,7 @@ __all__ = [
     "DEFAULT_SEQUENCE_PROBLEM_GOLDEN",
     "DEFAULT_SPHERE_SEQUENCE_GOLDEN",
     "DEFAULT_PROJECTED_PERIODIC_GOLDEN",
+    "CHAIR_FACTOR_ATTEMPT_NAME",
     "SANDBOX_MANIFEST_NAME",
     "SPHERE_SANDBOX_ARTIFACTS",
     "SPHERE_ATTEMPT_NAME",
@@ -94,10 +101,12 @@ __all__ = [
     "build_projected_periodic_regression_summary",
     "build_line_contact_diagnostics",
     "build_chair_contact_diagnostics",
+    "build_chair_factor_executor_candidate",
     "default_candidate_dir",
     "validate_candidate_sandbox_manifest",
     "validate_line_contact_diagnostics",
     "validate_chair_contact_diagnostics",
+    "validate_chair_factor_executor_candidate",
     "validate_sequence_problem_shadow",
     "verify_candidate_sandbox_summary",
     "verify_sequence_problem_summary",
@@ -105,6 +114,7 @@ __all__ = [
     "verify_sphere_sequence_regression",
     "verify_projected_periodic_regression",
     "write_candidate_sandbox_manifest",
+    "prepare_chair_factor_executor_candidate",
     "solve_sphere_sequence_candidate",
     "solve_projected_periodic_sequence",
 ]

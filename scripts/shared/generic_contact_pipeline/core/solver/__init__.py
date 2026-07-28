@@ -55,6 +55,7 @@ from .projected_periodic_golden import (
     build_projected_periodic_regression_summary,
     verify_projected_periodic_regression,
 )
+from .rigid_correspondence import RigidCorrespondenceInitializer
 from .line_diagnostics import (
     build_line_contact_diagnostics,
     validate_line_contact_diagnostics,
@@ -81,6 +82,7 @@ __all__ = [
     "ProjectedPeriodicObservation",
     "ProjectedPeriodicParameters",
     "ProjectedPeriodicSolution",
+    "RigidCorrespondenceInitializer",
     "SphereSequenceParameters",
     "build_candidate_sandbox_manifest",
     "build_canonical_candidate_sandbox_summary",

@@ -37,7 +37,8 @@ canonical `benchmark_vlm_qwen` 的 Stage 4 pairprop pose 被接受，但其 seed
 
 1. contact chord initializer 已提升为通用 `RigidCorrespondenceInitializer` core contract；
    legacy chair wrapper 仅保留兼容入口，不再承载 chair-specific solved state。
-2. URDF joint propagation 通过 `GeometryProvider` 暴露，而不是在 chair solver 内分支。
+2. URDF joint propagation 已建立 `ArticulatedKinematicProvider` core contract；
+   chair solver 现在通过 data-rule provider 调用 rear/seat/side-stretcher 传播语义。
 3. twist rank deficiency、semantic 2D line factors、joint limits 和 contact distance
    进入 generic Factor IR。
 4. candidate 输出先进入 isolated result directory；禁止覆盖 canonical `benchmark_vlm_qwen`。

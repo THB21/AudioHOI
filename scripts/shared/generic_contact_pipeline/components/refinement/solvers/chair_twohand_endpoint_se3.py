@@ -35,6 +35,7 @@ from scripts.shared.generic_contact_pipeline.components.render.scenes.render_cha
 from scripts.shared.generic_contact_pipeline.components.refinement.solvers.contact_chord_initializer import (  # noqa: E402
     align_contact_chord,
 )
+from scripts.shared.generic_contact_pipeline.core.state import ArticulatedKinematicProvider, SegmentJointRule  # noqa: E402
 
 POSE_KEYS = ["rx_delta", "ry_delta", "rz_delta", "tx", "ty", "tz", "rear_joint_angle", "seat_joint_angle"]
 
@@ -79,11 +80,6 @@ def write_csv(path: Path, rows: list[dict[str, str]], fields: list[str]) -> None
             writer.writerow({k: row.get(k, "") for k in fields})
 
 
-def rotate_x_about(points: np.ndarray, origin: np.ndarray, angle: float) -> np.ndarray:
-    rot = Rotation.from_rotvec(np.array([float(angle), 0.0, 0.0])).as_matrix()
-    return (points - origin) @ rot.T + origin
-
-
 def local_rear_origin(segs: dict[str, tuple[str, str, np.ndarray, np.ndarray]]) -> np.ndarray:
     pts = [segs[sid][2] for sid in ("rear_leg_left", "rear_leg_right") if sid in segs]
     return np.mean(np.vstack(pts), axis=0) if pts else np.array([0.0, 0.040, 0.548], dtype=float)
@@ -96,6 +92,42 @@ def local_seat_origin(segs: dict[str, tuple[str, str, np.ndarray, np.ndarray]]) 
     return np.array([0.0, 0.090, 0.440], dtype=float)
 
 
+def chair_kinematic_provider(segs: dict[str, tuple[str, str, np.ndarray, np.ndarray]]) -> ArticulatedKinematicProvider:
+    rear_origin = local_rear_origin(segs)
+    seat_origin = local_seat_origin(segs)
+    x_axis = np.array([1.0, 0.0, 0.0], dtype=float)
+    return ArticulatedKinematicProvider(
+        rules=(
+            SegmentJointRule(
+                rule_id="chair_rear_link",
+                joint_id="joint.front_to_rear",
+                parts=("rear_leg", "rear_stretcher"),
+                segment_ids=("rear_feet_line", "rear_lower_stretcher"),
+                origin=rear_origin,
+                axis=x_axis,
+            ),
+            SegmentJointRule(
+                rule_id="chair_side_stretcher_rear_endpoint",
+                joint_id="joint.front_to_rear",
+                parts=("side_stretcher",),
+                segment_ids=("side_lower_stretcher",),
+                origin=rear_origin,
+                axis=x_axis,
+                endpoint_selector="max_y",
+            ),
+            SegmentJointRule(
+                rule_id="chair_seat_link",
+                joint_id="joint.front_to_seat",
+                parts=("seat", "seat_slat"),
+                segment_ids=("seat_hinge_edge",),
+                origin=seat_origin,
+                axis=x_axis,
+                angle_sign=-1.0,
+            ),
+        )
+    )
+
+
 def articulate_segment(
     sid: str,
     part: str,
@@ -103,20 +135,11 @@ def articulate_segment(
     params: np.ndarray,
     segs: dict[str, tuple[str, str, np.ndarray, np.ndarray]],
 ) -> np.ndarray:
-    rear_origin = local_rear_origin(segs)
-    seat_origin = local_seat_origin(segs)
-    rear_angle = float(params[6]) if len(params) > 6 else 0.0
-    seat_angle = float(params[7]) if len(params) > 7 else 0.0
-    if part in {"rear_leg", "rear_stretcher"} or sid in {"rear_feet_line", "rear_lower_stretcher"}:
-        return rotate_x_about(pts, rear_origin, rear_angle)
-    if part == "side_stretcher" or "side_lower_stretcher" in sid:
-        out = pts.copy()
-        rear_idx = int(np.argmax(out[:, 1]))
-        out[rear_idx : rear_idx + 1] = rotate_x_about(out[rear_idx : rear_idx + 1], rear_origin, rear_angle)
-        return out
-    if part in {"seat", "seat_slat"} or sid == "seat_hinge_edge":
-        return rotate_x_about(pts, seat_origin, -seat_angle)
-    return pts
+    joint_values = {
+        "joint.front_to_rear": float(params[6]) if len(params) > 6 else 0.0,
+        "joint.front_to_seat": float(params[7]) if len(params) > 7 else 0.0,
+    }
+    return chair_kinematic_provider(segs).articulate_segment(sid, part, pts, joint_values)
 
 
 def segment_cam(

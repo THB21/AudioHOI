@@ -128,6 +128,7 @@ def main() -> None:
         "accepted_outputs_written": False,
         "baseline_pose_read": False,
         "historical_phase_read": False,
+        "executor_scope": "isolated_candidate_dir",
         "candidate_dir": str(repo_relative_value(candidate_dir)),
         **attempt_core,
         "frames": solution.report["rows"],

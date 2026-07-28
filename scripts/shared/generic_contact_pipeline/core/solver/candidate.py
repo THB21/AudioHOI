@@ -33,6 +33,12 @@ CHAIR_SANDBOX_ARTIFACTS = [
     "chair_generic_factor_executor_attempt.json",
     "chair_generic_factor_residuals.json",
 ]
+MUG_PERIODIC_SANDBOX_ARTIFACTS = [
+    SANDBOX_MANIFEST_NAME,
+    "generic_periodic_body_candidate.csv",
+    "generic_periodic_phase_candidate.csv",
+    "generic_projected_periodic_attempt.json",
+]
 
 
 def _canonical_hash(value: object) -> str:
@@ -81,15 +87,43 @@ def _run_isolated_sphere_sequence_executor(profile: CaseProfile, result_dir: Pat
     subprocess.run(cmd, cwd=Path(__file__).resolve().parents[5], check=True, text=True, capture_output=True)
 
 
+def _run_isolated_mug_periodic_executor(profile: CaseProfile, result_dir: Path, candidate_dir: Path) -> None:
+    if profile.case_name != "mug":
+        raise ValueError("isolated projected-periodic executor only supports the mug case")
+    inputs = {
+        "object observations": result_dir / "object_observations.csv",
+        "proxy depth": result_dir / "object_proxy_observations_internal/object_proxy_observations.csv",
+    }
+    for name, path in inputs.items():
+        if not path.exists():
+            raise FileNotFoundError(f"missing {name}: {path}")
+    cmd = [
+        runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
+        str(Path(__file__).resolve().parents[2] / "tools/solve_projected_periodic_candidate.py"),
+        "--sample-dir",
+        str(profile.sample_dir),
+        "--observations-csv",
+        str(inputs["object observations"]),
+        "--proxy-csv",
+        str(inputs["proxy depth"]),
+        "--candidate-dir",
+        str(candidate_dir),
+    ]
+    subprocess.run(cmd, cwd=Path(__file__).resolve().parents[5], check=True, text=True, capture_output=True)
+
+
 def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, candidate_dir: Path | None = None) -> dict[str, object]:
     diagnostics = build_sequence_solver_shadow_diagnostics(profile, result_dir)
     target_dir = candidate_dir or default_candidate_dir(result_dir, profile.case_name)
     eligible = diagnostics["status"] == "ready_for_future_shadow_solve"
     status = "sandbox_ready" if eligible else "blocked_by_known_gaps"
     is_sphere = profile.component("pose_model") == "translation3" and profile.component("geometry_model") == "sphere_proxy"
+    is_mug_periodic = profile.case_name == "mug" and profile.component("pose_model") == "rigid6_plus_phase"
     is_chair = profile.case_name == "chair"
     if eligible and is_sphere:
         planned_artifacts = SPHERE_SANDBOX_ARTIFACTS
+    elif eligible and is_mug_periodic:
+        planned_artifacts = MUG_PERIODIC_SANDBOX_ARTIFACTS
     elif eligible and is_chair:
         planned_artifacts = CHAIR_SANDBOX_ARTIFACTS
     elif eligible:
@@ -183,6 +217,8 @@ def validate_candidate_sandbox_manifest(manifest: dict[str, object]) -> list[str
             errors.append(f"planned artifacts include accepted output names: {overlap}")
         if manifest.get("geometry_kind") == "sphere":
             expected = SPHERE_SANDBOX_ARTIFACTS
+        elif manifest.get("sample_id") == "mug":
+            expected = MUG_PERIODIC_SANDBOX_ARTIFACTS
         elif manifest.get("sample_id") == "chair":
             expected = CHAIR_SANDBOX_ARTIFACTS
         else:
@@ -203,6 +239,8 @@ def write_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
         target_dir = Path(str(manifest["candidate_dir"]))
         if profile.component("pose_model") == "translation3" and profile.component("geometry_model") == "sphere_proxy":
             _run_isolated_sphere_sequence_executor(profile, result_dir, target_dir)
+        elif profile.case_name == "mug":
+            _run_isolated_mug_periodic_executor(profile, result_dir, target_dir)
         elif profile.case_name == "chair":
             from .chair_factor_candidate import prepare_chair_factor_executor_candidate
 

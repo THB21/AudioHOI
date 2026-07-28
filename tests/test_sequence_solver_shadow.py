@@ -223,6 +223,10 @@ def test_candidate_sandbox_manifest_allows_ready_ball_and_chair_cases() -> None:
         load_case_profile("basketball"),
         REPO / "samples_known_object/01_basketball/results/benchmark_vlm_qwen",
     )
+    mug = build_candidate_sandbox_manifest(
+        load_case_profile("mug"),
+        REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen",
+    )
     chair = build_candidate_sandbox_manifest(
         load_case_profile("chair"),
         REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
@@ -230,6 +234,13 @@ def test_candidate_sandbox_manifest_allows_ready_ball_and_chair_cases() -> None:
     assert basketball["eligible_for_candidate_sandbox"] is True
     assert basketball["planned_artifacts"] == SPHERE_SANDBOX_ARTIFACTS
     assert basketball["accepted_outputs_written"] is False
+    assert mug["eligible_for_candidate_sandbox"] is True
+    assert mug["planned_artifacts"] == [
+        SANDBOX_MANIFEST_NAME,
+        "generic_periodic_body_candidate.csv",
+        "generic_periodic_phase_candidate.csv",
+        "generic_projected_periodic_attempt.json",
+    ]
     assert chair["eligible_for_candidate_sandbox"] is True
     assert chair["planned_artifacts"] == [
         SANDBOX_MANIFEST_NAME,
@@ -241,6 +252,7 @@ def test_candidate_sandbox_manifest_allows_ready_ball_and_chair_cases() -> None:
     assert chair["blocking_gap_ids"] == []
     assert chair["nonblocking_gap_ids"] == []
     assert validate_candidate_sandbox_manifest(basketball) == []
+    assert validate_candidate_sandbox_manifest(mug) == []
     assert validate_candidate_sandbox_manifest(chair) == []
 
 
@@ -335,6 +347,31 @@ def test_candidate_sandbox_materialize_writes_chair_safe_candidate_artifacts(tmp
     }
     assert not (candidate_dir / "object_pose.csv").exists()
     assert not (candidate_dir / "object_contact_points.csv").exists()
+
+
+def test_candidate_sandbox_materialize_writes_mug_safe_candidate_artifacts(tmp_path: Path) -> None:
+    candidate_dir = tmp_path / "mug_candidate"
+    manifest = write_candidate_sandbox_manifest(
+        load_case_profile("mug"),
+        REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen",
+        candidate_dir,
+    )
+
+    assert manifest["eligible_for_candidate_sandbox"] is True
+    assert {path.name for path in candidate_dir.iterdir()} == {
+        SANDBOX_MANIFEST_NAME,
+        "generic_periodic_body_candidate.csv",
+        "generic_periodic_phase_candidate.csv",
+        "generic_projected_periodic_attempt.json",
+    }
+    attempt = json.loads((candidate_dir / "generic_projected_periodic_attempt.json").read_text())
+    assert attempt["solver_executed"] is True
+    assert attempt["accepted_outputs_written"] is False
+    assert attempt["baseline_pose_read"] is False
+    assert attempt["historical_phase_read"] is False
+    assert attempt["executor_scope"] == "isolated_candidate_dir"
+    assert not (candidate_dir / "object_pose.csv").exists()
+    assert not (candidate_dir / "object_phase.csv").exists()
 
 
 def test_five_case_candidate_sandbox_matches_frozen_manifest() -> None:

@@ -45,9 +45,12 @@
       "blocking_gap_ids": [],
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
-        "generic_sequence_solver_shadow_candidate.json"
+        "generic_sequence_solver_shadow_candidate.json",
+        "generic_periodic_body_candidate.csv",
+        "generic_periodic_phase_candidate.csv",
+        "generic_projected_periodic_attempt.json"
       ],
-      "canonical_sha256": "259f253453d6d7f8d3669256e95e6090730c0df1a9bec8d7076173aa461fd89e"
+      "canonical_sha256": "f4bddcea8b720c51e84c694b7bc220fe4309ab01a46361e29bfd9a3f5d24d938"
     },
     "chair": {
       "status": "sandbox_ready",

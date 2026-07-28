@@ -9,6 +9,7 @@ from ..base.config import CaseProfile
 from ..base.io import repo_relative_value, write_json
 from ..base.runtime import runtime_python
 from .diagnostics import build_sequence_solver_shadow_diagnostics
+from .line_diagnostics import LINE_CONTACT_SANDBOX_ARTIFACTS, prepare_line_contact_candidate
 from .sphere_sequence import SPHERE_ATTEMPT_NAME, SPHERE_CANDIDATE_NAME, SPHERE_RESIDUAL_NAME
 
 
@@ -120,12 +121,15 @@ def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
     is_sphere = profile.component("pose_model") == "translation3" and profile.component("geometry_model") == "sphere_proxy"
     is_mug_periodic = profile.case_name == "mug" and profile.component("pose_model") == "rigid6_plus_phase"
     is_chair = profile.case_name == "chair"
+    is_line_contact = profile.case_name == "stick"
     if eligible and is_sphere:
         planned_artifacts = SPHERE_SANDBOX_ARTIFACTS
     elif eligible and is_mug_periodic:
         planned_artifacts = MUG_PERIODIC_SANDBOX_ARTIFACTS
     elif eligible and is_chair:
         planned_artifacts = CHAIR_SANDBOX_ARTIFACTS
+    elif eligible and is_line_contact:
+        planned_artifacts = LINE_CONTACT_SANDBOX_ARTIFACTS
     elif eligible:
         planned_artifacts = [SANDBOX_MANIFEST_NAME]
     else:
@@ -161,6 +165,8 @@ def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
         "write_policy": (
             "sphere_solver_writes_only_safe_candidate_attempt_and_residual_artifacts"
             if is_sphere
+            else "line_contact_writes_only_safe_candidate_attempt_and_residual_artifacts_with_nonblocking_gap"
+            if is_line_contact
             else "sandbox_manifest_only_until_candidate_solver_is_accepted"
         ),
         "canonical_sha256": _canonical_hash(canonical_payload),
@@ -221,6 +227,8 @@ def validate_candidate_sandbox_manifest(manifest: dict[str, object]) -> list[str
             expected = MUG_PERIODIC_SANDBOX_ARTIFACTS
         elif manifest.get("sample_id") == "chair":
             expected = CHAIR_SANDBOX_ARTIFACTS
+        elif manifest.get("sample_id") == "stick":
+            expected = LINE_CONTACT_SANDBOX_ARTIFACTS
         else:
             expected = [SANDBOX_MANIFEST_NAME]
         if eligible and planned != expected:
@@ -245,5 +253,7 @@ def write_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
             from .chair_factor_candidate import prepare_chair_factor_executor_candidate
 
             prepare_chair_factor_executor_candidate(profile, result_dir, target_dir)
+        elif profile.case_name == "stick":
+            prepare_line_contact_candidate(result_dir, target_dir)
         write_json(target_dir / SANDBOX_MANIFEST_NAME, manifest)
     return manifest

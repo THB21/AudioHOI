@@ -61,8 +61,14 @@ from .projected_periodic_golden import (
 )
 from .rigid_correspondence import RigidCorrespondenceInitializer
 from .line_diagnostics import (
+    LINE_CONTACT_ATTEMPT_NAME,
+    LINE_CONTACT_CANDIDATE_NAME,
+    LINE_CONTACT_RESIDUAL_NAME,
+    LINE_CONTACT_SANDBOX_ARTIFACTS,
     build_line_contact_diagnostics,
+    prepare_line_contact_candidate,
     validate_line_contact_diagnostics,
+    verify_materialized_line_contact_candidate,
 )
 from .chair_diagnostics import (
     build_chair_contact_diagnostics,
@@ -94,6 +100,10 @@ __all__ = [
     "CHAIR_FACTOR_RESIDUALS_NAME",
     "CHAIR_SANDBOX_ARTIFACTS",
     "FactorResidualEvaluator",
+    "LINE_CONTACT_ATTEMPT_NAME",
+    "LINE_CONTACT_CANDIDATE_NAME",
+    "LINE_CONTACT_RESIDUAL_NAME",
+    "LINE_CONTACT_SANDBOX_ARTIFACTS",
     "SANDBOX_MANIFEST_NAME",
     "SPHERE_SANDBOX_ARTIFACTS",
     "SPHERE_ATTEMPT_NAME",
@@ -119,12 +129,14 @@ __all__ = [
     "build_chair_factor_executor_candidate",
     "build_chair_factor_residual_coverage",
     "default_candidate_dir",
+    "prepare_line_contact_candidate",
     "validate_candidate_sandbox_manifest",
     "validate_line_contact_diagnostics",
     "validate_chair_contact_diagnostics",
     "validate_chair_factor_executor_candidate",
     "validate_chair_factor_residual_coverage",
     "verify_materialized_chair_factor_candidate",
+    "verify_materialized_line_contact_candidate",
     "verify_materialized_sphere_sequence_candidate",
     "verify_materialized_projected_periodic_candidate",
     "validate_sequence_problem_shadow",

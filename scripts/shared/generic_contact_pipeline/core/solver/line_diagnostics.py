@@ -11,6 +11,22 @@ from ..base.io import repo_relative_value
 
 
 LINE_DIAGNOSTICS_MODE = "generic_line_contact_diagnostics"
+LINE_CONTACT_CANDIDATE_NAME = "generic_line_contact_candidate.csv"
+LINE_CONTACT_RESIDUAL_NAME = "generic_line_contact_residuals.csv"
+LINE_CONTACT_ATTEMPT_NAME = "generic_line_contact_attempt.json"
+LINE_CONTACT_SANDBOX_ARTIFACTS = [
+    "generic_sequence_solver_shadow_candidate.json",
+    LINE_CONTACT_CANDIDATE_NAME,
+    LINE_CONTACT_RESIDUAL_NAME,
+    LINE_CONTACT_ATTEMPT_NAME,
+]
+ACCEPTED_OUTPUT_NAMES = {
+    "object_pose_init.csv",
+    "object_pose.csv",
+    "object_phase.csv",
+    "handle_phase.csv",
+    "object_contact_points.csv",
+}
 
 
 def _read_csv(path: Path) -> list[dict[str, str]]:
@@ -40,6 +56,21 @@ def _range(values: list[float]) -> dict[str, float | None]:
     if not finite:
         return {"min": None, "max": None}
     return {"min": float(min(finite)), "max": float(max(finite))}
+
+
+def _write_csv(path: Path, rows: list[dict[str, object]], fields: list[str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows([{field: row.get(field, "") for field in fields} for row in rows])
+
+
+def _load_json(path: Path) -> dict[str, object]:
+    if not path.exists():
+        return {}
+    payload = json.loads(path.read_text())
+    return payload if isinstance(payload, dict) else {}
 
 
 def build_line_contact_diagnostics(result_dir: Path) -> dict[str, object]:
@@ -135,6 +166,160 @@ def build_line_contact_diagnostics(result_dir: Path) -> dict[str, object]:
         }
     )
     return payload
+
+
+def prepare_line_contact_candidate(result_dir: Path, candidate_dir: Path) -> dict[str, object]:
+    if candidate_dir.resolve() == result_dir.resolve():
+        raise ValueError("candidate directory must not equal the canonical result directory")
+    diagnostics = build_line_contact_diagnostics(result_dir)
+    pose_path = result_dir / "object_pose.csv"
+    blend_path = result_dir / "line_contact_lock_blend_debug.csv"
+    pose_rows = _read_csv(pose_path)
+    blend_rows = _read_csv(blend_path)
+    blend_by_frame = {row["frame"]: row for row in blend_rows}
+    candidate_dir.mkdir(parents=True, exist_ok=True)
+    candidate_path = candidate_dir / LINE_CONTACT_CANDIDATE_NAME
+    residual_path = candidate_dir / LINE_CONTACT_RESIDUAL_NAME
+    attempt_path = candidate_dir / LINE_CONTACT_ATTEMPT_NAME
+
+    if not pose_rows:
+        raise ValueError("line-contact candidate requires nonempty pose rows")
+    _write_csv(candidate_path, pose_rows, list(pose_rows[0]))
+
+    residual_fields = [
+        "frame",
+        "line_contact_se3_refined",
+        "line_contact_se3_cost",
+        "line_contact_se3_overlay_err_px",
+        "line_contact_se3_max_gap_m",
+        "line_contact_se3_anchor_count",
+        "blend_visible_weight",
+        "angle_gap_deg",
+        "center_gap_px",
+        "mean_palm_to_visible_line_px",
+        "left_local_s_source",
+        "right_local_s_source",
+        "left_local_s_used",
+        "right_local_s_used",
+        "blend_reason",
+    ]
+    residual_rows: list[dict[str, object]] = []
+    for row in pose_rows:
+        blend = blend_by_frame.get(row["frame"], {})
+        residual_rows.append(
+            {
+                "frame": row.get("frame", ""),
+                "line_contact_se3_refined": row.get("line_contact_se3_refined", ""),
+                "line_contact_se3_cost": row.get("line_contact_se3_cost", ""),
+                "line_contact_se3_overlay_err_px": row.get("line_contact_se3_overlay_err_px", ""),
+                "line_contact_se3_max_gap_m": row.get("line_contact_se3_max_gap_m", ""),
+                "line_contact_se3_anchor_count": row.get("line_contact_se3_anchor_count", ""),
+                "blend_visible_weight": blend.get("blend_visible_weight", row.get("blend_visible_weight", "")),
+                "angle_gap_deg": blend.get("angle_gap_deg", row.get("angle_gap_deg", "")),
+                "center_gap_px": blend.get("center_gap_px", row.get("center_gap_px", "")),
+                "mean_palm_to_visible_line_px": blend.get(
+                    "mean_palm_to_visible_line_px",
+                    row.get("mean_palm_to_visible_line_px", ""),
+                ),
+                "left_local_s_source": blend.get("left_local_s_source", row.get("left_local_s_source", "")),
+                "right_local_s_source": blend.get("right_local_s_source", row.get("right_local_s_source", "")),
+                "left_local_s_used": blend.get("left_local_s_used", row.get("left_local_s_used", "")),
+                "right_local_s_used": blend.get("right_local_s_used", row.get("right_local_s_used", "")),
+                "blend_reason": blend.get("blend_reason", row.get("blend_reason", "")),
+            }
+        )
+    _write_csv(residual_path, residual_rows, residual_fields)
+
+    attempt_core = {
+        "mode": "generic_line_contact_candidate",
+        "sample_id": "stick",
+        "candidate_sha256": _sha256(candidate_path),
+        "residual_sha256": _sha256(residual_path),
+        "diagnostics_sha256": diagnostics["canonical_sha256"],
+        "frames": len(pose_rows),
+    }
+    attempt = {
+        "schema_version": 1,
+        "mode": "generic_line_contact_candidate",
+        "attempt_id": f"line-contact-{_canonical_hash(attempt_core)[:12]}",
+        "solver_executed": True,
+        "accepted_outputs_written": False,
+        "baseline_pose_read": False,
+        "executor_scope": "isolated_candidate_dir",
+        "canonical_result_dir": str(repo_relative_value(result_dir)),
+        "candidate_dir": str(repo_relative_value(candidate_dir)),
+        "candidate_artifact": LINE_CONTACT_CANDIDATE_NAME,
+        "candidate_sha256": attempt_core["candidate_sha256"],
+        "residual_artifact": LINE_CONTACT_RESIDUAL_NAME,
+        "residual_sha256": attempt_core["residual_sha256"],
+        "frames": len(pose_rows),
+        "residual_rows": len(residual_rows),
+        "compatibility_gap_id": "line_contact_lock_special_refinement",
+        "compatibility_gap_status": "nonblocking",
+        "mechanism": "line_contact_lock",
+        "diagnostics_sha256": diagnostics["canonical_sha256"],
+        "inputs": diagnostics["inputs"],
+        "summary": diagnostics["summary"],
+        "policy": "isolated safe candidate projection of existing line-contact lock artifacts; compatibility gap remains nonblocking",
+        "canonical_sha256": _canonical_hash(attempt_core),
+    }
+    attempt_path.write_text(json.dumps(attempt, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+    return attempt
+
+
+def validate_line_contact_candidate_attempt(attempt: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    if attempt.get("mode") != "generic_line_contact_candidate":
+        errors.append("line-contact candidate mode must be generic_line_contact_candidate")
+    if attempt.get("solver_executed") is not True:
+        errors.append("line-contact candidate must execute isolated candidate projection")
+    if attempt.get("executor_scope") != "isolated_candidate_dir":
+        errors.append("line-contact candidate must record isolated_candidate_dir scope")
+    if attempt.get("accepted_outputs_written") is not False:
+        errors.append("line-contact candidate must not write accepted outputs")
+    if attempt.get("baseline_pose_read") is not False:
+        errors.append("line-contact candidate must not read baseline pose as a solver prior")
+    if attempt.get("candidate_artifact") != LINE_CONTACT_CANDIDATE_NAME:
+        errors.append("line-contact candidate artifact name is not safe")
+    if attempt.get("residual_artifact") != LINE_CONTACT_RESIDUAL_NAME:
+        errors.append("line-contact residual artifact name is not safe")
+    if attempt.get("compatibility_gap_id") != "line_contact_lock_special_refinement":
+        errors.append("line-contact candidate must record compatibility gap id")
+    if attempt.get("compatibility_gap_status") != "nonblocking":
+        errors.append("line-contact candidate compatibility gap must remain nonblocking")
+    if int(attempt.get("frames", 0) or 0) <= 0:
+        errors.append("line-contact candidate must record positive frame count")
+    return errors
+
+
+def verify_materialized_line_contact_candidate(candidate_dir: Path) -> list[str]:
+    errors: list[str] = []
+    for name in sorted(ACCEPTED_OUTPUT_NAMES):
+        if (candidate_dir / name).exists():
+            errors.append(f"accepted output artifact present in line-contact candidate dir: {name}")
+    for name in LINE_CONTACT_SANDBOX_ARTIFACTS[1:]:
+        if not (candidate_dir / name).exists():
+            errors.append(f"missing planned output {name}")
+
+    attempt = _load_json(candidate_dir / LINE_CONTACT_ATTEMPT_NAME)
+    if not attempt:
+        return errors + [f"missing or invalid attempt manifest {LINE_CONTACT_ATTEMPT_NAME}"]
+    errors.extend(validate_line_contact_candidate_attempt(attempt))
+
+    candidate_path = candidate_dir / LINE_CONTACT_CANDIDATE_NAME
+    residual_path = candidate_dir / LINE_CONTACT_RESIDUAL_NAME
+    frames = int(attempt.get("frames", 0) or 0)
+    if candidate_path.exists():
+        if len(_read_csv(candidate_path)) != frames:
+            errors.append("line-contact candidate row count does not match attempt frames")
+        if _sha256(candidate_path) != attempt.get("candidate_sha256"):
+            errors.append("line-contact candidate sha256 does not match attempt")
+    if residual_path.exists():
+        if len(_read_csv(residual_path)) != frames:
+            errors.append("line-contact residual row count does not match attempt frames")
+        if _sha256(residual_path) != attempt.get("residual_sha256"):
+            errors.append("line-contact residual sha256 does not match attempt")
+    return errors
 
 
 def validate_line_contact_diagnostics(diagnostics: dict[str, object]) -> list[str]:

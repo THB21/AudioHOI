@@ -82,9 +82,12 @@
         "line_contact_lock_special_refinement"
       ],
       "planned_artifacts": [
-        "generic_sequence_solver_shadow_candidate.json"
+        "generic_sequence_solver_shadow_candidate.json",
+        "generic_line_contact_candidate.csv",
+        "generic_line_contact_residuals.csv",
+        "generic_line_contact_attempt.json"
       ],
-      "canonical_sha256": "1393fd1e4e4caa1bd16f5bf805fb8e242c132e7266982a28d369783d71f3e808"
+      "canonical_sha256": "4b86d391c090151eab8566056efea96d794664476742088fcf949cfadc2c96cb"
     }
   }
 }

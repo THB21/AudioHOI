@@ -9,6 +9,7 @@ import pytest
 
 from scripts.shared.generic_contact_pipeline.core.base.config import load_case_profile
 from scripts.shared.generic_contact_pipeline.core.solver import (
+    LINE_CONTACT_SANDBOX_ARTIFACTS,
     SANDBOX_MANIFEST_NAME,
     SPHERE_SANDBOX_ARTIFACTS,
     build_candidate_sandbox_manifest,
@@ -265,7 +266,7 @@ def test_candidate_sandbox_manifest_allows_line_contact_as_nonblocking_compatibi
     assert stick["status"] == "sandbox_ready"
     assert stick["blocking_gap_ids"] == []
     assert stick["nonblocking_gap_ids"] == ["line_contact_lock_special_refinement"]
-    assert stick["planned_artifacts"] == [SANDBOX_MANIFEST_NAME]
+    assert stick["planned_artifacts"] == LINE_CONTACT_SANDBOX_ARTIFACTS
 
 
 def test_candidate_sandbox_validation_rejects_accepted_output_names() -> None:
@@ -372,6 +373,29 @@ def test_candidate_sandbox_materialize_writes_mug_safe_candidate_artifacts(tmp_p
     assert attempt["executor_scope"] == "isolated_candidate_dir"
     assert not (candidate_dir / "object_pose.csv").exists()
     assert not (candidate_dir / "object_phase.csv").exists()
+
+
+def test_candidate_sandbox_materialize_writes_stick_line_contact_safe_candidate_artifacts(tmp_path: Path) -> None:
+    candidate_dir = tmp_path / "stick_candidate"
+    manifest = write_candidate_sandbox_manifest(
+        load_case_profile("stick"),
+        REPO / "samples_known_object/11_stick/results/benchmark_vlm_qwen",
+        candidate_dir,
+    )
+
+    assert manifest["eligible_for_candidate_sandbox"] is True
+    assert manifest["nonblocking_gap_ids"] == ["line_contact_lock_special_refinement"]
+    assert {path.name for path in candidate_dir.iterdir()} == set(LINE_CONTACT_SANDBOX_ARTIFACTS)
+    attempt = json.loads((candidate_dir / "generic_line_contact_attempt.json").read_text())
+    assert attempt["mode"] == "generic_line_contact_candidate"
+    assert attempt["solver_executed"] is True
+    assert attempt["accepted_outputs_written"] is False
+    assert attempt["baseline_pose_read"] is False
+    assert attempt["executor_scope"] == "isolated_candidate_dir"
+    assert attempt["compatibility_gap_id"] == "line_contact_lock_special_refinement"
+    assert attempt["compatibility_gap_status"] == "nonblocking"
+    assert not (candidate_dir / "object_pose.csv").exists()
+    assert not (candidate_dir / "object_contact_points.csv").exists()
 
 
 def test_five_case_candidate_sandbox_matches_frozen_manifest() -> None:
@@ -514,6 +538,7 @@ def test_candidate_sandbox_verifier_cli_materializes_all_supported_candidates(tm
         "football": ("generic_sphere_sequence_candidate.csv", "generic_sphere_sequence_residuals.csv"),
         "mug": ("generic_periodic_body_candidate.csv", "generic_periodic_phase_candidate.csv"),
         "chair": ("generic_chair_factor_candidate.csv", "generic_chair_factor_residuals.csv"),
+        "stick": ("generic_line_contact_candidate.csv", "generic_line_contact_residuals.csv"),
     }
     for case_name, artifacts in expected_artifacts.items():
         candidate_dir = candidate_root / f"benchmark_vlm_qwen_{case_name}"
@@ -522,4 +547,4 @@ def test_candidate_sandbox_verifier_cli_materializes_all_supported_candidates(tm
             assert (candidate_dir / artifact).exists()
         assert not (candidate_dir / "object_pose.csv").exists()
 
-    assert "stick_materialized" not in completed.stdout
+    assert "stick_materialized=True" in completed.stdout

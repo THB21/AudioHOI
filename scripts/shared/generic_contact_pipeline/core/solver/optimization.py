@@ -88,6 +88,7 @@ class GenericSequenceSolveResult:
     frames: tuple[int, ...]
     states: tuple[tuple[float, ...], ...]
     factor_ids: tuple[str, ...]
+    residual_program_sha256: str
     state_spec_id: str | None
     parameterization: str
     state_dimension: int
@@ -113,6 +114,18 @@ class GenericSequenceSolveResult:
 def _canonical_hash(value: object) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(payload).hexdigest()
+
+
+def _jsonable(value: object) -> object:
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, Mapping):
+        return {str(key): _jsonable(item) for key, item in value.items()}
+    if isinstance(value, (tuple, list)):
+        return [_jsonable(item) for item in value]
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
 
 
 def _plan_records(plan: dict[str, object] | object) -> list[dict[str, object]]:
@@ -225,6 +238,7 @@ def solve_sequence_optimization(
         initial_inputs,
         problem.factor_ids,
     )
+    residual_program_sha256 = _canonical_hash(_jsonable(initial_inputs))
     initial_residual = np.concatenate([values for _, values in initial_blocks])
     jacobian_sparsity = None
     if problem.residual_dependencies:
@@ -242,6 +256,7 @@ def solve_sequence_optimization(
         "frames": problem.frames,
         "initial_states_sha256": _canonical_hash(problem.initial_states),
         "factor_ids": problem.factor_ids,
+        "residual_program_sha256": residual_program_sha256,
         "state_spec_id": (
             problem.state_parameterization.state_spec.spec_id
             if problem.state_parameterization is not None
@@ -280,6 +295,7 @@ def solve_sequence_optimization(
         "frames": problem.frames,
         "states": tuple(solved_states[frame] for frame in problem.frames),
         "factor_ids": problem.factor_ids,
+        "residual_program_sha256": residual_program_sha256,
         "state_spec_id": (
             problem.state_parameterization.state_spec.spec_id
             if problem.state_parameterization is not None

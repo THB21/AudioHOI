@@ -8,6 +8,7 @@ import shutil
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Mapping, Sequence
 
 from .optimization import GenericSequenceSolveResult, SequenceOptimizationProblem, build_runtime_residual_blocks
 
@@ -141,6 +142,7 @@ def write_isolated_sequence_attempt(
                 "frame_count": len(result.frames),
                 "state_width": len(result.states[0]),
                 "factor_ids": list(result.factor_ids),
+                "residual_program_sha256": result.residual_program_sha256,
                 "success": result.success,
                 "message": result.message,
                 "function_evaluations": result.function_evaluations,
@@ -178,8 +180,14 @@ def load_isolated_attempt_state(
     if not isinstance(artifacts, dict):
         raise ValueError("isolated attempt artifact hash ledger is missing")
     for name in ISOLATED_ATTEMPT_FILENAMES[:-1]:
-        path = attempt_dir / name
-        if not path.is_file() or artifacts.get(name) != _sha256(path):
+        if name not in artifacts:
+            raise ValueError(f"isolated attempt artifact hash is missing: {name}")
+    for name, expected_hash in artifacts.items():
+        relative = Path(str(name))
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError(f"isolated attempt artifact path is unsafe: {name}")
+        path = attempt_dir / relative
+        if not path.is_file() or expected_hash != _sha256(path):
             raise ValueError(f"isolated attempt artifact hash mismatch: {name}")
     with state_path.open(newline="") as handle:
         rows = list(csv.DictReader(handle))
@@ -197,3 +205,61 @@ def load_isolated_attempt_state(
         states=states,
         result_sha256=str(status["result_sha256"]),
     )
+
+
+def update_isolated_attempt_evidence(
+    attempt_dir: Path,
+    *,
+    hard_metrics: Mapping[str, object],
+    vlm_gates: Mapping[str, object] | None = None,
+    additional_artifacts: Sequence[Path] = (),
+) -> None:
+    """Attach post-solve object evidence while preserving artifact hashes."""
+
+    status_path = attempt_dir / "status.json"
+    if not status_path.is_file():
+        raise FileNotFoundError(f"missing isolated attempt status: {status_path}")
+    status = json.loads(status_path.read_text())
+    load_isolated_attempt_state(
+        attempt_dir,
+        sequence_contract_sha256=str(status.get("sequence_contract_sha256", "")),
+        state_spec_id=status.get("state_spec_id"),
+    )
+    hard_payload = {
+        "schema_version": 1,
+        "status": "evaluated",
+        "scope": "object_only",
+        "accepted_outputs_written": False,
+        "metrics": dict(hard_metrics),
+    }
+    hard_temp = attempt_dir / ".hard_metrics.json.tmp"
+    _write_json(hard_temp, hard_payload)
+    os.replace(hard_temp, attempt_dir / "hard_metrics.json")
+    if vlm_gates is not None:
+        vlm_payload = {
+            "schema_version": 1,
+            "status": "evaluated",
+            "continuous_pose_override": False,
+            "gates": dict(vlm_gates),
+        }
+        vlm_temp = attempt_dir / ".vlm_gates.json.tmp"
+        _write_json(vlm_temp, vlm_payload)
+        os.replace(vlm_temp, attempt_dir / "vlm_gates.json")
+    artifacts = dict(status.get("artifacts", {}))
+    artifacts["hard_metrics.json"] = _sha256(attempt_dir / "hard_metrics.json")
+    artifacts["vlm_gates.json"] = _sha256(attempt_dir / "vlm_gates.json")
+    for path in additional_artifacts:
+        resolved = path.resolve()
+        try:
+            relative = resolved.relative_to(attempt_dir.resolve())
+        except ValueError as exc:
+            raise ValueError(f"additional artifact must be inside attempt directory: {path}") from exc
+        if not resolved.is_file():
+            raise FileNotFoundError(f"missing additional attempt artifact: {path}")
+        artifacts[str(relative)] = _sha256(resolved)
+    status["artifacts"] = artifacts
+    status["hard_metrics_status"] = "evaluated"
+    status["vlm_gates_status"] = "evaluated" if vlm_gates is not None else "not_evaluated"
+    status_temp = attempt_dir / ".status.json.tmp"
+    _write_json(status_temp, status)
+    os.replace(status_temp, status_path)

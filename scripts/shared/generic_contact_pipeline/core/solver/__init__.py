@@ -65,6 +65,7 @@ from .attempt_artifacts import (
     ISOLATED_ATTEMPT_FILENAMES,
     IsolatedAttemptState,
     load_isolated_attempt_state,
+    update_isolated_attempt_evidence,
     write_isolated_sequence_attempt,
 )
 from .problem import build_sequence_problem_shadow
@@ -77,6 +78,7 @@ from .optimization import (
     solve_sequence_optimization,
 )
 from .parameterization import StateSpecParameterization
+from .render_evidence import render_line_reprojection_evidence
 from .sparsity import ResidualRowDependency, build_factor_frame_jacobian_sparsity
 from .problem_contract import SequenceProblemContract, build_sequence_problem_contract, sequence_problem_contract_record
 from .runtime import (
@@ -244,6 +246,7 @@ __all__ = [
     "build_sequence_problem_contract",
     "solve_sequence_optimization",
     "load_isolated_attempt_state",
+    "update_isolated_attempt_evidence",
     "write_isolated_sequence_attempt",
     "build_sequence_solver_shadow_diagnostics",
     "build_sphere_sequence_regression_summary",
@@ -276,6 +279,7 @@ __all__ = [
     "solve_projected_periodic_sequence",
     "sequence_problem_contract_record",
     "runtime_plan_record",
+    "render_line_reprojection_evidence",
     "prepare_result_record",
     "attempt_ledger_record",
     "residual_boundary_ledger_record",

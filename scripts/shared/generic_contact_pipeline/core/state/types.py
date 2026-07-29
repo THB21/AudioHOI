@@ -3,6 +3,18 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from enum import Enum
 from math import isfinite
+from typing import TypeAlias
+
+
+BoundValue: TypeAlias = float | tuple[float | None, ...] | None
+
+
+def _bound_components(value: BoundValue) -> tuple[float | None, ...]:
+    if isinstance(value, tuple):
+        if not value:
+            raise ValueError("component bound must not be empty")
+        return value
+    return (value,)
 
 
 class DofKind(str, Enum):
@@ -23,18 +35,25 @@ class GeometryKind(str, Enum):
 
 @dataclass(frozen=True)
 class Bound:
-    lower: float | None
-    upper: float | None
+    lower: BoundValue
+    upper: BoundValue
     unit: str
     source: str
     closed: bool = True
 
     def __post_init__(self) -> None:
-        if self.lower is not None and not isfinite(self.lower):
+        lower = _bound_components(self.lower)
+        upper = _bound_components(self.upper)
+        if len(lower) != len(upper):
+            raise ValueError("component lower and upper bounds must have equal width")
+        if any(value is not None and not isfinite(value) for value in lower):
             raise ValueError("bound lower must be finite or absent")
-        if self.upper is not None and not isfinite(self.upper):
+        if any(value is not None and not isfinite(value) for value in upper):
             raise ValueError("bound upper must be finite or absent")
-        if self.lower is not None and self.upper is not None and self.upper < self.lower:
+        if any(
+            low is not None and high is not None and high < low
+            for low, high in zip(lower, upper)
+        ):
             raise ValueError("bound upper must be greater than or equal to lower")
         if not self.unit or not self.source:
             raise ValueError("bound requires unit and source")
@@ -57,6 +76,13 @@ class DofSpec:
             raise ValueError("rotation_so3 is represented by a quaternion with dimension 4")
         if self.kind == DofKind.TRANSLATION and self.dimension != 3:
             raise ValueError("translation must have dimension 3")
+        if self.bound is not None:
+            widths = {
+                len(_bound_components(self.bound.lower)),
+                len(_bound_components(self.bound.upper)),
+            }
+            if widths not in ({1}, {self.dimension}):
+                raise ValueError("dof component bound width must be one or match dimension")
 
 
 @dataclass(frozen=True)

@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
   "geometry_kind": "articulated_urdf",
+  "line_reprojection_constraint": "axis_line",
   "resource_path": "samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/model.urdf",
   "semantic_segments_artifact": "object_local_segments.csv",
   "feature_segments": {

@@ -5324,8 +5324,8 @@
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 1362,
-          "sha256": "b708adfd3ad2eaa9005b33a034978fba4cf50837ceeed1b8e36b5123244625c0"
+          "size_bytes": 1409,
+          "sha256": "165d0ed12aababc0a64bdca23752746f3513771e3c599dd36930c01a89660654"
         },
         {
           "path": "scripts/shared/generic_contact_pipeline/configs/cases/chair.yaml",
@@ -6662,16 +6662,16 @@
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 390,
-          "sha256": "ea565cda91677072c29c50fd030879f4d1c8d1a95c31687fa4b9794008ef71aa"
+          "size_bytes": 483,
+          "sha256": "89a1cf6f9b5a5efd7be6d1a2cbaa949dc9b9671e4cbfebb0ddbc8f1c331c2766"
         },
         {
           "path": "scripts/shared/generic_contact_pipeline/configs/cases/stick.yaml",
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 2272,
-          "sha256": "3ed75c6336960358ebfb4975923209bde4761f66e2de1f9c122f83581a105e27"
+          "size_bytes": 2670,
+          "sha256": "e0cceff8f950e82bfcc78de4328100dd7acf535bb9002a9baf15fcd1c6c5086c"
         }
       ],
       "recorded_execution": {

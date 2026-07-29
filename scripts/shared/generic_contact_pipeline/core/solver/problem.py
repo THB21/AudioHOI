@@ -18,6 +18,7 @@ from ..factors.shadow import build_factor_shadow
 from ..factors.types import FactorSpec
 from ..interaction import build_interaction_timeline, frame_record, interaction_intervals
 from ..interaction.types import InteractionTimeline
+from ..measurements import adapt_configured_supplemental_measurements
 from ..measurements.shadow import build_measurement_shadow
 from .problem_contract import build_sequence_problem_contract, sequence_problem_contract_record
 from .residual_boundary import build_generic_residual_boundary, build_generic_residual_execution_plan, residual_boundary_ledger_record, residual_execution_plan_ledger_record
@@ -197,7 +198,14 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
     """
     observation_csv = result_dir / "object_observations.csv"
     contact_csv = result_dir / "object_contact_points.csv"
-    measurement_shadow = build_measurement_shadow(profile.case_name, observation_csv, _read_csv(observation_csv))
+    supplemental_measurements = adapt_configured_supplemental_measurements(profile, result_dir)
+    measurement_shadow = build_measurement_shadow(
+        profile.case_name,
+        observation_csv,
+        _read_csv(observation_csv),
+        supplemental_measurements.measurements,
+    )
+    measurement_shadow["supplemental_sources"] = list(supplemental_measurements.source_paths)
     measurement_shadow["source"]["path"] = str(repo_relative_value(observation_csv))
     audio_event_shadow = build_audio_event_shadow(profile.case_name, result_dir)
     contact_shadow = build_contact_constraint_shadow(profile.case_name, contact_csv, _read_csv(contact_csv))

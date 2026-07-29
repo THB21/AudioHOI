@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ..base.config import CaseProfile
 from ..base.io import repo_relative_value
-from ..measurements import Line2DMeasurement, adapt_legacy_observation_rows
+from ..measurements import Line2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
 from .types import (
     FactorEnergySummary,
     FactorGap,
@@ -255,11 +255,13 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
             )
 
     if observation_rows:
-        typed_observations = adapt_legacy_observation_rows(
+        typed_observations = list(adapt_legacy_observation_rows(
             profile.case_name,
             observation_rows,
             str(repo_relative_value(observation_csv)),
-        ).measurements
+        ).measurements)
+        supplemental = adapt_configured_supplemental_measurements(profile, result_dir)
+        typed_observations.extend(supplemental.measurements)
         line_measurements = tuple(
             measurement
             for measurement in typed_observations
@@ -291,17 +293,18 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                     }
                 )
             )
+            line_source_path = Path(line_measurements[0].meta.source.artifact)
             factors.append(
                 FactorSpec(
                     factor_id="line_reprojection:measurement_ir",
                     kind=FactorKind.LINE_REPROJECTION,
                     frame_count=len(line_measurements),
                     input_refs=_input_refs(FactorKind.LINE_REPROJECTION),
-                    residual_unit="pixel_endpoint_delta",
+                    residual_unit="pixel_line_delta",
                     weight_source="factor_runtime_configuration:line_reprojection",
                     gate_source="VisibilityState activation",
                     residual_source=_source(
-                        observation_csv,
+                        line_source_path,
                         source_fields,
                         "measurement_ir_line_observation",
                     ),

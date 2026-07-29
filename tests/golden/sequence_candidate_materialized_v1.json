@@ -39,7 +39,7 @@
       "artifacts": {
         "generic_object_pose_candidate.csv": {
           "rows": 192,
-          "sha256": "12190f73b91b702c29bd99747eded46af434af578ff9a62281a78094155e9b3b"
+          "sha256": "2ad565690c07b73a2b5662260f6f11ed67fbf73fee0f41379cde92f3853d28b0"
         },
         "generic_object_publication.json": {
           "publication": {
@@ -47,13 +47,17 @@
             "case_dispatch_used": false,
             "hard_gate": {
               "blocking_reasons": [
-                "solver_not_converged"
+                "solver_not_converged_or_stationary",
+                "projection_p95_px_failed"
               ],
               "gate_ids": [
-                "solver_converged",
+                "solver_converged_or_stationary",
                 "objective_nonincrease",
                 "projection_normalized_rmse",
-                "contact_distance_normalized_rmse"
+                "projection_p95_px",
+                "contact_distance_normalized_rmse",
+                "contact_gap_p95_m",
+                "contact_gap_max_m"
               ],
               "passed": false
             },
@@ -139,7 +143,7 @@
       "artifacts": {
         "generic_object_pose_candidate.csv": {
           "rows": 240,
-          "sha256": "e3167418db7688b9127e05699c3f802d242e36413d9f74b3879a6cb334e4f153"
+          "sha256": "2b5ff7c3bf93c31342c2f5a030837f6afa48146a14869994f5705dac76c1b2fc"
         },
         "generic_object_publication.json": {
           "publication": {
@@ -147,13 +151,17 @@
             "case_dispatch_used": false,
             "hard_gate": {
               "blocking_reasons": [
-                "solver_not_converged",
-                "contact_distance_normalized_rmse_failed"
+                "solver_not_converged_or_stationary",
+                "contact_distance_normalized_rmse_failed",
+                "contact_gap_p95_m_failed",
+                "contact_gap_max_m_failed"
               ],
               "gate_ids": [
-                "solver_converged",
+                "solver_converged_or_stationary",
                 "objective_nonincrease",
-                "contact_distance_normalized_rmse"
+                "contact_distance_normalized_rmse",
+                "contact_gap_p95_m",
+                "contact_gap_max_m"
               ],
               "passed": false
             },
@@ -204,7 +212,7 @@
       "artifacts": {
         "generic_object_pose_candidate.csv": {
           "rows": 240,
-          "sha256": "853c66e062048d9c58ba6e6aa306603d8a5094175b0f7bd0ec77dd38a50e7636"
+          "sha256": "14e0c8208b8034ce3f8659ff875cb9ff5c8be38c3c00fae765e8b3b5531af804"
         },
         "generic_object_publication.json": {
           "publication": {
@@ -212,12 +220,19 @@
             "case_dispatch_used": false,
             "hard_gate": {
               "blocking_reasons": [
-                "solver_not_converged"
+                "solver_not_converged_or_stationary",
+                "projection_normalized_rmse_failed",
+                "projection_p95_px_failed",
+                "contact_gap_max_m_failed"
               ],
               "gate_ids": [
-                "solver_converged",
+                "solver_converged_or_stationary",
                 "objective_nonincrease",
-                "contact_distance_normalized_rmse"
+                "projection_normalized_rmse",
+                "projection_p95_px",
+                "contact_distance_normalized_rmse",
+                "contact_gap_p95_m",
+                "contact_gap_max_m"
               ],
               "passed": false
             },
@@ -233,6 +248,7 @@
             "initializer_kind": "line_s_two_site",
             "selected_factor_ids": [
               "temporal_velocity:E_smooth",
+              "line_reprojection:measurement_ir",
               "contact_distance:contact_constraint_shadow"
             ],
             "state_spec_id": "rigid6:line_capsule"
@@ -244,6 +260,7 @@
             "case_dispatch_used": false,
             "factor_ids": [
               "temporal_velocity:E_smooth",
+              "line_reprojection:measurement_ir",
               "contact_distance:contact_constraint_shadow"
             ],
             "function_evaluations": 2,

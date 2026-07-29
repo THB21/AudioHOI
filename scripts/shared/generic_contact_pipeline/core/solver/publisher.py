@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping, Sequence
 
+import numpy as np
+
 from ..state import StateSpec
 from .optimization import GenericSequenceSolveResult
 from .optimization import SequenceOptimizationProblem, build_runtime_residual_blocks
@@ -118,6 +120,11 @@ def evaluate_object_publication_gate(
     *,
     normalized_contact_rmse_limit: float = 2.0,
     normalized_projection_rmse_limit: float = 2.0,
+    contact_gap_p95_m_limit: float = 0.08,
+    contact_gap_max_m_limit: float = 0.20,
+    trusted_contact_confidence_min: float = 0.50,
+    projection_p95_px_limit: float = 24.0,
+    stationarity_limit: float = 0.10,
 ) -> tuple[ObjectPublicationGate, dict[str, object]]:
     """Evaluate case-independent solver and geometry-factor publication gates."""
 
@@ -127,18 +134,41 @@ def evaluate_object_publication_gate(
         problem.residual_input_builder(states),
         problem.factor_ids,
     )
+    solver_stationary = (
+        result.termination_status == 0
+        and math.isfinite(result.optimality)
+        and result.optimality <= stationarity_limit
+    )
+    solver_termination_accepted = result.success or solver_stationary
     metrics: dict[str, object] = {
         "solver_success": result.success,
+        "solver_stationary": solver_stationary,
+        "solver_termination_accepted": solver_termination_accepted,
+        "stationarity_limit": stationarity_limit,
+        "termination_status": result.termination_status,
+        "optimality": result.optimality,
+        "active_bound_count": result.active_bound_count,
         "initial_squared_error": result.initial_squared_error,
         "final_squared_error": result.final_squared_error,
         "objective_nonincrease": result.final_squared_error <= result.initial_squared_error + 1e-9,
     }
-    gate_ids = ["solver_converged", "objective_nonincrease"]
+    gate_ids = ["solver_converged_or_stationary", "objective_nonincrease"]
     blocking: list[str] = []
-    if not result.success:
-        blocking.append("solver_not_converged")
+    if not solver_termination_accepted:
+        blocking.append("solver_not_converged_or_stationary")
     if not metrics["objective_nonincrease"]:
         blocking.append("objective_increased")
+    residual_inputs = problem.residual_input_builder(states)
+
+    def active_rows(raw_weight: object, row_count: int) -> np.ndarray:
+        weights = np.asarray(raw_weight, dtype=float)
+        if weights.ndim == 0:
+            return np.full(row_count, float(weights) > 0.0, dtype=bool)
+        weights = weights.reshape(-1)
+        if len(weights) != row_count:
+            raise ValueError("factor metric weights must match raw row count")
+        return weights > 0.0
+
     for factor_id, values in blocks:
         if factor_id.startswith("contact_distance:"):
             gate_id, limit = "contact_distance_normalized_rmse", normalized_contact_rmse_limit
@@ -153,6 +183,81 @@ def evaluate_object_publication_gate(
             gate_ids.append(gate_id)
         if not math.isfinite(rmse) or rmse > limit:
             blocking.append(f"{gate_id}_failed")
+        raw_inputs = residual_inputs[factor_id]
+        if factor_id.startswith("contact_distance:"):
+            gaps_m = np.linalg.norm(
+                np.asarray(raw_inputs["anchors"], dtype=float)
+                - np.asarray(raw_inputs["targets"], dtype=float),
+                axis=1,
+            )
+            active_gaps_m = gaps_m[active_rows(raw_inputs["weight"], len(gaps_m))]
+            if not len(active_gaps_m):
+                blocking.append("contact_distance_has_no_active_rows")
+                continue
+            p95_m = float(np.quantile(active_gaps_m, 0.95))
+            confidence = np.asarray(
+                raw_inputs.get("sample_confidence", np.ones(len(gaps_m))), dtype=float
+            ).reshape(-1)
+            trusted_mask = (
+                active_rows(raw_inputs["weight"], len(gaps_m))
+                & (confidence >= trusted_contact_confidence_min)
+            )
+            trusted_gaps_m = gaps_m[trusted_mask]
+            if not len(trusted_gaps_m):
+                blocking.append("contact_distance_has_no_trusted_rows")
+                continue
+            max_m = float(np.max(trusted_gaps_m))
+            metrics.update(
+                {
+                    "contact_gap_all_rows_p95_m": float(np.quantile(gaps_m, 0.95)),
+                    "contact_gap_all_rows_max_m": float(np.max(gaps_m)),
+                    "contact_gap_p95_m": p95_m,
+                    "contact_gap_p95_m_limit": contact_gap_p95_m_limit,
+                    "contact_gap_max_m": max_m,
+                    "contact_gap_max_m_limit": contact_gap_max_m_limit,
+                    "trusted_contact_confidence_min": trusted_contact_confidence_min,
+                }
+            )
+            gate_ids.extend(("contact_gap_p95_m", "contact_gap_max_m"))
+            if p95_m > contact_gap_p95_m_limit:
+                blocking.append("contact_gap_p95_m_failed")
+            if max_m > contact_gap_max_m_limit:
+                blocking.append("contact_gap_max_m_failed")
+        elif factor_id.startswith("line_reprojection:"):
+            predicted = np.asarray(raw_inputs["predicted"], dtype=float)
+            target = np.asarray(raw_inputs["target"], dtype=float)
+            if raw_inputs.get("constraint_mode", "endpoints") == "axis_line":
+                direction = target[:, 1, :] - target[:, 0, :]
+                offsets = predicted - target[:, :1, :]
+                errors_by_line_px = np.abs(
+                    direction[:, None, 0] * offsets[:, :, 1]
+                    - direction[:, None, 1] * offsets[:, :, 0]
+                ) / np.linalg.norm(direction, axis=1)[:, None]
+            elif bool(raw_inputs.get("allow_endpoint_swap", False)):
+                direct = np.sum((predicted - target) ** 2, axis=(1, 2))
+                swapped = predicted[:, ::-1, :]
+                predicted = np.where((np.sum((swapped - target) ** 2, axis=(1, 2)) < direct)[:, None, None], swapped, predicted)
+                errors_by_line_px = np.linalg.norm(predicted - target, axis=2)
+            else:
+                errors_by_line_px = np.linalg.norm(predicted - target, axis=2)
+            errors_px = errors_by_line_px.reshape(-1)
+            active_line_rows = active_rows(raw_inputs["weight"], len(predicted))
+            active_errors_px = errors_by_line_px[active_line_rows].reshape(-1)
+            if not len(active_errors_px):
+                blocking.append("line_reprojection_has_no_active_rows")
+                continue
+            p95_px = float(np.quantile(active_errors_px, 0.95))
+            metrics.update(
+                {
+                    "projection_all_rows_p95_px": float(np.quantile(errors_px, 0.95)),
+                    "projection_p95_px": p95_px,
+                    "projection_p95_px_limit": projection_p95_px_limit,
+                    "projection_max_px": float(np.max(active_errors_px)),
+                }
+            )
+            gate_ids.append("projection_p95_px")
+            if p95_px > projection_p95_px_limit:
+                blocking.append("projection_p95_px_failed")
     gate = ObjectPublicationGate(
         passed=not blocking,
         gate_ids=tuple(gate_ids),

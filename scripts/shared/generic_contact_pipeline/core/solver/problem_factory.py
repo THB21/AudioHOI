@@ -174,6 +174,7 @@ class SequenceProblemFactory:
             factor_ids=configured_factor_ids,
             reference_states=factor_inputs.reference_states,
             contact_factors=factor_inputs.contact_factors,
+            periodic_phase_factors=factor_inputs.periodic_phase_factors,
             line_reprojection_factors=factor_inputs.line_reprojection_factors,
             support_plane_factors=factor_inputs.support_plane_factors,
         )

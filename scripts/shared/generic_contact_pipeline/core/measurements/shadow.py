@@ -4,10 +4,11 @@ import hashlib
 import json
 from collections import Counter
 from pathlib import Path
+from typing import Sequence
 
 from ..base.io import repo_relative_value
 from .adapters import adapt_legacy_observation_rows
-from .types import measurement_record
+from .types import Measurement, measurement_record
 
 
 def _canonical_hash(value: object) -> str:
@@ -15,12 +16,18 @@ def _canonical_hash(value: object) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def build_measurement_shadow(sample_id: str, observation_csv: Path, rows: list[dict[str, str]]) -> dict[str, object]:
+def build_measurement_shadow(
+    sample_id: str,
+    observation_csv: Path,
+    rows: list[dict[str, str]],
+    supplemental_measurements: Sequence[Measurement] = (),
+) -> dict[str, object]:
     source_path = str(repo_relative_value(observation_csv))
     adapted = adapt_legacy_observation_rows(sample_id, rows, source_path)
-    records = [measurement_record(item) for item in adapted.measurements]
+    all_measurements = (*adapted.measurements, *supplemental_measurements)
+    records = [measurement_record(item) for item in all_measurements]
     kinds = Counter(str(record["kind"]) for record in records)
-    frames = {item.meta.frame for item in adapted.measurements}
+    frames = {item.meta.frame for item in all_measurements}
     return {
         "schema_version": 1,
         "mode": "read_only_shadow",

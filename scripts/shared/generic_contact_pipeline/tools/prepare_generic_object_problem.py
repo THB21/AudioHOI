@@ -18,6 +18,7 @@ from scripts.shared.generic_contact_pipeline.core.base.io import REPO
 from scripts.shared.generic_contact_pipeline.core.solver import (
     AcceptedObjectOutputPublisher,
     GenericSequenceExecutor,
+    ObjectPublicationGate,
     SequenceOptimizationParameters,
     CapabilityObjectProblemPreparation,
     capability_object_problem_preparation_record,
@@ -50,6 +51,11 @@ def main() -> None:
     parser.add_argument("--solve", action="store_true")
     parser.add_argument("--candidate-dir", type=Path)
     parser.add_argument("--max-nfev", type=int, default=100)
+    parser.add_argument(
+        "--allow-accepted-write",
+        action="store_true",
+        help="Allow a passing hard gate to atomically replace canonical object_pose.csv.",
+    )
     parser.add_argument(
         "--body-models-root",
         type=Path,
@@ -84,6 +90,12 @@ def main() -> None:
 
                 template_rows = list(csv.DictReader(handle))
         gate, hard_metrics = evaluate_object_publication_gate(prepared.preparation.problem, result)
+        if gate.passed and not args.allow_accepted_write:
+            gate = ObjectPublicationGate(
+                passed=False,
+                gate_ids=(*gate.gate_ids, "explicit_promotion_authorized"),
+                blocking_reasons=("promotion_not_requested",),
+            )
         update_isolated_attempt_evidence(attempt_dir, hard_metrics=hard_metrics)
         publication = AcceptedObjectOutputPublisher().publish(
             result=result,

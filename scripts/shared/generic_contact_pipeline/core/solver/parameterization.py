@@ -139,10 +139,15 @@ class StateSpecParameterization:
             bound = layout.dof.bound
             if bound is None or layout.dof.kind in {DofKind.ROTATION_SO3, DofKind.PERIODIC}:
                 continue
-            if bound.lower is not None:
-                lower[:, layout.parameter_start : layout.parameter_stop] = bound.lower
-            if bound.upper is not None:
-                upper[:, layout.parameter_start : layout.parameter_stop] = bound.upper
+            width = layout.parameter_stop - layout.parameter_start
+            lower_values = bound.lower if isinstance(bound.lower, tuple) else (bound.lower,) * width
+            upper_values = bound.upper if isinstance(bound.upper, tuple) else (bound.upper,) * width
+            for component, value in enumerate(lower_values):
+                if value is not None:
+                    lower[:, layout.parameter_start + component] = value
+            for component, value in enumerate(upper_values):
+                if value is not None:
+                    upper[:, layout.parameter_start + component] = value
         return lower.reshape(-1), upper.reshape(-1)
 
     def decode(
@@ -177,7 +182,11 @@ class StateSpecParameterization:
                 continue
             values = parameter_matrix[:, parameter_slice]
             if dof.kind == DofKind.PERIODIC:
-                if dof.bound is None or dof.bound.lower is None or dof.bound.upper is None:
+                if (
+                    dof.bound is None
+                    or not isinstance(dof.bound.lower, (float, int))
+                    or not isinstance(dof.bound.upper, (float, int))
+                ):
                     raise ValueError(f"periodic dof {dof.dof_id} requires finite wrapping bounds")
                 values = np.vectorize(
                     lambda value: _wrap_periodic(value, dof.bound.lower, dof.bound.upper),

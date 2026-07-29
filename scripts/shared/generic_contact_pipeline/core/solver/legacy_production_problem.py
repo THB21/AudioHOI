@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import csv
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping, Sequence
@@ -80,6 +81,7 @@ def _contact_samples(
                     frame=frame,
                     source_xyz_m=measurement.xyz_m,
                     object_feature_id=constraint.object_feature.geometry_feature_id,
+                    confidence=constraint.confidence,
                 )
             )
     return tuple(samples)
@@ -189,6 +191,7 @@ def prepare_legacy_articulated_object_problem(
         frame_times=frame_times,
     )
     descriptor_path = repository_root / str(profile.data["geometry_asset_descriptor"])
+    descriptor = json.loads(descriptor_path.read_text())
     geometry = build_articulated_geometry_from_asset_descriptor(
         descriptor_path=descriptor_path,
         repository_root=repository_root,
@@ -216,6 +219,7 @@ def prepare_legacy_articulated_object_problem(
                 lines,
                 cameras,
                 allow_endpoint_swap=True,
+                constraint_mode=str(descriptor.get("line_reprojection_constraint", "endpoints")),
             )
     factor_inputs = SequenceFactorInputs(
         state_scales=_state_scales(records, sum(dof.dimension for dof in state_adaptation.state_spec.dofs)),

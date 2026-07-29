@@ -43,9 +43,29 @@ class FactorResidualEvaluator:
         weight: float | np.ndarray,
         sigma_px: float,
         allow_endpoint_swap: bool,
+        constraint_mode: str = "endpoints",
     ) -> np.ndarray:
         if predicted.shape != target.shape or predicted.ndim != 3 or predicted.shape[1:] != (2, 2):
             raise ValueError("line reprojection residuals require matching (N, 2, 2) endpoint arrays")
+        if constraint_mode == "axis_line":
+            direction = target[:, 1, :] - target[:, 0, :]
+            lengths = np.linalg.norm(direction, axis=1)
+            if np.any(lengths <= 1e-9):
+                raise ValueError("axis-line reprojection requires nondegenerate target lines")
+            offsets = predicted - target[:, :1, :]
+            signed_distance = (
+                direction[:, None, 0] * offsets[:, :, 1]
+                - direction[:, None, 1] * offsets[:, :, 0]
+            ) / lengths[:, None]
+            if np.asarray(weight).ndim == 0:
+                return (float(weight) * signed_distance.reshape(-1) / float(sigma_px)).astype(float)
+            return (
+                _row_weights(weight, len(predicted))[:, None]
+                * signed_distance
+                / float(sigma_px)
+            ).reshape(-1).astype(float)
+        if constraint_mode != "endpoints":
+            raise ValueError("unsupported line reprojection constraint mode")
         aligned = predicted.copy()
         if allow_endpoint_swap:
             direct_cost = np.sum((predicted - target) ** 2, axis=(1, 2))
@@ -61,9 +81,19 @@ class FactorResidualEvaluator:
             / float(sigma_px)
         ).reshape(-1).astype(float)
 
-    def contact_distance(self, anchors: np.ndarray, targets: np.ndarray, *, weight: float | np.ndarray, sigma_m: float) -> np.ndarray:
+    def contact_distance(
+        self,
+        anchors: np.ndarray,
+        targets: np.ndarray,
+        *,
+        weight: float | np.ndarray,
+        sigma_m: float,
+        sample_confidence: np.ndarray | None = None,
+    ) -> np.ndarray:
         if anchors.shape != targets.shape or anchors.ndim != 2 or anchors.shape[1] != 3:
             raise ValueError("contact distance residuals require matching (N, 3) arrays")
+        if sample_confidence is not None and np.asarray(sample_confidence).reshape(-1).shape != (len(anchors),):
+            raise ValueError("contact sample confidence must match contact rows")
         if np.asarray(weight).ndim == 0:
             return (float(weight) * (anchors - targets).reshape(-1) / float(sigma_m)).astype(float)
         return (

@@ -115,6 +115,9 @@ class GenericSequenceSolveResult:
     success: bool
     message: str
     canonical_sha256: str
+    termination_status: int = 0
+    optimality: float = float("inf")
+    active_bound_count: int = 0
     case_dispatch_used: bool = False
     residuals_executed: bool = True
     solver_executed: bool = True
@@ -336,6 +339,9 @@ def solve_sequence_optimization(
         "initial_squared_error": float(np.dot(initial_residual, initial_residual)),
         "final_squared_error": float(np.dot(final_residual, final_residual)),
         "function_evaluations": int(result.nfev),
+        "termination_status": int(result.status),
+        "optimality": float(result.optimality),
+        "active_bound_count": int(np.count_nonzero(result.active_mask)),
         "success": bool(result.success),
         "message": str(result.message),
         "case_dispatch_used": False,

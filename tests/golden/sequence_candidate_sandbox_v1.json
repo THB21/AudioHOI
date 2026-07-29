@@ -71,11 +71,11 @@
       "status": "sandbox_ready"
     },
     "stick": {
-      "attempt_id": "generic-attempt-735951cec5f2",
+      "attempt_id": "generic-attempt-76f7ec6f587c",
       "blocking_gap_ids": [],
       "candidate_dir": "samples_known_object/11_stick/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_stick",
-      "canonical_sha256": "63c77e346bb3be403e20fac4c73327e5f358e25b3107c438ee042c4bb9813c21",
-      "diagnostics_sha256": "694f659b4e08097c933d338c8d97f0f42deb71d862cf37c595f3bc1357cba3d5",
+      "canonical_sha256": "ac20abe748d138e926f878b308fbf5211eb35fb8053febdb7d80b1053abe2fd3",
+      "diagnostics_sha256": "9affe6ba024d46ced9dec6e4155d28edc5715426ded4d458f4e5abfe46184c2d",
       "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -85,7 +85,7 @@
         "generic_problem_preparation.json",
         "generic_sequence_solver_attempts"
       ],
-      "problem_sha256": "7118c568b9b8c6aba236e26aebe2e873009dec594c1cf310d5d43637e4015e76",
+      "problem_sha256": "a18d69d1eacce2c8a2655071b23ddcf2f3544ffd8929748d57442fc491ca3d8f",
       "status": "sandbox_ready"
     }
   },

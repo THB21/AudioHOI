@@ -49,6 +49,7 @@ class WorldSpaceContactSample:
     source_xyz_m: tuple[float, float, float]
     object_feature_id: str | None = None
     line_s: float | None = None
+    confidence: float | None = None
 
     def __post_init__(self) -> None:
         if self.frame < 1 or len(self.source_xyz_m) != 3 or not all(isfinite(value) for value in self.source_xyz_m):
@@ -57,6 +58,10 @@ class WorldSpaceContactSample:
             raise ValueError("world-space contact sample feature id must be nonempty when present")
         if self.line_s is not None and (not isfinite(self.line_s) or not 0.0 <= self.line_s <= 1.0):
             raise ValueError("world-space contact sample line_s must be within [0, 1]")
+        if self.confidence is not None and (
+            not isfinite(self.confidence) or not 0.0 <= self.confidence <= 1.0
+        ):
+            raise ValueError("world-space contact sample confidence must be within [0, 1]")
 
 
 @dataclass(frozen=True)
@@ -124,6 +129,11 @@ class LineReprojectionFactorInput:
     weight: float = 1.0
     sigma_px: float = 1.0
     allow_endpoint_swap: bool = False
+    constraint_mode: str = "endpoints"
+
+    def __post_init__(self) -> None:
+        if self.constraint_mode not in {"endpoints", "axis_line"}:
+            raise ValueError("line reprojection constraint mode must be endpoints or axis_line")
 
 
 @dataclass(frozen=True)
@@ -361,6 +371,7 @@ def build_line_reprojection_residual_inputs(
     weight: float,
     sigma_px: float,
     allow_endpoint_swap: bool,
+    constraint_mode: str = "endpoints",
     weight_by_frame: Mapping[int, float] | None = None,
 ) -> dict[str, dict[str, Any]]:
     predicted: list[list[list[float]]] = []
@@ -386,20 +397,19 @@ def build_line_reprojection_residual_inputs(
                 [float(value) for value in measurement.end_uv],
             ]
         )
-        row_weights.append(float((weight_by_frame or {}).get(frame, weight)))
+        frame_weight = float((weight_by_frame or {}).get(frame, weight))
+        confidence = measurement.meta.confidence
+        row_weights.append(frame_weight * (confidence if confidence is not None else 1.0))
     if not predicted:
         return {}
     return {
         factor_id: {
             "predicted": predicted,
             "target": target,
-            "weight": (
-                _scalar_or_row_weights(row_weights, weight)
-                if weight_by_frame is not None
-                else float(weight)
-            ),
+            "weight": _scalar_or_row_weights(row_weights, weight),
             "sigma_px": float(sigma_px),
             "allow_endpoint_swap": bool(allow_endpoint_swap),
+            "constraint_mode": constraint_mode,
         }
     }
 
@@ -560,6 +570,8 @@ def build_world_space_contact_sample_residual_inputs(
     anchors: list[list[float]] = []
     targets: list[list[float]] = []
     row_weights: list[float] = []
+    sample_confidences: list[float] = []
+    has_explicit_confidence = False
     for sample in samples:
         state = object_states.get(int(sample.frame))
         if state is None:
@@ -581,21 +593,21 @@ def build_world_space_contact_sample_residual_inputs(
             target_xyz = line_point_world(state, sample.line_s)
         anchors.append(source_xyz)
         targets.append([float(value) for value in target_xyz])
-        row_weights.append(float((weight_by_frame or {}).get(int(sample.frame), weight)))
+        frame_weight = float((weight_by_frame or {}).get(int(sample.frame), weight))
+        row_weights.append(frame_weight * (sample.confidence if sample.confidence is not None else 1.0))
+        sample_confidences.append(sample.confidence if sample.confidence is not None else 1.0)
+        has_explicit_confidence = has_explicit_confidence or sample.confidence is not None
     if not anchors:
         return {}
-    return {
-        factor_id: {
-            "anchors": anchors,
-            "targets": targets,
-            "weight": (
-                _scalar_or_row_weights(row_weights, weight)
-                if weight_by_frame is not None
-                else float(weight)
-            ),
-            "sigma_m": float(sigma_m),
-        }
+    payload = {
+        "anchors": anchors,
+        "targets": targets,
+        "weight": _scalar_or_row_weights(row_weights, weight),
+        "sigma_m": float(sigma_m),
     }
+    if has_explicit_confidence:
+        payload["sample_confidence"] = sample_confidences
+    return {factor_id: payload}
 
 
 def build_periodic_phase_prior_residual_inputs(
@@ -871,6 +883,7 @@ def build_geometry_sequence_residual_input_bundle(
             weight=base_weight,
             sigma_px=_runtime_sigma(request, factor.sigma_px, "px"),
             allow_endpoint_swap=factor.allow_endpoint_swap,
+            constraint_mode=factor.constraint_mode,
             weight_by_frame=_runtime_weights_by_frame(
                 request,
                 (measurement.meta.frame for measurement in factor.measurements),
@@ -921,6 +934,7 @@ def build_geometry_sequence_residual_dependencies(
     factor_ids: Sequence[str] | None = None,
     reference_states: Mapping[int, Sequence[float]] | None = None,
     contact_factors: Mapping[str, ContactFactorInput] | None = None,
+    periodic_phase_factors: Mapping[str, PeriodicPhaseFactorInput] | None = None,
     line_reprojection_factors: Mapping[str, LineReprojectionFactorInput] | None = None,
     support_plane_factors: Mapping[str, SupportPlaneFactorInput] | None = None,
 ) -> tuple[ResidualRowDependency, ...]:
@@ -999,6 +1013,17 @@ def build_geometry_sequence_residual_dependencies(
                 )
                 residual_index += 1
             continue
+        if residual_ref == "shadow_residual::periodic_phase_prior":
+            factor = (periodic_phase_factors or {}).get(factor_id)
+            if factor is None or factor.state_index is None or factor.target_by_frame is None:
+                continue
+            residual_index = 0
+            for frame in sorted(set(frames) & {int(value) for value in factor.target_by_frame}):
+                dependencies.append(
+                    ResidualRowDependency(factor_id, residual_index, residual_index + 1, (frame,))
+                )
+                residual_index += 1
+            continue
         if residual_ref == "shadow_residual::line_reprojection":
             factor = (line_reprojection_factors or {}).get(factor_id)
             if factor is None:
@@ -1008,8 +1033,14 @@ def build_geometry_sequence_residual_dependencies(
                 frame = int(measurement.meta.frame)
                 if frame not in object_states or frame not in factor.cameras_by_frame:
                     continue
+                row_width = 2 if factor.constraint_mode == "axis_line" else 4
                 dependencies.append(
-                    ResidualRowDependency(factor_id, 4 * residual_index, 4 * (residual_index + 1), (frame,))
+                    ResidualRowDependency(
+                        factor_id,
+                        row_width * residual_index,
+                        row_width * (residual_index + 1),
+                        (frame,),
+                    )
                 )
                 residual_index += 1
             continue

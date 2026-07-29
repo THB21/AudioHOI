@@ -14,7 +14,7 @@ import numpy as np
 from ..base.config import CaseProfile
 from ..contact_constraints import ContactConstraint, ContactState, LineS, LocalXYZ, adapt_legacy_contact_rows
 from ..human_sites import GVHMRSiteExtractionResult, HumanSiteMeasurement, extract_gvhmr_site_measurements
-from ..measurements import adapt_legacy_observation_rows
+from ..measurements import Line2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
 from ..state import (
     Bound,
     CapsuleGeometryProvider,
@@ -24,6 +24,7 @@ from ..state import (
     GeometryDescriptor,
     GeometryKind,
     PeriodicFeatureRule,
+    PinholeCamera,
     RigidFeatureGeometryProvider,
     StateAdaptationResult,
     StateSpec,
@@ -39,7 +40,7 @@ from .legacy_production_problem import (
 )
 from .problem import build_sequence_problem_shadow
 from .problem_factory import SequenceFactorInputs, SequenceProblemFactory, SequenceProblemPreparation
-from .residual_inputs import ContactFactorInput, PeriodicPhaseFactorInput, WorldSpaceContactSample
+from .residual_inputs import ContactFactorInput, LineReprojectionFactorInput, PeriodicPhaseFactorInput, WorldSpaceContactSample
 
 
 def _sha256(path: Path) -> str:
@@ -98,7 +99,22 @@ def _quaternion_align_x(axis: np.ndarray) -> tuple[float, float, float, float]:
 
 
 def _state_spec(kind: GeometryKind, source: str, *, length_m: float | None = None) -> StateAdaptationResult:
-    translation = DofSpec("root.translation", DofKind.TRANSLATION, 3, "meter", ("tx", "ty", "tz"))
+    camera_depth_margin = 1e-4
+    if kind == GeometryKind.LINE_CAPSULE and length_m is not None:
+        camera_depth_margin += 0.5 * length_m
+    translation = DofSpec(
+        "root.translation",
+        DofKind.TRANSLATION,
+        3,
+        "meter",
+        ("tx", "ty", "tz"),
+        Bound(
+            (None, None, camera_depth_margin),
+            (None, None, None),
+            "meter",
+            "pinhole_camera_geometry_envelope_positive_depth",
+        ),
+    )
     rotation = DofSpec("root.rotation", DofKind.ROTATION_SO3, 4, "quaternion", ("qw", "qx", "qy", "qz"))
     if kind == GeometryKind.RIGID_MESH:
         spec = StateSpec(
@@ -204,7 +220,12 @@ def _line_seed(contact_rows: Sequence[Mapping[str, str]], length_m: float, sourc
     return adaptation, states, templates, times
 
 
-def _contact_samples_with_line_s(constraints: Sequence[ContactConstraint], sites: Sequence[HumanSiteMeasurement]) -> tuple[WorldSpaceContactSample, ...]:
+def _contact_samples_with_line_s(
+    constraints: Sequence[ContactConstraint],
+    sites: Sequence[HumanSiteMeasurement],
+    *,
+    line_contact_projection: str = "line_s",
+) -> tuple[WorldSpaceContactSample, ...]:
     local_samples = list(_contact_samples(constraints, sites))
     by_key = {(site.frame, "palm" if site.site.body_part == "hand" else site.site.body_part, site.site.side): site for site in sites}
     for constraint in constraints:
@@ -213,7 +234,18 @@ def _contact_samples_with_line_s(constraints: Sequence[ContactConstraint], sites
         for frame in range(constraint.interval.start_frame, constraint.interval.end_frame + 1):
             site = by_key.get((frame, constraint.human_site.body_part, constraint.human_site.side))
             if site is not None:
-                local_samples.append(WorldSpaceContactSample(frame, site.xyz_m, "line:axis", constraint.object_coordinate.s))
+                if line_contact_projection not in {"line_s", "closest_line_point"}:
+                    raise ValueError(f"unsupported line contact projection: {line_contact_projection}")
+                line_s = constraint.object_coordinate.s if line_contact_projection == "line_s" else None
+                local_samples.append(
+                    WorldSpaceContactSample(
+                        frame,
+                        site.xyz_m,
+                        "line:axis",
+                        line_s,
+                        constraint.confidence,
+                    )
+                )
     return tuple(local_samples)
 
 
@@ -268,12 +300,20 @@ def prepare_capability_object_problem(*, profile: CaseProfile, result_dir: Path,
 
     gvhmr_sites = _gvhmr_sites(profile, frame_times, body_models_root)
     observation_path = result_dir / "object_observations.csv"
-    measurements = adapt_legacy_observation_rows(profile.case_name, _rows(observation_path), str(observation_path)).measurements
+    measurements = list(adapt_legacy_observation_rows(profile.case_name, _rows(observation_path), str(observation_path)).measurements)
+    measurements.extend(adapt_configured_supplemental_measurements(profile, result_dir).measurements)
     shadow = build_sequence_problem_shadow(profile, result_dir)
     records = _configured_records(shadow["residual_execution_plan"])
-    samples = _contact_samples_with_line_s(constraints, gvhmr_sites.measurements)
+    samples = _contact_samples_with_line_s(
+        constraints,
+        gvhmr_sites.measurements,
+        line_contact_projection=str(descriptor.get("contact_projection", "line_s")),
+    )
     contact_factors: dict[str, ContactFactorInput] = {}
     phase_factors: dict[str, PeriodicPhaseFactorInput] = {}
+    line_factors: dict[str, LineReprojectionFactorInput] = {}
+    cameras = {frame: PinholeCamera(**profile.camera) for frame in initial_states}
+    line_measurements = tuple(item for item in measurements if isinstance(item, Line2DMeasurement))
     for record in records:
         factor_id = str(record["factor_id"])
         residual_ref = str(record["residual_fn_ref"])
@@ -282,10 +322,19 @@ def prepare_capability_object_problem(*, profile: CaseProfile, result_dir: Path,
         elif residual_ref == "shadow_residual::periodic_phase_prior":
             phase_targets = {frame: initial_states[frame][8] for frame in sorted(initial_states)}
             phase_factors[factor_id] = PeriodicPhaseFactorInput((), (), state_index=8, target_by_frame=phase_targets)
+        elif residual_ref == "shadow_residual::line_reprojection":
+            line_factors[factor_id] = LineReprojectionFactorInput(
+                provider,
+                line_measurements,
+                cameras,
+                allow_endpoint_swap=True,
+                constraint_mode=str(descriptor.get("line_reprojection_constraint", "endpoints")),
+            )
     factor_inputs = SequenceFactorInputs(
         state_scales=_state_scales(records, sum(dof.dimension for dof in adaptation.state_spec.dofs)),
         contact_factors=contact_factors,
         periodic_phase_factors=phase_factors,
+        line_reprojection_factors=line_factors,
     )
     preparation = SequenceProblemFactory().prepare(
         attempt_id=str(shadow["attempt_ledger"]["attempt_id"]),

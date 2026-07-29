@@ -15,7 +15,7 @@
       "unmapped_nonempty_fields": []
     },
     "chair": {
-      "canonical_sha256": "8a5edaac2c0d1c59f3caa6c75fc9e524e5a8823e395a44ead6ad70090e6842ad",
+      "canonical_sha256": "9a23cfe4ab249c92e7c919f5b98e2589d721dfecfe7299b9b56757558d93c7f6",
       "factor_count": 9,
       "factor_kinds": {
         "audio_event_prior": 1,
@@ -59,10 +59,11 @@
       "unmapped_nonempty_fields": []
     },
     "stick": {
-      "canonical_sha256": "472842cde5fc39233a4bebabaebaede91710447b813dc8192f76b25643546446",
-      "factor_count": 5,
+      "canonical_sha256": "4b7282c389d666d78c64cf06bd51a079d231d8e90814b894cfad6da11663c05a",
+      "factor_count": 6,
       "factor_kinds": {
         "contact_distance": 1,
+        "line_reprojection": 1,
         "pose_prior": 1,
         "regularization": 1,
         "temporal_acceleration": 1,

@@ -16,8 +16,14 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.shared.generic_contact_pipeline.core.base.config import load_case_profile, with_runtime_overrides
 from scripts.shared.generic_contact_pipeline.core.base.io import REPO
 from scripts.shared.generic_contact_pipeline.core.solver import (
+    AcceptedObjectOutputPublisher,
+    GenericSequenceExecutor,
+    ObjectPublicationGate,
+    SequenceOptimizationParameters,
     legacy_object_problem_preparation_record,
+    object_publication_record,
     prepare_legacy_articulated_object_problem,
+    write_isolated_sequence_attempt,
 )
 
 
@@ -39,6 +45,9 @@ def main() -> None:
     parser.add_argument("--case", required=True)
     parser.add_argument("--result-name", required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--solve", action="store_true")
+    parser.add_argument("--candidate-dir", type=Path)
+    parser.add_argument("--max-nfev", type=int, default=100)
     parser.add_argument(
         "--body-models-root",
         type=Path,
@@ -53,6 +62,38 @@ def main() -> None:
         body_models_root=args.body_models_root,
     )
     _write_atomic(args.output, legacy_object_problem_preparation_record(prepared))
+    if args.solve:
+        if args.candidate_dir is None:
+            raise SystemExit("--solve requires --candidate-dir")
+        result = GenericSequenceExecutor().solve(
+            prepared.preparation.problem,
+            SequenceOptimizationParameters(max_function_evaluations=args.max_nfev),
+        )
+        attempt_dir = write_isolated_sequence_attempt(
+            args.candidate_dir / "generic_sequence_solver_attempts",
+            prepared.preparation.problem,
+            result,
+        )
+        with (profile.result_dir / "object_pose_init.csv").open(newline="") as handle:
+            import csv
+
+            template_rows = list(csv.DictReader(handle))
+        gate = ObjectPublicationGate(
+            passed=False,
+            gate_ids=("hard_metrics_evaluated", "contact_gap", "projection_error"),
+            blocking_reasons=("hard_metrics_not_evaluated",),
+        )
+        publication = AcceptedObjectOutputPublisher().publish(
+            result=result,
+            state_spec=prepared.state_adaptation.state_spec,
+            template_rows=template_rows,
+            candidate_dir=args.candidate_dir,
+            accepted_result_dir=profile.result_dir,
+            gate=gate,
+        )
+        publication_record = object_publication_record(publication, gate)
+        publication_record["attempt_dir"] = str(attempt_dir)
+        _write_atomic(args.candidate_dir / "generic_object_publication.json", publication_record)
     print(args.output)
 
 

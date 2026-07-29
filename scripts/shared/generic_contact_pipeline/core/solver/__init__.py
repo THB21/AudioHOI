@@ -87,6 +87,12 @@ from .legacy_production_problem import (
     legacy_object_problem_preparation_record,
     prepare_legacy_articulated_object_problem,
 )
+from .publisher import (
+    AcceptedObjectOutputPublisher,
+    ObjectPublicationGate,
+    ObjectPublicationResult,
+    object_publication_record,
+)
 from .optimization import (
     GenericSequenceSolveResult,
     SequenceOptimizationParameters,
@@ -196,6 +202,7 @@ __all__ = [
     "CHAIR_FACTOR_RESIDUALS_NAME",
     "CHAIR_SANDBOX_ARTIFACTS",
     "AudioAlignmentFactorInput",
+    "AcceptedObjectOutputPublisher",
     "ContactFactorInput",
     "FactorResidualEvaluator",
     "GaugeFactorInput",
@@ -212,6 +219,8 @@ __all__ = [
     "LegacyObjectProblemPreparation",
     "SupportPlaneFactorInput",
     "PeriodicPhaseFactorInput",
+    "ObjectPublicationGate",
+    "ObjectPublicationResult",
     "PosePriorFactorInput",
     "ResidualBoundaryRecord",
     "ResidualRowDependency",
@@ -314,6 +323,7 @@ __all__ = [
     "rigid_contact_hypothesis_ledger_record",
     "prepare_result_record",
     "prepare_legacy_articulated_object_problem",
+    "object_publication_record",
     "attempt_ledger_record",
     "residual_boundary_ledger_record",
     "residual_boundary_record",

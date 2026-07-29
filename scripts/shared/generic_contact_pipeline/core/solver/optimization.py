@@ -30,6 +30,8 @@ class SequenceOptimizationProblem:
     parent_solve_attempt_id: str | None = None
     lower_bounds: tuple[tuple[float, ...], ...] | None = None
     upper_bounds: tuple[tuple[float, ...], ...] | None = None
+    initialization_kind: str | None = None
+    initialization_ledger_sha256: str | None = None
 
     def __post_init__(self) -> None:
         if not self.attempt_id.startswith("generic-attempt-") or not self.sequence_contract_sha256:
@@ -45,6 +47,14 @@ class SequenceOptimizationProblem:
             raise ValueError("sequence optimization requires unique factor ids")
         if (self.lower_bounds is None) != (self.upper_bounds is None):
             raise ValueError("sequence optimization bounds must provide both lower and upper values")
+        if (self.initialization_kind is None) != (self.initialization_ledger_sha256 is None):
+            raise ValueError("sequence optimization initialization provenance requires kind and ledger hash")
+        if self.initialization_kind is not None:
+            if not self.initialization_kind:
+                raise ValueError("sequence optimization initialization kind must be nonempty")
+            digest = str(self.initialization_ledger_sha256)
+            if len(digest) != 64 or any(character not in "0123456789abcdef" for character in digest):
+                raise ValueError("sequence optimization initialization ledger must be a lowercase SHA-256")
         if self.state_parameterization is not None:
             if self.state_parameterization.state_width != next(iter(widths)):
                 raise ValueError("StateSpec parameterization width must match sequence states")
@@ -265,6 +275,9 @@ def solve_sequence_optimization(
         "residual_dependencies": [asdict(dependency) for dependency in problem.residual_dependencies],
         "parameters": asdict(parameters),
     }
+    if problem.initialization_kind is not None:
+        solve_attempt_payload["initialization_kind"] = problem.initialization_kind
+        solve_attempt_payload["initialization_ledger_sha256"] = problem.initialization_ledger_sha256
     solve_attempt_id = f"generic-solve-{_canonical_hash(solve_attempt_payload)[:12]}"
     if problem.state_parameterization is not None:
         bounds = problem.state_parameterization.parameter_bounds(len(problem.frames))

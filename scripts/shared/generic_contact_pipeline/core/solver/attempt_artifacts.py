@@ -130,30 +130,31 @@ def write_isolated_sequence_attempt(
             {"schema_version": 1, "status": "not_evaluated", "continuous_pose_override": False},
         )
         artifact_hashes = {name: _sha256(temp / name) for name in ISOLATED_ATTEMPT_FILENAMES[:-1]}
-        _write_json(
-            temp / "status.json",
-            {
-                "schema_version": 1,
-                "contract_attempt_id": result.attempt_id,
-                "solve_attempt_id": result.solve_attempt_id,
-                "parent_solve_attempt_id": result.parent_solve_attempt_id,
-                "sequence_contract_sha256": result.sequence_contract_sha256,
-                "state_spec_id": result.state_spec_id,
-                "frame_count": len(result.frames),
-                "state_width": len(result.states[0]),
-                "factor_ids": list(result.factor_ids),
-                "residual_program_sha256": result.residual_program_sha256,
-                "success": result.success,
-                "message": result.message,
-                "function_evaluations": result.function_evaluations,
-                "initial_squared_error": result.initial_squared_error,
-                "final_squared_error": result.final_squared_error,
-                "result_sha256": result.canonical_sha256,
-                "case_dispatch_used": False,
-                "accepted_outputs_written": False,
-                "artifacts": artifact_hashes,
-            },
-        )
+        status_payload = {
+            "schema_version": 1,
+            "contract_attempt_id": result.attempt_id,
+            "solve_attempt_id": result.solve_attempt_id,
+            "parent_solve_attempt_id": result.parent_solve_attempt_id,
+            "sequence_contract_sha256": result.sequence_contract_sha256,
+            "state_spec_id": result.state_spec_id,
+            "frame_count": len(result.frames),
+            "state_width": len(result.states[0]),
+            "factor_ids": list(result.factor_ids),
+            "residual_program_sha256": result.residual_program_sha256,
+            "success": result.success,
+            "message": result.message,
+            "function_evaluations": result.function_evaluations,
+            "initial_squared_error": result.initial_squared_error,
+            "final_squared_error": result.final_squared_error,
+            "result_sha256": result.canonical_sha256,
+            "case_dispatch_used": False,
+            "accepted_outputs_written": False,
+            "artifacts": artifact_hashes,
+        }
+        if problem.initialization_kind is not None:
+            status_payload["initialization_kind"] = problem.initialization_kind
+            status_payload["initialization_ledger_sha256"] = problem.initialization_ledger_sha256
+        _write_json(temp / "status.json", status_payload)
         os.replace(temp, target)
     except Exception:
         shutil.rmtree(temp, ignore_errors=True)

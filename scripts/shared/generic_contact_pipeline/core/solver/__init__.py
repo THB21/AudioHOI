@@ -68,6 +68,13 @@ from .attempt_artifacts import (
     update_isolated_attempt_evidence,
     write_isolated_sequence_attempt,
 )
+from .contact_correspondence import (
+    RigidContactHypothesis,
+    RigidContactHypothesisLedger,
+    apply_rigid_contact_hypotheses,
+    build_typed_rigid_contact_hypotheses,
+    rigid_contact_hypothesis_ledger_record,
+)
 from .problem import build_sequence_problem_shadow
 from .optimization import (
     GenericSequenceSolveResult,
@@ -213,6 +220,8 @@ __all__ = [
     "ProjectedPeriodicParameters",
     "ProjectedPeriodicSolution",
     "RigidCorrespondenceInitializer",
+    "RigidContactHypothesis",
+    "RigidContactHypothesisLedger",
     "StateSpecRigidCorrespondenceInitializer",
     "SequenceProblemContract",
     "SequenceOptimizationParameters",
@@ -238,6 +247,7 @@ __all__ = [
     "build_pose_prior_residual_inputs",
     "build_residual_input_bundle",
     "build_runtime_residual_vector",
+    "build_typed_rigid_contact_hypotheses",
     "build_runtime_residual_blocks",
     "build_factor_frame_jacobian_sparsity",
     "build_sequence_temporal_residual_inputs",
@@ -283,6 +293,8 @@ __all__ = [
     "runtime_plan_record",
     "render_line_reprojection_evidence",
     "runtime_configured_factor_ids",
+    "apply_rigid_contact_hypotheses",
+    "rigid_contact_hypothesis_ledger_record",
     "prepare_result_record",
     "attempt_ledger_record",
     "residual_boundary_ledger_record",

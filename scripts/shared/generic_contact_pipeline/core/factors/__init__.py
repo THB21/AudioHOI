@@ -1,7 +1,14 @@
 from .adapters import FactorAdaptationResult, adapt_factor_rows
 from .activation import FactorActivationLedger, FactorActivationRecord, activation_record, build_factor_activation_ledger
 from .chair_bundle import build_chair_factor_executor_bundle, validate_chair_factor_executor_bundle
-from .compiler import CompiledFactor, CompiledFactorLedger, build_compiled_factor_ledger, compiled_factor_record
+from .compiler import (
+    CompiledFactor,
+    CompiledFactorLedger,
+    FactorRuntimeConfig,
+    build_compiled_factor_ledger,
+    compiled_factor_record,
+    factor_runtime_configs_from_mapping,
+)
 from .golden import build_canonical_factor_shadow_summary, verify_factor_shadow_summary
 from .shadow import build_factor_shadow
 from .types import (
@@ -23,6 +30,7 @@ __all__ = [
     "FactorActivationRecord",
     "CompiledFactor",
     "CompiledFactorLedger",
+    "FactorRuntimeConfig",
     "FactorEnergySummary",
     "FactorGap",
     "FactorInputRef",
@@ -37,6 +45,7 @@ __all__ = [
     "build_canonical_factor_shadow_summary",
     "build_factor_shadow",
     "compiled_factor_record",
+    "factor_runtime_configs_from_mapping",
     "energy_record",
     "factor_record",
     "gap_record",

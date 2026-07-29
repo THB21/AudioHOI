@@ -385,8 +385,18 @@
         {
           "path": "samples_known_object/01_basketball/results/tracking/object_center_trajectory.csv",
           "source_scope": "repository",
-          "kind": "missing",
-          "exists": false
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 10632,
+          "sha256": "2db45a31f909bc47416b6c744704875a50627294221ea8b03d83c623efe0ef18",
+          "columns": [
+            "frame",
+            "time",
+            "ball_center_x",
+            "ball_center_y",
+            "source"
+          ],
+          "rows": 192
         },
         {
           "path": "samples_known_object/01_basketball/results/tracking/object_mesh_tracks_test.csv",
@@ -411,14 +421,48 @@
         {
           "path": "samples_known_object/01_basketball/results/tracking/object_points.csv",
           "source_scope": "repository",
-          "kind": "missing",
-          "exists": false
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 26739,
+          "sha256": "95d03d6ce1d34aa1247a2ff2dc992871f6275afe45730b17b94220cd4017475c",
+          "columns": [
+            "frame",
+            "time",
+            "center_x",
+            "center_y",
+            "center_visible",
+            "left_x",
+            "left_y",
+            "left_visible",
+            "right_x",
+            "right_y",
+            "right_visible",
+            "top_x",
+            "top_y",
+            "top_visible",
+            "bottom_x",
+            "bottom_y",
+            "bottom_visible"
+          ],
+          "rows": 192
         },
         {
           "path": "samples_known_object/01_basketball/results/tracking/object_trajectory.csv",
           "source_scope": "repository",
-          "kind": "missing",
-          "exists": false
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 11668,
+          "sha256": "5ecd34d9e484e03b412a6cb80c9754310cf73a2302eed3006e414d0500a76fc2",
+          "columns": [
+            "frame",
+            "time",
+            "ball_center_x",
+            "ball_center_y",
+            "radius",
+            "mask_area",
+            "source"
+          ],
+          "rows": 192
         },
         {
           "path": "samples_known_object/01_basketball/video.mp4",
@@ -748,6 +792,36 @@
               "source"
             ],
             "rows": 192
+          },
+          {
+            "path": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/human_sites.csv",
+            "source_scope": "repository",
+            "kind": "file",
+            "exists": true,
+            "size_bytes": 96817,
+            "sha256": "60192399539bef34df231e6e90832546555c6fc5f57d15fc451f9479a0a9a213",
+            "columns": [
+              "frame",
+              "time",
+              "site_id",
+              "body_part",
+              "side",
+              "x_m",
+              "y_m",
+              "z_m",
+              "coordinate_frame",
+              "confidence",
+              "source"
+            ],
+            "rows": 768
+          },
+          {
+            "path": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/support_geometry.json",
+            "source_scope": "repository",
+            "kind": "file",
+            "exists": true,
+            "size_bytes": 127,
+            "sha256": "5063dbb3ccc65085174b5b17e8e8a323c70b832cd72000343df7066ca7488ec7"
           },
           {
             "path": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/anchor_state.csv",
@@ -2017,8 +2091,18 @@
         {
           "path": "samples_known_object/10_football/results/tracking/object_center_trajectory.csv",
           "source_scope": "repository",
-          "kind": "missing",
-          "exists": false
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 13126,
+          "sha256": "5cc84360727228b654ea097f0a943fb88ea64bb2e2657e6710d83c80106eca6b",
+          "columns": [
+            "frame",
+            "time",
+            "ball_center_x",
+            "ball_center_y",
+            "source"
+          ],
+          "rows": 242
         },
         {
           "path": "samples_known_object/10_football/results/tracking/object_mesh_tracks_test.csv",
@@ -2043,14 +2127,48 @@
         {
           "path": "samples_known_object/10_football/results/tracking/object_points.csv",
           "source_scope": "repository",
-          "kind": "missing",
-          "exists": false
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 33689,
+          "sha256": "c5aafd7906aa3d45bc878289947dd9d044b0b8d3aa683ad1a9b60815daea216d",
+          "columns": [
+            "frame",
+            "time",
+            "center_x",
+            "center_y",
+            "center_visible",
+            "left_x",
+            "left_y",
+            "left_visible",
+            "right_x",
+            "right_y",
+            "right_visible",
+            "top_x",
+            "top_y",
+            "top_visible",
+            "bottom_x",
+            "bottom_y",
+            "bottom_visible"
+          ],
+          "rows": 242
         },
         {
           "path": "samples_known_object/10_football/results/tracking/object_trajectory.csv",
           "source_scope": "repository",
-          "kind": "missing",
-          "exists": false
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 14718,
+          "sha256": "af086f96ee687b2e257652828c2089fc5b4b6ed40957112c6ec4c2c1cca8619f",
+          "columns": [
+            "frame",
+            "time",
+            "ball_center_x",
+            "ball_center_y",
+            "radius",
+            "mask_area",
+            "source"
+          ],
+          "rows": 242
         },
         {
           "path": "samples_known_object/10_football/video.mp4",
@@ -2380,6 +2498,36 @@
               "source"
             ],
             "rows": 242
+          },
+          {
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/human_sites.csv",
+            "source_scope": "repository",
+            "kind": "file",
+            "exists": true,
+            "size_bytes": 122611,
+            "sha256": "f7a35529772bf8ee874101a957916e52e03f3d3e9aa2726f415a6cd54769b3fd",
+            "columns": [
+              "frame",
+              "time",
+              "site_id",
+              "body_part",
+              "side",
+              "x_m",
+              "y_m",
+              "z_m",
+              "coordinate_frame",
+              "confidence",
+              "source"
+            ],
+            "rows": 968
+          },
+          {
+            "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/support_geometry.json",
+            "source_scope": "repository",
+            "kind": "file",
+            "exists": true,
+            "size_bytes": 131,
+            "sha256": "f6e4f65851402b0e73193d0fc4330ac38f436fa2a1effae071893a4732637f7c"
           },
           {
             "path": "samples_known_object/10_football/results/benchmark_vlm_qwen/anchor_state.csv",
@@ -3551,8 +3699,22 @@
         {
           "path": "samples_known_object/02_mug/results/tracking/object_center_trajectory.csv",
           "source_scope": "repository",
-          "kind": "missing",
-          "exists": false
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 19354,
+          "sha256": "7795c115171b8d453473532efec34de11d6e0225272dea31e6851f8bcf184d6f",
+          "columns": [
+            "frame",
+            "time",
+            "u",
+            "v",
+            "x",
+            "y",
+            "visible",
+            "confidence",
+            "source"
+          ],
+          "rows": 240
         },
         {
           "path": "samples_known_object/02_mug/results/tracking/object_mesh_tracks_test.csv",
@@ -3577,14 +3739,47 @@
         {
           "path": "samples_known_object/02_mug/results/tracking/object_points.csv",
           "source_scope": "repository",
-          "kind": "missing",
-          "exists": false
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 33342,
+          "sha256": "cf2ffb1eb7f6894dc2673f8b8cb132781a83c2c7c6f343ab55f1a9ec370d301f",
+          "columns": [
+            "frame",
+            "time",
+            "center_x",
+            "center_y",
+            "center_visible",
+            "left_x",
+            "left_y",
+            "left_visible",
+            "right_x",
+            "right_y",
+            "right_visible",
+            "top_x",
+            "top_y",
+            "top_visible",
+            "bottom_x",
+            "bottom_y",
+            "bottom_visible"
+          ],
+          "rows": 240
         },
         {
           "path": "samples_known_object/02_mug/results/tracking/object_trajectory.csv",
           "source_scope": "repository",
-          "kind": "missing",
-          "exists": false
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 10497,
+          "sha256": "fa5f597baf8a1b71b756f93011b1372df4564b0ca5251be942af548b97181c48",
+          "columns": [
+            "frame",
+            "time",
+            "ball_center_x",
+            "ball_center_y",
+            "radius",
+            "mask_area"
+          ],
+          "rows": 240
         },
         {
           "path": "samples_known_object/02_mug/video.mp4",
@@ -3958,6 +4153,57 @@
               "vlm_confidence"
             ],
             "rows": 240
+          },
+          {
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/observation_seed/body_pose.csv",
+            "source_scope": "repository",
+            "kind": "file",
+            "exists": true,
+            "size_bytes": 41393,
+            "sha256": "3ea905dfe8de77646d9a240d0104edaa6998e921d2a8a5d6862ec7ebb125db7c",
+            "columns": [
+              "frame",
+              "time",
+              "x",
+              "y",
+              "z",
+              "yaw",
+              "yaw_deg",
+              "pitch",
+              "pitch_deg",
+              "roll",
+              "roll_deg",
+              "scale",
+              "source"
+            ],
+            "rows": 240
+          },
+          {
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/observation_seed/axial_phase.csv",
+            "source_scope": "repository",
+            "kind": "file",
+            "exists": true,
+            "size_bytes": 23020,
+            "sha256": "3dc05829ef95b5dc929d0e84c9163b924f9eaee42971b8c61ff2ac4634366eb6",
+            "columns": [
+              "frame",
+              "time",
+              "m17_phase_rad",
+              "m17_phase_deg",
+              "m43_phase_rad",
+              "m43_phase_deg",
+              "vlm_visibility",
+              "source"
+            ],
+            "rows": 240
+          },
+          {
+            "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/observation_seed/observation_seed_report.json",
+            "source_scope": "repository",
+            "kind": "file",
+            "exists": true,
+            "size_bytes": 1631,
+            "sha256": "15d0314d9b391ccfc9dbbeb7f44f9d16f5d80ce28acaaad378c5ed1bc9166697"
           },
           {
             "path": "samples_known_object/02_mug/results/benchmark_vlm_qwen/stage1_metrics.json",
@@ -5042,8 +5288,20 @@
         {
           "path": "samples_known_object/05_chair/results/tracking/object_trajectory.csv",
           "source_scope": "repository",
-          "kind": "missing",
-          "exists": false
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 16084,
+          "sha256": "167bfdec6a21d66e47a46f8581c6341787c71d8a37914b3418ea21bd5c9200d7",
+          "columns": [
+            "frame",
+            "time",
+            "ball_center_x",
+            "ball_center_y",
+            "radius",
+            "mask_area",
+            "source"
+          ],
+          "rows": 192
         },
         {
           "path": "samples_known_object/05_chair/video.mp4",
@@ -5058,8 +5316,8 @@
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 1760,
-          "sha256": "803e18ad1026ed6463478045ad3f8561b6467c2ce40110dbeb10b0a0b93894c0"
+          "size_bytes": 2221,
+          "sha256": "a417d5569e897def2c8d247fdcb9cf1a41e901b67db475c452fe5b1f21e5a77c"
         }
       ],
       "recorded_execution": {

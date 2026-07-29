@@ -107,6 +107,7 @@ from .residual_boundary import (
     residual_dry_run_record,
     residual_execution_plan_ledger_record,
     residual_execution_plan_record,
+    runtime_configured_factor_ids,
 )
 from .sphere_sequence import (
     SPHERE_ATTEMPT_NAME,
@@ -280,6 +281,7 @@ __all__ = [
     "sequence_problem_contract_record",
     "runtime_plan_record",
     "render_line_reprojection_evidence",
+    "runtime_configured_factor_ids",
     "prepare_result_record",
     "attempt_ledger_record",
     "residual_boundary_ledger_record",

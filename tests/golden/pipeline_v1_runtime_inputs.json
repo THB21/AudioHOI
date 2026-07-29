@@ -9,7 +9,7 @@
         {"path": "samples_known_object/01_basketball/results/da3", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 197, "size_bytes": 108436486, "sha256": "b9cece158d924a15f39707a04c61c0199df26fb09be6a2feed6ed37c3b373e9e"},
         {"path": "samples_known_object/01_basketball/results/gvhmr", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 5, "size_bytes": 1802898, "sha256": "ccf29431aeee90bb89c2da459bc625ca46b04277fe15ae38d2f0bd64936eb1a1"},
         {"path": "samples_known_object/01_basketball/results/segmentation/masks", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 192, "size_bytes": 492759, "sha256": "f0a77e1d0fb76a8840c80727a255fb51211fe742a4eca5fe312a4550d7f9d4be"},
-        {"path": "samples_known_object/01_basketball/results/tracking", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 4, "size_bytes": 1903059, "sha256": "105f817a8f1fd78c34684803680b4825424e87166fb470a59c05820d6b678e92"}
+        {"path": "samples_known_object/01_basketball/results/tracking", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 7, "size_bytes": 1952098, "sha256": "0bed0fb0ca676502350a746eee4f5eba729925d0feeb17d6471377e9b4b23205"}
       ]
     },
     "football": {
@@ -19,7 +19,7 @@
         {"path": "samples_known_object/10_football/results/da3", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 247, "size_bytes": 136678747, "sha256": "4d59e7af2fa11cca88f58dfa86d2d81e8134e36565ef0a48f7c7e4545d5530dc"},
         {"path": "samples_known_object/10_football/results/gvhmr", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 5, "size_bytes": 2270611, "sha256": "f123b6bc521546599040ac73eae56e4d54599069294ee97bef4c4141fab72800"},
         {"path": "samples_known_object/10_football/results/segmentation/masks", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 242, "size_bytes": 1020190, "sha256": "9bf4f5801154db5ef930dc9929221c866f3aadee570a47eb1de721af06f806be"},
-        {"path": "samples_known_object/10_football/results/tracking", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 4, "size_bytes": 2402209, "sha256": "b249101b0ac61f9c0f03067475656e0340ae05b02f1f127c3eb2389d768ea172"}
+        {"path": "samples_known_object/10_football/results/tracking", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 7, "size_bytes": 2463742, "sha256": "b6adbf5fb85b059c3573b4728e42ec4f13e683416ee6bbe654f8bb653306a8a3"}
       ]
     },
     "mug": {
@@ -39,7 +39,7 @@
         {"path": "samples_known_object/05_chair/results/da3", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 194, "size_bytes": 67480574, "sha256": "ef072d9662db2bc61a58a089f20bb06bb9d78f68be9048f7998f6502c4c93ee4"},
         {"path": "samples_known_object/05_chair/results/gvhmr", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 5, "size_bytes": 1802898, "sha256": "be0188181bf20abdf4d4bd8794c77b7bf4e30ea91a2bb06cf31f0c37dec0ab3f"},
         {"path": "samples_known_object/05_chair/results/segmentation/masks", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 192, "size_bytes": 912397, "sha256": "ba591c6545dea50d23b2d18f06d5b76c293622a4dd3c992eb4a316e1e0b70f7a"},
-        {"path": "samples_known_object/05_chair/results/tracking", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 4, "size_bytes": 2362799, "sha256": "73357d5e88e17c7a80a231b9dff6bf2772132124e7828f17e250feadda84be02"}
+        {"path": "samples_known_object/05_chair/results/tracking", "source_scope": "repository", "kind": "directory", "exists": true, "file_count": 5, "size_bytes": 2378883, "sha256": "67761ede2e67bb576b0faf0b4526274805a1fdecf83e2d768edd6372ea41bd1f"}
       ]
     },
     "stick": {

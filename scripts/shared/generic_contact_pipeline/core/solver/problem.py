@@ -13,7 +13,7 @@ from ..audio_events import build_audio_event_shadow
 from ..contact_constraints.shadow import build_contact_constraint_shadow
 from ..factors.activation import FactorActivationLedger, activation_record, build_factor_activation_ledger
 from ..factors.adapters import adapt_factor_rows
-from ..factors.compiler import build_compiled_factor_ledger, compiled_factor_record
+from ..factors.compiler import build_compiled_factor_ledger, compiled_factor_record, factor_runtime_configs_from_mapping
 from ..factors.shadow import build_factor_shadow
 from ..factors.types import FactorSpec
 from ..interaction import build_interaction_timeline, frame_record, interaction_intervals
@@ -165,7 +165,16 @@ def _factor_activation_shadow(ledger: FactorActivationLedger) -> dict[str, objec
 
 
 def _compiled_factor_shadow(profile: CaseProfile, factor_specs: tuple[FactorSpec, ...], activation_ledger: FactorActivationLedger) -> dict[str, object]:
-    ledger = build_compiled_factor_ledger(profile.case_name, factor_specs, activation_ledger)
+    runtime_configs = factor_runtime_configs_from_mapping(
+        profile.data.get("factor_runtime"),
+        source="case_profile.factor_runtime",
+    )
+    ledger = build_compiled_factor_ledger(
+        profile.case_name,
+        factor_specs,
+        activation_ledger,
+        runtime_configs,
+    )
     records = [compiled_factor_record(record) for record in ledger.compiled_factors]
     return {
         "schema_version": ledger.schema_version,

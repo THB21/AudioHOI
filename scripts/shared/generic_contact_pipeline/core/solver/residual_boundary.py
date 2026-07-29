@@ -93,6 +93,7 @@ class ResidualExecutionPlanRecord:
     input_ids: tuple[str, ...]
     gate_provenance: tuple[str, ...]
     status: str
+    runtime_config: dict[str, object] | None = None
 
     def __post_init__(self) -> None:
         if not self.factor_id or not self.residual_fn_ref or not self.evaluator_ref:
@@ -199,7 +200,10 @@ def residual_boundary_ledger_record(boundary: GenericResidualBoundary) -> dict[s
 
 
 def residual_execution_plan_record(record: ResidualExecutionPlanRecord) -> dict[str, object]:
-    return asdict(record)
+    payload = asdict(record)
+    if record.runtime_config is None:
+        payload.pop("runtime_config")
+    return payload
 
 
 def residual_execution_plan_ledger_record(plan: GenericResidualExecutionPlan) -> dict[str, object]:
@@ -216,6 +220,27 @@ def residual_dry_run_ledger_record(ledger: GenericResidualDryRunLedger) -> dict[
     payload = asdict(ledger)
     payload["records"] = [residual_dry_run_record(record) for record in ledger.records]
     return payload
+
+
+def runtime_configured_factor_ids(
+    execution_plan: GenericResidualExecutionPlan | dict[str, object],
+) -> tuple[str, ...]:
+    """Select executable factors with numeric configuration, without case dispatch."""
+
+    if isinstance(execution_plan, dict):
+        records = [record for record in execution_plan.get("records", []) if isinstance(record, dict)]
+    else:
+        records = [residual_execution_plan_record(record) for record in execution_plan.records]
+    factor_ids = tuple(
+        str(record["factor_id"])
+        for record in records
+        if record.get("status") == "ready_not_executed" and isinstance(record.get("runtime_config"), dict)
+    )
+    if len(set(factor_ids)) != len(factor_ids):
+        raise ValueError("runtime-configured factor ids must be unique")
+    if not factor_ids:
+        raise ValueError("execution plan has no runtime-configured factors")
+    return factor_ids
 
 
 def build_generic_residual_boundary(
@@ -306,6 +331,9 @@ def build_generic_residual_execution_plan(
             raise ValueError(f"missing residual boundary record for factor {factor_id}")
         input_ids = tuple(str(item) for item in record.get("input_ids", []) if item)
         gate_provenance = tuple(str(item) for item in record.get("gate_provenance", []) if item)
+        runtime_config = record.get("runtime_config")
+        if runtime_config is not None and not isinstance(runtime_config, dict):
+            raise ValueError(f"compiled factor runtime_config must be a mapping: {factor_id}")
         plan_records.append(
             ResidualExecutionPlanRecord(
                 factor_id=factor_id,
@@ -316,6 +344,7 @@ def build_generic_residual_execution_plan(
                 status="ready_not_executed"
                 if boundary_record.status == "supported_not_executed"
                 else "blocked_pending_residual",
+                runtime_config=runtime_config,
             )
         )
     ready = sum(1 for record in plan_records if record.status == "ready_not_executed")
@@ -381,6 +410,11 @@ def build_generic_residual_dry_run(
                 input_ids=tuple(str(item) for item in record.get("input_ids", []) if item),
                 gate_provenance=tuple(str(item) for item in record.get("gate_provenance", []) if item),
                 status=str(record.get("status", "")),
+                runtime_config=(
+                    dict(record["runtime_config"])
+                    if isinstance(record.get("runtime_config"), dict)
+                    else None
+                ),
             )
             for record in execution_plan.get("records", [])
             if isinstance(record, dict)

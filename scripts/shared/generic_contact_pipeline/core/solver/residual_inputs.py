@@ -18,6 +18,7 @@ class ResidualInputRequest:
     residual_fn_ref: str
     input_ids: tuple[str, ...]
     gate_provenance: tuple[str, ...]
+    runtime_config: Mapping[str, object] | None = None
 
     def __post_init__(self) -> None:
         if not self.factor_id or not self.residual_fn_ref:
@@ -138,6 +139,7 @@ def build_residual_input_bundle(
                 "residual_fn_ref": record.residual_fn_ref,
                 "input_ids": record.input_ids,
                 "gate_provenance": record.gate_provenance,
+                "runtime_config": record.runtime_config,
                 "status": record.status,
             }
             for record in getattr(residual_execution_plan, "records", ())
@@ -156,11 +158,48 @@ def build_residual_input_bundle(
             residual_fn_ref=residual_fn_ref,
             input_ids=tuple(str(item) for item in record.get("input_ids", ()) if item),
             gate_provenance=tuple(str(item) for item in record.get("gate_provenance", ()) if item),
+            runtime_config=(
+                dict(record["runtime_config"])
+                if isinstance(record.get("runtime_config"), Mapping)
+                else None
+            ),
         )
         payload = provider(request)
         if payload is not None:
             bundle[request.factor_id] = payload
     return bundle
+
+
+def _runtime_weight(request: ResidualInputRequest, fallback: float) -> float:
+    if request.runtime_config is None:
+        return float(fallback)
+    return float(request.runtime_config["weight"])
+
+
+def _runtime_sigma(request: ResidualInputRequest, fallback: float, expected_unit: str) -> float:
+    if request.runtime_config is None:
+        return float(fallback)
+    sigma = request.runtime_config.get("sigma")
+    sigma_unit = request.runtime_config.get("sigma_unit")
+    if sigma is None or sigma_unit != expected_unit:
+        raise ValueError(
+            f"factor {request.factor_id} requires sigma_unit={expected_unit}, got {sigma_unit}"
+        )
+    return float(sigma)
+
+
+def _runtime_state_scales(
+    request: ResidualInputRequest,
+    fallback: tuple[float, ...],
+) -> tuple[float, ...]:
+    if request.runtime_config is None or request.runtime_config.get("state_scales") is None:
+        return fallback
+    scales = tuple(float(value) for value in request.runtime_config["state_scales"])
+    if len(scales) != len(fallback):
+        raise ValueError(
+            f"factor {request.factor_id} runtime state_scales width {len(scales)} does not match state width {len(fallback)}"
+        )
+    return scales
 
 
 def build_state_regularization_residual_inputs(
@@ -566,8 +605,8 @@ def build_geometry_sequence_residual_input_bundle(
             factor_id=request.factor_id,
             states_by_frame=object_states,
             order=order,
-            scales=state_scales,
-            weight=1.0,
+            scales=_runtime_state_scales(request, state_scales),
+            weight=_runtime_weight(request, 1.0),
         )
         return payload.get(request.factor_id)
 
@@ -579,8 +618,8 @@ def build_geometry_sequence_residual_input_bundle(
             factor_id=request.factor_id,
             values=[object_states[frame] for frame in frames],
             target=[reference_states[frame] for frame in frames],
-            scales=state_scales,
-            weight=1.0,
+            scales=_runtime_state_scales(request, state_scales),
+            weight=_runtime_weight(request, 1.0),
         )
         return payload.get(request.factor_id)
 
@@ -594,8 +633,8 @@ def build_geometry_sequence_residual_input_bundle(
             object_states=object_states,
             samples=factor.samples,
             object_feature_id=factor.object_feature_id,
-            weight=factor.weight,
-            sigma_m=factor.sigma_m,
+            weight=_runtime_weight(request, factor.weight),
+            sigma_m=_runtime_sigma(request, factor.sigma_m, "m"),
         )
         return payload.get(request.factor_id)
 
@@ -680,8 +719,8 @@ def build_geometry_sequence_residual_input_bundle(
             object_states=object_states,
             measurements=factor.measurements,
             cameras_by_frame=factor.cameras_by_frame,
-            weight=factor.weight,
-            sigma_px=factor.sigma_px,
+            weight=_runtime_weight(request, factor.weight),
+            sigma_px=_runtime_sigma(request, factor.sigma_px, "px"),
             allow_endpoint_swap=factor.allow_endpoint_swap,
         )
         return payload.get(request.factor_id)

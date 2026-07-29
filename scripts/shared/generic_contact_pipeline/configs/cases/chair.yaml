@@ -14,6 +14,21 @@ sequence_se3_optimizer:
   prior_w: 0.34
   smooth_w: 0.95
   accel_w: 4.2
+factor_runtime:
+  line_reprojection:
+    weight: 0.35
+    sigma: 7.5
+    sigma_unit: px
+    source: legacy_chair_pairprop_cli:w_2d_sigma_px
+  contact_distance:
+    weight: 2.0
+    sigma: 0.035
+    sigma_unit: m
+    source: legacy_chair_pairprop_cli:w_contact_sigma_contact_m
+  temporal_velocity:
+    weight: 0.35
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: legacy_chair_pairprop_cli:w_temporal+generic_state_contract:unit_scales
 render_backend: urdf_solid_mesh
 result_name: generic_pipeline_v1
 articraft_model_py: samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/revisions/rev_000001/model.py

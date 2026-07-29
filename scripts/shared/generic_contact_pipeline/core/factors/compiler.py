@@ -3,9 +3,41 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict, dataclass
+from math import isfinite
+from typing import Mapping
 
 from .activation import FactorActivationLedger
 from .types import FactorKind, FactorSpec
+
+
+@dataclass(frozen=True)
+class FactorRuntimeConfig:
+    """Numeric solver configuration bound to a factor capability.
+
+    Object/case adapters may select these values from versioned configuration,
+    but the compiler and solver only see factor ids/kinds and numeric units.
+    """
+
+    weight: float
+    sigma: float | None
+    sigma_unit: str | None
+    source: str
+    state_scales: tuple[float, ...] | None = None
+
+    def __post_init__(self) -> None:
+        if not isfinite(self.weight) or self.weight < 0.0:
+            raise ValueError("factor runtime weight must be finite and non-negative")
+        if self.sigma is not None and (not isfinite(self.sigma) or self.sigma <= 0.0):
+            raise ValueError("factor runtime sigma must be finite and positive")
+        if (self.sigma is None) != (self.sigma_unit is None):
+            raise ValueError("factor runtime sigma and sigma_unit must be provided together")
+        if not self.source:
+            raise ValueError("factor runtime configuration requires provenance")
+        if self.state_scales is not None and (
+            not self.state_scales
+            or any(not isfinite(value) or value <= 0.0 for value in self.state_scales)
+        ):
+            raise ValueError("factor runtime state_scales must be finite and positive")
 
 
 @dataclass(frozen=True)
@@ -20,6 +52,7 @@ class CompiledFactor:
     inactive_frames: int
     input_ids: tuple[str, ...]
     gate_provenance: tuple[str, ...]
+    runtime_config: FactorRuntimeConfig | None = None
     consumed_by_solver: bool = False
 
     def __post_init__(self) -> None:
@@ -75,10 +108,53 @@ def _input_ids(factor: FactorSpec) -> tuple[str, ...]:
     return tuple(f"{ref.role}:{ref.source_ir}:{ref.source_id}" for ref in factor.input_refs)
 
 
+def factor_runtime_configs_from_mapping(
+    raw: Mapping[str, object] | None,
+    *,
+    source: str,
+) -> dict[FactorKind, FactorRuntimeConfig]:
+    """Parse factor-kind configuration without object identity dispatch."""
+
+    configs: dict[FactorKind, FactorRuntimeConfig] = {}
+    for raw_kind, raw_config in (raw or {}).items():
+        try:
+            kind = FactorKind(str(raw_kind))
+        except ValueError as exc:
+            raise ValueError(f"unknown factor runtime kind: {raw_kind}") from exc
+        if not isinstance(raw_config, Mapping):
+            raise ValueError(f"factor runtime config for {kind.value} must be a mapping")
+        unknown = set(raw_config) - {"weight", "sigma", "sigma_unit", "source", "state_scales"}
+        if unknown:
+            raise ValueError(
+                f"unknown factor runtime fields for {kind.value}: {','.join(sorted(str(value) for value in unknown))}"
+            )
+        if "weight" not in raw_config:
+            raise ValueError(f"factor runtime config for {kind.value} requires weight")
+        config_source = str(raw_config.get("source") or f"{source}:{kind.value}")
+        sigma_raw = raw_config.get("sigma")
+        unit_raw = raw_config.get("sigma_unit")
+        scales_raw = raw_config.get("state_scales")
+        if scales_raw is not None and not isinstance(scales_raw, (list, tuple)):
+            raise ValueError(f"factor runtime state_scales for {kind.value} must be a sequence")
+        configs[kind] = FactorRuntimeConfig(
+            weight=float(raw_config["weight"]),
+            sigma=None if sigma_raw is None else float(sigma_raw),
+            sigma_unit=None if unit_raw is None else str(unit_raw),
+            source=config_source,
+            state_scales=(
+                None
+                if scales_raw is None
+                else tuple(float(value) for value in scales_raw)
+            ),
+        )
+    return configs
+
+
 def build_compiled_factor_ledger(
     sample_id: str,
     factors: tuple[FactorSpec, ...],
     activation_ledger: FactorActivationLedger,
+    runtime_configs: Mapping[FactorKind, FactorRuntimeConfig] | None = None,
 ) -> CompiledFactorLedger:
     activation_by_id = {record.factor_id: record for record in activation_ledger.records}
     compiled: list[CompiledFactor] = []
@@ -104,6 +180,7 @@ def build_compiled_factor_ledger(
                 inactive_frames=activation.inactive_frames,
                 input_ids=_input_ids(factor),
                 gate_provenance=tuple(provenance),
+                runtime_config=(runtime_configs or {}).get(factor.kind),
                 consumed_by_solver=False,
             )
         )
@@ -129,4 +206,6 @@ def build_compiled_factor_ledger(
 def compiled_factor_record(factor: CompiledFactor) -> dict[str, object]:
     payload = asdict(factor)
     payload["kind"] = factor.kind.value
+    if factor.runtime_config is None:
+        payload.pop("runtime_config")
     return payload

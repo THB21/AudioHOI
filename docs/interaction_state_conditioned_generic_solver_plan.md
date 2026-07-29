@@ -1355,7 +1355,7 @@ YYYY-MM-DD:
 2026-07-29:
 
 - branch: `refactor/interaction-state-production`
-- commit: pending local commit after this update.
+- commit: `a2e7909b` (`Compile numeric factor runtime configuration`).
 - change: 新增带严格单位与 provenance 的 `FactorRuntimeConfig`，将 numeric `weight`、可选 `sigma/sigma_unit` 和显式 `state_scales` 编入 `CompiledFactor`，并完整传递到 generic residual execution plan。residual input builder 现优先消费编译配置，调用端提供的临时数值只作为未配置 factor 的兼容 fallback；`runtime_configured_factor_ids()` 按 executable + configured capability 自动选出求解 factor，不读取 case/object identity。chair 配置仅迁移旧 parity 数值：line `0.35/7.5px`、contact `2.0/0.035m`、temporal `0.35` 与 9 维 unit scales；没有修改 loss、阈值或求解算法。
 - verification: 未新增测试。实际 chair sequence contract 中恰好选出 `temporal_velocity:E_smooth`、`line_reprojection:measurement_ir`、`contact_distance:contact_constraint_shadow`；用调用端故意传入 `99` 的 fallback 值验证 compiled config 仍输出冻结的 `0.35/7.5px`、`2.0/0.035m`、`0.35` 和 9 个 `1.0` scales。factor / sequence problem / diagnostics / candidate sandbox 四个现有五-case verifier 均退出 0。contract 变更只更新 chair 的三个既有派生 golden；其余四 case hashes 未变，未添加测试文件。完整既有 suite 首轮在代码/派生 golden 更新后为 `198 passed, 4 skipped, 1 failed`，唯一失败是 Phase-0 runtime manifest 仍把此前已补齐的 basketball/football/mug/chair tracking、human-sites/support 和 mug observation-seed 记录为 missing/旧目录 hash；重捕获既有五-case manifest并同步三个 runtime tracking directory hash 后，`manage_golden_manifest --verify --skip-decoded-renders` 通过，最终现有 `verify_phase0_regression.py` 的 pytest / golden / candidate summary / materialized candidate 四个 gate 全部通过。
 - remaining gap: activation contract 目前仍只保存 active/downweighted/inactive 总数，尚未携带逐帧 mask 与有限 downweight tier，因此这次不重新宣称 chair contact-tail 已解决，也不迁移 accepted output。下一步只生产化逐帧 activation，再用同一 runtime config 重建有界 attempt；不增加 chair 专用机制。

@@ -109,7 +109,7 @@ class StateSpecParameterization:
                 _normalize_quaternion_xyzw(row[layout.state_start : layout.state_stop][list(indices)])
         return initial
 
-    def initial_parameters(self, initial_states: Sequence[Sequence[float]]) -> np.ndarray:
+    def _raw_initial_parameters(self, initial_states: Sequence[Sequence[float]]) -> np.ndarray:
         initial = self._initial_matrix(initial_states)
         parameters = np.zeros((initial.shape[0], self.parameter_width_per_frame), dtype=float)
         for layout in self.layouts:
@@ -121,6 +121,16 @@ class StateSpecParameterization:
                 :, layout.state_start : layout.state_stop
             ]
         return parameters.reshape(-1)
+
+    def initial_parameters(self, initial_states: Sequence[Sequence[float]]) -> np.ndarray:
+        raw = self._raw_initial_parameters(initial_states)
+        lower, upper = self.parameter_bounds(len(initial_states))
+        return np.clip(raw, lower, upper)
+
+    def initial_bound_projection_count(self, initial_states: Sequence[Sequence[float]]) -> int:
+        raw = self._raw_initial_parameters(initial_states)
+        projected = self.initial_parameters(initial_states)
+        return int(np.count_nonzero(raw != projected))
 
     def parameter_bounds(self, frame_count: int) -> tuple[np.ndarray, np.ndarray]:
         lower = np.full((frame_count, self.parameter_width_per_frame), -np.inf, dtype=float)

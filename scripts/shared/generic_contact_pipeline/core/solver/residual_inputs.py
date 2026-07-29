@@ -7,6 +7,7 @@ from ..audio_events import AudioEvent
 from ..interaction import ContactStateAxis, InteractionContactMode, InteractionTimeline
 from ..measurements import Line2DMeasurement
 from ..state.geometry_provider import FeaturePointGeometryProvider, GeometryProvider, PinholeCamera, PlaneSurface
+from .sparsity import ResidualRowDependency
 
 
 @dataclass(frozen=True)
@@ -718,3 +719,128 @@ def build_geometry_sequence_residual_input_bundle(
             "shadow_residual::support_and_penetration": support_plane,
         },
     )
+
+
+def build_geometry_sequence_residual_dependencies(
+    residual_execution_plan: dict[str, object] | object,
+    *,
+    object_states: Mapping[int, Sequence[float]],
+    factor_ids: Sequence[str] | None = None,
+    reference_states: Mapping[int, Sequence[float]] | None = None,
+    contact_factors: Mapping[str, ContactFactorInput] | None = None,
+    line_reprojection_factors: Mapping[str, LineReprojectionFactorInput] | None = None,
+    support_plane_factors: Mapping[str, SupportPlaneFactorInput] | None = None,
+) -> tuple[ResidualRowDependency, ...]:
+    """Compile typed runtime input ordering into row-level state dependencies.
+
+    This mirrors ``build_geometry_sequence_residual_input_bundle`` for factors
+    whose residual values actually change with object state. Factors backed by
+    static audit values intentionally receive no declaration and remain dense
+    at the optimizer boundary rather than claiming a false sparse dependency.
+    """
+
+    if not object_states:
+        raise ValueError("residual dependencies require object states")
+    frames = tuple(sorted(int(frame) for frame in object_states))
+    state_widths = {len(object_states[frame]) for frame in frames}
+    if len(state_widths) != 1 or not next(iter(state_widths)):
+        raise ValueError("residual dependencies require one nonzero object-state width")
+    state_width = next(iter(state_widths))
+    selected = set(factor_ids) if factor_ids is not None else None
+    if isinstance(residual_execution_plan, dict):
+        records = [record for record in residual_execution_plan.get("records", []) if isinstance(record, dict)]
+    else:
+        records = [
+            {
+                "factor_id": record.factor_id,
+                "residual_fn_ref": record.residual_fn_ref,
+                "status": record.status,
+            }
+            for record in getattr(residual_execution_plan, "records", ())
+        ]
+
+    dependencies: list[ResidualRowDependency] = []
+    for record in records:
+        if str(record.get("status", "ready_not_executed")) != "ready_not_executed":
+            continue
+        factor_id = str(record.get("factor_id", ""))
+        if selected is not None and factor_id not in selected:
+            continue
+        residual_ref = str(record.get("residual_fn_ref", ""))
+        if residual_ref in {"shadow_residual::temporal_velocity", "shadow_residual::temporal_acceleration"}:
+            order = 1 if residual_ref.endswith("temporal_velocity") else 2
+            for residual_index, frame_index in enumerate(range(order, len(frames))):
+                dependency_frames = frames[frame_index - order : frame_index + 1]
+                dependencies.append(
+                    ResidualRowDependency(
+                        factor_id,
+                        residual_index * state_width,
+                        (residual_index + 1) * state_width,
+                        dependency_frames,
+                    )
+                )
+            continue
+        if residual_ref == "shadow_residual::regularization" and reference_states is not None:
+            active_frames = tuple(sorted(set(frames) & {int(frame) for frame in reference_states}))
+            for residual_index, frame in enumerate(active_frames):
+                dependencies.append(
+                    ResidualRowDependency(
+                        factor_id,
+                        residual_index * state_width,
+                        (residual_index + 1) * state_width,
+                        (frame,),
+                    )
+                )
+            continue
+        if residual_ref == "shadow_residual::contact_distance":
+            factor = (contact_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            residual_index = 0
+            for sample in factor.samples:
+                frame = int(sample.frame)
+                if frame not in object_states:
+                    continue
+                dependencies.append(
+                    ResidualRowDependency(factor_id, 3 * residual_index, 3 * (residual_index + 1), (frame,))
+                )
+                residual_index += 1
+            continue
+        if residual_ref == "shadow_residual::line_reprojection":
+            factor = (line_reprojection_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            residual_index = 0
+            for measurement in factor.measurements:
+                frame = int(measurement.meta.frame)
+                if frame not in object_states or frame not in factor.cameras_by_frame:
+                    continue
+                dependencies.append(
+                    ResidualRowDependency(factor_id, 4 * residual_index, 4 * (residual_index + 1), (frame,))
+                )
+                residual_index += 1
+            continue
+        if residual_ref == "shadow_residual::support_and_penetration":
+            factor = (support_plane_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            point_frames: list[int] = []
+            for frame in sorted(set(int(value) for value in factor.active_frames)):
+                state = object_states.get(frame)
+                if state is None:
+                    continue
+                for feature_id in factor.support_feature_ids:
+                    points = factor.geometry_provider.feature_points_world(state, feature_id)
+                    point_frames.extend([frame] * len(points))
+            point_count = len(point_frames)
+            for residual_index, frame in enumerate(point_frames):
+                dependencies.append(ResidualRowDependency(factor_id, residual_index, residual_index + 1, (frame,)))
+                dependencies.append(
+                    ResidualRowDependency(
+                        factor_id,
+                        point_count + residual_index,
+                        point_count + residual_index + 1,
+                        (frame,),
+                    )
+                )
+    return tuple(dependencies)

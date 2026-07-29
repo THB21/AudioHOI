@@ -87,6 +87,7 @@ class GenericSequenceSolveResult:
     parameterization: str
     state_dimension: int
     parameter_dimension: int
+    initial_bound_projection_count: int
     jacobian_sparsity_used: bool
     jacobian_nonzero_count: int
     jacobian_density: float
@@ -266,6 +267,11 @@ def solve_sequence_optimization(
         ),
         "state_dimension": int(initial.size),
         "parameter_dimension": int(x0.size),
+        "initial_bound_projection_count": (
+            problem.state_parameterization.initial_bound_projection_count(problem.initial_states)
+            if problem.state_parameterization is not None
+            else 0
+        ),
         "jacobian_sparsity_used": jacobian_sparsity is not None,
         "jacobian_nonzero_count": int(jacobian_sparsity.nnz) if jacobian_sparsity is not None else 0,
         "jacobian_density": (

@@ -1355,7 +1355,7 @@ YYYY-MM-DD:
 2026-07-29:
 
 - branch: `refactor/interaction-state-production`
-- commit: pending local commit after this update.
+- commit: `6b67ef10` (`Parameterize generic solver from StateSpec`).
 - change: 新增 case-independent `StateSpecParameterization` 并接入同一个 `GenericSequenceExecutor.solve()`。优化变量完全由 ordered `DofSpec` 生成：translation / scalar / revolute / prismatic 使用欧氏参数，observable SO(3) quaternion 使用三维 tangent increment 且 decode 后强制单位化，unobservable rotation 保持固定，periodic DOF 按 schema bound wrap，joint / scale bounds 直接来自 `Bound`。solve provenance 新增 `state_spec_id`、`parameterization`、physical state dimension 和 optimizer parameter dimension；没有 object label、geometry family 或人体参数分支。
 - verification: 未新增测试。generic rigid + periodic 数值 solve 从 9 维 physical state 自动得到 8 维 optimizer state，5 次 evaluation 将 squared error 从 `3.778286437626905` 降到 `2.7488180926595735e-23`，输出 quaternion norm `1.0`，periodic 与 scale 均留在 schema bounds；result SHA-256 `a704d6bc0ab6e1dd561d3497eb08750d979a1d9471c356d9673b24dca4c5dc66`，并保持 `case_dispatch_used=False`、`accepted_outputs_written=False`。额外 codec smoke 验证 articulated 9→8 维、mug phase `4π+0.25 → 0.25`、sphere unobservable quaternion 仅保留 3 个 translation 参数。提交前 fresh target suite `80 passed in 132.38s`；factor / sequence problem / diagnostics / candidate sandbox 四个五-case verifier 均退出 0；solver modules 通过 `py_compile` 和 `git diff --check`。
 - remaining gap: parameterization 已不再阻挡完整 sequence，但当前 residual callback 仍会在每次 evaluation 重建全部 factor payload，尚未提供 factor-frame Jacobian sparsity；full chair solve 和 isolated attempt pose/render 尚未执行，accepted output 未迁移。
@@ -1363,7 +1363,7 @@ YYYY-MM-DD:
 2026-07-29:
 
 - branch: `refactor/interaction-state-production`
-- commit: pending local commit after this update.
+- commit: `314284c2` (`Execute generic sequence factor programs`).
 - change: 新增真正执行 state optimization 的通用 `SequenceOptimizationProblem`、`SequenceOptimizationParameters`、`GenericSequenceSolveResult` 与 `build_runtime_residual_vector()`；`GenericSequenceExecutor.solve()` 只接收 frame-aligned state matrix、selected factor ids、bounds、residual execution plan 和一个按当前 state 生成 typed factor payload 的 callback，不读取 case name、geometry family或 CSV。solve result 绑定现有 deterministic attempt id 与 `SequenceProblemContract` hash，记录 factor ids、初末 residual count / squared error、nfev、状态、执行边界和 canonical hash。
 - verification: 未新增测试。isolated chair frames 20–22 从有意扰动的 27 维 state 出发，同时消费 `line_reprojection:measurement_ir`、`contact_distance:contact_constraint_shadow`、一阶 temporal 和二阶 temporal 四个 factors；93 个 residual 经 23 次 function evaluation 收敛，squared error 从 `254.845535265775` 降至 `192.599453444706`，ratio `0.755749765221`。结果绑定 attempt `generic-attempt-db8109b86a73`、sequence contract `efc08782decc5e2ac636b39cc6c72c7226762f63198f1ffb60a5acf17866b552`，result SHA-256 `cbd4debf670afe268dcdb7b347641ed3ab41bcf6980737dbe7347173b8fe42dd`；`solver_executed=True`、`case_dispatch_used=False`、`accepted_outputs_written=False`。提交前 fresh verification：目标 suite `80 passed in 134.78s`；factor / sequence problem / diagnostics / candidate sandbox 四个五-case verifier 均退出 0；三个修改后的 solver module 通过 `py_compile`，`git diff --check` 通过。
 - remaining gap: 这是同一 executor 的真实 solve，不再是 dry-run，但当前只证明连续三帧和四类 factors。完整 192 帧需要 StateSpec-aware quaternion / periodic / joint parameterization、factor-frame sparsity 和 isolated artifact writer；尚不能声称 chair canonical accepted output 已迁移。

@@ -68,6 +68,7 @@ from .optimization import (
     build_runtime_residual_vector,
     solve_sequence_optimization,
 )
+from .parameterization import StateSpecParameterization
 from .problem_contract import SequenceProblemContract, build_sequence_problem_contract, sequence_problem_contract_record
 from .runtime import (
     GenericExecutorAttemptLedger,
@@ -200,6 +201,7 @@ __all__ = [
     "SequenceProblemContract",
     "SequenceOptimizationParameters",
     "SequenceOptimizationProblem",
+    "StateSpecParameterization",
     "SphereSequenceParameters",
     "build_candidate_sandbox_manifest",
     "build_audio_event_alignment_residual_inputs",

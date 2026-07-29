@@ -8,6 +8,7 @@ from typing import Any, Callable, Mapping, Sequence
 import numpy as np
 
 from .factor_residuals import FactorResidualEvaluator
+from .parameterization import StateSpecParameterization
 
 
 StateMapping = Mapping[int, Sequence[float]]
@@ -23,6 +24,7 @@ class SequenceOptimizationProblem:
     factor_ids: tuple[str, ...]
     residual_execution_plan: dict[str, object] | object
     residual_input_builder: ResidualInputBuilder
+    state_parameterization: StateSpecParameterization | None = None
     lower_bounds: tuple[tuple[float, ...], ...] | None = None
     upper_bounds: tuple[tuple[float, ...], ...] | None = None
 
@@ -40,6 +42,11 @@ class SequenceOptimizationProblem:
             raise ValueError("sequence optimization requires unique factor ids")
         if (self.lower_bounds is None) != (self.upper_bounds is None):
             raise ValueError("sequence optimization bounds must provide both lower and upper values")
+        if self.state_parameterization is not None:
+            if self.state_parameterization.state_width != next(iter(widths)):
+                raise ValueError("StateSpec parameterization width must match sequence states")
+            if self.lower_bounds is not None:
+                raise ValueError("explicit state bounds cannot be combined with StateSpec parameterization")
         for bounds in (self.lower_bounds, self.upper_bounds):
             if bounds is not None and (len(bounds) != len(self.frames) or any(len(row) not in widths for row in bounds)):
                 raise ValueError("sequence optimization bounds must match state shape")
@@ -69,6 +76,10 @@ class GenericSequenceSolveResult:
     frames: tuple[int, ...]
     states: tuple[tuple[float, ...], ...]
     factor_ids: tuple[str, ...]
+    state_spec_id: str | None
+    parameterization: str
+    state_dimension: int
+    parameter_dimension: int
     initial_residual_count: int
     final_residual_count: int
     initial_squared_error: float
@@ -157,7 +168,10 @@ def solve_sequence_optimization(
         raise ValueError("sequence optimization initial states must be finite")
 
     def states_from_vector(vector: np.ndarray) -> dict[int, tuple[float, ...]]:
-        matrix = np.asarray(vector, dtype=float).reshape(state_shape)
+        if problem.state_parameterization is None:
+            matrix = np.asarray(vector, dtype=float).reshape(state_shape)
+        else:
+            matrix = problem.state_parameterization.decode(vector, problem.initial_states)
         return {
             frame: tuple(float(value) for value in matrix[index])
             for index, frame in enumerate(problem.frames)
@@ -172,9 +186,14 @@ def solve_sequence_optimization(
             problem.factor_ids,
         )
 
-    x0 = initial.reshape(-1)
+    if problem.state_parameterization is None:
+        x0 = initial.reshape(-1)
+    else:
+        x0 = problem.state_parameterization.initial_parameters(problem.initial_states)
     initial_residual = residual(x0)
-    if problem.lower_bounds is None:
+    if problem.state_parameterization is not None:
+        bounds = problem.state_parameterization.parameter_bounds(len(problem.frames))
+    elif problem.lower_bounds is None:
         bounds = (-np.inf, np.inf)
     else:
         bounds = (
@@ -198,6 +217,16 @@ def solve_sequence_optimization(
         "frames": problem.frames,
         "states": tuple(solved_states[frame] for frame in problem.frames),
         "factor_ids": problem.factor_ids,
+        "state_spec_id": (
+            problem.state_parameterization.state_spec.spec_id
+            if problem.state_parameterization is not None
+            else None
+        ),
+        "parameterization": (
+            "state_spec_tangent" if problem.state_parameterization is not None else "direct_state_matrix"
+        ),
+        "state_dimension": int(initial.size),
+        "parameter_dimension": int(x0.size),
         "initial_residual_count": int(initial_residual.size),
         "final_residual_count": int(final_residual.size),
         "initial_squared_error": float(np.dot(initial_residual, initial_residual)),

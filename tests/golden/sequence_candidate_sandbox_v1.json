@@ -56,9 +56,9 @@
       "status": "sandbox_ready",
       "eligible_for_candidate_sandbox": true,
       "candidate_dir": "samples_known_object/05_chair/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_chair",
-      "attempt_id": "generic-attempt-46b421a6f419",
-      "problem_sha256": "b53230cdeca8d59c1d27926098b5bca8f82e40dc3facea6b4540c1cfeef2943f",
-      "diagnostics_sha256": "839654caffd5f348663b5e0b583ad9c92cfe585885b3e2f7726b2173d0d38138",
+      "attempt_id": "generic-attempt-687390bd84ab",
+      "problem_sha256": "4d2bd5ad7045b2fdd2ffad4430c37f812f25460b8461d8c9c7a6e0bb533d4f88",
+      "diagnostics_sha256": "af3cd357003feef0906015e1923f5eff825cb7e6c3c4cecedb8baa7eac148556",
       "blocking_gap_ids": [],
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -68,7 +68,7 @@
         "chair_generic_factor_executor_attempt.json",
         "chair_generic_factor_residuals.json"
       ],
-      "canonical_sha256": "9f5df6f988c32774fc6637afa8fc5e48132ecfbcf8fa093f7696abf3f984aff5"
+      "canonical_sha256": "b83144bf6611d8d8fdcbf6c6b7b6fd0ebdbe9d3d37797a53e40e6346f815c286"
     },
     "stick": {
       "status": "sandbox_ready",

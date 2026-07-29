@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass
 from math import isfinite
 from typing import Mapping
 
-from .activation import FactorActivationLedger
+from .activation import ACTIVATION_STATES, FactorActivationInterval, FactorActivationLedger
 from .types import FactorKind, FactorSpec
 
 
@@ -23,6 +23,11 @@ class FactorRuntimeConfig:
     sigma_unit: str | None
     source: str
     state_scales: tuple[float, ...] | None = None
+    activation_weight_tiers: tuple[tuple[str, float], ...] = (
+        ("active", 1.0),
+        ("downweighted", 1.0),
+        ("inactive", 0.0),
+    )
 
     def __post_init__(self) -> None:
         if not isfinite(self.weight) or self.weight < 0.0:
@@ -38,6 +43,11 @@ class FactorRuntimeConfig:
             or any(not isfinite(value) or value <= 0.0 for value in self.state_scales)
         ):
             raise ValueError("factor runtime state_scales must be finite and positive")
+        tier_names = tuple(name for name, _value in self.activation_weight_tiers)
+        if tier_names != ACTIVATION_STATES:
+            raise ValueError(f"factor runtime activation tiers must be ordered as {ACTIVATION_STATES}")
+        if any(not isfinite(value) or value < 0.0 or value > 1.0 for _name, value in self.activation_weight_tiers):
+            raise ValueError("factor runtime activation tier values must be finite within [0, 1]")
 
 
 @dataclass(frozen=True)
@@ -53,6 +63,7 @@ class CompiledFactor:
     input_ids: tuple[str, ...]
     gate_provenance: tuple[str, ...]
     runtime_config: FactorRuntimeConfig | None = None
+    activation_intervals: tuple[FactorActivationInterval, ...] = ()
     consumed_by_solver: bool = False
 
     def __post_init__(self) -> None:
@@ -62,6 +73,19 @@ class CompiledFactor:
             raise ValueError("CompiledFactor frame counts must be non-negative")
         if not self.input_ids:
             raise ValueError("CompiledFactor requires input_ids")
+        if self.activation_intervals and self.runtime_config is None:
+            raise ValueError("compiled activation intervals require numeric runtime configuration")
+        if self.activation_intervals:
+            counts = {status: 0 for status in ACTIVATION_STATES}
+            for interval in self.activation_intervals:
+                counts[interval.status] += interval.end_frame - interval.start_frame + 1
+            expected = {
+                "active": self.active_frames,
+                "downweighted": self.downweighted_frames,
+                "inactive": self.inactive_frames,
+            }
+            if counts != expected:
+                raise ValueError("compiled activation intervals do not match factor frame counts")
         if self.consumed_by_solver:
             raise ValueError("CompiledFactor is shadow-only until the runtime executor is promoted")
 
@@ -123,7 +147,14 @@ def factor_runtime_configs_from_mapping(
             raise ValueError(f"unknown factor runtime kind: {raw_kind}") from exc
         if not isinstance(raw_config, Mapping):
             raise ValueError(f"factor runtime config for {kind.value} must be a mapping")
-        unknown = set(raw_config) - {"weight", "sigma", "sigma_unit", "source", "state_scales"}
+        unknown = set(raw_config) - {
+            "weight",
+            "sigma",
+            "sigma_unit",
+            "source",
+            "state_scales",
+            "activation_weight_tiers",
+        }
         if unknown:
             raise ValueError(
                 f"unknown factor runtime fields for {kind.value}: {','.join(sorted(str(value) for value in unknown))}"
@@ -134,8 +165,16 @@ def factor_runtime_configs_from_mapping(
         sigma_raw = raw_config.get("sigma")
         unit_raw = raw_config.get("sigma_unit")
         scales_raw = raw_config.get("state_scales")
+        tiers_raw = raw_config.get("activation_weight_tiers")
         if scales_raw is not None and not isinstance(scales_raw, (list, tuple)):
             raise ValueError(f"factor runtime state_scales for {kind.value} must be a sequence")
+        if tiers_raw is not None and not isinstance(tiers_raw, Mapping):
+            raise ValueError(f"factor runtime activation_weight_tiers for {kind.value} must be a mapping")
+        tier_values = tiers_raw or {"active": 1.0, "downweighted": 1.0, "inactive": 0.0}
+        if set(tier_values) != set(ACTIVATION_STATES):
+            raise ValueError(
+                f"factor runtime activation_weight_tiers for {kind.value} must define {ACTIVATION_STATES}"
+            )
         configs[kind] = FactorRuntimeConfig(
             weight=float(raw_config["weight"]),
             sigma=None if sigma_raw is None else float(sigma_raw),
@@ -145,6 +184,10 @@ def factor_runtime_configs_from_mapping(
                 None
                 if scales_raw is None
                 else tuple(float(value) for value in scales_raw)
+            ),
+            activation_weight_tiers=tuple(
+                (status, float(tier_values[status]))
+                for status in ACTIVATION_STATES
             ),
         )
     return configs
@@ -181,6 +224,11 @@ def build_compiled_factor_ledger(
                 input_ids=_input_ids(factor),
                 gate_provenance=tuple(provenance),
                 runtime_config=(runtime_configs or {}).get(factor.kind),
+                activation_intervals=(
+                    activation.intervals
+                    if factor.kind in (runtime_configs or {})
+                    else ()
+                ),
                 consumed_by_solver=False,
             )
         )
@@ -208,4 +256,6 @@ def compiled_factor_record(factor: CompiledFactor) -> dict[str, object]:
     payload["kind"] = factor.kind.value
     if factor.runtime_config is None:
         payload.pop("runtime_config")
+    if not factor.activation_intervals:
+        payload.pop("activation_intervals")
     return payload

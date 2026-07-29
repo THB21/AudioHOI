@@ -19,12 +19,24 @@ class ResidualInputRequest:
     input_ids: tuple[str, ...]
     gate_provenance: tuple[str, ...]
     runtime_config: Mapping[str, object] | None = None
+    activation_intervals: tuple[Mapping[str, object], ...] = ()
 
     def __post_init__(self) -> None:
         if not self.factor_id or not self.residual_fn_ref:
             raise ValueError("residual input requests require factor_id and residual_fn_ref")
         if not self.input_ids:
             raise ValueError("residual input requests require input_ids")
+        previous_end = 0
+        for interval in self.activation_intervals:
+            if not {"start_frame", "end_frame", "status"}.issubset(interval):
+                raise ValueError("residual activation intervals require start_frame, end_frame, and status")
+            start = int(interval["start_frame"])
+            end = int(interval["end_frame"])
+            if start < 1 or end < start or start <= previous_end:
+                raise ValueError("residual activation intervals must be ordered, non-overlapping positive ranges")
+            if str(interval["status"]) not in {"active", "downweighted", "inactive"}:
+                raise ValueError("residual activation interval has invalid status")
+            previous_end = end
 
 
 ResidualInputProvider = Callable[[ResidualInputRequest], dict[str, Any] | None]
@@ -140,6 +152,7 @@ def build_residual_input_bundle(
                 "input_ids": record.input_ids,
                 "gate_provenance": record.gate_provenance,
                 "runtime_config": record.runtime_config,
+                "activation_intervals": record.activation_intervals,
                 "status": record.status,
             }
             for record in getattr(residual_execution_plan, "records", ())
@@ -162,6 +175,11 @@ def build_residual_input_bundle(
                 dict(record["runtime_config"])
                 if isinstance(record.get("runtime_config"), Mapping)
                 else None
+            ),
+            activation_intervals=tuple(
+                dict(item)
+                for item in record.get("activation_intervals", ())
+                if isinstance(item, Mapping)
             ),
         )
         payload = provider(request)
@@ -202,13 +220,69 @@ def _runtime_state_scales(
     return scales
 
 
+def _runtime_activation_tiers(request: ResidualInputRequest) -> dict[str, float]:
+    if request.runtime_config is None:
+        return {"active": 1.0, "downweighted": 1.0, "inactive": 0.0}
+    raw = request.runtime_config.get("activation_weight_tiers")
+    if not isinstance(raw, (list, tuple)):
+        raise ValueError(f"factor {request.factor_id} requires compiled activation_weight_tiers")
+    tiers = {str(item[0]): float(item[1]) for item in raw if isinstance(item, (list, tuple)) and len(item) == 2}
+    if set(tiers) != {"active", "downweighted", "inactive"}:
+        raise ValueError(f"factor {request.factor_id} has invalid activation_weight_tiers")
+    return tiers
+
+
+def _runtime_frame_weight(
+    request: ResidualInputRequest,
+    frame: int,
+    base_weight: float,
+) -> float:
+    if not request.activation_intervals:
+        return float(base_weight)
+    status: str | None = None
+    for interval in request.activation_intervals:
+        start = int(interval["start_frame"])
+        end = int(interval["end_frame"])
+        if start <= frame <= end:
+            status = str(interval["status"])
+            break
+    if status is None:
+        raise ValueError(f"factor {request.factor_id} has no activation status for frame {frame}")
+    return float(base_weight) * _runtime_activation_tiers(request)[status]
+
+
+def _runtime_weights_by_frame(
+    request: ResidualInputRequest,
+    frames: Iterable[int],
+    base_weight: float,
+) -> dict[int, float] | None:
+    if not request.activation_intervals:
+        return None
+    return {
+        int(frame): _runtime_frame_weight(request, int(frame), base_weight)
+        for frame in sorted(set(int(value) for value in frames))
+    }
+
+
+def _scalar_or_row_weights(
+    row_weights: Sequence[float],
+    fallback: float,
+) -> float | list[float]:
+    if not row_weights:
+        return float(fallback)
+    first = float(row_weights[0])
+    if all(float(value) == first for value in row_weights[1:]):
+        return first
+    return [float(value) for value in row_weights]
+
+
 def build_state_regularization_residual_inputs(
     *,
     factor_id: str,
     values: Sequence[Sequence[float]],
     target: Sequence[Sequence[float]],
     scales: tuple[float, ...],
-    weight: float,
+    weight: float | Sequence[float],
 ) -> dict[str, dict[str, Any]]:
     """Build regularization inputs from explicit numeric state vectors.
 
@@ -224,11 +298,18 @@ def build_state_regularization_residual_inputs(
         raise ValueError("regularization vectors and scales must have the same width")
     if not numeric_values:
         return {}
+    numeric_weight: float | list[float]
+    if isinstance(weight, (list, tuple)):
+        numeric_weight = [float(value) for value in weight]
+        if len(numeric_weight) != len(numeric_values):
+            raise ValueError("regularization row weights must match row count")
+    else:
+        numeric_weight = float(weight)
     return {
         factor_id: {
             "values": numeric_values,
             "target": numeric_target,
-            "weight": float(weight),
+            "weight": numeric_weight,
             "scales": [[float(scale) for scale in scales] for _ in numeric_values],
         }
     }
@@ -267,9 +348,11 @@ def build_line_reprojection_residual_inputs(
     weight: float,
     sigma_px: float,
     allow_endpoint_swap: bool,
+    weight_by_frame: Mapping[int, float] | None = None,
 ) -> dict[str, dict[str, Any]]:
     predicted: list[list[list[float]]] = []
     target: list[list[list[float]]] = []
+    row_weights: list[float] = []
     for measurement in measurements:
         frame = measurement.meta.frame
         state = object_states.get(frame)
@@ -290,13 +373,18 @@ def build_line_reprojection_residual_inputs(
                 [float(value) for value in measurement.end_uv],
             ]
         )
+        row_weights.append(float((weight_by_frame or {}).get(frame, weight)))
     if not predicted:
         return {}
     return {
         factor_id: {
             "predicted": predicted,
             "target": target,
-            "weight": float(weight),
+            "weight": (
+                _scalar_or_row_weights(row_weights, weight)
+                if weight_by_frame is not None
+                else float(weight)
+            ),
             "sigma_px": float(sigma_px),
             "allow_endpoint_swap": bool(allow_endpoint_swap),
         }
@@ -342,12 +430,14 @@ def build_sequence_temporal_residual_inputs(
     order: int,
     scales: tuple[float, ...],
     weight: float,
+    weight_by_frame: Mapping[int, float] | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Build full-trajectory first- or second-order temporal pairs."""
 
     if order not in {1, 2}:
         raise ValueError("temporal residual order must be 1 or 2")
-    states = [_numeric_vector(states_by_frame[frame], "temporal state") for frame in sorted(states_by_frame)]
+    frames = sorted(states_by_frame)
+    states = [_numeric_vector(states_by_frame[frame], "temporal state") for frame in frames]
     if any(len(state) != len(scales) for state in states):
         raise ValueError("temporal states and scales must have the same width")
     if len(states) <= order:
@@ -355,6 +445,7 @@ def build_sequence_temporal_residual_inputs(
     if order == 1:
         current = states[1:]
         previous = states[:-1]
+        residual_frames = frames[1:]
     else:
         deltas = [
             [current_value - previous_value for current_value, previous_value in zip(states[index], states[index - 1])]
@@ -362,11 +453,15 @@ def build_sequence_temporal_residual_inputs(
         ]
         current = deltas[1:]
         previous = deltas[:-1]
+        residual_frames = frames[2:]
     return {
         factor_id: {
             "x": current,
             "prev": previous,
-            "weight": float(weight),
+            "weight": _scalar_or_row_weights(
+                [float(weight_by_frame.get(frame, weight)) for frame in residual_frames],
+                weight,
+            ) if weight_by_frame is not None else float(weight),
             "scales": [float(scale) for scale in scales],
         }
     }
@@ -445,11 +540,13 @@ def build_world_space_contact_sample_residual_inputs(
     object_feature_id: str,
     weight: float,
     sigma_m: float,
+    weight_by_frame: Mapping[int, float] | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Resolve repeated world-space contact samples against object geometry."""
 
     anchors: list[list[float]] = []
     targets: list[list[float]] = []
+    row_weights: list[float] = []
     for sample in samples:
         state = object_states.get(int(sample.frame))
         if state is None:
@@ -460,13 +557,18 @@ def build_world_space_contact_sample_residual_inputs(
         target_xyz = geometry_provider.contact_point_world(state, object_feature_id, source_xyz)
         anchors.append(source_xyz)
         targets.append([float(value) for value in target_xyz])
+        row_weights.append(float((weight_by_frame or {}).get(int(sample.frame), weight)))
     if not anchors:
         return {}
     return {
         factor_id: {
             "anchors": anchors,
             "targets": targets,
-            "weight": float(weight),
+            "weight": (
+                _scalar_or_row_weights(row_weights, weight)
+                if weight_by_frame is not None
+                else float(weight)
+            ),
             "sigma_m": float(sigma_m),
         }
     }
@@ -601,12 +703,14 @@ def build_geometry_sequence_residual_input_bundle(
 
     def temporal(request: ResidualInputRequest) -> dict[str, Any] | None:
         order = 1 if request.residual_fn_ref == "shadow_residual::temporal_velocity" else 2
+        base_weight = _runtime_weight(request, 1.0)
         payload = build_sequence_temporal_residual_inputs(
             factor_id=request.factor_id,
             states_by_frame=object_states,
             order=order,
             scales=_runtime_state_scales(request, state_scales),
-            weight=_runtime_weight(request, 1.0),
+            weight=base_weight,
+            weight_by_frame=_runtime_weights_by_frame(request, object_states, base_weight),
         )
         return payload.get(request.factor_id)
 
@@ -614,12 +718,18 @@ def build_geometry_sequence_residual_input_bundle(
         if reference_states is None:
             return None
         frames = sorted(set(object_states) & set(reference_states))
+        base_weight = _runtime_weight(request, 1.0)
+        weights_by_frame = _runtime_weights_by_frame(request, frames, base_weight)
         payload = build_state_regularization_residual_inputs(
             factor_id=request.factor_id,
             values=[object_states[frame] for frame in frames],
             target=[reference_states[frame] for frame in frames],
             scales=_runtime_state_scales(request, state_scales),
-            weight=_runtime_weight(request, 1.0),
+            weight=(
+                _scalar_or_row_weights([weights_by_frame[frame] for frame in frames], base_weight)
+                if weights_by_frame is not None
+                else base_weight
+            ),
         )
         return payload.get(request.factor_id)
 
@@ -627,14 +737,20 @@ def build_geometry_sequence_residual_input_bundle(
         factor = (contact_factors or {}).get(request.factor_id)
         if factor is None:
             return None
+        base_weight = _runtime_weight(request, factor.weight)
         payload = build_world_space_contact_sample_residual_inputs(
             factor_id=request.factor_id,
             geometry_provider=factor.geometry_provider,
             object_states=object_states,
             samples=factor.samples,
             object_feature_id=factor.object_feature_id,
-            weight=_runtime_weight(request, factor.weight),
+            weight=base_weight,
             sigma_m=_runtime_sigma(request, factor.sigma_m, "m"),
+            weight_by_frame=_runtime_weights_by_frame(
+                request,
+                (sample.frame for sample in factor.samples),
+                base_weight,
+            ),
         )
         return payload.get(request.factor_id)
 
@@ -713,15 +829,21 @@ def build_geometry_sequence_residual_input_bundle(
         factor = (line_reprojection_factors or {}).get(request.factor_id)
         if factor is None:
             return None
+        base_weight = _runtime_weight(request, factor.weight)
         payload = build_line_reprojection_residual_inputs(
             factor_id=request.factor_id,
             geometry_provider=factor.geometry_provider,
             object_states=object_states,
             measurements=factor.measurements,
             cameras_by_frame=factor.cameras_by_frame,
-            weight=_runtime_weight(request, factor.weight),
+            weight=base_weight,
             sigma_px=_runtime_sigma(request, factor.sigma_px, "px"),
             allow_endpoint_swap=factor.allow_endpoint_swap,
+            weight_by_frame=_runtime_weights_by_frame(
+                request,
+                (measurement.meta.frame for measurement in factor.measurements),
+                base_weight,
+            ),
         )
         return payload.get(request.factor_id)
 

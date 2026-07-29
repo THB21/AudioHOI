@@ -16,6 +16,22 @@ from ..interaction import (
 from .types import FactorKind, FactorSpec
 
 
+ACTIVATION_STATES = ("active", "downweighted", "inactive")
+
+
+@dataclass(frozen=True)
+class FactorActivationInterval:
+    start_frame: int
+    end_frame: int
+    status: str
+
+    def __post_init__(self) -> None:
+        if self.start_frame < 1 or self.end_frame < self.start_frame:
+            raise ValueError("factor activation interval requires a valid positive frame range")
+        if self.status not in ACTIVATION_STATES:
+            raise ValueError(f"invalid factor activation status: {self.status}")
+
+
 @dataclass(frozen=True)
 class FactorActivationRecord:
     factor_id: str
@@ -25,11 +41,27 @@ class FactorActivationRecord:
     inactive_frames: int
     activation_policy: str
     gate_provenance: tuple[str, ...]
+    intervals: tuple[FactorActivationInterval, ...] = ()
     consumed_by_solver: bool = False
 
     def __post_init__(self) -> None:
         if not self.factor_id or self.active_frames < 0 or self.downweighted_frames < 0 or self.inactive_frames < 0:
             raise ValueError("invalid factor activation record")
+        if self.intervals:
+            previous_end = 0
+            interval_counts = Counter()
+            for interval in self.intervals:
+                if interval.start_frame <= previous_end:
+                    raise ValueError("factor activation intervals must be ordered and non-overlapping")
+                previous_end = interval.end_frame
+                interval_counts[interval.status] += interval.end_frame - interval.start_frame + 1
+            expected = {
+                "active": self.active_frames,
+                "downweighted": self.downweighted_frames,
+                "inactive": self.inactive_frames,
+            }
+            if dict(interval_counts) != {key: value for key, value in expected.items() if value}:
+                raise ValueError("factor activation interval counts do not match summary counts")
         if self.consumed_by_solver:
             raise ValueError("factor activation ledger is shadow-only in this branch")
 
@@ -168,6 +200,27 @@ def _policy_for_kind(kind: FactorKind) -> tuple[str, object, tuple[str, ...]]:
     )
 
 
+def _compile_intervals(
+    states: tuple[FrameInteractionState, ...],
+    selector: object,
+) -> tuple[FactorActivationInterval, ...]:
+    if not states:
+        return ()
+    intervals: list[FactorActivationInterval] = []
+    start_frame = states[0].frame
+    previous_frame = states[0].frame
+    current_status = str(selector(states[0]))  # type: ignore[operator]
+    for state in states[1:]:
+        status = str(selector(state))  # type: ignore[operator]
+        if state.frame != previous_frame + 1 or status != current_status:
+            intervals.append(FactorActivationInterval(start_frame, previous_frame, current_status))
+            start_frame = state.frame
+            current_status = status
+        previous_frame = state.frame
+    intervals.append(FactorActivationInterval(start_frame, previous_frame, current_status))
+    return tuple(intervals)
+
+
 def build_factor_activation_ledger(
     sample_id: str,
     factors: tuple[FactorSpec, ...],
@@ -177,6 +230,7 @@ def build_factor_activation_ledger(
     for factor in factors:
         policy, selector, provenance = _policy_for_kind(factor.kind)
         counts = Counter(str(selector(state)) for state in timeline.frames)  # type: ignore[misc]
+        intervals = _compile_intervals(timeline.frames, selector)
         records.append(
             FactorActivationRecord(
                 factor_id=factor.factor_id,
@@ -186,6 +240,7 @@ def build_factor_activation_ledger(
                 inactive_frames=counts.get("inactive", 0),
                 activation_policy=policy,
                 gate_provenance=provenance,
+                intervals=intervals,
                 consumed_by_solver=False,
             )
         )
@@ -209,4 +264,7 @@ def build_factor_activation_ledger(
 def activation_record(record: FactorActivationRecord) -> dict[str, object]:
     payload = asdict(record)
     payload["kind"] = record.kind.value
+    # The legacy activation shadow remains a compact summary. Production
+    # intervals are promoted only through configured CompiledFactors.
+    payload.pop("intervals")
     return payload

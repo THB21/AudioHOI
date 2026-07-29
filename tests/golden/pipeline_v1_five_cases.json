@@ -5316,8 +5316,8 @@
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 2221,
-          "sha256": "a417d5569e897def2c8d247fdcb9cf1a41e901b67db475c452fe5b1f21e5a77c"
+          "size_bytes": 2452,
+          "sha256": "fd867aae5eee4b61fb33409b306bc2dccb145e3a6a0075bb7cf6b1e39f468eb0"
         }
       ],
       "recorded_execution": {

@@ -1,5 +1,12 @@
 from .adapters import FactorAdaptationResult, adapt_factor_rows
-from .activation import FactorActivationLedger, FactorActivationRecord, activation_record, build_factor_activation_ledger
+from .activation import (
+    ACTIVATION_STATES,
+    FactorActivationInterval,
+    FactorActivationLedger,
+    FactorActivationRecord,
+    activation_record,
+    build_factor_activation_ledger,
+)
 from .chair_bundle import build_chair_factor_executor_bundle, validate_chair_factor_executor_bundle
 from .compiler import (
     CompiledFactor,
@@ -27,7 +34,9 @@ from .validation import validate_factor_shadow
 __all__ = [
     "FactorAdaptationResult",
     "FactorActivationLedger",
+    "FactorActivationInterval",
     "FactorActivationRecord",
+    "ACTIVATION_STATES",
     "CompiledFactor",
     "CompiledFactorLedger",
     "FactorRuntimeConfig",

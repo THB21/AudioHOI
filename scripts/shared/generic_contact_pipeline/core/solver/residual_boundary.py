@@ -94,6 +94,7 @@ class ResidualExecutionPlanRecord:
     gate_provenance: tuple[str, ...]
     status: str
     runtime_config: dict[str, object] | None = None
+    activation_intervals: tuple[dict[str, object], ...] = ()
 
     def __post_init__(self) -> None:
         if not self.factor_id or not self.residual_fn_ref or not self.evaluator_ref:
@@ -203,6 +204,8 @@ def residual_execution_plan_record(record: ResidualExecutionPlanRecord) -> dict[
     payload = asdict(record)
     if record.runtime_config is None:
         payload.pop("runtime_config")
+    if not record.activation_intervals:
+        payload.pop("activation_intervals")
     return payload
 
 
@@ -334,6 +337,9 @@ def build_generic_residual_execution_plan(
         runtime_config = record.get("runtime_config")
         if runtime_config is not None and not isinstance(runtime_config, dict):
             raise ValueError(f"compiled factor runtime_config must be a mapping: {factor_id}")
+        raw_intervals = record.get("activation_intervals", [])
+        if not isinstance(raw_intervals, (list, tuple)) or any(not isinstance(item, dict) for item in raw_intervals):
+            raise ValueError(f"compiled factor activation_intervals must be a sequence of mappings: {factor_id}")
         plan_records.append(
             ResidualExecutionPlanRecord(
                 factor_id=factor_id,
@@ -345,6 +351,7 @@ def build_generic_residual_execution_plan(
                 if boundary_record.status == "supported_not_executed"
                 else "blocked_pending_residual",
                 runtime_config=runtime_config,
+                activation_intervals=tuple(dict(item) for item in raw_intervals),
             )
         )
     ready = sum(1 for record in plan_records if record.status == "ready_not_executed")
@@ -414,6 +421,11 @@ def build_generic_residual_dry_run(
                     dict(record["runtime_config"])
                     if isinstance(record.get("runtime_config"), dict)
                     else None
+                ),
+                activation_intervals=tuple(
+                    dict(item)
+                    for item in record.get("activation_intervals", [])
+                    if isinstance(item, dict)
                 ),
             )
             for record in execution_plan.get("records", [])

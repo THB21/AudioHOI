@@ -5,6 +5,21 @@ from dataclasses import dataclass
 import numpy as np
 
 
+def _row_weights(weight: float | np.ndarray, row_count: int) -> np.ndarray:
+    values = np.asarray(weight, dtype=float)
+    if values.ndim == 0:
+        scalar = float(values)
+        if not np.isfinite(scalar) or scalar < 0.0:
+            raise ValueError("factor weight must be finite and non-negative")
+        return np.full(row_count, scalar, dtype=float)
+    flattened = values.reshape(-1)
+    if len(flattened) != row_count:
+        raise ValueError(f"factor row weights must have length {row_count}, got {len(flattened)}")
+    if not np.isfinite(flattened).all() or np.any(flattened < 0.0):
+        raise ValueError("factor row weights must be finite and non-negative")
+    return flattened
+
+
 @dataclass(frozen=True)
 class FactorResidualEvaluator:
     """Shared residual block assembly for isolated factor executors.
@@ -13,17 +28,19 @@ class FactorResidualEvaluator:
     residual construction out of case-specific optimization loops.
     """
 
-    def point_reprojection(self, predicted: np.ndarray, target: np.ndarray, *, weight: float, sigma_px: float) -> np.ndarray:
+    def point_reprojection(self, predicted: np.ndarray, target: np.ndarray, *, weight: float | np.ndarray, sigma_px: float) -> np.ndarray:
         if predicted.shape != target.shape or predicted.ndim != 2 or predicted.shape[1] != 2:
             raise ValueError("point reprojection residuals require matching (N, 2) arrays")
-        return (float(weight) * (predicted - target).reshape(-1) / float(sigma_px)).astype(float)
+        if np.asarray(weight).ndim == 0:
+            return (float(weight) * (predicted - target).reshape(-1) / float(sigma_px)).astype(float)
+        return (_row_weights(weight, len(predicted))[:, None] * (predicted - target) / float(sigma_px)).reshape(-1).astype(float)
 
     def line_reprojection(
         self,
         predicted: np.ndarray,
         target: np.ndarray,
         *,
-        weight: float,
+        weight: float | np.ndarray,
         sigma_px: float,
         allow_endpoint_swap: bool,
     ) -> np.ndarray:
@@ -36,12 +53,24 @@ class FactorResidualEvaluator:
             swap_cost = np.sum((swapped - target) ** 2, axis=(1, 2))
             swap_mask = swap_cost < direct_cost
             aligned[swap_mask] = swapped[swap_mask]
-        return (float(weight) * (aligned - target).reshape(-1) / float(sigma_px)).astype(float)
+        if np.asarray(weight).ndim == 0:
+            return (float(weight) * (aligned - target).reshape(-1) / float(sigma_px)).astype(float)
+        return (
+            _row_weights(weight, len(aligned))[:, None, None]
+            * (aligned - target)
+            / float(sigma_px)
+        ).reshape(-1).astype(float)
 
-    def contact_distance(self, anchors: np.ndarray, targets: np.ndarray, *, weight: float, sigma_m: float) -> np.ndarray:
+    def contact_distance(self, anchors: np.ndarray, targets: np.ndarray, *, weight: float | np.ndarray, sigma_m: float) -> np.ndarray:
         if anchors.shape != targets.shape or anchors.ndim != 2 or anchors.shape[1] != 3:
             raise ValueError("contact distance residuals require matching (N, 3) arrays")
-        return (float(weight) * (anchors - targets).reshape(-1) / float(sigma_m)).astype(float)
+        if np.asarray(weight).ndim == 0:
+            return (float(weight) * (anchors - targets).reshape(-1) / float(sigma_m)).astype(float)
+        return (
+            _row_weights(weight, len(anchors))[:, None]
+            * (anchors - targets)
+            / float(sigma_m)
+        ).reshape(-1).astype(float)
 
     def metric_depth(self, predicted_depth_m: np.ndarray, target_depth_m: np.ndarray, *, weight: float, sigma_m: float) -> np.ndarray:
         if predicted_depth_m.shape != target_depth_m.shape:
@@ -86,10 +115,15 @@ class FactorResidualEvaluator:
             ]
         ).astype(float)
 
-    def temporal_delta(self, x: np.ndarray, prev: np.ndarray, *, weight: float, scales: np.ndarray) -> np.ndarray:
+    def temporal_delta(self, x: np.ndarray, prev: np.ndarray, *, weight: float | np.ndarray, scales: np.ndarray) -> np.ndarray:
         if x.shape != prev.shape or x.ndim not in {1, 2} or x.shape[-1] != len(scales):
             raise ValueError("temporal residuals require matching state arrays with scale-aligned width")
-        return (float(weight) * (x - prev) / scales).astype(float)
+        delta = (x - prev) / scales
+        if np.asarray(weight).ndim == 0:
+            return (float(weight) * (x - prev) / scales).astype(float)
+        if x.ndim == 1:
+            return (_row_weights(weight, 1)[0] * delta).astype(float)
+        return (_row_weights(weight, len(x))[:, None] * delta).astype(float)
 
     def joint_limit(
         self,
@@ -107,10 +141,15 @@ class FactorResidualEvaluator:
     def gauge_constraint(self, values: np.ndarray, *, target: float, weight: float, sigma: float) -> np.ndarray:
         return (float(weight) * (values - float(target)) / float(sigma)).astype(float)
 
-    def regularization(self, values: np.ndarray, target: np.ndarray, *, weight: float, scales: np.ndarray) -> np.ndarray:
+    def regularization(self, values: np.ndarray, target: np.ndarray, *, weight: float | np.ndarray, scales: np.ndarray) -> np.ndarray:
         if values.shape != target.shape or values.shape != scales.shape:
             raise ValueError("regularization residuals require matching value, target, and scale arrays")
-        return (float(weight) * (values - target) / scales).astype(float)
+        delta = (values - target) / scales
+        if np.asarray(weight).ndim == 0:
+            return (float(weight) * (values - target) / scales).astype(float)
+        if values.ndim == 1:
+            return (_row_weights(weight, 1)[0] * delta).astype(float)
+        return (_row_weights(weight, len(values))[:, None] * delta).astype(float)
 
     def periodic_phase_prior(self, values: np.ndarray, target: np.ndarray, *, weight: float, sigma_rad: float) -> np.ndarray:
         if values.shape != target.shape:

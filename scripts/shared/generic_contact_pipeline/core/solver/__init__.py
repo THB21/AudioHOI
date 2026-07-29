@@ -21,6 +21,7 @@ from .residual_inputs import (
     ResidualInputRequest,
     build_residual_input_bundle,
     build_state_regularization_residual_inputs,
+    build_world_space_contact_residual_inputs,
 )
 from .candidate import (
     CHAIR_SANDBOX_ARTIFACTS,
@@ -170,6 +171,7 @@ __all__ = [
     "build_generic_residual_boundary",
     "build_residual_input_bundle",
     "build_state_regularization_residual_inputs",
+    "build_world_space_contact_residual_inputs",
     "build_sequence_problem_shadow",
     "build_sequence_problem_contract",
     "build_sequence_solver_shadow_diagnostics",

@@ -11,16 +11,24 @@ import csv
 from pathlib import Path
 from typing import Any
 
+from ..contact_constraints import adapt_contact_state_rows
+from ..human_sites import adapt_human_site_rows
 from ..solver.residual_inputs import (
     ResidualInputRequest,
     build_residual_input_bundle,
     build_state_regularization_residual_inputs,
+    build_world_space_contact_residual_inputs,
 )
+from ..state import SphereGeometryProvider
+
+
+def _read_csv(path: Path) -> list[dict[str, str]]:
+    with path.open(newline="") as handle:
+        return list(csv.DictReader(handle))
 
 
 def _read_csv_by_frame(path: Path) -> dict[int, dict[str, str]]:
-    with path.open(newline="") as handle:
-        return {int(float(row["frame"])): row for row in csv.DictReader(handle)}
+    return {int(float(row["frame"])): row for row in _read_csv(path)}
 
 
 def _finite_float(row: dict[str, str], key: str) -> float | None:
@@ -47,6 +55,10 @@ def _state_values(row: dict[str, str], fields: tuple[str, ...]) -> list[float] |
     return [float(value) for value in values]
 
 
+def _site_id(body_part: str, side: str) -> str:
+    return f"{side}_{body_part}" if side in {"left", "right"} else body_part
+
+
 def build_legacy_ball_residual_input_bundle(
     result_dir: Path,
     residual_execution_plan: dict[str, object] | object,
@@ -56,8 +68,38 @@ def build_legacy_ball_residual_input_bundle(
     pose_by_frame = _read_csv_by_frame(result_dir / "object_pose.csv")
     init_by_frame = _read_csv_by_frame(result_dir / "object_pose_init.csv")
     obs_by_frame = _read_csv_by_frame(result_dir / "object_observations.csv")
-    contact_by_frame = _read_csv_by_frame(result_dir / "object_contact_points.csv")
     frames = sorted(set(pose_by_frame) & set(obs_by_frame))
+    sample_id = "legacy_ball_residual_parity"
+    contact_states = adapt_contact_state_rows(
+        sample_id,
+        _read_csv(result_dir / "contact_state_frames.csv"),
+        str(result_dir / "contact_state_frames.csv"),
+    )
+    human_sites = adapt_human_site_rows(
+        sample_id,
+        _read_csv(result_dir / "human_sites.csv"),
+        str(result_dir / "human_sites.csv"),
+    ).measurements
+    human_sites_by_key = {
+        (site.frame, _site_id(site.site.body_part, site.site.side)): site.xyz_m for site in human_sites
+    }
+    object_states = {
+        frame: xyz for frame, row in pose_by_frame.items() if (xyz := _pose_xyz(row)) is not None
+    }
+    radius_m = _finite_float(pose_by_frame[min(pose_by_frame)], "radius_m")
+    if radius_m is None or radius_m <= 0.0:
+        raise ValueError("legacy sphere parity input requires a positive radius_m")
+    sphere_geometry = SphereGeometryProvider(radius_m)
+    active_frames: list[int] = []
+    source_sites: dict[int, tuple[float, float, float]] = {}
+    for state in contact_states:
+        if not state.human_active:
+            continue
+        site = human_sites_by_key.get((state.frame, _site_id(state.human_site.body_part, state.human_site.side)))
+        if site is None:
+            continue
+        active_frames.append(state.frame)
+        source_sites[state.frame] = site
 
     def metric_depth(_: ResidualInputRequest) -> dict[str, Any] | None:
         predicted: list[float] = []
@@ -78,29 +120,18 @@ def build_legacy_ball_residual_input_bundle(
             "sigma_m": 1.0,
         }
 
-    def contact_distance(_: ResidualInputRequest) -> dict[str, Any] | None:
-        # Historical 2.5D proxy only. Production contact must use GeometryProvider
-        # world-space entity sites instead of these image/depth-offset columns.
-        anchors: list[list[float]] = []
-        targets: list[list[float]] = []
-        for frame, contact in sorted(contact_by_frame.items()):
-            if contact.get("contact_active") != "1":
-                continue
-            pose = pose_by_frame.get(frame)
-            if pose is None:
-                continue
-            cu = _finite_float(contact, "contact_u")
-            cv = _finite_float(contact, "contact_v")
-            dz = _finite_float(contact, "contact_depth_offset_m") or 0.0
-            pu = _finite_float(pose, "u_proj")
-            pv = _finite_float(pose, "v_proj")
-            if cu is None or cv is None or pu is None or pv is None:
-                continue
-            anchors.append([cu, cv, dz])
-            targets.append([pu, pv, 0.0])
-        if not anchors:
-            return None
-        return {"anchors": anchors, "targets": targets, "weight": 1.0, "sigma_m": 1.0}
+    def contact_distance(request: ResidualInputRequest) -> dict[str, Any] | None:
+        payload = build_world_space_contact_residual_inputs(
+            factor_id=request.factor_id,
+            geometry_provider=sphere_geometry,
+            object_states=object_states,
+            source_sites=source_sites,
+            active_frames=active_frames,
+            object_feature_id="object:surface",
+            weight=1.0,
+            sigma_m=1.0,
+        )
+        return payload.get(request.factor_id)
 
     def temporal(request: ResidualInputRequest) -> dict[str, Any] | None:
         ordered_xyz = [(frame, _pose_xyz(pose_by_frame[frame])) for frame in sorted(pose_by_frame)]

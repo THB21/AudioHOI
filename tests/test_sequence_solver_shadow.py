@@ -29,6 +29,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     build_generic_residual_execution_plan,
     build_residual_input_bundle,
     build_state_regularization_residual_inputs,
+    build_world_space_contact_residual_inputs,
     build_sequence_solver_shadow_diagnostics,
     validate_candidate_sandbox_manifest,
     validate_sequence_problem_shadow,
@@ -37,6 +38,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     verify_sequence_solver_diagnostics_summary,
     write_candidate_sandbox_manifest,
 )
+from scripts.shared.generic_contact_pipeline.core.state import SphereGeometryProvider
 
 
 REPO = Path(__file__).resolve().parents[1]
@@ -419,6 +421,28 @@ def test_core_solver_api_does_not_expose_case_named_residual_builders() -> None:
     assert not hasattr(solver_api, "build_legacy_ball_residual_input_bundle")
 
 
+def test_world_space_contact_inputs_use_geometry_feature_points() -> None:
+    payload = build_world_space_contact_residual_inputs(
+        factor_id="contact_distance:entity_edge",
+        geometry_provider=SphereGeometryProvider(radius_m=1.0),
+        object_states={1: (0.0, 0.0, 0.0), 2: (1.0, 0.0, 0.0)},
+        source_sites={1: (2.0, 0.0, 0.0), 2: (3.0, 0.0, 0.0)},
+        active_frames=(2,),
+        object_feature_id="object:surface",
+        weight=2.0,
+        sigma_m=0.5,
+    )
+
+    assert payload == {
+        "contact_distance:entity_edge": {
+            "anchors": [[3.0, 0.0, 0.0]],
+            "targets": [[2.0, 0.0, 0.0]],
+            "weight": 2.0,
+            "sigma_m": 0.5,
+        }
+    }
+
+
 def test_legacy_ball_residual_input_bundle_executes_generic_depth_contact_temporal_blocks() -> None:
     for case_name, case_dir in (("basketball", "01_basketball"), ("football", "10_football")):
         result_dir = REPO / f"samples_known_object/{case_dir}/results/benchmark_vlm_qwen"
@@ -436,6 +460,23 @@ def test_legacy_ball_residual_input_bundle_executes_generic_depth_contact_tempor
         assert dry_run.case_dispatch_used is False
         assert all(record.residual_count > 0 for record in executed.values())
         assert all(record.rms >= 0.0 for record in executed.values())
+
+
+def test_legacy_ball_contact_parity_adapter_emits_world_space_meter_sites() -> None:
+    for case_name, case_dir in (("basketball", "01_basketball"), ("football", "10_football")):
+        result_dir = REPO / f"samples_known_object/{case_dir}/results/benchmark_vlm_qwen"
+        problem = build_sequence_problem_shadow(load_case_profile(case_name), result_dir)
+        bundle = build_legacy_ball_residual_input_bundle(result_dir, problem["residual_execution_plan"])
+        contact_payloads = [
+            payload for factor_id, payload in bundle.items() if factor_id.startswith("contact_distance:")
+        ]
+
+        assert contact_payloads
+        for payload in contact_payloads:
+            assert payload["anchors"]
+            assert payload["targets"]
+            assert max(abs(value) for point in payload["anchors"] for value in point) < 20.0
+            assert max(abs(value) for point in payload["targets"] for value in point) < 20.0
 
 
 def test_state_regularization_inputs_are_generic_state_reference_contract() -> None:

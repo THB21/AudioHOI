@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及按 residual capability 解析显式输入的 case-independent provider boundary；五个 canonical case 的 residual capability pending 已清零。篮球 / 足球 legacy CSV 只由 evaluation parity adapter 转换，`core.solver` 不再公开 ball-named residual builder；state regularization 的 core contract 只消费数值 state/reference vectors。暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 让 runtime input provider 直接从 typed MeasurementIR、StateSpec、InteractionStateIR 和 GeometryProvider 构造输入，而不是依赖 legacy evaluation CSV；优先把 ball contact 2.5D parity adapter 替换为 GeometryProvider 3D entity-site distance，并对 basketball / football 执行旧 optimizer residual parity；随后将同一 case-independent provider boundary 接到 mug / chair / stick。保持不 solve、不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及按 residual capability 解析显式输入的 case-independent provider boundary；五个 canonical case 的 residual capability pending 已清零。`core.solver` 不再公开 ball-named residual builder；state regularization 只消费数值 state/reference vectors；contact residual 已新增 geometry-family `GeometryProvider` world-space entity-site contract，篮球 / 足球 parity adapter 已从 legacy 2.5D 像素代理切为 typed human site + typed contact state + sphere surface 3D site。暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 对 basketball / football 的新 3D contact residual 与旧 optimizer trace 做语义 parity（旧 trace 若本身是 2.5D，只保留审计对照，不要求数值伪一致）；让 metric depth、temporal、pose prior 等 runtime providers 同样直接消费 typed MeasurementIR / StateSpec / InteractionStateIR；随后为 capsule、rigid mesh、articulated URDF 补对应 GeometryProvider，并将同一 case-independent provider boundary 接到 mug / chair / stick。保持不 solve、不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1332,6 +1332,14 @@ YYYY-MM-DD:
 ```
 
 ## 21. 维护记录
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: local commit `Add world-space geometry contact inputs`; use `git log -1` for the self-referential hash.
+- change: 新增最小 `GeometryProvider.contact_point_world(state, feature_id, query_world_m)` protocol 和 `SphereGeometryProvider`，并新增 case-independent `build_world_space_contact_residual_inputs()`，按 active frame 将任意 source entity 3D site 与 object geometry feature 的 world-space 3D site 配对。篮球 / 足球 legacy parity adapter 不再读取 `object_contact_points.csv` 的 `contact_u/contact_v/contact_depth_offset_m` 来构造 contact residual；现在读取 typed `human_sites` 与 typed contact state，并由 sphere provider 计算最近球面接触点。该接口没有 `case_name`、human-only 假设或 ball dispatcher。
+- verification: TDD 先确认 world-space builder import 缺失；实现后通用 provider 测试通过。第二个 RED 明确捕获旧 payload 中 `616px` 坐标，接入 typed 3D sites 后通过。完整相关回归为 `70 passed in 119.61s`；三个五-case verifier 均通过。dry-run 仍为 basketball / football 各 `executed=10 skipped=0`；basketball 两个 3D contact blocks 各 `residual_count=168 rms=0.018234`，football 各 `residual_count=48 rms=0.119244`。
+- remaining gap: 当前只实现 sphere geometry family；capsule、rigid mesh、articulated URDF 尚未实现同一 world-space contact provider。球类仍由 evaluation parity adapter 从历史 object pose 读取当前 state，因此尚不是 production solve 输入；旧 optimizer trace parity 尚未完成，也未 solve、未写 accepted output。
 
 2026-07-29:
 

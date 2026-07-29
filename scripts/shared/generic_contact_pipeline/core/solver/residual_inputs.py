@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Callable, Iterable, Mapping, Sequence
+
+from ..state.geometry_provider import GeometryProvider
 
 
 @dataclass(frozen=True)
@@ -96,5 +98,43 @@ def build_state_regularization_residual_inputs(
             "target": numeric_target,
             "weight": float(weight),
             "scales": [[float(scale) for scale in scales] for _ in numeric_values],
+        }
+    }
+
+
+def build_world_space_contact_residual_inputs(
+    *,
+    factor_id: str,
+    geometry_provider: GeometryProvider,
+    object_states: Mapping[int, Sequence[float]],
+    source_sites: Mapping[int, Sequence[float]],
+    active_frames: Iterable[int],
+    object_feature_id: str,
+    weight: float,
+    sigma_m: float,
+) -> dict[str, dict[str, Any]]:
+    """Resolve world-space entity-site pairs for a contact factor."""
+
+    anchors: list[list[float]] = []
+    targets: list[list[float]] = []
+    for frame in sorted(set(int(value) for value in active_frames)):
+        state = object_states.get(frame)
+        source = source_sites.get(frame)
+        if state is None or source is None:
+            continue
+        source_xyz = [float(value) for value in source]
+        if len(source_xyz) != 3:
+            raise ValueError("world-space source sites must have exactly three coordinates")
+        target_xyz = geometry_provider.contact_point_world(state, object_feature_id, source_xyz)
+        anchors.append(source_xyz)
+        targets.append([float(value) for value in target_xyz])
+    if not anchors:
+        return {}
+    return {
+        factor_id: {
+            "anchors": anchors,
+            "targets": targets,
+            "weight": float(weight),
+            "sigma_m": float(sigma_m),
         }
     }

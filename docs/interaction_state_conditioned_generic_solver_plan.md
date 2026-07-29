@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR` 和 typed `AudioEventIR`，并将 Measurement / Audio / Contact / Interaction hashes 纳入 `SequenceProblemContract`；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic runtime / attempt / residual execution 边界，以及按 residual capability 解析显式输入的 case-independent provider boundary。contact/audio artifact 按能力路径解析，不依赖 case：mug 现为 240 帧 active/persistent grasp，chair 为 125 帧 grasp + 1 release，且五 case 共享 `results/events/audio_events.csv` 能进入正式 contract。audio factor 只有在 audio peak 与 inferred impact/release transition 同时存在时 active；chair 只激活 frame 145 的 release event，而非把 8 个峰值全部当 contact。world-space contact 已具备 sphere、capsule、periodic rigid semantic feature cloud、articulated semantic feature cloud 四类 GeometryProvider。stick / mug 的真实 geometry/contact dry-run 已 `skipped=0`；chair 的 contact、joint、temporal、pose/reg 与真实 audio alignment 已执行。GVHMR 只读 site extractor 记录输入及 body-model hash。暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | legacy loss audit 的精确 alias 已从 factor compiler 输入中移除；下一步从 typed point/line/depth measurements、StateSpec initializer、geometry support query 和 contact-chord observation 显式编译真实 reprojection、depth、acceleration、pose-prior、support/gauge factors，不能再借用 audit alias 补齐 factor 数量。随后做旧 optimizer trace 语义 parity，再让 `GenericSequenceExecutor` 真正消费 runtime bundles。保持严格 object-only，不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR` 和 typed `AudioEventIR`，并将 Measurement / Audio / Contact / Interaction hashes 纳入 `SequenceProblemContract`；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic runtime / attempt / residual execution 边界，以及按 residual capability 解析显式输入的 case-independent provider boundary。contact/audio artifact 按能力路径解析，不依赖 case：mug 现为 240 帧 active/persistent grasp，chair 为 125 帧 grasp + 1 release，且五 case 共享 `results/events/audio_events.csv` 能进入正式 contract。audio factor 只有在 audio peak 与 inferred impact/release transition 同时存在时 active；chair 只激活 frame 145 的 release event，而非把 8 个峰值全部当 contact。world-space contact 已具备 sphere、capsule、periodic rigid semantic feature cloud、articulated semantic feature cloud 四类 GeometryProvider。stick / mug 的真实 geometry/contact dry-run 已 `skipped=0`；chair 的 typed line reprojection、contact、joint、temporal、pose/reg 与真实 audio alignment 已执行。chair 原 legacy `E_visual` audit 因子已由 822 条 `Line2DMeasurement` 替换。GVHMR 只读 site extractor 记录输入及 body-model hash。暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | legacy loss audit 的精确 alias 和 chair 假 visual factor 已从 compiler 输入中移除；下一步从 typed depth measurement、geometry support query 和 contact-chord observation 显式编译真实 depth、support/gauge factors。随后做旧 optimizer trace 语义 parity，再让 `GenericSequenceExecutor` 真正消费 runtime bundles。保持严格 object-only，不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1351,6 +1351,14 @@ YYYY-MM-DD:
 ```
 
 ## 21. 维护记录
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update.
+- change: 新增通用 `FeaturePointGeometryProvider`、`PinholeCamera`、`LineReprojectionFactorInput` 和 `FactorResidualEvaluator.line_reprojection()`；line residual 只消费 typed `Line2DMeasurement`、显式逐帧 object state、camera 和 semantic geometry feature，不读取 case name。factor adapter 在任何 legacy observation 可适配为 line measurement 时，删除 `non_invasive_loss_audit` 产生的假 `POINT_REPROJECTION/E_visual`，改声明 `line_reprojection:measurement_ir`。chair coverage contract 同步从 point 改为 line；未新增测试。
+- verification: canonical chair observation 共适配 822 条 line measurements：backrest top / seat front 各 192，front legs 各 105，rear legs 各 114。使用 `ArticulatedFeatureGeometryProvider`、root SE(3)、两个 joint state 和逐帧 pinhole camera 做真实 generic dry-run，执行 3288 个端点 residual，RMS `1.618973538927`，residual SHA-256 `2be48e9ed2b3d7e2e7cd4f403f0559e83fc292ce9fa7ca79cfadae15b58f55dd`；`solver_executed=False`、`accepted_outputs_written=False`。chair factor count 保持 11，但 kind 从 fake point 替换为 typed line。未新增测试；现有目标回归 60 项退出 0，factor / sequence problem / diagnostics / candidate sandbox 四个五-case verifier 均退出 0。materialized candidate golden 在 `/tmp` 隔离目录重建并再次校验，五 case 均 materialized，canonical result 未写入。
+- remaining gap: line residual 已是真实通用数学 block，但目前仍以 canonical pose 做 residual parity，尚未进入 production solve。chair 的 `support_and_penetration` 与 contact-chord `gauge_constraint` 仍需由显式 geometry/support/chord 输入替换 audit/diagnostic 声明；完成后才能推进唯一 executor solve。
 
 2026-07-29:
 

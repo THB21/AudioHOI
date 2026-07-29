@@ -5,7 +5,8 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from ..audio_events import AudioEvent
 from ..interaction import ContactStateAxis, InteractionContactMode, InteractionTimeline
-from ..state.geometry_provider import GeometryProvider
+from ..measurements import Line2DMeasurement
+from ..state.geometry_provider import FeaturePointGeometryProvider, GeometryProvider, PinholeCamera
 
 
 @dataclass(frozen=True)
@@ -86,6 +87,16 @@ class AudioAlignmentFactorInput:
     timeline: InteractionTimeline
     weight: float = 1.0
     sigma_s: float = 1.0
+
+
+@dataclass(frozen=True)
+class LineReprojectionFactorInput:
+    geometry_provider: FeaturePointGeometryProvider
+    measurements: tuple[Line2DMeasurement, ...]
+    cameras_by_frame: Mapping[int, PinholeCamera]
+    weight: float = 1.0
+    sigma_px: float = 1.0
+    allow_endpoint_swap: bool = False
 
 
 def _numeric_vector(values: Sequence[float], label: str) -> list[float]:
@@ -191,6 +202,52 @@ def build_metric_depth_residual_inputs(
             "target_depth_m": [float(target_depth_by_frame[frame]) for frame in frames],
             "weight": float(weight),
             "sigma_m": float(sigma_m),
+        }
+    }
+
+
+def build_line_reprojection_residual_inputs(
+    *,
+    factor_id: str,
+    geometry_provider: FeaturePointGeometryProvider,
+    object_states: Mapping[int, Sequence[float]],
+    measurements: Sequence[Line2DMeasurement],
+    cameras_by_frame: Mapping[int, PinholeCamera],
+    weight: float,
+    sigma_px: float,
+    allow_endpoint_swap: bool,
+) -> dict[str, dict[str, Any]]:
+    predicted: list[list[list[float]]] = []
+    target: list[list[list[float]]] = []
+    for measurement in measurements:
+        frame = measurement.meta.frame
+        state = object_states.get(frame)
+        camera = cameras_by_frame.get(frame)
+        if state is None or camera is None:
+            continue
+        points = geometry_provider.feature_points_world(
+            state,
+            measurement.meta.feature.geometry_feature_id,
+        )
+        if points.shape != (2, 3):
+            raise ValueError("line geometry features must resolve to exactly two 3D endpoints")
+        projected = camera.project(points)
+        predicted.append(projected.astype(float).tolist())
+        target.append(
+            [
+                [float(value) for value in measurement.start_uv],
+                [float(value) for value in measurement.end_uv],
+            ]
+        )
+    if not predicted:
+        return {}
+    return {
+        factor_id: {
+            "predicted": predicted,
+            "target": target,
+            "weight": float(weight),
+            "sigma_px": float(sigma_px),
+            "allow_endpoint_swap": bool(allow_endpoint_swap),
         }
     }
 
@@ -450,6 +507,7 @@ def build_geometry_sequence_residual_input_bundle(
     joint_limit_factors: Mapping[str, JointLimitFactorInput] | None = None,
     gauge_factors: Mapping[str, GaugeFactorInput] | None = None,
     audio_alignment_factors: Mapping[str, AudioAlignmentFactorInput] | None = None,
+    line_reprojection_factors: Mapping[str, LineReprojectionFactorInput] | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Build common sequence residuals from explicit state and factor inputs.
 
@@ -567,6 +625,22 @@ def build_geometry_sequence_residual_input_bundle(
         )
         return payload.get(request.factor_id)
 
+    def line_reprojection(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (line_reprojection_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        payload = build_line_reprojection_residual_inputs(
+            factor_id=request.factor_id,
+            geometry_provider=factor.geometry_provider,
+            object_states=object_states,
+            measurements=factor.measurements,
+            cameras_by_frame=factor.cameras_by_frame,
+            weight=factor.weight,
+            sigma_px=factor.sigma_px,
+            allow_endpoint_swap=factor.allow_endpoint_swap,
+        )
+        return payload.get(request.factor_id)
+
     return build_residual_input_bundle(
         residual_execution_plan,
         {
@@ -579,5 +653,6 @@ def build_geometry_sequence_residual_input_bundle(
             "shadow_residual::joint_limit": joint_limit,
             "shadow_residual::gauge_constraint": gauge,
             "shadow_residual::audio_event_prior": audio_alignment,
+            "shadow_residual::line_reprojection": line_reprojection,
         },
     )

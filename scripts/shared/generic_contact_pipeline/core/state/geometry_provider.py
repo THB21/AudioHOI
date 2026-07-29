@@ -20,6 +20,34 @@ class GeometryProvider(Protocol):
     ) -> tuple[float, float, float]: ...
 
 
+class FeaturePointGeometryProvider(GeometryProvider, Protocol):
+    def feature_points_world(self, state: Sequence[float], feature_id: str) -> np.ndarray: ...
+
+
+@dataclass(frozen=True)
+class PinholeCamera:
+    fx: float
+    fy: float
+    cx: float
+    cy: float
+
+    def __post_init__(self) -> None:
+        values = (self.fx, self.fy, self.cx, self.cy)
+        if not all(isfinite(value) for value in values) or self.fx <= 0.0 or self.fy <= 0.0:
+            raise ValueError("pinhole camera intrinsics must be finite with positive focal lengths")
+
+    def project(self, points_world: Sequence[Sequence[float]]) -> np.ndarray:
+        points = _point_cloud(points_world, "world feature points")
+        if np.any(points[:, 2] <= 1e-9):
+            raise ValueError("pinhole projection requires positive camera-space depth")
+        return np.column_stack(
+            (
+                self.fx * points[:, 0] / points[:, 2] + self.cx,
+                self.fy * points[:, 1] / points[:, 2] + self.cy,
+            )
+        )
+
+
 def _xyz(values: Sequence[float], label: str) -> tuple[float, float, float]:
     if len(values) < 3:
         raise ValueError(f"{label} requires at least three coordinates")
@@ -126,25 +154,32 @@ class CapsuleGeometryProvider:
         if axis.shape != (3,) or not np.isfinite(axis).all() or float(np.linalg.norm(axis)) <= 1e-12:
             raise ValueError("capsule axis must be a finite nonzero vector")
 
-    def contact_point_world(
-        self,
-        state: Sequence[float],
-        feature_id: str,
-        query_world_m: Sequence[float],
-    ) -> tuple[float, float, float]:
+    def feature_points_world(self, state: Sequence[float], feature_id: str) -> np.ndarray:
         center = np.asarray(_xyz(state, "capsule state"), dtype=float)
         axis = _rotation_from_state(state) @ np.asarray(self.axis_local, dtype=float)
         axis /= np.linalg.norm(axis)
         left = center - 0.5 * self.length_m * axis
         right = center + 0.5 * self.length_m * axis
         if feature_id == "object:center":
-            return tuple(float(value) for value in center)
+            return center[None, :]
         if feature_id == "line:left_endpoint":
-            return tuple(float(value) for value in left)
+            return left[None, :]
         if feature_id == "line:right_endpoint":
-            return tuple(float(value) for value in right)
+            return right[None, :]
         if feature_id not in {"line:axis", "object:surface"}:
             raise ValueError(f"unsupported capsule feature: {feature_id}")
+        return np.vstack((left, right))
+
+    def contact_point_world(
+        self,
+        state: Sequence[float],
+        feature_id: str,
+        query_world_m: Sequence[float],
+    ) -> tuple[float, float, float]:
+        points = self.feature_points_world(state, feature_id)
+        if feature_id in {"object:center", "line:left_endpoint", "line:right_endpoint"}:
+            return tuple(float(value) for value in points[0])
+        left, right = points
         query = np.asarray(_xyz(query_world_m, "contact query"), dtype=float)
         segment = right - left
         alpha = float(np.clip(np.dot(query - left, segment) / np.dot(segment, segment), 0.0, 1.0))

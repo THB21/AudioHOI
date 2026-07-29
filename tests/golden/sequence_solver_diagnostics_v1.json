@@ -56,8 +56,8 @@
       "canonical_sha256": "3098d92920d961d94bbe74c1c5ae8b56db303865d9fbb3d4b114fcca2671dbd6"
     },
     "chair": {
-      "problem_sha256": "a0c4b02986e0ddce9c53e9dabb2c3f2d5531b86acde05bf1986dceee444b5a3a",
-      "attempt_id": "generic-attempt-ff62d099b88b",
+      "problem_sha256": "2998545e181b95c7c92a668f64162bbc98dab116acce637c7519ddfe6a740962",
+      "attempt_id": "generic-attempt-67f895f099a7",
       "status": "ready_for_future_shadow_solve",
       "blocking_gap_ids": [],
       "nonblocking_gap_ids": [],
@@ -71,7 +71,7 @@
       "accepted_outputs_written": false,
       "baseline_pose_read": false,
       "validation_errors": [],
-      "canonical_sha256": "53dadf8ea11f37ed498d84cc2347e6f7bc78cc228c10d065e119aefcff7b83a1"
+      "canonical_sha256": "1332f58f331160db0724362c5a5939132ccd72285c9c53a6d9411cbb9dbe382a"
     },
     "stick": {
       "problem_sha256": "f75b0d8779395f8c7e5c9e827e6980cf0e7be66a9a7b7660787b0a4752b2126a",

@@ -24,7 +24,7 @@ CHAIR_FACTOR_SAFE_OUTPUTS = [
     CHAIR_FACTOR_RESIDUAL_TABLE_NAME,
 ]
 CHAIR_SUPPORTED_RESIDUAL_BLOCKS = (
-    "point_reprojection",
+    "line_reprojection",
     "contact_distance",
     "joint_limit",
     "gauge_constraint",
@@ -109,7 +109,7 @@ def build_chair_factor_residual_coverage(profile: CaseProfile, result_dir: Path)
             raw_kind = record.get("kind")
             kind = str(raw_kind.value if hasattr(raw_kind, "value") else raw_kind)
             by_kind.setdefault(kind, []).append(str(record.get("factor_id")))
-    required = ("point_reprojection", "contact_distance", "joint_limit", "gauge_constraint")
+    required = ("line_reprojection", "contact_distance", "joint_limit", "gauge_constraint")
     payload = {
         "schema_version": 1,
         "mode": "chair_generic_factor_residual_coverage",
@@ -154,7 +154,7 @@ def validate_chair_factor_residual_coverage(payload: dict[str, object]) -> list[
     if not isinstance(by_kind, dict):
         errors.append("chair factor residual coverage must record factor ids by kind")
         by_kind = {}
-    for kind in ("point_reprojection", "contact_distance", "joint_limit", "gauge_constraint"):
+    for kind in ("line_reprojection", "contact_distance", "joint_limit", "gauge_constraint"):
         if kind not in by_kind:
             errors.append(f"chair factor residual coverage missing required factor kind {kind}")
     return errors

@@ -50,7 +50,7 @@
         "contact_distance": 1,
         "gauge_constraint": 1,
         "joint_limit": 2,
-        "point_reprojection": 1,
+        "line_reprojection": 1,
         "pose_prior": 1,
         "regularization": 1,
         "support_and_penetration": 1,
@@ -59,7 +59,7 @@
       },
       "gap_ids": [],
       "unmapped_nonempty_fields": [],
-      "canonical_sha256": "9847e31a9711420f46293b935542f10be77b03404e227e0dc8a454a47316a680"
+      "canonical_sha256": "e3ea037a183fcd898d366c54ac151fc664e458c2f057d640ad418acbae4a47ab"
     },
     "stick": {
       "factor_count": 5,

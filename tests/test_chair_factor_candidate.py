@@ -38,7 +38,7 @@ def test_chair_factor_candidate_attempt_writes_only_safe_manifest(tmp_path: Path
     assert attempt["accepted_outputs_written"] is False
     assert attempt["baseline_pose_read"] is False
     assert attempt["missing_required_factor_kinds"] == []
-    assert {"point_reprojection", "contact_distance", "joint_limit", "gauge_constraint"}.issubset(
+    assert {"line_reprojection", "contact_distance", "joint_limit", "gauge_constraint"}.issubset(
         attempt["supported_residual_blocks"]
     )
     assert {path.name for path in candidate_dir.iterdir()} == {

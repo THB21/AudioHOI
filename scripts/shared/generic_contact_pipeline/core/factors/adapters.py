@@ -8,6 +8,7 @@ from pathlib import Path
 
 from ..base.config import CaseProfile
 from ..base.io import repo_relative_value
+from ..measurements import Line2DMeasurement, adapt_legacy_observation_rows
 from .types import (
     FactorEnergySummary,
     FactorGap,
@@ -170,6 +171,8 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
     stage4_metrics = _read_json(result_dir / "stage4_metrics.json")
     contact_csv = result_dir / "object_contact_points.csv"
     contact_rows = _read_csv(contact_csv)
+    observation_csv = result_dir / "object_observations.csv"
+    observation_rows = _read_csv(observation_csv)
     active_terms = set(loss_summary.get("active_terms", [])) if isinstance(loss_summary.get("active_terms", []), list) else set()
 
     mapped = {"frame", "time", "source", "E_total"}
@@ -233,6 +236,68 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                     weight_source=f"legacy_optimizer_style_residual_report:{stage_label}:{term}",
                     gate_source=None,
                     residual_source=_source(summary_path, ("terms", term), "optimizer_style_residual_report"),
+                )
+            )
+
+    if observation_rows:
+        typed_observations = adapt_legacy_observation_rows(
+            profile.case_name,
+            observation_rows,
+            str(repo_relative_value(observation_csv)),
+        ).measurements
+        line_measurements = tuple(
+            measurement
+            for measurement in typed_observations
+            if isinstance(measurement, Line2DMeasurement)
+        )
+        if line_measurements:
+            factors = [
+                factor
+                for factor in factors
+                if not (
+                    factor.kind == FactorKind.POINT_REPROJECTION
+                    and factor.residual_source.producer == "non_invasive_loss_audit"
+                )
+            ]
+            summaries = [
+                summary
+                for summary in summaries
+                if not (
+                    summary.kind == FactorKind.POINT_REPROJECTION
+                    and summary.term in {"E_2d", "E_visual"}
+                )
+            ]
+            source_fields = tuple(
+                sorted(
+                    {
+                        field
+                        for measurement in line_measurements
+                        for field in measurement.meta.source.fields
+                    }
+                )
+            )
+            factors.append(
+                FactorSpec(
+                    factor_id="line_reprojection:measurement_ir",
+                    kind=FactorKind.LINE_REPROJECTION,
+                    frame_count=len(line_measurements),
+                    input_refs=_input_refs(FactorKind.LINE_REPROJECTION),
+                    residual_unit="pixel_endpoint_delta",
+                    weight_source="factor_runtime_configuration:line_reprojection",
+                    gate_source="VisibilityState activation",
+                    residual_source=_source(
+                        observation_csv,
+                        source_fields,
+                        "measurement_ir_line_observation",
+                    ),
+                )
+            )
+            summaries.append(
+                FactorEnergySummary(
+                    "measurement_ir:line_reprojection",
+                    FactorKind.LINE_REPROJECTION,
+                    len(line_measurements),
+                    0.0,
                 )
             )
 

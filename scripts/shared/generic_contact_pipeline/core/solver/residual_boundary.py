@@ -13,6 +13,7 @@ from .runtime import GenericExecutorAttemptLedger
 
 SUPPORTED_RESIDUAL_REFS = {
     "shadow_residual::point_reprojection": "FactorResidualEvaluator.point_reprojection",
+    "shadow_residual::line_reprojection": "FactorResidualEvaluator.line_reprojection",
     "shadow_residual::contact_distance": "FactorResidualEvaluator.contact_distance",
     "shadow_residual::metric_depth": "FactorResidualEvaluator.metric_depth",
     "shadow_residual::support_and_penetration": "FactorResidualEvaluator.support_penetration",

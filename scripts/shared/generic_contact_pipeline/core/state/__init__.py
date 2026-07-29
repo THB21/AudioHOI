@@ -4,7 +4,9 @@ from .golden import build_canonical_state_shadow_summary, verify_state_shadow_su
 from .geometry_provider import (
     ArticulatedFeatureGeometryProvider,
     CapsuleGeometryProvider,
+    FeaturePointGeometryProvider,
     GeometryProvider,
+    PinholeCamera,
     PeriodicFeatureRule,
     RigidFeatureGeometryProvider,
     SphereGeometryProvider,
@@ -32,6 +34,8 @@ __all__ = [
     "GeometryDescriptor",
     "GeometryKind",
     "GeometryProvider",
+    "FeaturePointGeometryProvider",
+    "PinholeCamera",
     "PeriodicFeatureRule",
     "StateAdaptationResult",
     "StateSpec",

@@ -18,6 +18,26 @@ class FactorResidualEvaluator:
             raise ValueError("point reprojection residuals require matching (N, 2) arrays")
         return (float(weight) * (predicted - target).reshape(-1) / float(sigma_px)).astype(float)
 
+    def line_reprojection(
+        self,
+        predicted: np.ndarray,
+        target: np.ndarray,
+        *,
+        weight: float,
+        sigma_px: float,
+        allow_endpoint_swap: bool,
+    ) -> np.ndarray:
+        if predicted.shape != target.shape or predicted.ndim != 3 or predicted.shape[1:] != (2, 2):
+            raise ValueError("line reprojection residuals require matching (N, 2, 2) endpoint arrays")
+        aligned = predicted.copy()
+        if allow_endpoint_swap:
+            direct_cost = np.sum((predicted - target) ** 2, axis=(1, 2))
+            swapped = predicted[:, ::-1, :]
+            swap_cost = np.sum((swapped - target) ** 2, axis=(1, 2))
+            swap_mask = swap_cost < direct_cost
+            aligned[swap_mask] = swapped[swap_mask]
+        return (float(weight) * (aligned - target).reshape(-1) / float(sigma_px)).astype(float)
+
     def contact_distance(self, anchors: np.ndarray, targets: np.ndarray, *, weight: float, sigma_m: float) -> np.ndarray:
         if anchors.shape != targets.shape or anchors.ndim != 2 or anchors.shape[1] != 3:
             raise ValueError("contact distance residuals require matching (N, 3) arrays")

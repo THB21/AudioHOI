@@ -11,7 +11,7 @@ from .shadow import build_factor_shadow
 
 CHAIR_FACTOR_BUNDLE_MODE = "chair_generic_factor_executor_bundle_shadow"
 CHAIR_REQUIRED_EXECUTOR_FACTOR_KINDS = (
-    "point_reprojection",
+    "line_reprojection",
     "contact_distance",
     "joint_limit",
     "gauge_constraint",

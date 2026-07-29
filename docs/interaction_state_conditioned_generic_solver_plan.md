@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及按 residual capability 解析显式输入的 case-independent provider boundary；五个 canonical case 的 residual capability pending 已清零。`core.solver` 不再公开 ball-named residual builder；state regularization、metric depth、full-sequence first/second-order temporal 和 pose prior 均已有纯数值通用 input builders；contact residual 已新增 geometry-family `GeometryProvider` world-space entity-site contract，篮球 / 足球 parity adapter 已从 legacy 2.5D 像素代理切为 typed human site + typed contact state + sphere surface 3D site。暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 对 basketball / football 的新 3D contact 与 full-sequence temporal residual 做旧 optimizer trace 语义 parity（旧 trace 若本身只评估单帧或 2.5D，只保留审计对照，不要求数值伪一致）；随后为 capsule、rigid mesh、articulated URDF 补对应 GeometryProvider，并将同一 case-independent runtime provider boundary 接到 mug / chair / stick。保持严格 object-only，不 solve、不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及按 residual capability 解析显式输入的 case-independent provider boundary；五个 canonical case 的 residual capability pending 已清零。`core.solver` 不再公开 ball-named residual builder；state regularization、metric depth、full-sequence first/second-order temporal 和 pose prior 均已有纯数值通用 input builders；world-space contact 已具备 sphere、capsule、rigid semantic feature cloud、articulated semantic feature cloud 四类 GeometryProvider。篮球 / 足球 parity adapter 已使用 typed human site + typed contact state + sphere surface 3D site。暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 将 capsule / rigid / articulated providers 接到 stick / mug / chair 的 runtime input bundles；对 basketball / football 的新 3D contact 与 full-sequence temporal residual 做旧 optimizer trace 语义 parity；随后让五 case dry-run 均执行实际 runtime inputs，再进入统一 executor solve。保持严格 object-only，不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1351,6 +1351,14 @@ YYYY-MM-DD:
 ```
 
 ## 21. 维护记录
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: local commit `Add generic non-sphere geometry providers`; use `git log -1` for the self-referential hash.
+- change: 在同一 `GeometryProvider.contact_point_world()` capability 下新增 `CapsuleGeometryProvider`、`RigidFeatureGeometryProvider`、`ArticulatedFeatureGeometryProvider`。capsule 提供旋转后轴线、端点和最近表面点；rigid provider 对 asset semantic feature point cloud 做 quaternion / translation / optional scale 变换后选最近点；articulated provider 复用 `ArticulatedKinematicProvider` 和显式 joint-state index mapping，先关节变换再刚体变换。所有接口均不含 case / object name，不触碰人体代码。
+- verification: 未新增测试；`py_compile` 与直接数值 smoke 通过，分别得到 capsule surface `(0.0, 0.1, 0.0)`、rigid feature `(0.5, 0.0, 0.0)`、90° articulated feature approximately `(0.0, 1.0, 0.0)`。现有 state / articulated / residual / sequence 回归 `69 passed in 122.03s`。
+- remaining gap: providers 已具备 geometry-family capability，但 stick / mug / chair 的 legacy feature assets 与 state rows 尚未接到 runtime input bundle；尚未执行这三类 case 的真实 contact residual dry-run，也未 solve / publish accepted output。
 
 2026-07-29:
 

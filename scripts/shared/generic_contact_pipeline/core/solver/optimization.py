@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any, Callable, Mapping, Sequence
 
 import numpy as np
@@ -27,6 +27,7 @@ class SequenceOptimizationProblem:
     residual_input_builder: ResidualInputBuilder
     state_parameterization: StateSpecParameterization | None = None
     residual_dependencies: tuple[ResidualRowDependency, ...] = ()
+    parent_solve_attempt_id: str | None = None
     lower_bounds: tuple[tuple[float, ...], ...] | None = None
     upper_bounds: tuple[tuple[float, ...], ...] | None = None
 
@@ -54,6 +55,8 @@ class SequenceOptimizationProblem:
             raise ValueError("residual dependencies must reference selected factors")
         if any(frame not in set(self.frames) for dependency in self.residual_dependencies for frame in dependency.frames):
             raise ValueError("residual dependencies must reference sequence frames")
+        if self.parent_solve_attempt_id is not None and not self.parent_solve_attempt_id.startswith("generic-solve-"):
+            raise ValueError("parent solve attempt must use a generic-solve id")
         for bounds in (self.lower_bounds, self.upper_bounds):
             if bounds is not None and (len(bounds) != len(self.frames) or any(len(row) not in widths for row in bounds)):
                 raise ValueError("sequence optimization bounds must match state shape")
@@ -79,6 +82,8 @@ class SequenceOptimizationParameters:
 @dataclass(frozen=True)
 class GenericSequenceSolveResult:
     attempt_id: str
+    solve_attempt_id: str
+    parent_solve_attempt_id: str | None
     sequence_contract_sha256: str
     frames: tuple[int, ...]
     states: tuple[tuple[float, ...], ...]
@@ -230,6 +235,22 @@ def solve_sequence_optimization(
             parameter_width_per_frame=parameter_width_per_frame,
             dependencies=problem.residual_dependencies,
         )
+    solve_attempt_payload = {
+        "contract_attempt_id": problem.attempt_id,
+        "parent_solve_attempt_id": problem.parent_solve_attempt_id,
+        "sequence_contract_sha256": problem.sequence_contract_sha256,
+        "frames": problem.frames,
+        "initial_states_sha256": _canonical_hash(problem.initial_states),
+        "factor_ids": problem.factor_ids,
+        "state_spec_id": (
+            problem.state_parameterization.state_spec.spec_id
+            if problem.state_parameterization is not None
+            else None
+        ),
+        "residual_dependencies": [asdict(dependency) for dependency in problem.residual_dependencies],
+        "parameters": asdict(parameters),
+    }
+    solve_attempt_id = f"generic-solve-{_canonical_hash(solve_attempt_payload)[:12]}"
     if problem.state_parameterization is not None:
         bounds = problem.state_parameterization.parameter_bounds(len(problem.frames))
     elif problem.lower_bounds is None:
@@ -253,6 +274,8 @@ def solve_sequence_optimization(
     solved_states = states_from_vector(result.x)
     payload = {
         "attempt_id": problem.attempt_id,
+        "solve_attempt_id": solve_attempt_id,
+        "parent_solve_attempt_id": problem.parent_solve_attempt_id,
         "sequence_contract_sha256": problem.sequence_contract_sha256,
         "frames": problem.frames,
         "states": tuple(solved_states[frame] for frame in problem.frames),

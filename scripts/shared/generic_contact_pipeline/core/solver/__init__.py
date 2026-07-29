@@ -61,6 +61,12 @@ from .candidate_golden import (
     verify_materialized_candidate_summary,
     verify_candidate_sandbox_summary,
 )
+from .attempt_artifacts import (
+    ISOLATED_ATTEMPT_FILENAMES,
+    IsolatedAttemptState,
+    load_isolated_attempt_state,
+    write_isolated_sequence_attempt,
+)
 from .problem import build_sequence_problem_shadow
 from .optimization import (
     GenericSequenceSolveResult,
@@ -179,6 +185,8 @@ __all__ = [
     "GenericSequenceExecutor",
     "GenericSequenceSolveResult",
     "JointLimitFactorInput",
+    "ISOLATED_ATTEMPT_FILENAMES",
+    "IsolatedAttemptState",
     "LineReprojectionFactorInput",
     "SupportPlaneFactorInput",
     "PeriodicPhaseFactorInput",
@@ -235,6 +243,8 @@ __all__ = [
     "build_sequence_problem_shadow",
     "build_sequence_problem_contract",
     "solve_sequence_optimization",
+    "load_isolated_attempt_state",
+    "write_isolated_sequence_attempt",
     "build_sequence_solver_shadow_diagnostics",
     "build_sphere_sequence_regression_summary",
     "build_projected_periodic_regression_summary",

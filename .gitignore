@@ -327,6 +327,9 @@ samples_known_object/11_stick/results/renders/benchmark_baseline_no_vlm/
 !samples_known_object/*/results/benchmark_vlm_qwen/**/*.txt
 !samples_known_object/*/results/benchmark_vlm_qwen/**/*.jsonl
 
+# Local isolated solver attempts are reproducible runtime artifacts, not canonical outputs.
+samples_known_object/*/results/benchmark_vlm_qwen/generic_sequence_solver_attempts/
+
 # Re-ignore heavy final-run evidence/media after the compact-artifact exceptions above.
 samples_known_object/*/results/benchmark_vlm_qwen/evaluation/render_masks/
 samples_known_object/*/results/benchmark_vlm_qwen/evaluation/render_masks/**

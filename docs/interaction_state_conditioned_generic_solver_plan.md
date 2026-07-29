@@ -1357,7 +1357,7 @@ YYYY-MM-DD:
 2026-07-29:
 
 - branch: `refactor/interaction-state-production`
-- commit: pending local commit after this update.
+- commit: `46fc89b3` (`Add hard-gated object publisher`).
 - change: 新增唯一 `AcceptedObjectOutputPublisher`。publisher只接收 `GenericSequenceSolveResult + StateSpec + template rows + explicit hard gate`，固定先在 isolated candidate dir原子写 `generic_object_pose_candidate.csv`；只有所有 hard gate明确 pass才允许由这一处写 canonical `object_pose.csv`，否则记录 blocking reasons且 accepted path保持空。`prepare_generic_object_problem.py --solve` 现把正式 factory problem交给同一个 `GenericSequenceExecutor.solve()`，写标准 attempt artifacts，再进入该 publisher；不调用 chair solver、不读取 case分支、不优化人体。
 - verification: 未新增测试。canonical chair通过新链实际执行 attempt `generic-solve-d4ee76a03e2b`，三个 configured factors与1263个 sparse dependencies均来自 factory；100 eval将 squared error `9343.73828056052 → 6404.469874500569`。publisher写出 object-only candidate，但因 hard metrics尚未正式评估，状态为 `candidate_blocked`、blocking reason=`hard_metrics_not_evaluated`、`accepted_path=None`，证明不会借统一 publisher绕过 chair gate。
 - remaining gap: 第三项仍在进行。chair已具备同一 executor→attempt→publisher链，但 canonical candidate materializer尚未切断旧 chair solver；mug与stick还需各自的 geometry-capability typed problem adapter和 production runtime factor配置，然后才能删除 `candidate.py` 中三个 case executor分支。当前不声称三 case accepted path已经统一。

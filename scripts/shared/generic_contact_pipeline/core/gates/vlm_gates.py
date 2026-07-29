@@ -20,6 +20,7 @@ GATE_FIELDS = [
     "allow_anchor_update",
     "allow_contact_residual",
     "allow_pose_refine",
+    "allow_factor_arbitration",
     "report_only",
     "is_effective",
 ]
@@ -57,6 +58,7 @@ def gate_row_from_result(row: dict[str, str]) -> dict[str, object]:
         allow_contact = False
     if gate in {GATE_REJECT, GATE_NOT_EVALUATED} and not report_only:
         allow_pose_refine = False
+    allow_factor_arbitration = qtype == "constraint_reliability_check" and gate in {GATE_PASS, GATE_UNCLEAR}
 
     return {
         "case_name": row.get("case_name", ""),
@@ -69,6 +71,7 @@ def gate_row_from_result(row: dict[str, str]) -> dict[str, object]:
         "allow_anchor_update": _bool_str(allow_anchor),
         "allow_contact_residual": _bool_str(allow_contact),
         "allow_pose_refine": _bool_str(allow_pose_refine),
+        "allow_factor_arbitration": _bool_str(allow_factor_arbitration),
         "report_only": _bool_str(report_only),
         "is_effective": _bool_str(is_effective),
     }

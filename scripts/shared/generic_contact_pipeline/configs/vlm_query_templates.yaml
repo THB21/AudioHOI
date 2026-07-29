@@ -47,6 +47,10 @@ query_types:
     stage_scope: [stage4]
     question_template: "Does the highlighted object move consistently across neighboring frames?"
     choices: [consistent, jumps_unnaturally, wrong_object_tracking, physically_implausible, unclear]
+  constraint_reliability_check:
+    stage_scope: [stage4]
+    question_template: "When the visual object measurement and the read-only human contact observation disagree, which evidence is visually reliable in this interval?"
+    choices: [visual_observation_reliable, contact_relation_reliable, both_consistent, unclear]
   post_render_sanity_check:
     stage_scope: [stage5]
     question_template: "Which failure label best describes the final rendered result?"

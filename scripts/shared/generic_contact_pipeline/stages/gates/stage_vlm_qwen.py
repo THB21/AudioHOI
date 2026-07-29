@@ -50,6 +50,11 @@ PASS_LABELS = {
     "overlay_alignment_check": {"aligned"},
     "anchor_update_check": {"improvement", "no_change"},
     "temporal_motion_check": {"consistent"},
+    "constraint_reliability_check": {
+        "visual_observation_reliable",
+        "contact_relation_reliable",
+        "both_consistent",
+    },
     "post_render_sanity_check": {"pass"},
     "baseline_regression_check": {"no_regression"},
     "loss_diagnostic_check": {"normal"},
@@ -169,6 +174,12 @@ def pass_gate(query_type: str, label: str) -> str:
 
 
 def repair_action(query_type: str, gate: str, label: str) -> str:
+    if query_type == "constraint_reliability_check":
+        if label == "both_consistent":
+            return "accept_candidate"
+        if label in {"visual_observation_reliable", "contact_relation_reliable"}:
+            return "downweight_correspondence"
+        return "unclear_no_update"
     if gate == "pass":
         return "accept_candidate"
     if gate == "unclear":

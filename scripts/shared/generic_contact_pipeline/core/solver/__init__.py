@@ -65,10 +65,12 @@ from .optimization import (
     GenericSequenceSolveResult,
     SequenceOptimizationParameters,
     SequenceOptimizationProblem,
+    build_runtime_residual_blocks,
     build_runtime_residual_vector,
     solve_sequence_optimization,
 )
 from .parameterization import StateSpecParameterization
+from .sparsity import ResidualRowDependency, build_factor_frame_jacobian_sparsity
 from .problem_contract import SequenceProblemContract, build_sequence_problem_contract, sequence_problem_contract_record
 from .runtime import (
     GenericExecutorAttemptLedger,
@@ -181,6 +183,7 @@ __all__ = [
     "PeriodicPhaseFactorInput",
     "PosePriorFactorInput",
     "ResidualBoundaryRecord",
+    "ResidualRowDependency",
     "ResidualInputRequest",
     "WorldSpaceContactSample",
     "LINE_CONTACT_ATTEMPT_NAME",
@@ -221,6 +224,8 @@ __all__ = [
     "build_pose_prior_residual_inputs",
     "build_residual_input_bundle",
     "build_runtime_residual_vector",
+    "build_runtime_residual_blocks",
+    "build_factor_frame_jacobian_sparsity",
     "build_sequence_temporal_residual_inputs",
     "build_state_regularization_residual_inputs",
     "build_world_space_contact_residual_inputs",

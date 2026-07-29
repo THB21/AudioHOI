@@ -9,6 +9,7 @@ import numpy as np
 
 from .factor_residuals import FactorResidualEvaluator
 from .parameterization import StateSpecParameterization
+from .sparsity import ResidualRowDependency, build_factor_frame_jacobian_sparsity
 
 
 StateMapping = Mapping[int, Sequence[float]]
@@ -25,6 +26,7 @@ class SequenceOptimizationProblem:
     residual_execution_plan: dict[str, object] | object
     residual_input_builder: ResidualInputBuilder
     state_parameterization: StateSpecParameterization | None = None
+    residual_dependencies: tuple[ResidualRowDependency, ...] = ()
     lower_bounds: tuple[tuple[float, ...], ...] | None = None
     upper_bounds: tuple[tuple[float, ...], ...] | None = None
 
@@ -47,6 +49,11 @@ class SequenceOptimizationProblem:
                 raise ValueError("StateSpec parameterization width must match sequence states")
             if self.lower_bounds is not None:
                 raise ValueError("explicit state bounds cannot be combined with StateSpec parameterization")
+        selected_factors = set(self.factor_ids)
+        if any(dependency.factor_id not in selected_factors for dependency in self.residual_dependencies):
+            raise ValueError("residual dependencies must reference selected factors")
+        if any(frame not in set(self.frames) for dependency in self.residual_dependencies for frame in dependency.frames):
+            raise ValueError("residual dependencies must reference sequence frames")
         for bounds in (self.lower_bounds, self.upper_bounds):
             if bounds is not None and (len(bounds) != len(self.frames) or any(len(row) not in widths for row in bounds)):
                 raise ValueError("sequence optimization bounds must match state shape")
@@ -80,6 +87,9 @@ class GenericSequenceSolveResult:
     parameterization: str
     state_dimension: int
     parameter_dimension: int
+    jacobian_sparsity_used: bool
+    jacobian_nonzero_count: int
+    jacobian_density: float
     initial_residual_count: int
     final_residual_count: int
     initial_squared_error: float
@@ -124,9 +134,21 @@ def build_runtime_residual_vector(
     residual_inputs: dict[str, dict[str, Any]],
     factor_ids: Sequence[str],
 ) -> np.ndarray:
+    blocks = build_runtime_residual_blocks(residual_execution_plan, residual_inputs, factor_ids)
+    result = np.concatenate([values for _, values in blocks])
+    if not np.isfinite(result).all():
+        raise ValueError("sequence optimization residuals must be finite")
+    return result
+
+
+def build_runtime_residual_blocks(
+    residual_execution_plan: dict[str, object] | object,
+    residual_inputs: dict[str, dict[str, Any]],
+    factor_ids: Sequence[str],
+) -> tuple[tuple[str, np.ndarray], ...]:
     selected = set(factor_ids)
     evaluator = FactorResidualEvaluator()
-    residuals: list[np.ndarray] = []
+    residuals: list[tuple[str, np.ndarray]] = []
     executed: set[str] = set()
     for record in _plan_records(residual_execution_plan):
         factor_id = str(record.get("factor_id", ""))
@@ -140,17 +162,17 @@ def build_runtime_residual_vector(
         evaluator_ref = str(record.get("evaluator_ref", ""))
         method_name = evaluator_ref.removeprefix("FactorResidualEvaluator.")
         method = getattr(evaluator, method_name)
-        residuals.append(np.asarray(method(**_array_kwargs(raw_kwargs)), dtype=float).reshape(-1))
+        values = np.asarray(method(**_array_kwargs(raw_kwargs)), dtype=float).reshape(-1)
+        if not values.size or not np.isfinite(values).all():
+            raise ValueError(f"runtime residual block must be finite and nonempty: {factor_id}")
+        residuals.append((factor_id, values))
         executed.add(factor_id)
     missing = selected - executed
     if missing:
         raise ValueError("selected factors are absent from residual execution plan: " + ",".join(sorted(missing)))
     if not residuals:
         raise ValueError("sequence optimization produced no residual blocks")
-    result = np.concatenate(residuals)
-    if not np.isfinite(result).all():
-        raise ValueError("sequence optimization residuals must be finite")
-    return result
+    return tuple(residuals)
 
 
 def solve_sequence_optimization(
@@ -190,7 +212,23 @@ def solve_sequence_optimization(
         x0 = initial.reshape(-1)
     else:
         x0 = problem.state_parameterization.initial_parameters(problem.initial_states)
-    initial_residual = residual(x0)
+    initial_states = states_from_vector(x0)
+    initial_inputs = problem.residual_input_builder(initial_states)
+    initial_blocks = build_runtime_residual_blocks(
+        problem.residual_execution_plan,
+        initial_inputs,
+        problem.factor_ids,
+    )
+    initial_residual = np.concatenate([values for _, values in initial_blocks])
+    jacobian_sparsity = None
+    if problem.residual_dependencies:
+        parameter_width_per_frame = int(x0.size // len(problem.frames))
+        jacobian_sparsity = build_factor_frame_jacobian_sparsity(
+            factor_block_sizes=tuple((factor_id, int(values.size)) for factor_id, values in initial_blocks),
+            frames=problem.frames,
+            parameter_width_per_frame=parameter_width_per_frame,
+            dependencies=problem.residual_dependencies,
+        )
     if problem.state_parameterization is not None:
         bounds = problem.state_parameterization.parameter_bounds(len(problem.frames))
     elif problem.lower_bounds is None:
@@ -208,6 +246,7 @@ def solve_sequence_optimization(
         loss=parameters.robust_loss,
         f_scale=float(parameters.robust_scale),
         max_nfev=int(parameters.max_function_evaluations),
+        jac_sparsity=jacobian_sparsity,
     )
     final_residual = residual(result.x)
     solved_states = states_from_vector(result.x)
@@ -227,6 +266,13 @@ def solve_sequence_optimization(
         ),
         "state_dimension": int(initial.size),
         "parameter_dimension": int(x0.size),
+        "jacobian_sparsity_used": jacobian_sparsity is not None,
+        "jacobian_nonzero_count": int(jacobian_sparsity.nnz) if jacobian_sparsity is not None else 0,
+        "jacobian_density": (
+            float(jacobian_sparsity.nnz / (jacobian_sparsity.shape[0] * jacobian_sparsity.shape[1]))
+            if jacobian_sparsity is not None
+            else 1.0
+        ),
         "initial_residual_count": int(initial_residual.size),
         "final_residual_count": int(final_residual.size),
         "initial_squared_error": float(np.dot(initial_residual, initial_residual)),

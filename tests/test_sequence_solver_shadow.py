@@ -23,6 +23,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     build_generic_residual_boundary,
     build_generic_residual_dry_run,
     build_generic_residual_execution_plan,
+    build_legacy_ball_residual_input_bundle,
     build_sequence_solver_shadow_diagnostics,
     validate_candidate_sandbox_manifest,
     validate_sequence_problem_shadow,
@@ -356,6 +357,25 @@ def test_generic_residual_dry_run_executes_factor_values_without_solving() -> No
     assert record.residual_count == 4
     assert record.residual_sha256
     assert record.rms > 0.0
+
+
+def test_legacy_ball_residual_input_bundle_executes_generic_point_depth_contact_temporal_blocks() -> None:
+    for case_name, case_dir in (("basketball", "01_basketball"), ("football", "10_football")):
+        result_dir = REPO / f"samples_known_object/{case_dir}/results/benchmark_vlm_qwen"
+        problem = build_sequence_problem_shadow(load_case_profile(case_name), result_dir)
+        bundle = build_legacy_ball_residual_input_bundle(result_dir, problem["residual_execution_plan"])
+        dry_run = build_generic_residual_dry_run(problem["residual_execution_plan"], bundle)
+
+        executed = {record.factor_id: record for record in dry_run.records if record.status == "executed"}
+        assert "metric_depth:stage4_anchor_depth_final:E_depth" in executed
+        assert "contact_distance:stage4_anchor_depth_final:E_contact" in executed
+        assert "temporal_velocity:stage4_anchor_depth_final:E_smooth" in executed
+        assert any(factor_id.startswith("pose_prior:") for factor_id in executed)
+        assert dry_run.solver_executed is False
+        assert dry_run.accepted_outputs_written is False
+        assert dry_run.case_dispatch_used is False
+        assert all(record.residual_count > 0 for record in executed.values())
+        assert all(record.rms >= 0.0 for record in executed.values())
 
 
 def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> None:

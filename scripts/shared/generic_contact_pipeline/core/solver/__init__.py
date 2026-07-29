@@ -17,6 +17,7 @@ from .diagnostics_golden import (
     verify_sequence_solver_diagnostics_summary,
 )
 from .factor_residuals import FactorResidualEvaluator
+from .residual_inputs import build_legacy_ball_residual_input_bundle
 from .candidate import (
     CHAIR_SANDBOX_ARTIFACTS,
     SANDBOX_MANIFEST_NAME,

@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan 和 generic residual dry-run ledger；五个 canonical case 的 residual capability pending 已清零，execution plan 均为 ready / not executed；暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 把 dry-run ledger 连接到 basketball / football 的真实 point、depth、contact、temporal runtime input bundle，做旧 residual parity；保持不 solve、不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及 basketball / football legacy runtime input bundle；五个 canonical case 的 residual capability pending 已清零，球类 depth / contact / temporal / pose-prior dry-run residual 已能执行；暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 对 basketball / football 执行 residual parity，对齐旧 optimizer trace；补 explicit regularization targets/scales；把当前 ball contact 2.5D parity adapter 替换为 GeometryProvider 3D contact site；随后扩展到 mug / chair / stick。保持不 solve、不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1344,7 +1344,15 @@ YYYY-MM-DD:
 2026-07-29:
 
 - branch: `refactor/interaction-state-production`
-- commit: pending local commit after this update
+- commit: local commit `Add ball residual input dry-run bundle`; use `git log -1` for the self-referential commit hash.
+- change: 新增 `build_legacy_ball_residual_input_bundle()`，从篮球 / 足球 result directory 的 legacy `object_pose.csv`、`object_observations.csv`、`object_contact_points.csv` 构造 generic dry-run input bundle，使 `metric_depth`、`contact_distance`、`temporal_velocity`、`temporal_acceleration` 和 `pose_prior` residual block 能通过同一个 `FactorResidualEvaluator` 执行；`build_generic_residual_dry_run()` 同时支持 dataclass execution plan 和 manifest dict plan。该 bundle 是 parity 过渡层，不读取 `case_name`，不 solve，不写 accepted output。注意：当前球类 factor plan 本身没有 `point_reprojection` block，所以本次没有声称球类 point residual 已执行。
+- verification: RED 先确认 `build_legacy_ball_residual_input_bundle` 尚不存在；实现后 `python -m pytest -q tests/test_interaction_state_ir.py tests/test_factors.py tests/test_factor_residual_evaluator.py tests/test_sequence_solver_shadow.py` 通过，结果 `64 passed in 121.70s`；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。补充 dry-run 统计：basketball / football 各执行 8 个 residual blocks，skipped 2 个 regularization blocks；basketball depth RMS `1.246896`、contact RMS `26.775617`，football depth RMS `1.667399`、contact RMS `24.650770`。
+- remaining gap: dry-run 已接真实球类 legacy runtime bundle，但还没有对齐旧 optimizer residual trace，也没有进入 solve / accepted publisher；contact block 当前仍是 legacy 2.5D proxy（`contact_u/contact_v/contact_depth_offset_m` 对 `pose.u_proj/pose.v_proj/depth`），不是最终 GeometryProvider 3D human/object site distance；regularization 因缺少独立 target/scales 仍 skipped；mug / chair / stick 尚未接对应 runtime bundle。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: `2b549b0c Add generic residual dry run ledger`
 - change: `InteractionStateIR` 接入 `build_sequence_problem_shadow()`，新增 `interaction_state_shadow` 输入摘要、canonical hash、状态分布统计和 diagnostics assemble reads；更新 sequence problem / diagnostics / candidate sandbox golden，使五 case problem manifest 开始显式携带 interaction state provenance。
 - verification: `python -m pytest -q ...` 轻量范围 34 个测试通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
 - remaining gap: `interaction_state_shadow` 仍是 `consumed_by_solver=False`，尚未进入真正 factor activation；mug/chair 当前 timeline 仍暴露为 mostly `inactive/free`，说明其正式 contact/semantic interaction source 尚需从 adapter/legacy trace 迁移；materialized candidate / Phase 0 full gate 在该 worktree 仍受 gitignored 外部输入缺失限制。

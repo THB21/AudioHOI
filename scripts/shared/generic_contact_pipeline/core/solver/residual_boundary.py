@@ -366,12 +366,29 @@ def _residual_hash(residual: np.ndarray) -> str:
 
 
 def build_generic_residual_dry_run(
-    execution_plan: GenericResidualExecutionPlan,
+    execution_plan: GenericResidualExecutionPlan | dict[str, Any],
     residual_inputs: dict[str, dict[str, Any]],
 ) -> GenericResidualDryRunLedger:
     evaluator = FactorResidualEvaluator()
     dry_run_records: list[ResidualDryRunRecord] = []
-    for plan_record in execution_plan.records:
+    if isinstance(execution_plan, dict):
+        plan_records = [
+            ResidualExecutionPlanRecord(
+                factor_id=str(record.get("factor_id", "")),
+                residual_fn_ref=str(record.get("residual_fn_ref", "")),
+                evaluator_ref=str(record.get("evaluator_ref", "")),
+                input_ids=tuple(str(item) for item in record.get("input_ids", []) if item),
+                gate_provenance=tuple(str(item) for item in record.get("gate_provenance", []) if item),
+                status=str(record.get("status", "")),
+            )
+            for record in execution_plan.get("records", [])
+            if isinstance(record, dict)
+        ]
+        execution_plan_sha256 = str(execution_plan.get("canonical_sha256", ""))
+    else:
+        plan_records = list(execution_plan.records)
+        execution_plan_sha256 = execution_plan.canonical_sha256
+    for plan_record in plan_records:
         if plan_record.status != "ready_not_executed":
             dry_run_records.append(
                 ResidualDryRunRecord(
@@ -415,7 +432,7 @@ def build_generic_residual_dry_run(
     skipped = len(dry_run_records) - executed
     payload = {
         "schema_version": 1,
-        "execution_plan_sha256": execution_plan.canonical_sha256,
+        "execution_plan_sha256": execution_plan_sha256,
         "status": "residuals_executed_dry_run",
         "record_count": len(dry_run_records),
         "executed_count": executed,
@@ -428,7 +445,7 @@ def build_generic_residual_dry_run(
     }
     return GenericResidualDryRunLedger(
         schema_version=1,
-        execution_plan_sha256=execution_plan.canonical_sha256,
+        execution_plan_sha256=execution_plan_sha256,
         status="residuals_executed_dry_run",
         record_count=len(dry_run_records),
         executed_count=executed,

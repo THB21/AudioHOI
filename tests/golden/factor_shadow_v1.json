@@ -44,11 +44,10 @@
       "canonical_sha256": "b1d479d8dce868557c94247ad97380b6723b6f8ab38abcd3e4b69e33611001e1"
     },
     "chair": {
-      "factor_count": 10,
+      "factor_count": 9,
       "factor_kinds": {
         "audio_event_prior": 1,
         "contact_distance": 1,
-        "gauge_constraint": 1,
         "joint_limit": 2,
         "line_reprojection": 1,
         "pose_prior": 1,
@@ -58,7 +57,7 @@
       },
       "gap_ids": [],
       "unmapped_nonempty_fields": [],
-      "canonical_sha256": "d81a032ff49cc99ddfeb3ab5770a93d74a358dfd592a0702889280874787e452"
+      "canonical_sha256": "8a5edaac2c0d1c59f3caa6c75fc9e524e5a8823e395a44ead6ad70090e6842ad"
     },
     "stick": {
       "factor_count": 5,

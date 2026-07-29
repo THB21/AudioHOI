@@ -406,28 +406,6 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 )
             )
             summaries.append(FactorEnergySummary(f"state_spec_bound:{joint_id}", FactorKind.JOINT_LIMIT, len(per_frame_rows), 0.0))
-        factors.append(
-            FactorSpec(
-                factor_id="gauge_constraint:contact_chord_twist",
-                kind=FactorKind.GAUGE_CONSTRAINT,
-                frame_count=active_contact_rows,
-                input_refs=_input_refs(FactorKind.GAUGE_CONSTRAINT)
-                + (
-                    FactorInputRef("constraint", "ContactConstraintIR", "two_hand_toprail_endpoint"),
-                    FactorInputRef("measurement", "MeasurementIR", "semantic_graph_2d"),
-                ),
-                residual_unit="twist_gauge",
-                weight_source="contact_chord_2d_gauge_shadow",
-                gate_source="contact_chord_constraint_gate in stage4_metrics.json",
-                residual_source=_source(
-                    result_dir / "stage4_metrics.json",
-                    ("compatibility_adapters", "generic_pairprop_summary", "contact_chord_2d_gauge"),
-                    "chair_contact_chord_gauge_shadow",
-                ),
-            )
-        )
-        summaries.append(FactorEnergySummary("contact_chord:gauge_constraint", FactorKind.GAUGE_CONSTRAINT, active_contact_rows, 0.0))
-
     mug_phase_prior_resolved = False
     if profile.case_name == "mug":
         mug_phase_prior_resolved, mug_phase_rows, _mug_phase_report = _mug_periodic_phase_prior_is_resolved(result_dir)

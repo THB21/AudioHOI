@@ -14,7 +14,6 @@ CHAIR_REQUIRED_EXECUTOR_FACTOR_KINDS = (
     "line_reprojection",
     "contact_distance",
     "joint_limit",
-    "gauge_constraint",
 )
 
 

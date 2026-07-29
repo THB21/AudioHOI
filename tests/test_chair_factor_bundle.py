@@ -28,7 +28,6 @@ def test_chair_factor_bundle_is_ready_after_current_run_seed_and_factor_coverage
     assert bundle["compatibility_gap_status"] == "nonblocking"
     assert bundle["missing_required_factor_kinds"] == []
     assert "joint_limit" in bundle["available_factor_kinds"]
-    assert "gauge_constraint" in bundle["available_factor_kinds"]
     assert validate_chair_factor_executor_bundle(bundle) == []
 
 

@@ -237,12 +237,14 @@ def test_mug_factor_shadow_maps_periodic_phase_prior_without_snapshot_gap() -> N
     assert ("state", "StateSpec", "body_yaw_zero_observable_axial_angle_in_phase") in input_roles
 
 
-def test_chair_factor_shadow_exposes_joint_limit_and_gauge_terms() -> None:
+def test_chair_factor_shadow_exposes_joint_line_and_contact_terms() -> None:
     result_dir = REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen"
     shadow = build_factor_shadow(load_case_profile("chair"), result_dir)
     kinds = shadow["factors"]["by_kind"]
     assert kinds["joint_limit"] == 2
-    assert kinds["gauge_constraint"] == 1
+    assert kinds["line_reprojection"] == 1
+    assert kinds["contact_distance"] == 1
+    assert "gauge_constraint" not in kinds
 
 
 def test_chair_factor_shadow_maps_audio_static_prior() -> None:

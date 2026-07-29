@@ -25,6 +25,13 @@ class ResidualInputRequest:
 ResidualInputProvider = Callable[[ResidualInputRequest], dict[str, Any] | None]
 
 
+def _numeric_vector(values: Sequence[float], label: str) -> list[float]:
+    vector = [float(value) for value in values]
+    if not vector:
+        raise ValueError(f"{label} must not be empty")
+    return vector
+
+
 def build_residual_input_bundle(
     residual_execution_plan: dict[str, object] | object,
     providers_by_residual_ref: Mapping[str, ResidualInputProvider],
@@ -98,6 +105,101 @@ def build_state_regularization_residual_inputs(
             "target": numeric_target,
             "weight": float(weight),
             "scales": [[float(scale) for scale in scales] for _ in numeric_values],
+        }
+    }
+
+
+def build_metric_depth_residual_inputs(
+    *,
+    factor_id: str,
+    predicted_depth_by_frame: Mapping[int, float],
+    target_depth_by_frame: Mapping[int, float],
+    weight: float,
+    sigma_m: float,
+) -> dict[str, dict[str, Any]]:
+    """Align predicted and measured metric depth by frame."""
+
+    frames = sorted(set(predicted_depth_by_frame) & set(target_depth_by_frame))
+    if not frames:
+        return {}
+    return {
+        factor_id: {
+            "predicted_depth_m": [float(predicted_depth_by_frame[frame]) for frame in frames],
+            "target_depth_m": [float(target_depth_by_frame[frame]) for frame in frames],
+            "weight": float(weight),
+            "sigma_m": float(sigma_m),
+        }
+    }
+
+
+def build_sequence_temporal_residual_inputs(
+    *,
+    factor_id: str,
+    states_by_frame: Mapping[int, Sequence[float]],
+    order: int,
+    scales: tuple[float, ...],
+    weight: float,
+) -> dict[str, dict[str, Any]]:
+    """Build full-trajectory first- or second-order temporal pairs."""
+
+    if order not in {1, 2}:
+        raise ValueError("temporal residual order must be 1 or 2")
+    states = [_numeric_vector(states_by_frame[frame], "temporal state") for frame in sorted(states_by_frame)]
+    if any(len(state) != len(scales) for state in states):
+        raise ValueError("temporal states and scales must have the same width")
+    if len(states) <= order:
+        return {}
+    if order == 1:
+        current = states[1:]
+        previous = states[:-1]
+    else:
+        deltas = [
+            [current_value - previous_value for current_value, previous_value in zip(states[index], states[index - 1])]
+            for index in range(1, len(states))
+        ]
+        current = deltas[1:]
+        previous = deltas[:-1]
+    return {
+        factor_id: {
+            "x": current,
+            "prev": previous,
+            "weight": float(weight),
+            "scales": [float(scale) for scale in scales],
+        }
+    }
+
+
+def build_pose_prior_residual_inputs(
+    *,
+    factor_id: str,
+    state: Sequence[float],
+    reference: Sequence[float],
+    initial: Sequence[float],
+    rot_bound: float,
+    xy_bound: float,
+    z_bound: float,
+    rotation_weight: float,
+    xy_weight: float,
+    z_weight: float,
+) -> dict[str, dict[str, Any]]:
+    """Build an explicit six-dimensional SE(3)-tangent pose prior input."""
+
+    numeric_state = _numeric_vector(state, "pose-prior state")
+    numeric_reference = _numeric_vector(reference, "pose-prior reference")
+    numeric_initial = _numeric_vector(initial, "pose-prior initial state")
+    if len(numeric_state) != 6 or len(numeric_reference) != 6 or len(numeric_initial) != 6:
+        raise ValueError("pose-prior state, reference, and initial vectors must have width 6")
+    return {
+        factor_id: {
+            "x": numeric_state,
+            "ref": numeric_reference,
+            "init": numeric_initial,
+            "rot_bound": float(rot_bound),
+            "xy_bound": float(xy_bound),
+            "z_bound": float(z_bound),
+            "w_prior_rot": float(rotation_weight),
+            "w_prior_xy": float(xy_weight),
+            "w_prior_z": float(z_weight),
         }
     }
 

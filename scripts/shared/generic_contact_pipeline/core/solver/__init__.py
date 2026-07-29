@@ -19,7 +19,10 @@ from .diagnostics_golden import (
 from .factor_residuals import FactorResidualEvaluator
 from .residual_inputs import (
     ResidualInputRequest,
+    build_metric_depth_residual_inputs,
+    build_pose_prior_residual_inputs,
     build_residual_input_bundle,
+    build_sequence_temporal_residual_inputs,
     build_state_regularization_residual_inputs,
     build_world_space_contact_residual_inputs,
 )
@@ -169,7 +172,10 @@ __all__ = [
     "build_canonical_sequence_solver_diagnostics_summary",
     "build_generic_executor_runtime_plan",
     "build_generic_residual_boundary",
+    "build_metric_depth_residual_inputs",
+    "build_pose_prior_residual_inputs",
     "build_residual_input_bundle",
+    "build_sequence_temporal_residual_inputs",
     "build_state_regularization_residual_inputs",
     "build_world_space_contact_residual_inputs",
     "build_sequence_problem_shadow",

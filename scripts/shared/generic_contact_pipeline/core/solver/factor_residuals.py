@@ -54,7 +54,9 @@ class FactorResidualEvaluator:
         ).astype(float)
 
     def temporal_delta(self, x: np.ndarray, prev: np.ndarray, *, weight: float, scales: np.ndarray) -> np.ndarray:
-        return (float(weight) * (x[: len(scales)] - prev[: len(scales)]) / scales).astype(float)
+        if x.shape != prev.shape or x.ndim not in {1, 2} or x.shape[-1] != len(scales):
+            raise ValueError("temporal residuals require matching state arrays with scale-aligned width")
+        return (float(weight) * (x - prev) / scales).astype(float)
 
     def joint_limit(
         self,

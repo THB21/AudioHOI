@@ -13,9 +13,13 @@ from typing import Any
 
 from ..contact_constraints import adapt_contact_state_rows
 from ..human_sites import adapt_human_site_rows
+from ..measurements import MetricDepthMeasurement, adapt_legacy_observation_rows
 from ..solver.residual_inputs import (
     ResidualInputRequest,
+    build_metric_depth_residual_inputs,
+    build_pose_prior_residual_inputs,
     build_residual_input_bundle,
+    build_sequence_temporal_residual_inputs,
     build_state_regularization_residual_inputs,
     build_world_space_contact_residual_inputs,
 )
@@ -67,9 +71,13 @@ def build_legacy_ball_residual_input_bundle(
 
     pose_by_frame = _read_csv_by_frame(result_dir / "object_pose.csv")
     init_by_frame = _read_csv_by_frame(result_dir / "object_pose_init.csv")
-    obs_by_frame = _read_csv_by_frame(result_dir / "object_observations.csv")
-    frames = sorted(set(pose_by_frame) & set(obs_by_frame))
     sample_id = "legacy_ball_residual_parity"
+    observation_path = result_dir / "object_observations.csv"
+    typed_observations = adapt_legacy_observation_rows(
+        sample_id,
+        _read_csv(observation_path),
+        str(observation_path),
+    ).measurements
     contact_states = adapt_contact_state_rows(
         sample_id,
         _read_csv(result_dir / "contact_state_frames.csv"),
@@ -86,6 +94,13 @@ def build_legacy_ball_residual_input_bundle(
     object_states = {
         frame: xyz for frame, row in pose_by_frame.items() if (xyz := _pose_xyz(row)) is not None
     }
+    target_depth_by_frame = {
+        measurement.meta.frame: measurement.depth_m
+        for measurement in typed_observations
+        if isinstance(measurement, MetricDepthMeasurement)
+        and measurement.meta.feature.semantic_role == "object_center_depth"
+    }
+    predicted_depth_by_frame = {frame: state[2] for frame, state in object_states.items()}
     radius_m = _finite_float(pose_by_frame[min(pose_by_frame)], "radius_m")
     if radius_m is None or radius_m <= 0.0:
         raise ValueError("legacy sphere parity input requires a positive radius_m")
@@ -101,24 +116,15 @@ def build_legacy_ball_residual_input_bundle(
         active_frames.append(state.frame)
         source_sites[state.frame] = site
 
-    def metric_depth(_: ResidualInputRequest) -> dict[str, Any] | None:
-        predicted: list[float] = []
-        target: list[float] = []
-        for frame in frames:
-            pred = _finite_float(pose_by_frame[frame], "tz")
-            tgt = _finite_float(obs_by_frame[frame], "object_ref_depth_m")
-            if pred is None or tgt is None:
-                continue
-            predicted.append(pred)
-            target.append(tgt)
-        if not predicted:
-            return None
-        return {
-            "predicted_depth_m": predicted,
-            "target_depth_m": target,
-            "weight": 1.0,
-            "sigma_m": 1.0,
-        }
+    def metric_depth(request: ResidualInputRequest) -> dict[str, Any] | None:
+        payload = build_metric_depth_residual_inputs(
+            factor_id=request.factor_id,
+            predicted_depth_by_frame=predicted_depth_by_frame,
+            target_depth_by_frame=target_depth_by_frame,
+            weight=1.0,
+            sigma_m=1.0,
+        )
+        return payload.get(request.factor_id)
 
     def contact_distance(request: ResidualInputRequest) -> dict[str, Any] | None:
         payload = build_world_space_contact_residual_inputs(
@@ -134,35 +140,35 @@ def build_legacy_ball_residual_input_bundle(
         return payload.get(request.factor_id)
 
     def temporal(request: ResidualInputRequest) -> dict[str, Any] | None:
-        ordered_xyz = [(frame, _pose_xyz(pose_by_frame[frame])) for frame in sorted(pose_by_frame)]
-        ordered_xyz = [(frame, xyz) for frame, xyz in ordered_xyz if xyz is not None]
-        if len(ordered_xyz) < 2:
-            return None
-        if request.residual_fn_ref == "shadow_residual::temporal_velocity":
-            x = ordered_xyz[1][1]
-            prev = ordered_xyz[0][1]
-        else:
-            x = ordered_xyz[2][1] if len(ordered_xyz) >= 3 else ordered_xyz[1][1]
-            prev = ordered_xyz[1][1] if len(ordered_xyz) >= 3 else ordered_xyz[0][1]
-        return {"x": x, "prev": prev, "weight": 1.0, "scales": [1.0, 1.0, 1.0]}
+        order = 1 if request.residual_fn_ref == "shadow_residual::temporal_velocity" else 2
+        payload = build_sequence_temporal_residual_inputs(
+            factor_id=request.factor_id,
+            states_by_frame=object_states,
+            order=order,
+            scales=(1.0, 1.0, 1.0),
+            weight=1.0,
+        )
+        return payload.get(request.factor_id)
 
-    def pose_prior(_: ResidualInputRequest) -> dict[str, Any] | None:
+    def pose_prior(request: ResidualInputRequest) -> dict[str, Any] | None:
         first = pose_by_frame[min(pose_by_frame)]
         xyz = _pose_xyz(first)
         if xyz is None:
             return None
         state = [0.0, 0.0, 0.0, *xyz]
-        return {
-            "x": state,
-            "ref": state,
-            "init": state,
-            "rot_bound": 1.0,
-            "xy_bound": 1.0,
-            "z_bound": 1.0,
-            "w_prior_rot": 1.0,
-            "w_prior_xy": 1.0,
-            "w_prior_z": 1.0,
-        }
+        payload = build_pose_prior_residual_inputs(
+            factor_id=request.factor_id,
+            state=state,
+            reference=state,
+            initial=state,
+            rot_bound=1.0,
+            xy_bound=1.0,
+            z_bound=1.0,
+            rotation_weight=1.0,
+            xy_weight=1.0,
+            z_weight=1.0,
+        )
+        return payload.get(request.factor_id)
 
     def regularization(request: ResidualInputRequest) -> dict[str, Any] | None:
         values: list[list[float]] = []

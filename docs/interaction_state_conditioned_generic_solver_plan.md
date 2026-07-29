@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及按 residual capability 解析显式输入的 case-independent provider boundary；五个 canonical case 的 residual capability pending 已清零。`core.solver` 不再公开 ball-named residual builder；state regularization 只消费数值 state/reference vectors；contact residual 已新增 geometry-family `GeometryProvider` world-space entity-site contract，篮球 / 足球 parity adapter 已从 legacy 2.5D 像素代理切为 typed human site + typed contact state + sphere surface 3D site。暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 对 basketball / football 的新 3D contact residual 与旧 optimizer trace 做语义 parity（旧 trace 若本身是 2.5D，只保留审计对照，不要求数值伪一致）；让 metric depth、temporal、pose prior 等 runtime providers 同样直接消费 typed MeasurementIR / StateSpec / InteractionStateIR；随后为 capsule、rigid mesh、articulated URDF 补对应 GeometryProvider，并将同一 case-independent provider boundary 接到 mug / chair / stick。保持不 solve、不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及按 residual capability 解析显式输入的 case-independent provider boundary；五个 canonical case 的 residual capability pending 已清零。`core.solver` 不再公开 ball-named residual builder；state regularization、metric depth、full-sequence first/second-order temporal 和 pose prior 均已有纯数值通用 input builders；contact residual 已新增 geometry-family `GeometryProvider` world-space entity-site contract，篮球 / 足球 parity adapter 已从 legacy 2.5D 像素代理切为 typed human site + typed contact state + sphere surface 3D site。暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 对 basketball / football 的新 3D contact 与 full-sequence temporal residual 做旧 optimizer trace 语义 parity（旧 trace 若本身只评估单帧或 2.5D，只保留审计对照，不要求数值伪一致）；随后为 capsule、rigid mesh、articulated URDF 补对应 GeometryProvider，并将同一 case-independent runtime provider boundary 接到 mug / chair / stick。保持严格 object-only，不 solve、不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1355,10 +1355,18 @@ YYYY-MM-DD:
 2026-07-29:
 
 - branch: `refactor/interaction-state-production`
+- commit: local commit `Generalize depth temporal and pose inputs`; use `git log -1` for the self-referential hash.
+- change: 新增 case-independent `build_metric_depth_residual_inputs()`、`build_sequence_temporal_residual_inputs()` 和 `build_pose_prior_residual_inputs()`。metric depth 按 frame 对齐 predicted state 与 typed MetricDepthMeasurement；temporal 从完整 object trajectory 生成一阶或二阶差分，不再只取前两三帧；pose prior 只消费显式 6D 数值 state/reference/initial。legacy ball parity adapter 只负责 CSV → typed/numeric 映射。未新增测试，未修改任何人体代码，GVHMR 仍仅作为只读 human-site observation。
+- verification: 仅运行现有测试，目标范围 `12 passed`；basketball / football dry-run 均保持 `executed=10 skipped=0`。full-sequence temporal residual counts：basketball velocity `573`、acceleration `570`；football velocity `723`、acceleration `720`。
+- remaining gap: 这些 builders 已脱离 case adapter，但当前仍是 dry-run input path，尚未由 production executor 消费；旧 optimizer trace 语义 parity、非 sphere GeometryProvider、mug / chair / stick runtime providers、solve 和 accepted publication 尚未完成。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
 - commit: local commit `Scope generic solver plan to object only`; use `git log -1` for the self-referential hash.
 - change: 按项目分工将全计划严格收紧为 object-only。GVHMR 仅作为只读 skeleton / human-site observation 辅助 object contact、遮挡和相对位置 factors；删除 Stage 8–10、HaMeR、body-side contact refinement、Object → Human handoff、downstream human pipeline、full-HOI orchestrator 与相关 DoD。普通 object result publication 保留。明确本分支不得修改另一位同学维护的人体代码，不得优化或发布人体状态。
 - verification: 全文 scope scan 不再将 human reconstruction / refinement / handoff 列为本项目阶段、分支或完成条件；object-only architecture、Stage 0 registry、publication contract、branch sequence、CI invariants、evaluation table、Definition of Done 和实际执行顺序已保持一致。
-- remaining gap: 本次只修正规划与责任边界，不修改任何人体代码或 solver 数值行为。后续需在本分支增加静态架构测试，保证 GVHMR 只读、object StateSpec 无人体参数、publisher 不触发 downstream human pipeline。
+- remaining gap: 本次只修正规划与责任边界，不修改任何人体代码或 solver 数值行为。边界作为后续实现的强制约束持续遵守；按用户要求不为该边界新增测试。
 
 2026-07-29:
 

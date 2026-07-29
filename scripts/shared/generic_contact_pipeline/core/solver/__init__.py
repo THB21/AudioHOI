@@ -136,7 +136,7 @@ from .projected_periodic_golden import (
     verify_projected_periodic_regression,
     verify_materialized_projected_periodic_candidate,
 )
-from .rigid_correspondence import RigidCorrespondenceInitializer
+from .rigid_correspondence import RigidCorrespondenceInitializer, StateSpecRigidCorrespondenceInitializer
 from .line_diagnostics import (
     LINE_CONTACT_ATTEMPT_NAME,
     LINE_CONTACT_CANDIDATE_NAME,
@@ -213,6 +213,7 @@ __all__ = [
     "ProjectedPeriodicParameters",
     "ProjectedPeriodicSolution",
     "RigidCorrespondenceInitializer",
+    "StateSpecRigidCorrespondenceInitializer",
     "SequenceProblemContract",
     "SequenceOptimizationParameters",
     "SequenceOptimizationProblem",

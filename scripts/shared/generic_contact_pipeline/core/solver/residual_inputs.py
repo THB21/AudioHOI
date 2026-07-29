@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import isfinite
 from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from ..audio_events import AudioEvent
@@ -46,13 +47,20 @@ ResidualInputProvider = Callable[[ResidualInputRequest], dict[str, Any] | None]
 class WorldSpaceContactSample:
     frame: int
     source_xyz_m: tuple[float, float, float]
+    object_feature_id: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.frame < 1 or len(self.source_xyz_m) != 3 or not all(isfinite(value) for value in self.source_xyz_m):
+            raise ValueError("world-space contact samples require a positive frame and xyz source")
+        if self.object_feature_id is not None and not self.object_feature_id:
+            raise ValueError("world-space contact sample feature id must be nonempty when present")
 
 
 @dataclass(frozen=True)
 class ContactFactorInput:
     geometry_provider: GeometryProvider
     samples: tuple[WorldSpaceContactSample, ...]
-    object_feature_id: str
+    object_feature_id: str | None
     weight: float = 1.0
     sigma_m: float = 1.0
 
@@ -537,7 +545,7 @@ def build_world_space_contact_sample_residual_inputs(
     geometry_provider: GeometryProvider,
     object_states: Mapping[int, Sequence[float]],
     samples: Iterable[WorldSpaceContactSample],
-    object_feature_id: str,
+    object_feature_id: str | None,
     weight: float,
     sigma_m: float,
     weight_by_frame: Mapping[int, float] | None = None,
@@ -554,7 +562,12 @@ def build_world_space_contact_sample_residual_inputs(
         source_xyz = [float(value) for value in sample.source_xyz_m]
         if len(source_xyz) != 3:
             raise ValueError("world-space source sites must have exactly three coordinates")
-        target_xyz = geometry_provider.contact_point_world(state, object_feature_id, source_xyz)
+        feature_id = sample.object_feature_id or object_feature_id
+        if feature_id is None:
+            raise ValueError(
+                f"world-space contact sample at frame {sample.frame} requires a target feature id"
+            )
+        target_xyz = geometry_provider.contact_point_world(state, feature_id, source_xyz)
         anchors.append(source_xyz)
         targets.append([float(value) for value in target_xyz])
         row_weights.append(float((weight_by_frame or {}).get(int(sample.frame), weight)))

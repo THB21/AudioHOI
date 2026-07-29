@@ -17,7 +17,11 @@ from .diagnostics_golden import (
     verify_sequence_solver_diagnostics_summary,
 )
 from .factor_residuals import FactorResidualEvaluator
-from .residual_inputs import build_legacy_ball_residual_input_bundle, build_state_regularization_residual_inputs
+from .residual_inputs import (
+    ResidualInputRequest,
+    build_residual_input_bundle,
+    build_state_regularization_residual_inputs,
+)
 from .candidate import (
     CHAIR_SANDBOX_ARTIFACTS,
     SANDBOX_MANIFEST_NAME,
@@ -139,6 +143,7 @@ __all__ = [
     "GenericResidualBoundary",
     "GenericSequenceExecutor",
     "ResidualBoundaryRecord",
+    "ResidualInputRequest",
     "LINE_CONTACT_ATTEMPT_NAME",
     "LINE_CONTACT_CANDIDATE_NAME",
     "LINE_CONTACT_RESIDUAL_NAME",
@@ -163,6 +168,7 @@ __all__ = [
     "build_canonical_sequence_solver_diagnostics_summary",
     "build_generic_executor_runtime_plan",
     "build_generic_residual_boundary",
+    "build_residual_input_bundle",
     "build_state_regularization_residual_inputs",
     "build_sequence_problem_shadow",
     "build_sequence_problem_contract",

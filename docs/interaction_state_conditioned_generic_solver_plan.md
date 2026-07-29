@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及 basketball / football legacy runtime input bundle；五个 canonical case 的 residual capability pending 已清零，球类 depth / contact / temporal / pose-prior / state-regularization dry-run residual 已能执行；暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 对 basketball / football 执行 residual parity，对齐旧 optimizer trace；把当前 ball contact 2.5D parity adapter 替换为 GeometryProvider 3D contact site；随后把同一 generic state regularization contract 扩展到 mug / chair / stick。保持不 solve、不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及按 residual capability 解析显式输入的 case-independent provider boundary；五个 canonical case 的 residual capability pending 已清零。篮球 / 足球 legacy CSV 只由 evaluation parity adapter 转换，`core.solver` 不再公开 ball-named residual builder；state regularization 的 core contract 只消费数值 state/reference vectors。暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 让 runtime input provider 直接从 typed MeasurementIR、StateSpec、InteractionStateIR 和 GeometryProvider 构造输入，而不是依赖 legacy evaluation CSV；优先把 ball contact 2.5D parity adapter 替换为 GeometryProvider 3D entity-site distance，并对 basketball / football 执行旧 optimizer residual parity；随后将同一 case-independent provider boundary 接到 mug / chair / stick。保持不 solve、不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1336,6 +1336,14 @@ YYYY-MM-DD:
 2026-07-29:
 
 - branch: `refactor/interaction-state-production`
+- commit: local commit `Generalize residual input provider boundary`; use `git log -1` for the self-referential hash.
+- change: 新增 `ResidualInputRequest` 与 `build_residual_input_bundle()`：运行时输入按 `residual_fn_ref` capability 解析，并显式携带 `factor_id`、`input_ids` 和 `gate_provenance`，不接受 `case_name` 或 object family。将 `build_legacy_ball_residual_input_bundle()` 及全部 CSV 字段解析移出 `core.solver`，降级到 `core.evaluation.legacy_ball_residual_inputs` parity adapter；`core.solver` 顶层不再暴露 ball-named residual builder。进一步把 `build_state_regularization_residual_inputs()` 改成纯数值 `values / target / scales / weight` contract，CSV fields 只在 legacy adapter 内映射。
+- verification: 两轮 TDD 均先确认 RED：通用 assembler import 缺失，以及 core solver 仍公开 ball builder；实现后目标测试通过。提交前 fresh verification：`python -m pytest -q tests/test_interaction_state_ir.py tests/test_factors.py tests/test_factor_residual_evaluator.py tests/test_sequence_solver_shadow.py` 结果 `68 passed in 123.04s`。`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 均通过；五 case residual capability blocking gaps 仍为空，stick 仅保留 `line_contact_lock_special_refinement` nonblocking gap。
+- remaining gap: 目前通用 provider boundary 已建立，但真实 provider 尚未直接消费 typed MeasurementIR / StateSpec / GeometryProvider；篮球 / 足球 parity adapter 的 contact payload 仍是 legacy 2.5D proxy；尚未完成旧 optimizer trace residual parity，mug / chair / stick 尚未接 runtime input providers，也未 solve、未写 accepted output。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
 - commit: `20d6a257 Introduce production interaction state IR`
 - change: 新增生产级 `core/interaction`、五 case timeline builder、timeline / intervals / metrics 导出 CLI、InteractionStateIR 测试。
 - verification: `tests/test_interaction_state_ir.py`、`tests/test_factors.py`、`tests/test_sequence_solver_shadow.py` 指定五 case shadow/candidate 测试共 22 个通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
@@ -1344,7 +1352,7 @@ YYYY-MM-DD:
 2026-07-29:
 
 - branch: `refactor/interaction-state-production`
-- commit: pending local commit after this update
+- commit: `b09940f5 Add generic state regularization inputs`
 - change: 新增 case-name-free `build_state_regularization_residual_inputs()`，由显式 state fields、reference rows、per-field scales 和 factor weight 构造 `regularization(values,target,scales,weight)` payload；篮球 / 足球的 legacy runtime bundle 只调用该通用 state-reference contract，不再沿用或扩展 `ball_residuals.py` 的球类专用 residual 定义。`ball_residuals.py` 只作为 legacy audit/report 参考，不进入 generic solver contract。
 - verification: 先跑 RED，确认 `build_state_regularization_residual_inputs` 缺失导致新增测试 ImportError；实现后新增测试通过。相关验证：`python -m pytest -q tests/test_factor_residual_evaluator.py tests/test_sequence_solver_shadow.py` 通过，结果 `45 passed in 119.02s`。dry-run 统计：basketball / football 均为 `executed=10 skipped=0`；basketball 两个 regularization blocks 各 `residual_count=576 rms=0.726270`，football 两个 regularization blocks 各 `residual_count=726 rms=0.973487`。
 - remaining gap: 这一步只把 regularization input 泛化并接入 dry-run；尚未做旧 optimizer trace parity、未 solve、未写 accepted output；contact residual 仍是 legacy 2.5D proxy，后续必须替换为 GeometryProvider 3D contact site；mug / chair / stick 尚未接对应 runtime input bundle。

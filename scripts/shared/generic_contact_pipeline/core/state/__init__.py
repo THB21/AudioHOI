@@ -5,6 +5,7 @@ from .geometry_provider import (
     ArticulatedFeatureGeometryProvider,
     CapsuleGeometryProvider,
     GeometryProvider,
+    PeriodicFeatureRule,
     RigidFeatureGeometryProvider,
     SphereGeometryProvider,
 )
@@ -31,6 +32,7 @@ __all__ = [
     "GeometryDescriptor",
     "GeometryKind",
     "GeometryProvider",
+    "PeriodicFeatureRule",
     "StateAdaptationResult",
     "StateSpec",
     "SphereGeometryProvider",

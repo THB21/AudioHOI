@@ -25,6 +25,59 @@ class ResidualInputRequest:
 ResidualInputProvider = Callable[[ResidualInputRequest], dict[str, Any] | None]
 
 
+@dataclass(frozen=True)
+class WorldSpaceContactSample:
+    frame: int
+    source_xyz_m: tuple[float, float, float]
+
+
+@dataclass(frozen=True)
+class ContactFactorInput:
+    geometry_provider: GeometryProvider
+    samples: tuple[WorldSpaceContactSample, ...]
+    object_feature_id: str
+    weight: float = 1.0
+    sigma_m: float = 1.0
+
+
+@dataclass(frozen=True)
+class PosePriorFactorInput:
+    state: tuple[float, ...]
+    reference: tuple[float, ...]
+    initial: tuple[float, ...]
+    rot_bound: float = 1.0
+    xy_bound: float = 1.0
+    z_bound: float = 1.0
+    rotation_weight: float = 1.0
+    xy_weight: float = 1.0
+    z_weight: float = 1.0
+
+
+@dataclass(frozen=True)
+class PeriodicPhaseFactorInput:
+    values: tuple[float, ...]
+    target: tuple[float, ...]
+    weight: float = 1.0
+    sigma_rad: float = 1.0
+
+
+@dataclass(frozen=True)
+class JointLimitFactorInput:
+    values: tuple[float, ...]
+    lower: float | None
+    upper: float | None
+    weight: float = 1.0
+    sigma_rad: float = 1.0
+
+
+@dataclass(frozen=True)
+class GaugeFactorInput:
+    values: tuple[float, ...]
+    target: float = 0.0
+    weight: float = 1.0
+    sigma: float = 1.0
+
+
 def _numeric_vector(values: Sequence[float], label: str) -> list[float]:
     vector = [float(value) for value in values]
     if not vector:
@@ -217,14 +270,41 @@ def build_world_space_contact_residual_inputs(
 ) -> dict[str, dict[str, Any]]:
     """Resolve world-space entity-site pairs for a contact factor."""
 
+    samples = [
+        WorldSpaceContactSample(frame, tuple(float(value) for value in source_sites[frame]))
+        for frame in sorted(set(int(value) for value in active_frames))
+        if frame in source_sites
+    ]
+    return build_world_space_contact_sample_residual_inputs(
+        factor_id=factor_id,
+        geometry_provider=geometry_provider,
+        object_states=object_states,
+        samples=samples,
+        object_feature_id=object_feature_id,
+        weight=weight,
+        sigma_m=sigma_m,
+    )
+
+
+def build_world_space_contact_sample_residual_inputs(
+    *,
+    factor_id: str,
+    geometry_provider: GeometryProvider,
+    object_states: Mapping[int, Sequence[float]],
+    samples: Iterable[WorldSpaceContactSample],
+    object_feature_id: str,
+    weight: float,
+    sigma_m: float,
+) -> dict[str, dict[str, Any]]:
+    """Resolve repeated world-space contact samples against object geometry."""
+
     anchors: list[list[float]] = []
     targets: list[list[float]] = []
-    for frame in sorted(set(int(value) for value in active_frames)):
-        state = object_states.get(frame)
-        source = source_sites.get(frame)
-        if state is None or source is None:
+    for sample in samples:
+        state = object_states.get(int(sample.frame))
+        if state is None:
             continue
-        source_xyz = [float(value) for value in source]
+        source_xyz = [float(value) for value in sample.source_xyz_m]
         if len(source_xyz) != 3:
             raise ValueError("world-space source sites must have exactly three coordinates")
         target_xyz = geometry_provider.contact_point_world(state, object_feature_id, source_xyz)
@@ -240,3 +320,201 @@ def build_world_space_contact_residual_inputs(
             "sigma_m": float(sigma_m),
         }
     }
+
+
+def build_periodic_phase_prior_residual_inputs(
+    *,
+    factor_id: str,
+    values: Sequence[float],
+    target: Sequence[float],
+    weight: float,
+    sigma_rad: float,
+) -> dict[str, dict[str, Any]]:
+    numeric_values = [float(value) for value in values]
+    numeric_target = [float(value) for value in target]
+    if len(numeric_values) != len(numeric_target):
+        raise ValueError("periodic phase values and targets must have the same length")
+    if not numeric_values:
+        return {}
+    return {
+        factor_id: {
+            "values": numeric_values,
+            "target": numeric_target,
+            "weight": float(weight),
+            "sigma_rad": float(sigma_rad),
+        }
+    }
+
+
+def build_joint_limit_residual_inputs(
+    *,
+    factor_id: str,
+    values: Sequence[float],
+    lower: float | None,
+    upper: float | None,
+    weight: float,
+    sigma_rad: float,
+) -> dict[str, dict[str, Any]]:
+    numeric_values = [float(value) for value in values]
+    if not numeric_values:
+        return {}
+    return {
+        factor_id: {
+            "values": numeric_values,
+            "lower": None if lower is None else float(lower),
+            "upper": None if upper is None else float(upper),
+            "weight": float(weight),
+            "sigma_rad": float(sigma_rad),
+        }
+    }
+
+
+def build_gauge_constraint_residual_inputs(
+    *,
+    factor_id: str,
+    values: Sequence[float],
+    target: float,
+    weight: float,
+    sigma: float,
+) -> dict[str, dict[str, Any]]:
+    numeric_values = [float(value) for value in values]
+    if not numeric_values:
+        return {}
+    return {
+        factor_id: {
+            "values": numeric_values,
+            "target": float(target),
+            "weight": float(weight),
+            "sigma": float(sigma),
+        }
+    }
+
+
+def build_geometry_sequence_residual_input_bundle(
+    residual_execution_plan: dict[str, object] | object,
+    *,
+    object_states: Mapping[int, Sequence[float]],
+    state_scales: tuple[float, ...],
+    reference_states: Mapping[int, Sequence[float]] | None = None,
+    contact_factors: Mapping[str, ContactFactorInput] | None = None,
+    pose_prior_factors: Mapping[str, PosePriorFactorInput] | None = None,
+    periodic_phase_factors: Mapping[str, PeriodicPhaseFactorInput] | None = None,
+    joint_limit_factors: Mapping[str, JointLimitFactorInput] | None = None,
+    gauge_factors: Mapping[str, GaugeFactorInput] | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Build common sequence residuals from explicit state and factor inputs.
+
+    Factor-specific data is keyed by factor id. Geometry family and object
+    identity never select an executor or residual implementation here.
+    """
+
+    def temporal(request: ResidualInputRequest) -> dict[str, Any] | None:
+        order = 1 if request.residual_fn_ref == "shadow_residual::temporal_velocity" else 2
+        payload = build_sequence_temporal_residual_inputs(
+            factor_id=request.factor_id,
+            states_by_frame=object_states,
+            order=order,
+            scales=state_scales,
+            weight=1.0,
+        )
+        return payload.get(request.factor_id)
+
+    def regularization(request: ResidualInputRequest) -> dict[str, Any] | None:
+        if reference_states is None:
+            return None
+        frames = sorted(set(object_states) & set(reference_states))
+        payload = build_state_regularization_residual_inputs(
+            factor_id=request.factor_id,
+            values=[object_states[frame] for frame in frames],
+            target=[reference_states[frame] for frame in frames],
+            scales=state_scales,
+            weight=1.0,
+        )
+        return payload.get(request.factor_id)
+
+    def contact(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (contact_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        payload = build_world_space_contact_sample_residual_inputs(
+            factor_id=request.factor_id,
+            geometry_provider=factor.geometry_provider,
+            object_states=object_states,
+            samples=factor.samples,
+            object_feature_id=factor.object_feature_id,
+            weight=factor.weight,
+            sigma_m=factor.sigma_m,
+        )
+        return payload.get(request.factor_id)
+
+    def pose_prior(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (pose_prior_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        payload = build_pose_prior_residual_inputs(
+            factor_id=request.factor_id,
+            state=factor.state,
+            reference=factor.reference,
+            initial=factor.initial,
+            rot_bound=factor.rot_bound,
+            xy_bound=factor.xy_bound,
+            z_bound=factor.z_bound,
+            rotation_weight=factor.rotation_weight,
+            xy_weight=factor.xy_weight,
+            z_weight=factor.z_weight,
+        )
+        return payload.get(request.factor_id)
+
+    def periodic_phase(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (periodic_phase_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        payload = build_periodic_phase_prior_residual_inputs(
+            factor_id=request.factor_id,
+            values=factor.values,
+            target=factor.target,
+            weight=factor.weight,
+            sigma_rad=factor.sigma_rad,
+        )
+        return payload.get(request.factor_id)
+
+    def joint_limit(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (joint_limit_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        payload = build_joint_limit_residual_inputs(
+            factor_id=request.factor_id,
+            values=factor.values,
+            lower=factor.lower,
+            upper=factor.upper,
+            weight=factor.weight,
+            sigma_rad=factor.sigma_rad,
+        )
+        return payload.get(request.factor_id)
+
+    def gauge(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (gauge_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        payload = build_gauge_constraint_residual_inputs(
+            factor_id=request.factor_id,
+            values=factor.values,
+            target=factor.target,
+            weight=factor.weight,
+            sigma=factor.sigma,
+        )
+        return payload.get(request.factor_id)
+
+    return build_residual_input_bundle(
+        residual_execution_plan,
+        {
+            "shadow_residual::temporal_velocity": temporal,
+            "shadow_residual::temporal_acceleration": temporal,
+            "shadow_residual::regularization": regularization,
+            "shadow_residual::contact_distance": contact,
+            "shadow_residual::pose_prior": pose_prior,
+            "shadow_residual::periodic_phase_prior": periodic_phase,
+            "shadow_residual::joint_limit": joint_limit,
+            "shadow_residual::gauge_constraint": gauge,
+        },
+    )

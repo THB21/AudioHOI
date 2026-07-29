@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及按 residual capability 解析显式输入的 case-independent provider boundary；五个 canonical case 的 residual capability pending 已清零。`core.solver` 不再公开 ball-named residual builder；state regularization、metric depth、full-sequence first/second-order temporal 和 pose prior 均已有纯数值通用 input builders；world-space contact 已具备 sphere、capsule、rigid semantic feature cloud、articulated semantic feature cloud 四类 GeometryProvider。篮球 / 足球 parity adapter 已使用 typed human site + typed contact state + sphere surface 3D site。暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 将 capsule / rigid / articulated providers 接到 stick / mug / chair 的 runtime input bundles；对 basketball / football 的新 3D contact 与 full-sequence temporal residual 做旧 optimizer trace 语义 parity；随后让五 case dry-run 均执行实际 runtime inputs，再进入统一 executor solve。保持严格 object-only，不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及按 residual capability 解析显式输入的 case-independent provider boundary；五个 canonical case 的 residual capability pending 已清零。`core.solver` 不再公开 ball-named residual builder；state regularization、metric depth、full-sequence first/second-order temporal、pose prior、periodic phase、joint limit、gauge 和 repeated contact samples 均已有纯数值通用 input builders；world-space contact 已具备 sphere、capsule、periodic rigid semantic feature cloud、articulated semantic feature cloud 四类 GeometryProvider。stick / mug 的真实 geometry/contact dry-run 已 `skipped=0`；chair 的 contact、joint、temporal、pose/reg 已执行，剩余 6 项是 visual/depth/support/audio/gauge 输入 gap。GVHMR 只读 site extractor 已能从 `result.pkl` 生成固定 hand/foot measurements 并记录输入及 body-model hash。暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 把现有 MeasurementIR / AudioEventIR / support observations 接到同一个 bundle，清除 chair 剩余 6 个 missing-input 项；随后对五 case residual 做旧 optimizer trace 语义 parity，再让 `GenericSequenceExecutor` 真正消费这些 bundles。保持严格 object-only，不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1351,6 +1351,14 @@ YYYY-MM-DD:
 ```
 
 ## 21. 维护记录
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update.
+- change: 扩展同一个 case-independent runtime-input boundary：新增 repeated `WorldSpaceContactSample`、factor-id keyed contact / pose / periodic phase / joint-limit / gauge 显式输入，以及 `build_geometry_sequence_residual_input_bundle()`；solver 仍只按 `residual_fn_ref` capability 分派，不读取 `case_name`。`RigidFeatureGeometryProvider` 新增通用 `PeriodicFeatureRule`，因此 mug 的 root SE(3) 与 handle axial phase 由同一 state contract 驱动，不再需要在 core 中识别 mug。新增 GVHMR read-only skeleton-site extractor，只把固定 hand / foot sites 作为 object contact measurement，并记录 GVHMR `result.pkl` 与 SMPL-X model SHA-256；不优化人体、不写人体 artifact、不触发 downstream human pipeline。
+- verification: 按用户要求未新增测试。`py_compile` 通过；periodic feature 90° 数值 smoke 得到 approximately `(0, 0, -1)`；GVHMR read-only smoke 成功。真实 canonical dry-run：stick `executed=5 skipped=0`，463 contact samples / 1389 contact residuals；mug `executed=6 skipped=0`，240 contact samples / 720 contact residuals，并执行 240 periodic-phase residuals；chair `executed=7 skipped=6`，250 two-hand contact samples / 750 contact residuals，并执行两组各 192 joint-limit residuals。所有 dry-run 均 `case_dispatch_used=False`、不 solve、不写 accepted output。
+- remaining gap: chair 剩余 skipped 是两个 point reprojection、metric depth、support/penetration、audio event 和 contact-chord gauge 的真实输入尚未接入；这不是 geometry provider 或 contact gap。当前运行仍读取 canonical pose 进行 residual parity，尚未成为 production solve；下一步必须从 MeasurementIR / InteractionStateIR 编译这些输入并进入唯一 executor，不得新增 chair/mug/stick 专用 solver。
 
 2026-07-29:
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from math import isfinite, sqrt
 from typing import Mapping, Protocol, Sequence
 
@@ -67,6 +67,21 @@ def _transform_points(points: np.ndarray, state: Sequence[float], scale_index: i
     if not isfinite(scale) or scale <= 0.0:
         raise ValueError("rigid feature scale must be finite and positive")
     return points @ (scale * rotation).T + translation
+
+
+def _rotate_local_points(
+    points: np.ndarray,
+    axis: Sequence[float],
+    origin: Sequence[float],
+    angle: float,
+) -> np.ndarray:
+    axis_vector = np.asarray(_xyz(axis, "periodic feature axis"), dtype=float)
+    axis_vector /= np.linalg.norm(axis_vector)
+    x, y, z = axis_vector
+    skew = np.asarray([[0.0, -z, y], [z, 0.0, -x], [-y, x, 0.0]], dtype=float)
+    rotation = np.eye(3) + np.sin(angle) * skew + (1.0 - np.cos(angle)) * (skew @ skew)
+    origin_vector = np.asarray(_xyz(origin, "periodic feature origin"), dtype=float)
+    return (points - origin_vector) @ rotation.T + origin_vector
 
 
 @dataclass(frozen=True)
@@ -142,9 +157,25 @@ class CapsuleGeometryProvider:
 
 
 @dataclass(frozen=True)
+class PeriodicFeatureRule:
+    phase_state_index: int
+    axis_local: tuple[float, float, float]
+    origin_local: tuple[float, float, float] = (0.0, 0.0, 0.0)
+
+    def __post_init__(self) -> None:
+        if self.phase_state_index < 0:
+            raise ValueError("periodic feature state index must be non-negative")
+        axis = np.asarray(self.axis_local, dtype=float)
+        if axis.shape != (3,) or not np.isfinite(axis).all() or float(np.linalg.norm(axis)) <= 1e-12:
+            raise ValueError("periodic feature axis must be a finite nonzero vector")
+        _xyz(self.origin_local, "periodic feature origin")
+
+
+@dataclass(frozen=True)
 class RigidFeatureGeometryProvider:
     feature_points_local: Mapping[str, Sequence[Sequence[float]]]
     scale_state_index: int | None = None
+    periodic_feature_rules: Mapping[str, PeriodicFeatureRule] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.feature_points_local:
@@ -158,7 +189,18 @@ class RigidFeatureGeometryProvider:
         points = self.feature_points_local.get(feature_id)
         if points is None:
             raise ValueError(f"unsupported rigid feature: {feature_id}")
-        return _transform_points(_point_cloud(points, feature_id), state, self.scale_state_index)
+        local = _point_cloud(points, feature_id)
+        periodic_rule = self.periodic_feature_rules.get(feature_id)
+        if periodic_rule is not None:
+            if periodic_rule.phase_state_index >= len(state):
+                raise ValueError("periodic feature phase index exceeds state width")
+            local = _rotate_local_points(
+                local,
+                periodic_rule.axis_local,
+                periodic_rule.origin_local,
+                float(state[periodic_rule.phase_state_index]),
+            )
+        return _transform_points(local, state, self.scale_state_index)
 
     def contact_point_world(
         self,

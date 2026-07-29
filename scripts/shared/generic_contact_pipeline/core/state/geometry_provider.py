@@ -48,6 +48,26 @@ class PinholeCamera:
         )
 
 
+@dataclass(frozen=True)
+class PlaneSurface:
+    normal: tuple[float, float, float]
+    offset_m: float
+
+    def __post_init__(self) -> None:
+        normal = np.asarray(self.normal, dtype=float)
+        if normal.shape != (3,) or not np.isfinite(normal).all():
+            raise ValueError("plane normal must be a finite three-vector")
+        norm = float(np.linalg.norm(normal))
+        if norm <= 1e-12 or abs(norm - 1.0) > 1e-6:
+            raise ValueError("plane normal must have unit length")
+        if not isfinite(self.offset_m):
+            raise ValueError("plane offset must be finite")
+
+    def signed_distance(self, points_world: Sequence[Sequence[float]]) -> np.ndarray:
+        points = _point_cloud(points_world, "plane query points")
+        return points @ np.asarray(self.normal, dtype=float) + float(self.offset_m)
+
+
 def _xyz(values: Sequence[float], label: str) -> tuple[float, float, float]:
     if len(values) < 3:
         raise ValueError(f"{label} requires at least three coordinates")

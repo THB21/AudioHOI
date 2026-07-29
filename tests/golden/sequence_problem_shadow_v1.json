@@ -225,28 +225,28 @@
       "canonical_sha256": "212f9d01b900eb8573865ceb89797751b24bbc72ffbb1dc895087dcd67a1b8be"
     },
     "chair": {
-      "sequence_contract_sha256": "74efe1e046a6c582627e6eb8d94749a3908e449126357a7863c9b98be8d31082",
+      "sequence_contract_sha256": "1815e69cf17ca556f951f7c21b853c2a338153b3fbe9aae09d3a7e9453e5e5ad",
       "sequence_contract_state_spec": "semantic_graph_6d:articulated",
-      "sequence_contract_compiled_factors": 11,
+      "sequence_contract_compiled_factors": 10,
       "sequence_contract_audio_events": 8,
       "runtime_executor_id": "generic_sequence_executor",
       "runtime_case_dispatch_used": false,
-      "runtime_plan_sha256": "6bf81ce2c21f64e458715f6cb3570c373064dc820ccb3d45076e58a313b877a0",
+      "runtime_plan_sha256": "3307a82292a0e3667228c5c2558a892cebbdcfcff380633e9f06c60a511ab73c",
       "executor_prepare_status": "prepared_not_executed",
       "executor_prepare_case_dispatch_used": false,
-      "executor_prepare_sha256": "968b03b197bd194741d0d334d207a8bbe75b1457d8cf25a0332edbcdb6de182d",
+      "executor_prepare_sha256": "056d74225d5b6c9ddeabf22b716b73ae169c41197819e5643509f63135b8b244",
       "attempt_ledger_status": "attempt_planned_not_executed",
       "attempt_ledger_case_dispatch_used": false,
       "attempt_ledger_residual_status": "not_executed",
-      "attempt_ledger_sha256": "9c7edb2d8ec2665e9716102099c3e74eee03f301d6fa7bba907ca7a722e064a0",
-      "residual_boundary_supported": 11,
+      "attempt_ledger_sha256": "91743425b5bf1e70f1c55e292f45e70db6c29731b042e8f347539f76d83498ce",
+      "residual_boundary_supported": 10,
       "residual_boundary_pending": 0,
       "residual_boundary_gap_ids": [],
-      "residual_boundary_sha256": "effa05b86e87bc2c11456dab9069f0e61b4d2d8ec10d077c339e2e58113d13ef",
-      "residual_execution_plan_records": 11,
-      "residual_execution_plan_ready": 11,
+      "residual_boundary_sha256": "a22f94231b81c606398dacfb7350b1898c5b6d0214e5e2b8e50f6ccf024c1bbc",
+      "residual_execution_plan_records": 10,
+      "residual_execution_plan_ready": 10,
       "residual_execution_plan_blocked": 0,
-      "residual_execution_plan_sha256": "7c7dcff0f7e155007f4747a3e8c4b6767763f972c1e8a8f1a08812b942d84bcd",
+      "residual_execution_plan_sha256": "42c4c54643b7a675f26dbb341d61b05c09e984b5652bbf1b02dc4cad5d68bf55",
       "state_model": "semantic_graph_6d",
       "geometry_kind": "articulated_urdf",
       "measurement_count": 1014,
@@ -270,15 +270,14 @@
         "contact_state_controls_contact_distance": 1,
         "interaction_state_controls_acceleration_smoothness": 1,
         "motion_mode_controls_velocity_smoothness": 1,
-        "support_state_controls_support_penetration": 1,
         "visibility_state_controls_visual_observation": 1
       },
       "factor_activation_totals": {
         "active_frames": 1662,
         "downweighted_frames": 8,
-        "inactive_frames": 442
+        "inactive_frames": 250
       },
-      "compiled_factor_count": 11,
+      "compiled_factor_count": 10,
       "compiled_factor_kinds": {
         "audio_event_prior": 1,
         "contact_distance": 1,
@@ -287,11 +286,10 @@
         "line_reprojection": 1,
         "pose_prior": 1,
         "regularization": 1,
-        "support_and_penetration": 1,
         "temporal_acceleration": 1,
         "temporal_velocity": 1
       },
-      "factor_count": 11,
+      "factor_count": 10,
       "factor_kinds": {
         "audio_event_prior": 1,
         "contact_distance": 1,
@@ -300,14 +298,13 @@
         "line_reprojection": 1,
         "pose_prior": 1,
         "regularization": 1,
-        "support_and_penetration": 1,
         "temporal_acceleration": 1,
         "temporal_velocity": 1
       },
       "gap_ids": [],
-      "attempt_id": "generic-attempt-67f895f099a7",
+      "attempt_id": "generic-attempt-d7f1ceeb7a87",
       "validation_errors": [],
-      "canonical_sha256": "2998545e181b95c7c92a668f64162bbc98dab116acce637c7519ddfe6a740962"
+      "canonical_sha256": "9b2a54c2a95c44dceae3474df18d9bde7b57e630c8680c841250a58458748115"
     },
     "stick": {
       "sequence_contract_sha256": "55e802441196ba7024501c648ce3354d76094bde3157b78ef90b74e6d8970961",

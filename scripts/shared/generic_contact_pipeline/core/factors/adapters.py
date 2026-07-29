@@ -84,6 +84,17 @@ def _active_count(rows: list[dict[str, str]], field: str) -> int:
     return sum(1 for row in rows if (_number(row.get(field)) or 0.0) != 0.0)
 
 
+def _has_active_support_evidence(rows: list[dict[str, str]]) -> bool:
+    truthy = {"1", "1.0", "true", "yes", "active"}
+    for row in rows:
+        direct = any(str(row.get(field, "")).strip().lower() in truthy for field in ("floor_contact_state", "plane_support_state"))
+        contact_active = str(row.get("contact_active", "")).strip().lower() in truthy
+        semantic_support = row.get("human_part", "").strip().lower() == "floor" or row.get("object_part", "").strip().lower() == "floor_support"
+        if direct or (contact_active and semantic_support):
+            return True
+    return False
+
+
 def _energy_total(rows: list[dict[str, str]], field: str) -> float:
     return sum(_number(row.get(field)) or 0.0 for row in rows)
 
@@ -173,6 +184,7 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
     contact_rows = _read_csv(contact_csv)
     observation_csv = result_dir / "object_observations.csv"
     observation_rows = _read_csv(observation_csv)
+    has_support_evidence = _has_active_support_evidence(contact_rows)
     active_terms = set(loss_summary.get("active_terms", [])) if isinstance(loss_summary.get("active_terms", []), list) else set()
 
     mapped = {"frame", "time", "source", "E_total"}
@@ -187,6 +199,9 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
             continue
         total = _energy_total(per_frame_rows, term)
         active = _active_count(per_frame_rows, term)
+        if term == "E_support" and not has_support_evidence:
+            mapped.add(term)
+            continue
         if kind == FactorKind.AUDIO_EVENT_PRIOR and term in active_terms and active == 0 and trace_rows:
             active = int(float(trace_rows[-1].get("active_audio_frames", "0") or 0))
         if total == 0.0 and active == 0:

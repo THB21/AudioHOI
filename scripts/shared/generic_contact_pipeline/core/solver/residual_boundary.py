@@ -16,7 +16,7 @@ SUPPORTED_RESIDUAL_REFS = {
     "shadow_residual::line_reprojection": "FactorResidualEvaluator.line_reprojection",
     "shadow_residual::contact_distance": "FactorResidualEvaluator.contact_distance",
     "shadow_residual::metric_depth": "FactorResidualEvaluator.metric_depth",
-    "shadow_residual::support_and_penetration": "FactorResidualEvaluator.support_penetration",
+    "shadow_residual::support_and_penetration": "FactorResidualEvaluator.support_plane",
     "shadow_residual::pose_prior": "FactorResidualEvaluator.pose_prior",
     "shadow_residual::temporal_velocity": "FactorResidualEvaluator.temporal_delta",
     "shadow_residual::temporal_acceleration": "FactorResidualEvaluator.temporal_delta",

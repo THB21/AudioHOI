@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR` 和 typed `AudioEventIR`，并将 Measurement / Audio / Contact / Interaction hashes 纳入 `SequenceProblemContract`；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic runtime / attempt / residual execution 边界，以及按 residual capability 解析显式输入的 case-independent provider boundary。contact/audio artifact 按能力路径解析，不依赖 case：mug 现为 240 帧 active/persistent grasp，chair 为 125 帧 grasp + 1 release，且五 case 共享 `results/events/audio_events.csv` 能进入正式 contract。audio factor 只有在 audio peak 与 inferred impact/release transition 同时存在时 active；chair 只激活 frame 145 的 release event，而非把 8 个峰值全部当 contact。world-space contact 已具备 sphere、capsule、periodic rigid semantic feature cloud、articulated semantic feature cloud 四类 GeometryProvider。stick / mug 的真实 geometry/contact dry-run 已 `skipped=0`；chair 的 typed line reprojection、contact、joint、temporal、pose/reg 与真实 audio alignment 已执行。chair 原 legacy `E_visual` audit 因子已由 822 条 `Line2DMeasurement` 替换。GVHMR 只读 site extractor 记录输入及 body-model hash。暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | legacy loss audit 的精确 alias 和 chair 假 visual factor 已从 compiler 输入中移除；下一步从 typed depth measurement、geometry support query 和 contact-chord observation 显式编译真实 depth、support/gauge factors。随后做旧 optimizer trace 语义 parity，再让 `GenericSequenceExecutor` 真正消费 runtime bundles。保持严格 object-only，不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR` 和 typed `AudioEventIR`，并将 Measurement / Audio / Contact / Interaction hashes 纳入 `SequenceProblemContract`；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic runtime / attempt / residual execution 边界，以及按 residual capability 解析显式输入的 case-independent provider boundary。contact/audio artifact 按能力路径解析，不依赖 case：mug 现为 240 帧 active/persistent grasp，chair 为 125 帧 grasp + 1 release，且五 case 共享 `results/events/audio_events.csv` 能进入正式 contract。audio factor 只有在 audio peak 与 inferred impact/release transition 同时存在时 active；chair 只激活 frame 145 的 release event，而非把 8 个峰值全部当 contact。world-space contact 已具备 sphere、capsule、periodic rigid semantic feature cloud、articulated semantic feature cloud 四类 GeometryProvider。stick / mug 的真实 geometry/contact dry-run 已 `skipped=0`；chair 的 typed line reprojection、contact、joint、temporal、pose/reg 与真实 audio alignment 已执行。chair 原 legacy `E_visual` audit 因子已由 822 条 `Line2DMeasurement` 替换；无 typed floor-plane evidence 的伪 `E_support` 已删除。通用 `PlaneSurface` support/penetration residual contract 已建立，但不会用 canonical pose 反推零残差地面。GVHMR 只读 site extractor 记录输入及 body-model hash。暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | legacy loss audit 的精确 alias、chair 假 visual 和假 support factor 已从 compiler 输入中移除；下一步从 contact-chord observation / 固定 GVHMR palm sites 显式编译真实 gauge/chord factor，再做旧 optimizer trace 语义 parity并让 `GenericSequenceExecutor` 真正消费 runtime bundles。calibrated floor plane 进入 typed scene geometry 后，通用 support factor即可启用。保持严格 object-only，不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1351,6 +1351,14 @@ YYYY-MM-DD:
 ```
 
 ## 21. 维护记录
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update.
+- change: 审计确认 chair 的 `support_and_penetration:E_support` 不是 3D support factor：它来自 `non_invasive_loss_audit` 的 `side_ratio_rmse_px / endpoint_rmse_px`，activation ledger 为 `active=0, inactive=192`，且 contact constraints 中没有 floor / plane support evidence。factor adapter 现在按 evidence capability 删除这类伪 support audit，不按 case name 判断。新增通用 `PlaneSurface`、`SupportPlaneFactorInput` 和 `build_support_plane_residual_inputs()`，由显式 plane、geometry support features、active frames 生成 gap + one-sided penetration residual；core solver 不读取 DA3 文件、case name 或人体状态。
+- verification: 未新增测试。数值 smoke 使用两个 support points，signed distances 为 `+0.01m/-0.02m`，在 support weight 1、penetration weight 2、sigma `0.01m` 下得到 residual `[1.0,-2.0,0.0,-4.0]`。canonical chair factor count 从 11 降为真实的 10，移除的唯一 kind 是全部 inactive 的假 `support_and_penetration`；其余四 case factor summaries 不变。DA3 depth 与 object pose 当前存在未标定 camera-scale 差异，因此没有从 canonical pose 反推 floor plane，也没有声称 chair support 已观测完成。现有目标回归 60 项退出 0，factor / sequence problem / diagnostics / candidate sandbox 四个五-case verifier 均退出 0，materialized candidate golden 已在隔离临时目录重建并 fresh 校验。
+- remaining gap: generic support solver block 已具备生产数学接口，但 Stage 1 尚未发布 calibrated plane / static environment geometry，因而 canonical chair 不激活 support factor。下一步优先把 contact-chord gauge 从 diagnostic shadow 改成 typed object-feature chord 对固定 GVHMR palm chord 的真实 residual；floor plane 作为 scene geometry input 后再启用 support，不允许恢复 `E_support` audit。
 
 2026-07-29:
 

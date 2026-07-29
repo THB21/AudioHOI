@@ -52,6 +52,19 @@ class FactorResidualEvaluator:
         penetration = np.minimum(signed_distance_m.reshape(-1), 0.0)
         return (float(weight) * penetration / float(sigma_m)).astype(float)
 
+    def support_plane(
+        self,
+        signed_distance_m: np.ndarray,
+        *,
+        support_weight: float,
+        penetration_weight: float,
+        sigma_m: float,
+    ) -> np.ndarray:
+        distances = signed_distance_m.reshape(-1)
+        support = float(support_weight) * distances / float(sigma_m)
+        penetration = float(penetration_weight) * np.minimum(distances, 0.0) / float(sigma_m)
+        return np.concatenate((support, penetration)).astype(float)
+
     def pose_prior(
         self,
         x: np.ndarray,

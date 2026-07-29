@@ -6,7 +6,7 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 from ..audio_events import AudioEvent
 from ..interaction import ContactStateAxis, InteractionContactMode, InteractionTimeline
 from ..measurements import Line2DMeasurement
-from ..state.geometry_provider import FeaturePointGeometryProvider, GeometryProvider, PinholeCamera
+from ..state.geometry_provider import FeaturePointGeometryProvider, GeometryProvider, PinholeCamera, PlaneSurface
 
 
 @dataclass(frozen=True)
@@ -97,6 +97,17 @@ class LineReprojectionFactorInput:
     weight: float = 1.0
     sigma_px: float = 1.0
     allow_endpoint_swap: bool = False
+
+
+@dataclass(frozen=True)
+class SupportPlaneFactorInput:
+    geometry_provider: FeaturePointGeometryProvider
+    support_feature_ids: tuple[str, ...]
+    active_frames: tuple[int, ...]
+    plane: PlaneSurface
+    support_weight: float = 1.0
+    penetration_weight: float = 1.0
+    sigma_m: float = 1.0
 
 
 def _numeric_vector(values: Sequence[float], label: str) -> list[float]:
@@ -248,6 +259,38 @@ def build_line_reprojection_residual_inputs(
             "weight": float(weight),
             "sigma_px": float(sigma_px),
             "allow_endpoint_swap": bool(allow_endpoint_swap),
+        }
+    }
+
+
+def build_support_plane_residual_inputs(
+    *,
+    factor_id: str,
+    geometry_provider: FeaturePointGeometryProvider,
+    object_states: Mapping[int, Sequence[float]],
+    support_feature_ids: Sequence[str],
+    active_frames: Iterable[int],
+    plane: PlaneSurface,
+    support_weight: float,
+    penetration_weight: float,
+    sigma_m: float,
+) -> dict[str, dict[str, Any]]:
+    distances: list[float] = []
+    for frame in sorted(set(int(value) for value in active_frames)):
+        state = object_states.get(frame)
+        if state is None:
+            continue
+        for feature_id in support_feature_ids:
+            points = geometry_provider.feature_points_world(state, feature_id)
+            distances.extend(float(value) for value in plane.signed_distance(points))
+    if not distances:
+        return {}
+    return {
+        factor_id: {
+            "signed_distance_m": distances,
+            "support_weight": float(support_weight),
+            "penetration_weight": float(penetration_weight),
+            "sigma_m": float(sigma_m),
         }
     }
 
@@ -508,6 +551,7 @@ def build_geometry_sequence_residual_input_bundle(
     gauge_factors: Mapping[str, GaugeFactorInput] | None = None,
     audio_alignment_factors: Mapping[str, AudioAlignmentFactorInput] | None = None,
     line_reprojection_factors: Mapping[str, LineReprojectionFactorInput] | None = None,
+    support_plane_factors: Mapping[str, SupportPlaneFactorInput] | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Build common sequence residuals from explicit state and factor inputs.
 
@@ -641,6 +685,23 @@ def build_geometry_sequence_residual_input_bundle(
         )
         return payload.get(request.factor_id)
 
+    def support_plane(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (support_plane_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        payload = build_support_plane_residual_inputs(
+            factor_id=request.factor_id,
+            geometry_provider=factor.geometry_provider,
+            object_states=object_states,
+            support_feature_ids=factor.support_feature_ids,
+            active_frames=factor.active_frames,
+            plane=factor.plane,
+            support_weight=factor.support_weight,
+            penetration_weight=factor.penetration_weight,
+            sigma_m=factor.sigma_m,
+        )
+        return payload.get(request.factor_id)
+
     return build_residual_input_bundle(
         residual_execution_plan,
         {
@@ -654,5 +715,6 @@ def build_geometry_sequence_residual_input_bundle(
             "shadow_residual::gauge_constraint": gauge,
             "shadow_residual::audio_event_prior": audio_alignment,
             "shadow_residual::line_reprojection": line_reprojection,
+            "shadow_residual::support_and_penetration": support_plane,
         },
     )

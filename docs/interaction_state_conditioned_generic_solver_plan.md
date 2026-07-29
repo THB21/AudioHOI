@@ -8,6 +8,7 @@
 
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
+| 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
 | `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及按 residual capability 解析显式输入的 case-independent provider boundary；五个 canonical case 的 residual capability pending 已清零。`core.solver` 不再公开 ball-named residual builder；state regularization 只消费数值 state/reference vectors；contact residual 已新增 geometry-family `GeometryProvider` world-space entity-site contract，篮球 / 足球 parity adapter 已从 legacy 2.5D 像素代理切为 typed human site + typed contact state + sphere surface 3D site。暂不改变 accepted output、loss、阈值或求解路径。 |
 | 下一步 | pending | 对 basketball / football 的新 3D contact residual 与旧 optimizer trace 做语义 parity（旧 trace 若本身是 2.5D，只保留审计对照，不要求数值伪一致）；让 metric depth、temporal、pose prior 等 runtime providers 同样直接消费 typed MeasurementIR / StateSpec / InteractionStateIR；随后为 capsule、rigid mesh、articulated URDF 补对应 GeometryProvider，并将同一 case-independent provider boundary 接到 mug / chair / stick。保持不 solve、不写 accepted、不引入 case dispatcher。 |
@@ -23,6 +24,38 @@
 - `Measurements`
 - `InteractionState`
 - `CompiledFactors`
+
+### Object-only scope boundary
+
+本计划中的“contact”只指利用固定人体骨架观测约束 object trajectory，不代表人体接触重建。
+
+范围内：
+
+- 运行或读取 GVHMR，得到只读 skeleton、hand / foot / body sites 与人体遮挡证据；
+- 将 GVHMR sites 转成带 coordinate frame、confidence、source 和 hash 的 measurements；
+- 使用这些固定 measurements 构造 object contact distance、relative position、visibility 和 interaction-state factors；
+- 优化并发布 object state、object contact diagnostics、object render 与 object metrics。
+
+范围外：
+
+- 修改另一位同学负责的人体重建、人体 refinement 或人体 contact 代码；
+- 优化 GVHMR / SMPL / SMPL-X / HaMeR 参数或生成精细人体 mesh；
+- body-side contact refinement、人体逆运动学、人体姿态纠正；
+- Object → Human handoff 编排、downstream human pipeline、HOI 人体最终评价。
+
+数据流必须单向：
+
+```text
+GVHMR skeleton (read-only observation)
+              |
+              v
+human site measurements + provenance
+              |
+              v
+generic object factors -> object state solve -> ordinary object result
+```
+
+禁止 object solver 或 publisher 反向写入 GVHMR artifacts，也禁止把人体参数加入 `StateSpec`。
 
 ## 0. 当前代码判断
 
@@ -85,9 +118,9 @@
 
 暂时不要表述为“完全未知物体、没有资产、自动生成精确几何”的 open-world reconstruction。
 
-## 2. 最终一条龙架构
+## 2. 最终 object-only 一条龙架构
 
-保留现有 Stage 0–7 编号，但固定内部职责，并在 object 完成后增加 human stages。
+本项目只负责 object reconstruction，保留并固定 Stage 0–7。GVHMR 只提供只读人体骨架观测，用于构造 hand / foot / body sites、遮挡与相对位置证据；object solver 不包含人体状态变量，不优化人体，也不触发任何 downstream human pipeline。
 
 ```text
 video + audio + object label/asset
@@ -98,7 +131,7 @@ Stage -1  Asset / HOI semantic profile
                v
 Stage 0   Multimodal preprocessing
           frames / camera / mask / tracking / depth /
-          body / hands / audio events
+          GVHMR skeleton sites / audio events
                |
                v
 Stage 1   Measurement IR
@@ -118,27 +151,18 @@ Stage 4   One Generic Sequence Solver
                |
                v
 Stage 5   Atomic object result publication
-          object_pose.csv + object_handoff.json
+          object_pose.csv + object_result_manifest.json
                |
                v
 Stage 6   object render + hard metrics
 Stage 6.5 VLM selected-window audit
 Stage 7   residual / failure analysis
-               |
-               v
-Stage 8   GVHMR + HaMeR human reconstruction
-               |
-               v
-Stage 9   body-side contact refinement
-               |
-               v
-Stage 10  HOI render + final evaluation
 ```
 
 目标命令形式：
 
 ```bash
-python -m audiohoi.run_full \
+python -m audiohoi.run_object \
   --video input.mp4 \
   --object-label suitcase \
   --asset assets/suitcase.glb \
@@ -673,9 +697,10 @@ PreprocessTask:
 - `cotracker_track`
 - `da3_depth`
 - `gvhmr_body`
-- `hamer_hands`
 - `audio_event_extract`
 - `asset_geometry_prepare`
+
+`gvhmr_body` 的职责仅是产生只读 skeleton / body-site measurements。不得在本项目内增加 HaMeR、SMPL-X refinement、人体逆运动学或 body-side contact optimization。
 
 Stage 0 流程：
 
@@ -693,38 +718,30 @@ resolve DAG
 - 失败时明确是哪一个 task；
 - 不静默复用其他 case artifact；
 - 所有输入和模型版本进入 manifest；
-- audio、body、depth 不再要求用户提前准备。
+- audio、GVHMR skeleton、depth 不再要求用户提前准备。
 
-## 11. Object → Human handoff contract
+## 11. Object result publication contract
 
-当前 human refiner 已支持 sphere、capsule、mesh / SDF，并且只调整对应人体 kinematic chain，但仍需要手动传入：
+本项目只发布普通 object reconstruction 结果，不定义或触发 Object → Human handoff。另一位同学维护的人体重建与 refinement 代码不在本计划范围内，本分支不得修改、调用或为其添加编排逻辑。
 
-- `--trajectory-csv`
-- `--object-type`
-- `--object-length-m`
-- `--object-radius-m`
-- `--object-mesh-path`
-
-并从 trajectory 中读取 `contact_frame`、`audio_anchor`、`active_part` 等 legacy 字段。
-
-object solver 应发布：
+object solver 原子发布：
 
 ```text
-object_handoff/
-  handoff_manifest.json
+object_result/
+  object_result_manifest.json
   object_trajectory.csv
   state_spec.json
   geometry_descriptor.json
-  geometry_resource.*
   contact_constraints.jsonl
   interaction_timeline.jsonl
-  human_sites.csv
   audio_events.jsonl
   coordinate_frames.json
   uncertainty.csv
+  factor_ledger.json
+  metrics.json
 ```
 
-`handoff_manifest.json`：
+`object_result_manifest.json`：
 
 ```json
 {
@@ -735,22 +752,21 @@ object_handoff/
   "geometry": "geometry_descriptor.json",
   "contacts": "contact_constraints.jsonl",
   "interaction_timeline": "interaction_timeline.jsonl",
-  "human_sites": "human_sites.csv",
   "coordinate_frame": "camera_meters",
   "frame_count": 240,
   "fps": 30.0
 }
 ```
 
-Human side 只执行：
+GVHMR skeleton / human-site artifacts 是 solver 的只读输入，只在 input/provenance manifest 中记录 source、hash、coordinate frame 和模型版本；不得作为优化后的人体结果发布。
 
-```python
-handoff = load_object_handoff(...)
-geometry = GeometryProvider.from_descriptor(handoff.geometry)
-refine_human_against_fixed_object(handoff, geometry)
-```
+硬边界：
 
-object solver 和 human refiner 最终应共享同一个 `GeometryProvider`。
+- object state 中不得出现 SMPL / SMPL-X / body pose / hand pose 参数；
+- object solver 不得写入或覆写 GVHMR 输出；
+- contact residual 只能把 GVHMR sites 当作固定 measurement；
+- publisher 不得调用 human refiner、HaMeR 或 downstream HOI pipeline；
+- 普通 object result 可以被其他项目独立读取，但这种外部消费不属于本项目的 DAG、DoD 或评估主张。
 
 ## 12. 五个现有 case 迁移顺序
 
@@ -864,7 +880,7 @@ Factors:
 | `refactor/unified-sequence-executor` | 一个 sequence problem、一个 executor、一个 publisher | core solver 无 `case_name` 分支 |
 | `refactor/promote-five-cases` | ball、mug、stick、chair 全部迁移 | 五 case accepted outputs 都来自 unified executor |
 | `refactor/audio-vlm-production-gates` | AudioEventFactor、RelationFactor、profile-driven VLM | full / no-audio / no-VLM 真正产生不同轨迹或 gate trace |
-| `refactor/full-hoi-orchestrator` | Stage 0 runners、object handoff、human stages | raw video + asset 一条命令完成 |
+| `refactor/full-object-orchestrator` | Stage 0 runners、object-only publication | raw video + asset 一条命令完成 object reconstruction |
 | `benchmark/heldout-zero-shot` | 三个 held-out scenarios | 添加 case 后不允许改 solver |
 
 ## 14. 详细实现和验收
@@ -879,6 +895,9 @@ CI：
 - `test_factor_provenance_complete.py`
 - `test_fresh_result_directory.py`
 - `test_zero_shot_config_only.py`
+- `test_no_human_state_in_object_solver.py`
+- `test_gvhmr_is_read_only_observation.py`
+- `test_no_downstream_human_pipeline_invocation.py`
 
 硬规则：
 
@@ -1244,7 +1263,7 @@ VLM 表：
 | Case | Visibility F1 ↑ | Contact-part accuracy ↑ | Wrong anchor blocked ↑ | Wrong track blocked ↑ |
 | --- | --- | --- | --- | --- |
 
-最终 HOI 表：
+最终 object reconstruction 表：
 
 | Case | Overlay ↑ | Contact gap ↓ | Penetration ↓ | Support error ↓ | Jerk ↓ | High-speed preservation ↑ |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1265,8 +1284,8 @@ VLM 表：
 6. 遮挡、grasp、impact、sliding 等通过 `InteractionState` 激活 factors。
 7. Audio 和 VLM 都有真实 factor / gate provenance。
 8. 从 raw video + asset 可以 fresh run。
-9. Object handoff 自动触发 human pipeline。
-10. 最终结果目录同时含 object、human、HOI render 和 evaluation。
+9. GVHMR skeleton 只作为只读 measurement，object solver 不包含或更新人体状态。
+10. 最终结果目录只要求 object trajectory、object render、factor provenance 和 object evaluation；不触发 downstream human pipeline。
 
 ### Zero-shot 条件
 
@@ -1302,13 +1321,13 @@ VLM 表：
 5. 建唯一 `GenericSequenceExecutor + Publisher`。
 6. 依次切 mug -> stick -> chair。
 7. 接入 production `AudioEventIR` 和 `VLM RelationIR`。
-8. 补齐 Stage 0 runners 与 object handoff。
+8. 补齐 Stage 0 runners 与 object-only result publication。
 9. 先跑背身遮挡篮球，再跑 suitcase，最后跑高速乒乓。
 10. 冻结 held-out benchmark 后禁止再改 solver。
 
 最终研究主线：
 
-> 一个通用的离散 interaction-state estimator，加一个通用的连续 geometry-aware sequence solver；audio 负责事件时序，VLM 负责语义与可见性，vision / depth 负责连续空间观测，最后通过正式 handoff 进入 human-side refinement。
+> 一个通用的离散 interaction-state estimator，加一个通用的连续 geometry-aware object sequence solver；audio 负责事件时序，VLM 负责语义与可见性，vision / depth 负责连续空间观测，GVHMR 骨架只提供固定的人体位点观测，最终只发布 object reconstruction 结果。
 
 ## 20. 本文件维护规则
 
@@ -1332,6 +1351,14 @@ YYYY-MM-DD:
 ```
 
 ## 21. 维护记录
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: local commit `Scope generic solver plan to object only`; use `git log -1` for the self-referential hash.
+- change: 按项目分工将全计划严格收紧为 object-only。GVHMR 仅作为只读 skeleton / human-site observation 辅助 object contact、遮挡和相对位置 factors；删除 Stage 8–10、HaMeR、body-side contact refinement、Object → Human handoff、downstream human pipeline、full-HOI orchestrator 与相关 DoD。普通 object result publication 保留。明确本分支不得修改另一位同学维护的人体代码，不得优化或发布人体状态。
+- verification: 全文 scope scan 不再将 human reconstruction / refinement / handoff 列为本项目阶段、分支或完成条件；object-only architecture、Stage 0 registry、publication contract、branch sequence、CI invariants、evaluation table、Definition of Done 和实际执行顺序已保持一致。
+- remaining gap: 本次只修正规划与责任边界，不修改任何人体代码或 solver 数值行为。后续需在本分支增加静态架构测试，保证 GVHMR 只读、object StateSpec 无人体参数、publisher 不触发 downstream human pipeline。
 
 2026-07-29:
 

@@ -1029,6 +1029,12 @@ def main() -> None:
         default="pose6d_object_proxy_anchor_refined",
         help="Subdirectory name under results/renders for this render batch.",
     )
+    parser.add_argument(
+        "--out-root",
+        type=Path,
+        default=None,
+        help="Explicit render output root; keeps isolated candidate evidence outside canonical results.",
+    )
     parser.add_argument("--fps", type=float, default=24.0)
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=720)
@@ -1050,7 +1056,7 @@ def main() -> None:
 
     sample_dir = args.sample_dir
     results_dir = sample_dir / "results"
-    out_root = results_dir / "renders" / args.render_tag
+    out_root = args.out_root or (results_dir / "renders" / args.render_tag)
     ball_out = out_root / "ball"
     human_out = out_root / "with_human"
     ball_out.mkdir(parents=True, exist_ok=True)
@@ -1062,12 +1068,13 @@ def main() -> None:
     object_kind = infer_object_kind(sample_dir, object_obs)
     object_proxy = read_object_proxy(sample_dir)
     human = read_human_result(results_dir / "gvhmr" / "result.pkl")
-    if len(ball_rows) != human["transl"].shape[0]:
-        raise RuntimeError("Ball/human frame count mismatch")
+    human_indices = np.asarray([int(row["frame"]) - 1 for row in ball_rows], dtype=int)
+    if np.any(human_indices < 0) or np.any(human_indices >= human["transl"].shape[0]):
+        raise RuntimeError("Object trajectory frame is outside the GVHMR sequence")
 
     # Ball-only outputs always get written.
     ball_overlay_png, ball_overlay_mp4 = render_overlay_ball_only(
-        sample_dir, ball_rows, human["K_fullimg"][0], ball_out, object_kind, object_obs, args.fps, args.video_codec, h264_encoder, object_proxy
+        sample_dir, ball_rows, human["K_fullimg"][human_indices[0]], ball_out, object_kind, object_obs, args.fps, args.video_codec, h264_encoder, object_proxy
     )
     ball_cam3d_png, ball_cam3d_mp4 = render_camera3d(
         ball_rows, None, None, ball_out, object_kind, object_obs, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder, object_proxy=object_proxy
@@ -1085,12 +1092,15 @@ def main() -> None:
 
     if args.with_human:
         joints, sampled_vertices = build_body_outputs(args.body_model_root, human, args.vertex_stride)
+        joints = joints[human_indices]
+        sampled_vertices = sampled_vertices[human_indices]
+        selected_intrinsics = human["K_fullimg"][human_indices]
         human_overlay_png, human_overlay_mp4 = render_overlay_with_human(
             sample_dir,
             ball_rows,
             sampled_vertices,
             joints,
-            human["K_fullimg"],
+            selected_intrinsics,
             human_out,
             object_kind,
             object_obs,

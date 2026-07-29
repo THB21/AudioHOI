@@ -28,6 +28,13 @@ def _pose_xyz(row: dict[str, str]) -> list[float] | None:
     return [float(value) for value in values]
 
 
+def _state_values(row: dict[str, str], fields: tuple[str, ...]) -> list[float] | None:
+    values = [_finite_float(row, field) for field in fields]
+    if any(value is None for value in values):
+        return None
+    return [float(value) for value in values]
+
+
 def _execution_records(residual_execution_plan: dict[str, object] | object) -> list[dict[str, object]]:
     if isinstance(residual_execution_plan, dict):
         records = residual_execution_plan.get("records", [])
@@ -41,6 +48,47 @@ def _execution_records(residual_execution_plan: dict[str, object] | object) -> l
         }
         for record in records
     ]
+
+
+def build_state_regularization_residual_inputs(
+    *,
+    factor_id: str,
+    value_rows: dict[int, dict[str, str]],
+    target_rows: dict[int, dict[str, str]],
+    fields: tuple[str, ...],
+    scales: tuple[float, ...],
+    weight: float,
+) -> dict[str, dict[str, Any]]:
+    """Build generic state regularization residual inputs.
+
+    The contract is state-centric rather than object-centric: callers choose a
+    state field projection, an explicit reference state source, per-field
+    scales, and a factor weight. No case name or geometry family is used here.
+    """
+
+    if len(fields) != len(scales):
+        raise ValueError("regularization fields and scales must have the same length")
+    values: list[list[float]] = []
+    targets: list[list[float]] = []
+    repeated_scales: list[list[float]] = []
+    for frame in sorted(set(value_rows) & set(target_rows)):
+        value = _state_values(value_rows[frame], fields)
+        target = _state_values(target_rows[frame], fields)
+        if value is None or target is None:
+            continue
+        values.append(value)
+        targets.append(target)
+        repeated_scales.append([float(scale) for scale in scales])
+    if not values:
+        return {}
+    return {
+        factor_id: {
+            "values": values,
+            "target": targets,
+            "weight": float(weight),
+            "scales": repeated_scales,
+        }
+    }
 
 
 def build_legacy_ball_residual_input_bundle(
@@ -57,6 +105,7 @@ def build_legacy_ball_residual_input_bundle(
     """
 
     pose_by_frame = _read_csv_by_frame(result_dir / "object_pose.csv")
+    init_by_frame = _read_csv_by_frame(result_dir / "object_pose_init.csv")
     obs_by_frame = _read_csv_by_frame(result_dir / "object_observations.csv")
     contact_by_frame = _read_csv_by_frame(result_dir / "object_contact_points.csv")
     frames = sorted(set(pose_by_frame) & set(obs_by_frame))
@@ -145,5 +194,17 @@ def build_legacy_ball_residual_input_bundle(
                     "w_prior_xy": 1.0,
                     "w_prior_z": 1.0,
                 }
+
+        elif residual_ref == "shadow_residual::regularization":
+            bundle.update(
+                build_state_regularization_residual_inputs(
+                    factor_id=factor_id,
+                    value_rows=pose_by_frame,
+                    target_rows=init_by_frame,
+                    fields=("tx", "ty", "tz"),
+                    scales=(1.0, 1.0, 1.0),
+                    weight=1.0,
+                )
+            )
 
     return bundle

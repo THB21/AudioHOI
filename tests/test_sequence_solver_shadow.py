@@ -24,6 +24,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     build_generic_residual_dry_run,
     build_generic_residual_execution_plan,
     build_legacy_ball_residual_input_bundle,
+    build_state_regularization_residual_inputs,
     build_sequence_solver_shadow_diagnostics,
     validate_candidate_sandbox_manifest,
     validate_sequence_problem_shadow,
@@ -359,7 +360,7 @@ def test_generic_residual_dry_run_executes_factor_values_without_solving() -> No
     assert record.rms > 0.0
 
 
-def test_legacy_ball_residual_input_bundle_executes_generic_point_depth_contact_temporal_blocks() -> None:
+def test_legacy_ball_residual_input_bundle_executes_generic_depth_contact_temporal_blocks() -> None:
     for case_name, case_dir in (("basketball", "01_basketball"), ("football", "10_football")):
         result_dir = REPO / f"samples_known_object/{case_dir}/results/benchmark_vlm_qwen"
         problem = build_sequence_problem_shadow(load_case_profile(case_name), result_dir)
@@ -376,6 +377,50 @@ def test_legacy_ball_residual_input_bundle_executes_generic_point_depth_contact_
         assert dry_run.case_dispatch_used is False
         assert all(record.residual_count > 0 for record in executed.values())
         assert all(record.rms >= 0.0 for record in executed.values())
+
+
+def test_state_regularization_inputs_are_generic_state_reference_contract() -> None:
+    payload = build_state_regularization_residual_inputs(
+        factor_id="regularization:root",
+        value_rows={
+            1: {"tx": "1.0", "ty": "2.0", "tz": "3.0"},
+            2: {"tx": "1.5", "ty": "2.5", "tz": "3.5"},
+        },
+        target_rows={
+            1: {"tx": "0.5", "ty": "2.0", "tz": "2.0"},
+            2: {"tx": "1.0", "ty": "2.0", "tz": "3.0"},
+        },
+        fields=("tx", "ty", "tz"),
+        scales=(1.0, 2.0, 0.5),
+        weight=0.25,
+    )
+
+    assert payload == {
+        "regularization:root": {
+            "values": [[1.0, 2.0, 3.0], [1.5, 2.5, 3.5]],
+            "target": [[0.5, 2.0, 2.0], [1.0, 2.0, 3.0]],
+            "weight": 0.25,
+            "scales": [[1.0, 2.0, 0.5], [1.0, 2.0, 0.5]],
+        }
+    }
+
+
+def test_legacy_ball_bundle_uses_generic_state_regularization_inputs() -> None:
+    for case_name, case_dir in (("basketball", "01_basketball"), ("football", "10_football")):
+        result_dir = REPO / f"samples_known_object/{case_dir}/results/benchmark_vlm_qwen"
+        problem = build_sequence_problem_shadow(load_case_profile(case_name), result_dir)
+        bundle = build_legacy_ball_residual_input_bundle(result_dir, problem["residual_execution_plan"])
+        dry_run = build_generic_residual_dry_run(problem["residual_execution_plan"], bundle)
+
+        regularization_records = [
+            record
+            for record in dry_run.records
+            if record.factor_id.startswith("regularization:")
+        ]
+        assert regularization_records
+        assert all(record.status == "executed" for record in regularization_records)
+        assert all(record.residual_count > 0 for record in regularization_records)
+        assert dry_run.skipped_count == 0
 
 
 def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> None:

@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及 basketball / football legacy runtime input bundle；五个 canonical case 的 residual capability pending 已清零，球类 depth / contact / temporal / pose-prior dry-run residual 已能执行；暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 对 basketball / football 执行 residual parity，对齐旧 optimizer trace；补 explicit regularization targets/scales；把当前 ball contact 2.5D parity adapter 替换为 GeometryProvider 3D contact site；随后扩展到 mug / chair / stick。保持不 solve、不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及 basketball / football legacy runtime input bundle；五个 canonical case 的 residual capability pending 已清零，球类 depth / contact / temporal / pose-prior / state-regularization dry-run residual 已能执行；暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 对 basketball / football 执行 residual parity，对齐旧 optimizer trace；把当前 ball contact 2.5D parity adapter 替换为 GeometryProvider 3D contact site；随后把同一 generic state regularization contract 扩展到 mug / chair / stick。保持不 solve、不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1340,6 +1340,14 @@ YYYY-MM-DD:
 - change: 新增生产级 `core/interaction`、五 case timeline builder、timeline / intervals / metrics 导出 CLI、InteractionStateIR 测试。
 - verification: `tests/test_interaction_state_ir.py`、`tests/test_factors.py`、`tests/test_sequence_solver_shadow.py` 指定五 case shadow/candidate 测试共 22 个通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
 - remaining gap: 新 worktree 缺少 gitignored DA3 / GVHMR / SAM2 / tracking / frames 等输入，因此 Phase 0 full materialized gate 未在该 worktree 声称通过；`stick` 仍保留 `line_contact_lock_special_refinement` 为 nonblocking gap。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update
+- change: 新增 case-name-free `build_state_regularization_residual_inputs()`，由显式 state fields、reference rows、per-field scales 和 factor weight 构造 `regularization(values,target,scales,weight)` payload；篮球 / 足球的 legacy runtime bundle 只调用该通用 state-reference contract，不再沿用或扩展 `ball_residuals.py` 的球类专用 residual 定义。`ball_residuals.py` 只作为 legacy audit/report 参考，不进入 generic solver contract。
+- verification: 先跑 RED，确认 `build_state_regularization_residual_inputs` 缺失导致新增测试 ImportError；实现后新增测试通过。相关验证：`python -m pytest -q tests/test_factor_residual_evaluator.py tests/test_sequence_solver_shadow.py` 通过，结果 `45 passed in 119.02s`。dry-run 统计：basketball / football 均为 `executed=10 skipped=0`；basketball 两个 regularization blocks 各 `residual_count=576 rms=0.726270`，football 两个 regularization blocks 各 `residual_count=726 rms=0.973487`。
+- remaining gap: 这一步只把 regularization input 泛化并接入 dry-run；尚未做旧 optimizer trace parity、未 solve、未写 accepted output；contact residual 仍是 legacy 2.5D proxy，后续必须替换为 GeometryProvider 3D contact site；mug / chair / stick 尚未接对应 runtime input bundle。
 
 2026-07-29:
 

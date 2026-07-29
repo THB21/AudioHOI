@@ -30,6 +30,15 @@ from .types import (
     gap_record,
 )
 from .validation import validate_factor_shadow
+from .vlm_arbitration import (
+    ARBITRATION_LABELS,
+    FactorArbitrationLedger,
+    FactorGateDecision,
+    build_factor_arbitration_ledger,
+    factor_arbitration_ledger_record,
+    factor_gate_decision_record,
+    merge_factor_activation_ledger,
+)
 
 __all__ = [
     "FactorAdaptationResult",
@@ -61,4 +70,11 @@ __all__ = [
     "verify_factor_shadow_summary",
     "validate_chair_factor_executor_bundle",
     "validate_factor_shadow",
+    "ARBITRATION_LABELS",
+    "FactorArbitrationLedger",
+    "FactorGateDecision",
+    "build_factor_arbitration_ledger",
+    "factor_arbitration_ledger_record",
+    "factor_gate_decision_record",
+    "merge_factor_activation_ledger",
 ]

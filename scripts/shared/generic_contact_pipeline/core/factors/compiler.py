@@ -8,6 +8,7 @@ from typing import Mapping
 
 from .activation import ACTIVATION_STATES, FactorActivationInterval, FactorActivationLedger
 from .types import FactorKind, FactorSpec
+from .vlm_arbitration import FactorArbitrationLedger, merge_factor_activation_ledger
 
 
 @dataclass(frozen=True)
@@ -198,7 +199,10 @@ def build_compiled_factor_ledger(
     factors: tuple[FactorSpec, ...],
     activation_ledger: FactorActivationLedger,
     runtime_configs: Mapping[FactorKind, FactorRuntimeConfig] | None = None,
+    arbitration_ledger: FactorArbitrationLedger | None = None,
 ) -> CompiledFactorLedger:
+    if arbitration_ledger is not None:
+        activation_ledger = merge_factor_activation_ledger(activation_ledger, arbitration_ledger)
     activation_by_id = {record.factor_id: record for record in activation_ledger.records}
     compiled: list[CompiledFactor] = []
     for factor in factors:

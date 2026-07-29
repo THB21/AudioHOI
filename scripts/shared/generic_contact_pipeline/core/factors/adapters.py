@@ -34,6 +34,12 @@ ENERGY_TO_KIND = {
     "E_reg": FactorKind.REGULARIZATION,
 }
 SUPPORTED_ENERGY_TERMS = tuple(ENERGY_TO_KIND)
+AUDIT_ALIAS_TO_CANONICAL = {
+    "E_2d": "E_visual",
+    "E_depth": "E_support",
+    "E_temporal": "E_smooth",
+    "E_prior": "E_reg",
+}
 
 
 @dataclass(frozen=True)
@@ -79,6 +85,10 @@ def _active_count(rows: list[dict[str, str]], field: str) -> int:
 
 def _energy_total(rows: list[dict[str, str]], field: str) -> float:
     return sum(_number(row.get(field)) or 0.0 for row in rows)
+
+
+def _columns_are_identical(rows: list[dict[str, str]], left: str, right: str) -> bool:
+    return bool(rows) and all(row.get(left, "") == row.get(right, "") for row in rows)
 
 
 def _source(path: Path, fields: tuple[str, ...], producer: str) -> FactorSourceRef:
@@ -168,6 +178,10 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
     for term, kind in ENERGY_TO_KIND.items():
         if not per_frame_rows or term not in per_frame_rows[0]:
             continue
+        canonical_term = AUDIT_ALIAS_TO_CANONICAL.get(term)
+        if canonical_term and _columns_are_identical(per_frame_rows, term, canonical_term):
+            mapped.add(term)
+            continue
         total = _energy_total(per_frame_rows, term)
         active = _active_count(per_frame_rows, term)
         if kind == FactorKind.AUDIO_EVENT_PRIOR and term in active_terms and active == 0 and trace_rows:
@@ -221,6 +235,52 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                     residual_source=_source(summary_path, ("terms", term), "optimizer_style_residual_report"),
                 )
             )
+
+    if not any(factor.kind == FactorKind.POSE_PRIOR for factor in factors):
+        factors.append(
+            FactorSpec(
+                factor_id="pose_prior:state_initializer",
+                kind=FactorKind.POSE_PRIOR,
+                frame_count=len(per_frame_rows),
+                input_refs=_input_refs(FactorKind.POSE_PRIOR),
+                residual_unit="state_spec_initializer_delta",
+                weight_source="state_spec_initializer_prior",
+                gate_source=None,
+                residual_source=_source(
+                    result_dir / "stage3_metrics.json",
+                    ("adapter", "state_model", "initializer"),
+                    "state_spec_initializer_prior",
+                ),
+            )
+        )
+        summaries.append(FactorEnergySummary("state_spec:initializer_prior", FactorKind.POSE_PRIOR, len(per_frame_rows), 0.0))
+
+    if not any(factor.kind == FactorKind.TEMPORAL_ACCELERATION for factor in factors):
+        acceleration_rows = max(0, len(per_frame_rows) - 2)
+        factors.append(
+            FactorSpec(
+                factor_id="temporal_acceleration:state_sequence",
+                kind=FactorKind.TEMPORAL_ACCELERATION,
+                frame_count=acceleration_rows,
+                input_refs=_input_refs(FactorKind.TEMPORAL_ACCELERATION),
+                residual_unit="state_second_difference",
+                weight_source="state_spec_sequence_acceleration_prior",
+                gate_source="InteractionState ContactMode/MotionMode activation",
+                residual_source=_source(
+                    result_dir / "stage3_metrics.json",
+                    ("adapter", "state_model", "temporal_acceleration"),
+                    "state_spec_sequence_acceleration_prior",
+                ),
+            )
+        )
+        summaries.append(
+            FactorEnergySummary(
+                "state_spec:sequence_acceleration_prior",
+                FactorKind.TEMPORAL_ACCELERATION,
+                acceleration_rows,
+                0.0,
+            )
+        )
 
     has_contact_factor = any(factor.kind == FactorKind.CONTACT_DISTANCE for factor in factors)
     active_contact_rows = sum(1 for row in contact_rows if row.get("contact_active") == "1")

@@ -11,7 +11,7 @@
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
 | `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR` 和 typed `AudioEventIR`，并将 Measurement / Audio / Contact / Interaction hashes 纳入 `SequenceProblemContract`；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic runtime / attempt / residual execution 边界，以及按 residual capability 解析显式输入的 case-independent provider boundary。contact/audio artifact 按能力路径解析，不依赖 case：mug 现为 240 帧 active/persistent grasp，chair 为 125 帧 grasp + 1 release，且五 case 共享 `results/events/audio_events.csv` 能进入正式 contract。audio factor 只有在 audio peak 与 inferred impact/release transition 同时存在时 active；chair 只激活 frame 145 的 release event，而非把 8 个峰值全部当 contact。world-space contact 已具备 sphere、capsule、periodic rigid semantic feature cloud、articulated semantic feature cloud 四类 GeometryProvider。stick / mug 的真实 geometry/contact dry-run 已 `skipped=0`；chair 的 contact、joint、temporal、pose/reg 与真实 audio alignment 已执行。GVHMR 只读 site extractor 记录输入及 body-model hash。暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 清理 chair legacy loss audit 中 `E_2d == E_visual`、`E_depth == E_support` 的重复/错误 factor 声明，并从 typed line measurements、geometry support query 和 contact-chord observation 编译真实 visual/support/gauge residual inputs；随后做旧 optimizer trace 语义 parity，再让 `GenericSequenceExecutor` 真正消费 runtime bundles。保持严格 object-only，不写 accepted、不引入 case dispatcher。 |
+| 下一步 | pending | legacy loss audit 的精确 alias 已从 factor compiler 输入中移除；下一步从 typed point/line/depth measurements、StateSpec initializer、geometry support query 和 contact-chord observation 显式编译真实 reprojection、depth、acceleration、pose-prior、support/gauge factors，不能再借用 audit alias 补齐 factor 数量。随后做旧 optimizer trace 语义 parity，再让 `GenericSequenceExecutor` 真正消费 runtime bundles。保持严格 object-only，不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1351,6 +1351,14 @@ YYYY-MM-DD:
 ```
 
 ## 21. 维护记录
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update.
+- change: 在 case-independent factor adapter 中识别并跳过 legacy non-invasive loss audit 的逐行精确 alias：`E_2d == E_visual`、`E_depth == E_support`、`E_temporal == E_smooth`、`E_prior == E_reg`。判定依据是实际列值逐行完全相同，不读取 case/object 名称。这样不再把同一数值错误声明为 point+point、depth+support、velocity+acceleration、regularization+pose-prior 四套不同数学约束。
+- verification: 五 case 四组 alias 均经 canonical CSV 审计确认逐行完全相同。删除 alias 后，以 case-independent `pose_prior:state_initializer` 和 `temporal_acceleration:state_sequence` 分别替代假的 `E_prior` / `E_temporal`，factor counts 为 basketball 10、football 10、mug 6、chair 11、stick 5。真实 optimizer-style stage reports 仍保留；四个先前失败的 factor/ball/materialized-candidate 回归单独复验为 `4 passed`，完整现有相关回归为 `90 passed in 120.06s`。factor、sequence problem、diagnostics、candidate sandbox 四个五-case verifier 全部通过，materialized candidate golden 已从临时隔离目录重新生成。
+- remaining gap: pose prior / acceleration 现在有正式 factor declaration 和通用 residual input capability，但尚未由 production executor solve。被删除的 `E_depth` alias 不代表真实 metric depth 已解决；chair 当前保留的 `E_visual` / `E_support` 仍来自非侵入 audit，下一步必须由 typed line measurement 与 geometry support evidence 替换，不能为了保持旧 factor count 复活 alias。
 
 2026-07-29:
 

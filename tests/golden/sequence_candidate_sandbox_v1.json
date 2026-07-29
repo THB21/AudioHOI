@@ -5,9 +5,9 @@
       "status": "sandbox_ready",
       "eligible_for_candidate_sandbox": true,
       "candidate_dir": "samples_known_object/01_basketball/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_basketball",
-      "attempt_id": "generic-attempt-b55fb4580a98",
-      "problem_sha256": "36553e793f60fc5588e68a613ac324d88ba8ba2daa422c21434df5fa6eb45b10",
-      "diagnostics_sha256": "3720b8e7a76977b8f4b3b1a91d7bc6d69cb643502038a90a3aa4d9043c27a3d8",
+      "attempt_id": "generic-attempt-bde350c89aa0",
+      "problem_sha256": "702409bd2c7f8c75841718bf4e76a0a050f2ef408461fe0fdcd9698ccf74d41b",
+      "diagnostics_sha256": "f70fb52cefa3756421f6a9cad6e4dfe8a1dafe0834f10e54e434624ff1bd8dc6",
       "blocking_gap_ids": [],
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -16,15 +16,15 @@
         "generic_sphere_sequence_residuals.csv",
         "generic_sphere_sequence_attempt.json"
       ],
-      "canonical_sha256": "cdc5f33d4f5578a49d70b903960ef3b1232eafc90e90ec02c86d1e4fe7e5964a"
+      "canonical_sha256": "3cf46ffcfc1f2fdf46599f04e84f845bfa0ad2cbe15bdce7c8f7284c85c182c6"
     },
     "football": {
       "status": "sandbox_ready",
       "eligible_for_candidate_sandbox": true,
       "candidate_dir": "samples_known_object/10_football/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_football",
-      "attempt_id": "generic-attempt-3483567a543d",
-      "problem_sha256": "cb59156911f64c9095291c5cf9bce740e1509fab3f62eab3ee26ae47cd153e11",
-      "diagnostics_sha256": "343964a1ac96f6c8281072133000127c70ce7fc9c2dc8efbdaf3950cccb4cc9c",
+      "attempt_id": "generic-attempt-c2c01048dac2",
+      "problem_sha256": "bbebf58c208a5b72212f31b8c7f521cb5f2e765e5979f7f7dc36f11b14371a59",
+      "diagnostics_sha256": "ed00edb18d8779070f37f7d8c3c900551358f397827a31eaf833e01074f9a57c",
       "blocking_gap_ids": [],
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -33,15 +33,15 @@
         "generic_sphere_sequence_residuals.csv",
         "generic_sphere_sequence_attempt.json"
       ],
-      "canonical_sha256": "bb7aeea2bfa54d52a1b5b1faf8b7256680df01134ede2adea3ed4b2c538aaa2e"
+      "canonical_sha256": "886b3f9d0d2266e973d95829227799c9a1c101627c3ab05e1109b9df2abbc0ce"
     },
     "mug": {
       "status": "sandbox_ready",
       "eligible_for_candidate_sandbox": true,
       "candidate_dir": "samples_known_object/02_mug/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_mug",
-      "attempt_id": "generic-attempt-4480dd7d3037",
-      "problem_sha256": "583a43cb9f4427d570da4b3704549194cd3957365f7c529a26d79a2032940b3f",
-      "diagnostics_sha256": "2fcd38bf70c1cacc69fdc74f7ffd8471241f0c903debeb69dba5278f62af5050",
+      "attempt_id": "generic-attempt-d6cc86c8e13a",
+      "problem_sha256": "212f9d01b900eb8573865ceb89797751b24bbc72ffbb1dc895087dcd67a1b8be",
+      "diagnostics_sha256": "3098d92920d961d94bbe74c1c5ae8b56db303865d9fbb3d4b114fcca2671dbd6",
       "blocking_gap_ids": [],
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -50,15 +50,15 @@
         "generic_periodic_phase_candidate.csv",
         "generic_projected_periodic_attempt.json"
       ],
-      "canonical_sha256": "529ad21acd2fda36066c6a84c7c9d0b7fbeafa40da7137cb0d242267518b62f8"
+      "canonical_sha256": "af6ca81fa9e49279db1f9ae328ce820dcdc451b5f94be8f107216f60c7c8be5a"
     },
     "chair": {
       "status": "sandbox_ready",
       "eligible_for_candidate_sandbox": true,
       "candidate_dir": "samples_known_object/05_chair/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_chair",
-      "attempt_id": "generic-attempt-6ea50bfb5033",
-      "problem_sha256": "20e495531615c413ccaeac2191ed06fa867617339da5ee42fd2aec4de3e732ae",
-      "diagnostics_sha256": "ac1e7387ef240f47ac7dbf350d818022ce9ae1770f8b9bbe251b38f8755b77f3",
+      "attempt_id": "generic-attempt-ff62d099b88b",
+      "problem_sha256": "a0c4b02986e0ddce9c53e9dabb2c3f2d5531b86acde05bf1986dceee444b5a3a",
+      "diagnostics_sha256": "53dadf8ea11f37ed498d84cc2347e6f7bc78cc228c10d065e119aefcff7b83a1",
       "blocking_gap_ids": [],
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -68,15 +68,15 @@
         "chair_generic_factor_executor_attempt.json",
         "chair_generic_factor_residuals.json"
       ],
-      "canonical_sha256": "c71277879bd192251844251ede767fb303c4fee3a07778e0c642f45ac3c54c9f"
+      "canonical_sha256": "29e00cda437ec876a6d42906b1a96c1e1eccf12151b11a414643d5791a3a328e"
     },
     "stick": {
       "status": "sandbox_ready",
       "eligible_for_candidate_sandbox": true,
       "candidate_dir": "samples_known_object/11_stick/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_stick",
-      "attempt_id": "generic-attempt-8a1597ab6f90",
-      "problem_sha256": "f5593cd94003814ddd1ea33816d2c28cc26a9a224c91febe1fd0de264936b4e7",
-      "diagnostics_sha256": "1afd550049547cedb063c0cdea00a709d5cea6d861b47b55e411d5b02bf72799",
+      "attempt_id": "generic-attempt-eafc4d30e909",
+      "problem_sha256": "f75b0d8779395f8c7e5c9e827e6980cf0e7be66a9a7b7660787b0a4752b2126a",
+      "diagnostics_sha256": "7ded846037d1f3ac7169995efe2f7f76532f63829e274825f456173673546b79",
       "blocking_gap_ids": [],
       "nonblocking_gap_ids": [
         "line_contact_lock_special_refinement"
@@ -87,7 +87,7 @@
         "generic_line_contact_residuals.csv",
         "generic_line_contact_attempt.json"
       ],
-      "canonical_sha256": "9a66bc2ece7ad6ad0137cffbd6e6c05832e0710288f13d1ffbe31966629ccc7a"
+      "canonical_sha256": "a71e400412e33a099c204a57d89eb709df219520913ddceb6f70e26d641023c2"
     }
   }
 }

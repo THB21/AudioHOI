@@ -13,7 +13,7 @@
       },
       "gap_ids": [],
       "unmapped_nonempty_fields": [],
-      "canonical_sha256": "55b19aaf69ba145514af522b3c3e5314ae7549cc70669f1f42b6f1e22e043c4a"
+      "canonical_sha256": "5a0d23a21f9985b931e3673857c752f3d9467c260e4f917d69d5486e5ac9a3d7"
     },
     "football": {
       "factor_count": 10,
@@ -27,7 +27,7 @@
       },
       "gap_ids": [],
       "unmapped_nonempty_fields": [],
-      "canonical_sha256": "6e40428624bb09a9b1692ff67da45e03f83523bafacfe107584a2de655f5f2ea"
+      "canonical_sha256": "d7ccf65c6addb9cc865ceb85ebbf53ee8d81542e1f8c2cef129eaa8c0746f7bb"
     },
     "mug": {
       "factor_count": 6,
@@ -41,17 +41,16 @@
       },
       "gap_ids": [],
       "unmapped_nonempty_fields": [],
-      "canonical_sha256": "f9b82710484f73f0c71d00c25aa280c2cb4756f95e06b1e4a861469456f6eced"
+      "canonical_sha256": "b1d479d8dce868557c94247ad97380b6723b6f8ab38abcd3e4b69e33611001e1"
     },
     "chair": {
-      "factor_count": 13,
+      "factor_count": 11,
       "factor_kinds": {
         "audio_event_prior": 1,
         "contact_distance": 1,
         "gauge_constraint": 1,
         "joint_limit": 2,
-        "metric_depth": 1,
-        "point_reprojection": 2,
+        "point_reprojection": 1,
         "pose_prior": 1,
         "regularization": 1,
         "support_and_penetration": 1,
@@ -60,7 +59,7 @@
       },
       "gap_ids": [],
       "unmapped_nonempty_fields": [],
-      "canonical_sha256": "2f250100277f60ed0345d8268b43a4fd1222783a221e7bde50f43d22738fbb83"
+      "canonical_sha256": "9847e31a9711420f46293b935542f10be77b03404e227e0dc8a454a47316a680"
     },
     "stick": {
       "factor_count": 5,
@@ -75,7 +74,7 @@
         "line_contact_lock_special_refinement"
       ],
       "unmapped_nonempty_fields": [],
-      "canonical_sha256": "74a4d134082455d9e2a90ae5cb8b5c5cd6ecb7ac37fd1520f8169c675964f794"
+      "canonical_sha256": "3b6427a797f3679668cf47edba43832e2c610a19911dafe2be63f5be3cfca8c9"
     }
   }
 }

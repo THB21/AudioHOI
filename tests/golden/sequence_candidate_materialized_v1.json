@@ -1,30 +1,9 @@
 {
+  "schema_version": 1,
+  "result_name": "benchmark_vlm_qwen",
   "cases": {
     "basketball": {
-      "artifacts": {
-        "generic_sphere_sequence_attempt.json": {
-          "attempt": {
-            "accepted_outputs_written": false,
-            "baseline_pose_read": false,
-            "candidate_artifact": "generic_sphere_sequence_candidate.csv",
-            "candidate_sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8",
-            "executor_scope": "isolated_candidate_dir",
-            "frames": 192,
-            "mode": "generic_sphere_sequence_candidate",
-            "residual_artifact": "generic_sphere_sequence_residuals.csv",
-            "residual_sha256": "4d5243acff375179ee0dbe35f150b4044f3e3b46ec0068ceadd84b44c103df28",
-            "solver_executed": true
-          }
-        },
-        "generic_sphere_sequence_candidate.csv": {
-          "rows": 192,
-          "sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8"
-        },
-        "generic_sphere_sequence_residuals.csv": {
-          "rows": 192,
-          "sha256": "4d5243acff375179ee0dbe35f150b4044f3e3b46ec0068ceadd84b44c103df28"
-        }
-      },
+      "status": "sandbox_ready",
       "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -33,32 +12,104 @@
         "generic_sphere_sequence_residuals.csv",
         "generic_sphere_sequence_attempt.json"
       ],
-      "status": "sandbox_ready"
-    },
-    "chair": {
       "artifacts": {
-        "chair_generic_factor_executor_attempt.json": {
+        "generic_sphere_sequence_candidate.csv": {
+          "sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8",
+          "rows": 192
+        },
+        "generic_sphere_sequence_residuals.csv": {
+          "sha256": "4d5243acff375179ee0dbe35f150b4044f3e3b46ec0068ceadd84b44c103df28",
+          "rows": 192
+        },
+        "generic_sphere_sequence_attempt.json": {
           "attempt": {
+            "mode": "generic_sphere_sequence_candidate",
+            "solver_executed": true,
             "accepted_outputs_written": false,
             "baseline_pose_read": false,
             "executor_scope": "isolated_candidate_dir",
-            "isolated_candidate_materialized": true,
-            "mode": "chair_generic_factor_executor_candidate_attempt",
-            "solver_executed": true
+            "frames": 192,
+            "candidate_artifact": "generic_sphere_sequence_candidate.csv",
+            "residual_artifact": "generic_sphere_sequence_residuals.csv",
+            "candidate_sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8",
+            "residual_sha256": "4d5243acff375179ee0dbe35f150b4044f3e3b46ec0068ceadd84b44c103df28"
           }
-        },
-        "chair_generic_factor_residuals.json": {
-          "sha256": "5a00d7f63228d447faeafbb4c3c0ae397a96904a8285f6a3c46b93afd5d21f67"
-        },
-        "generic_chair_factor_candidate.csv": {
-          "rows": 192,
-          "sha256": "fb82c2e626fca0908ef9c3024304dee1afd1097c77c47621f6d5c3ab6fccb969"
-        },
-        "generic_chair_factor_residuals.csv": {
-          "rows": 125,
-          "sha256": "42ff23de9d7a871975643840ea39b12dc30623d4319a65d265719f740300f740"
         }
-      },
+      }
+    },
+    "football": {
+      "status": "sandbox_ready",
+      "eligible_for_candidate_sandbox": true,
+      "nonblocking_gap_ids": [],
+      "planned_artifacts": [
+        "generic_sequence_solver_shadow_candidate.json",
+        "generic_sphere_sequence_candidate.csv",
+        "generic_sphere_sequence_residuals.csv",
+        "generic_sphere_sequence_attempt.json"
+      ],
+      "artifacts": {
+        "generic_sphere_sequence_candidate.csv": {
+          "sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365",
+          "rows": 242
+        },
+        "generic_sphere_sequence_residuals.csv": {
+          "sha256": "2c25d8a10cd734d9a788e9c4b8efcd0b9103e9be4191b9793298549bddb80a60",
+          "rows": 242
+        },
+        "generic_sphere_sequence_attempt.json": {
+          "attempt": {
+            "mode": "generic_sphere_sequence_candidate",
+            "solver_executed": true,
+            "accepted_outputs_written": false,
+            "baseline_pose_read": false,
+            "executor_scope": "isolated_candidate_dir",
+            "frames": 242,
+            "candidate_artifact": "generic_sphere_sequence_candidate.csv",
+            "residual_artifact": "generic_sphere_sequence_residuals.csv",
+            "candidate_sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365",
+            "residual_sha256": "2c25d8a10cd734d9a788e9c4b8efcd0b9103e9be4191b9793298549bddb80a60"
+          }
+        }
+      }
+    },
+    "mug": {
+      "status": "sandbox_ready",
+      "eligible_for_candidate_sandbox": true,
+      "nonblocking_gap_ids": [],
+      "planned_artifacts": [
+        "generic_sequence_solver_shadow_candidate.json",
+        "generic_periodic_body_candidate.csv",
+        "generic_periodic_phase_candidate.csv",
+        "generic_projected_periodic_attempt.json"
+      ],
+      "artifacts": {
+        "generic_periodic_body_candidate.csv": {
+          "sha256": "3ea905dfe8de77646d9a240d0104edaa6998e921d2a8a5d6862ec7ebb125db7c",
+          "rows": 240
+        },
+        "generic_periodic_phase_candidate.csv": {
+          "sha256": "3dc05829ef95b5dc929d0e84c9163b924f9eaee42971b8c61ff2ac4634366eb6",
+          "rows": 240
+        },
+        "generic_projected_periodic_attempt.json": {
+          "attempt": {
+            "mode": "generic_projected_periodic_candidate",
+            "solver_executed": true,
+            "accepted_outputs_written": false,
+            "baseline_pose_read": false,
+            "historical_phase_read": false,
+            "executor_scope": "isolated_candidate_dir",
+            "frames": 240,
+            "body_candidate_artifact": "generic_periodic_body_candidate.csv",
+            "phase_candidate_artifact": "generic_periodic_phase_candidate.csv",
+            "body_candidate_sha256": "3ea905dfe8de77646d9a240d0104edaa6998e921d2a8a5d6862ec7ebb125db7c",
+            "phase_candidate_sha256": "3dc05829ef95b5dc929d0e84c9163b924f9eaee42971b8c61ff2ac4634366eb6"
+          }
+        }
+      }
+    },
+    "chair": {
+      "status": "sandbox_ready",
       "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -68,108 +119,32 @@
         "chair_generic_factor_executor_attempt.json",
         "chair_generic_factor_residuals.json"
       ],
-      "status": "sandbox_ready"
-    },
-    "football": {
       "artifacts": {
-        "generic_sphere_sequence_attempt.json": {
+        "generic_chair_factor_candidate.csv": {
+          "sha256": "fb82c2e626fca0908ef9c3024304dee1afd1097c77c47621f6d5c3ab6fccb969",
+          "rows": 192
+        },
+        "generic_chair_factor_residuals.csv": {
+          "sha256": "42ff23de9d7a871975643840ea39b12dc30623d4319a65d265719f740300f740",
+          "rows": 125
+        },
+        "chair_generic_factor_executor_attempt.json": {
           "attempt": {
+            "mode": "chair_generic_factor_executor_candidate_attempt",
+            "solver_executed": true,
+            "isolated_candidate_materialized": true,
             "accepted_outputs_written": false,
             "baseline_pose_read": false,
-            "candidate_artifact": "generic_sphere_sequence_candidate.csv",
-            "candidate_sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365",
-            "executor_scope": "isolated_candidate_dir",
-            "frames": 242,
-            "mode": "generic_sphere_sequence_candidate",
-            "residual_artifact": "generic_sphere_sequence_residuals.csv",
-            "residual_sha256": "2c25d8a10cd734d9a788e9c4b8efcd0b9103e9be4191b9793298549bddb80a60",
-            "solver_executed": true
+            "executor_scope": "isolated_candidate_dir"
           }
         },
-        "generic_sphere_sequence_candidate.csv": {
-          "rows": 242,
-          "sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365"
-        },
-        "generic_sphere_sequence_residuals.csv": {
-          "rows": 242,
-          "sha256": "2c25d8a10cd734d9a788e9c4b8efcd0b9103e9be4191b9793298549bddb80a60"
+        "chair_generic_factor_residuals.json": {
+          "sha256": "0af5cb987eb872da3800779ee58e1f5be7dfceae44fcebc60b34c33cfa917622"
         }
-      },
-      "eligible_for_candidate_sandbox": true,
-      "nonblocking_gap_ids": [],
-      "planned_artifacts": [
-        "generic_sequence_solver_shadow_candidate.json",
-        "generic_sphere_sequence_candidate.csv",
-        "generic_sphere_sequence_residuals.csv",
-        "generic_sphere_sequence_attempt.json"
-      ],
-      "status": "sandbox_ready"
-    },
-    "mug": {
-      "artifacts": {
-        "generic_periodic_body_candidate.csv": {
-          "rows": 240,
-          "sha256": "3ea905dfe8de77646d9a240d0104edaa6998e921d2a8a5d6862ec7ebb125db7c"
-        },
-        "generic_periodic_phase_candidate.csv": {
-          "rows": 240,
-          "sha256": "3dc05829ef95b5dc929d0e84c9163b924f9eaee42971b8c61ff2ac4634366eb6"
-        },
-        "generic_projected_periodic_attempt.json": {
-          "attempt": {
-            "accepted_outputs_written": false,
-            "baseline_pose_read": false,
-            "body_candidate_artifact": "generic_periodic_body_candidate.csv",
-            "body_candidate_sha256": "3ea905dfe8de77646d9a240d0104edaa6998e921d2a8a5d6862ec7ebb125db7c",
-            "executor_scope": "isolated_candidate_dir",
-            "frames": 240,
-            "historical_phase_read": false,
-            "mode": "generic_projected_periodic_candidate",
-            "phase_candidate_artifact": "generic_periodic_phase_candidate.csv",
-            "phase_candidate_sha256": "3dc05829ef95b5dc929d0e84c9163b924f9eaee42971b8c61ff2ac4634366eb6",
-            "solver_executed": true
-          }
-        }
-      },
-      "eligible_for_candidate_sandbox": true,
-      "nonblocking_gap_ids": [],
-      "planned_artifacts": [
-        "generic_sequence_solver_shadow_candidate.json",
-        "generic_periodic_body_candidate.csv",
-        "generic_periodic_phase_candidate.csv",
-        "generic_projected_periodic_attempt.json"
-      ],
-      "status": "sandbox_ready"
+      }
     },
     "stick": {
-      "artifacts": {
-        "generic_line_contact_attempt.json": {
-          "attempt": {
-            "accepted_outputs_written": false,
-            "baseline_pose_read": false,
-            "candidate_artifact": "generic_line_contact_candidate.csv",
-            "candidate_sha256": "330874e157f95608a5962c04fdb804a9086f429ec47d88eca8c27d3b31257994",
-            "compatibility_gap_id": "line_contact_lock_special_refinement",
-            "compatibility_gap_status": "nonblocking",
-            "executor_scope": "isolated_candidate_dir",
-            "frames": 240,
-            "mechanism": "line_contact_lock",
-            "mode": "generic_line_contact_candidate",
-            "residual_artifact": "generic_line_contact_residuals.csv",
-            "residual_rows": 240,
-            "residual_sha256": "5eb5a93fd3cc1e1c0afc45cd482448f21617194c683b03597d15e4e13752509d",
-            "solver_executed": true
-          }
-        },
-        "generic_line_contact_candidate.csv": {
-          "rows": 240,
-          "sha256": "330874e157f95608a5962c04fdb804a9086f429ec47d88eca8c27d3b31257994"
-        },
-        "generic_line_contact_residuals.csv": {
-          "rows": 240,
-          "sha256": "5eb5a93fd3cc1e1c0afc45cd482448f21617194c683b03597d15e4e13752509d"
-        }
-      },
+      "status": "sandbox_ready",
       "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [
         "line_contact_lock_special_refinement"
@@ -180,9 +155,34 @@
         "generic_line_contact_residuals.csv",
         "generic_line_contact_attempt.json"
       ],
-      "status": "sandbox_ready"
+      "artifacts": {
+        "generic_line_contact_candidate.csv": {
+          "sha256": "330874e157f95608a5962c04fdb804a9086f429ec47d88eca8c27d3b31257994",
+          "rows": 240
+        },
+        "generic_line_contact_residuals.csv": {
+          "sha256": "5eb5a93fd3cc1e1c0afc45cd482448f21617194c683b03597d15e4e13752509d",
+          "rows": 240
+        },
+        "generic_line_contact_attempt.json": {
+          "attempt": {
+            "mode": "generic_line_contact_candidate",
+            "solver_executed": true,
+            "accepted_outputs_written": false,
+            "baseline_pose_read": false,
+            "executor_scope": "isolated_candidate_dir",
+            "frames": 240,
+            "residual_rows": 240,
+            "candidate_artifact": "generic_line_contact_candidate.csv",
+            "residual_artifact": "generic_line_contact_residuals.csv",
+            "candidate_sha256": "330874e157f95608a5962c04fdb804a9086f429ec47d88eca8c27d3b31257994",
+            "residual_sha256": "5eb5a93fd3cc1e1c0afc45cd482448f21617194c683b03597d15e4e13752509d",
+            "compatibility_gap_id": "line_contact_lock_special_refinement",
+            "compatibility_gap_status": "nonblocking",
+            "mechanism": "line_contact_lock"
+          }
+        }
+      }
     }
-  },
-  "result_name": "benchmark_vlm_qwen",
-  "schema_version": 1
+  }
 }

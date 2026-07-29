@@ -1357,7 +1357,7 @@ YYYY-MM-DD:
 2026-07-29:
 
 - branch: `refactor/interaction-state-production`
-- commit: pending local commit after this update.
+- commit: `f9bc310f` (`Unify capability-driven object candidates`).
 - change: 完成前三项的第三项。新增 capability-driven production adapter、mug periodic-rigid 与 stick line-capsule asset descriptors，以及精确 `LineS` geometry capability。mug initializer只读取 `observation_seed/body_pose.csv + axial_phase.csv`，stick initializer只读取两条 `LineS + palm XYZ`，两者均不读取旧 solved pose；chair保持 descriptor/URDF typed path。`candidate.py` 对这三类不再选择 projected-periodic、line-lock或chair private executor，统一调用 `prepare_generic_object_problem.py -> SequenceProblemFactory -> GenericSequenceExecutor -> isolated attempt -> AcceptedObjectOutputPublisher`。hard gate由 solver convergence、objective nonincrease、contact/projection normalized RMSE共同决定，且同一 evaluator不识别 case。stick 的 `line_contact_lock_special_refinement` compatibility gap已关闭。
 - verification: 未新增测试。真实 canonical data preparation结果：mug factors为 temporal/contact/periodic、479 dependencies、960个只读 GVHMR sites；stick factors为 temporal/contact、702 dependencies、960个只读 GVHMR sites；chair factors为 temporal/line/contact。三者均实际执行2-eval generic smoke并生成标准 attempt；mug、stick、chair分别以 `solver_not_converged` 及适用的geometry factor gate保持 `candidate_blocked`，`accepted_path=None`。现有目标 suite fresh结果为 `72 passed, 1 skipped in 231.12s`；factor / sequence problem / diagnostics / candidate sandbox四个五-case verifier均退出0；Phase-0 manifest重新捕获的变更仅为三个case config及两个新增asset descriptor，随后五case verify退出0；`py_compile`与`git diff --check`通过。
 - remaining gap: executable/publisher统一已完成，但这不等于三类 canonical pose已通过生产 hard gate。下一步是增加正常 solve budget、改善通用 observation/contact conditioning与object-only metrics，不能用旧专用 solver、case权重或人体优化绕过 gate。

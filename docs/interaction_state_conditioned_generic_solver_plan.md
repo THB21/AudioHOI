@@ -1731,3 +1731,12 @@ YYYY-MM-DD:
 - stick experiment: 将同一个 `LineReprojectionFactor` 从 infinite `axis_line` 切到 descriptor-declared `endpoints`，没有新增 stick residual或 optimizer。200/500 nfev 结果稳定一致，translation mean/p50/p95 从 axis-line 的`0.295/0.235/0.797m`改善为`0.138/0.088/0.454m`，但 contact p95=`0.187m`，objective约`1753.07`且500 nfev仍未满足 termination。endpoint residual约`33.05`，contact residual约`1703.42`，证明 blocker 是 typed image extent 与只读 GVHMR closest-line contact evidence 冲突，不是求解预算不足。未校准 DA3 metric depth实验使translation p95恶化到`0.991m`，已撤销；不以对象专用 depth补丁掩盖。
 - verification: 未新增测试文件；旧 sphere artifact 断言更新为 generic executor 的 preparation / candidate / attempt / publisher artifacts。现有相关 suite `60 passed in 66.81s`。Phase-0 manifest重捕获只改变 basketball / football case config 与 stick asset descriptor 的受控 input hash；fresh `verify_phase0_regression.py` 四个 gate（pytest、golden manifest、candidate sandbox summary、materialized candidate golden）全部通过。`py_compile`与`git diff --check`通过。
 - remaining gap: basketball / football 仍需用 unified candidate补记 decoded object/skeleton render regression后才可 promotion。stick endpoint配置保留为正确的 extent/depth观测语义，但当前 candidate 明确 blocked；下一步必须让通用 interaction/VLM gate 根据 visibility/contact provenance 选择或降权冲突证据。mug phase 与 chair joint/support gaps 未在本次改动中伪装为已解决。
+
+2026-07-30（通用 VLM factor arbitration 设计确认）:
+
+- branch: `refactor/interaction-state-production`; local worktree only; no remote push; canonical accepted outputs 未写。
+- diagnosis: 现有 VLM 虽然生成 Stage 1–4 gate artifacts，但 production `FactorCompiler` 不消费 factor-specific VLM reliability。stick Stage 1 keypart 基本为 `unclear`，Stage 2 contact 多数直接 pass，Stage 3 仅抽样 overlay，Stage 4 只控制 anchor update，因此无法裁决 endpoint visual extent 与 GVHMR closest-line contact evidence 的冲突。
+- approved design: 新增 case-independent `constraint_reliability_check`，forced choices 固定为 `visual_observation_reliable / contact_relation_reliable / both_consistent / unclear`。VLM 只能把预定义 factor activation 从基础档位降到 `downweighted`，不得完全关闭 factor、输出 pose 或生成连续权重。合并在 factor compiler 边界完成，`GenericSequenceExecutor` 只消费 merged intervals。
+- boundary: 严格 object solve；GVHMR 只读骨架 / human site 可以进入 evidence package 和 object contact factor，不优化或发布人体状态。没有有效 VLM 结果时 fail-closed：冲突 factors 均 downweighted，attempt 保持不可 promotion。
+- design record: `docs/vlm_factor_arbitration_design.md`。
+- next: 实现 arbitration ledger、profile-driven query、activation merge 与 attempt provenance，然后运行隔离 stick attempt 比较 endpoint/contact/termination/pose-render hard evidence；不新增 case-specific solver，不新增测试文件。

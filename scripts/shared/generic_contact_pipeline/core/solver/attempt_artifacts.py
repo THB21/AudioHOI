@@ -240,6 +240,8 @@ def update_isolated_attempt_evidence(
     _write_json(hard_temp, hard_payload)
     os.replace(hard_temp, attempt_dir / "hard_metrics.json")
     if vlm_gates is not None:
+        if bool(vlm_gates.get("continuous_pose_override", False)):
+            raise ValueError("VLM attempt evidence cannot override continuous object pose")
         vlm_payload = {
             "schema_version": 1,
             "status": "evaluated",
@@ -264,6 +266,9 @@ def update_isolated_attempt_evidence(
     status["artifacts"] = artifacts
     status["hard_metrics_status"] = "evaluated"
     status["vlm_gates_status"] = "evaluated" if vlm_gates is not None else "not_evaluated"
+    if vlm_gates is not None:
+        status["vlm_factor_arbitration_sha256"] = str(vlm_gates.get("canonical_sha256", ""))
+        status["vlm_factor_arbitration_blocking"] = bool(vlm_gates.get("blocking", False))
     status_temp = attempt_dir / ".status.json.tmp"
     _write_json(status_temp, status)
     os.replace(status_temp, status_path)

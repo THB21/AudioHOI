@@ -250,7 +250,16 @@ def evaluate_stage(profile, stage: str, args: argparse.Namespace) -> dict[str, o
             gate = pass_gate(query.get("query_type", ""), label)
             action = repair_action(query.get("query_type", ""), gate, label)
         results.append(result_row(query, label, gate, action))
-        raw_rows.append({**query, **raw, "pass_gate": gate, "repair_action": action})
+        raw_rows.append(
+            {
+                **query,
+                **raw,
+                "pass_gate": gate,
+                "repair_action": action,
+                "provider": args.provider,
+                "model": args.model_id,
+            }
+        )
 
     out_dir = paths["vlm_dir"] / stage
     decision = fuse_stage_decision(profile.case_name, stage, results, mode="qwen_vl")

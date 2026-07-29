@@ -14,6 +14,8 @@ import numpy as np
 from ..base.config import CaseProfile
 from ..contact_constraints import ContactConstraint, ContactMode, ContactState, LineS, LocalXYZ, adapt_contact_event_rows, adapt_contact_state_rows, adapt_legacy_contact_rows
 from ..human_sites import GVHMRSiteExtractionResult, HumanSiteMeasurement, extract_gvhmr_site_measurements
+from ..factors import FactorArbitrationLedger, factor_arbitration_ledger_record
+from ..gates import load_factor_arbitration_ledger
 from ..measurements import Line2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
 from ..state import (
     Bound,
@@ -424,6 +426,7 @@ class CapabilityObjectProblemPreparation:
     gvhmr_sites: GVHMRSiteExtractionResult
     measurement_count: int
     contact_constraint_count: int
+    factor_arbitration: FactorArbitrationLedger
     case_dispatch_used: bool = False
     baseline_pose_read: bool = False
     human_state_optimized: bool = False
@@ -473,7 +476,18 @@ def prepare_capability_object_problem(*, profile: CaseProfile, result_dir: Path,
         raise ValueError(f"unsupported object capability initializer: {initializer}")
 
     gvhmr_sites = _gvhmr_sites(profile, frame_times, body_models_root)
-    shadow = build_sequence_problem_shadow(profile, result_dir)
+    base_shadow = build_sequence_problem_shadow(profile, result_dir)
+    base_compiled_records = base_shadow["inputs"]["compiled_factor_shadow"]["records"]
+    factor_arbitration = load_factor_arbitration_ledger(
+        sample_id=profile.case_name,
+        result_dir=result_dir,
+        factor_records=base_compiled_records,
+    )
+    shadow = (
+        build_sequence_problem_shadow(profile, result_dir, factor_arbitration)
+        if factor_arbitration.status == "evaluated"
+        else base_shadow
+    )
     records = _configured_records(shadow["residual_execution_plan"])
     samples = _contact_samples_with_line_s(
         constraints,
@@ -592,6 +606,7 @@ def prepare_capability_object_problem(*, profile: CaseProfile, result_dir: Path,
         gvhmr_sites=gvhmr_sites,
         measurement_count=len(measurements),
         contact_constraint_count=len(constraints),
+        factor_arbitration=factor_arbitration,
     )
 
 
@@ -614,6 +629,7 @@ def capability_object_problem_preparation_record(prepared: CapabilityObjectProbl
         "read_only_human_sites": {"measurement_count": len(prepared.gvhmr_sites.measurements), "source_artifact": prepared.gvhmr_sites.source_artifact, "source_sha256": prepared.gvhmr_sites.source_sha256, "read_only": True},
         "measurement_count": prepared.measurement_count,
         "contact_constraint_count": prepared.contact_constraint_count,
+        "vlm_factor_arbitration": factor_arbitration_ledger_record(prepared.factor_arbitration),
         "case_dispatch_used": False,
         "baseline_pose_read": False,
         "human_state_optimized": False,

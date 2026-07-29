@@ -16,6 +16,7 @@ from ..factors.adapters import adapt_factor_rows
 from ..factors.compiler import build_compiled_factor_ledger, compiled_factor_record, factor_runtime_configs_from_mapping
 from ..factors.shadow import build_factor_shadow
 from ..factors.types import FactorSpec
+from ..factors.vlm_arbitration import FactorArbitrationLedger, factor_arbitration_ledger_record
 from ..interaction import build_interaction_timeline, frame_record, interaction_intervals
 from ..interaction.types import InteractionTimeline
 from ..measurements import adapt_configured_supplemental_measurements
@@ -165,7 +166,12 @@ def _factor_activation_shadow(ledger: FactorActivationLedger) -> dict[str, objec
     }
 
 
-def _compiled_factor_shadow(profile: CaseProfile, factor_specs: tuple[FactorSpec, ...], activation_ledger: FactorActivationLedger) -> dict[str, object]:
+def _compiled_factor_shadow(
+    profile: CaseProfile,
+    factor_specs: tuple[FactorSpec, ...],
+    activation_ledger: FactorActivationLedger,
+    arbitration_ledger: FactorArbitrationLedger | None = None,
+) -> dict[str, object]:
     runtime_configs = factor_runtime_configs_from_mapping(
         profile.data.get("factor_runtime"),
         source="case_profile.factor_runtime",
@@ -175,6 +181,7 @@ def _compiled_factor_shadow(profile: CaseProfile, factor_specs: tuple[FactorSpec
         factor_specs,
         activation_ledger,
         runtime_configs,
+        arbitration_ledger,
     )
     records = [compiled_factor_record(record) for record in ledger.compiled_factors]
     return {
@@ -188,7 +195,11 @@ def _compiled_factor_shadow(profile: CaseProfile, factor_specs: tuple[FactorSpec
     }
 
 
-def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dict[str, object]:
+def build_sequence_problem_shadow(
+    profile: CaseProfile,
+    result_dir: Path,
+    arbitration_ledger: FactorArbitrationLedger | None = None,
+) -> dict[str, object]:
     """Build a deterministic generic-solver problem manifest without solving it.
 
     The manifest is allowed to read typed observation/contact/factor traces that
@@ -215,7 +226,12 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
     factor_adapted = adapt_factor_rows(profile, result_dir)
     factor_activation_ledger = build_factor_activation_ledger(profile.case_name, factor_adapted.factors, timeline)
     factor_activation_shadow = _factor_activation_shadow(factor_activation_ledger)
-    compiled_factor_shadow = _compiled_factor_shadow(profile, factor_adapted.factors, factor_activation_ledger)
+    compiled_factor_shadow = _compiled_factor_shadow(
+        profile,
+        factor_adapted.factors,
+        factor_activation_ledger,
+        arbitration_ledger,
+    )
     factor_shadow = build_factor_shadow(profile, result_dir)
     state_contract = _profile_state_contract(profile)
     sequence_contract = build_sequence_problem_contract(
@@ -288,8 +304,10 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
         },
         "gaps": factor_shadow["gaps"],
     }
+    if arbitration_ledger is not None:
+        problem_core["vlm_factor_arbitration"] = factor_arbitration_ledger_record(arbitration_ledger)
     canonical_sha256 = _canonical_hash(problem_core)
-    return {
+    output = {
         "schema_version": 1,
         "mode": "generic_sequence_solver_shadow",
         "sample_id": profile.case_name,
@@ -346,3 +364,6 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
         },
         "canonical_sha256": canonical_sha256,
     }
+    if arbitration_ledger is not None:
+        output["inputs"]["vlm_factor_arbitration"] = factor_arbitration_ledger_record(arbitration_ledger)
+    return output

@@ -1357,7 +1357,7 @@ YYYY-MM-DD:
 2026-07-29:
 
 - branch: `refactor/interaction-state-production`
-- commit: pending local commit after this update.
+- commit: `e499c912` (`Prepare chair through generic object factory`).
 - change: canonical chair candidate preparation 现在先通过 runtime registry 执行 `prepare_generic_object_problem.py`，由 legacy artifact adapter 把 current-run Stage-3 states、typed observations/contacts和只读 GVHMR skeleton sites交给 `SequenceProblemFactory`；输出 `generic_problem_preparation.json` 并绑定 candidate attempt，不再由 validation shell手工拼 `SequenceOptimizationProblem`。新增 asset descriptor schema 的首个 chair manifest：semantic measurement feature只声明 feature→segment mapping，articulation rule只声明 URDF joint→StateSpec DOF和受影响 semantic parts；generic loader从 URDF解析 joint origin/axis，从 typed segment artifact解析 local features，并从 typed LocalXYZ contact constraints注册两端 contact features。
 - verification: 未新增测试。canonical chair preparation实际得到 configured factors `temporal_velocity:E_smooth`、`line_reprojection:measurement_ir`、`contact_distance:contact_constraint_shadow`，1263 个 row dependencies，125/125 seeded contact frames，768 个 read-only GVHMR sites；asset geometry得到8个 features、joint state indices `7/8`，`case_dispatch_used=False`、`human_state_optimized=False`、`accepted_outputs_written=False`。isolated materialization包含 factory ledger且现有 chair candidate verifier返回0 errors。现有 solver suite `51 passed`；四个五-case verifier与 Phase-0 manifest均通过，descriptor已作为新的冻结输入记录而没有改变旧 pose/render golden。
 - remaining gap: chair executable solve目前仍由旧 isolated chair solver产生 candidate pose；factory ledger已成为正式 preparation，但下一提交才会让 mug/stick/chair都从 `GenericSequenceExecutor.solve()` 和同一 publisher产生/晋升结果。chair hard contact gate仍未通过，当前不允许 accepted promotion。

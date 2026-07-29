@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "geometry_kind": "rigid_mesh",
+  "resource_path": "samples_known_object/02_mug/articraft/materialized_mug_mesh/model.urdf",
+  "semantic_parts": ["body", "handle_loop", "rim", "bottom"],
+  "contact_coordinate": "local_xyz",
+  "periodic_feature_role": "handle_loop",
+  "periodic_axis_local": [0.0, 1.0, 0.0],
+  "periodic_origin_local": [0.0, 0.0, 0.0]
+}

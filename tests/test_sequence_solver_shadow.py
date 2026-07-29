@@ -14,6 +14,7 @@ from scripts.shared.generic_contact_pipeline.core.evaluation.legacy_ball_residua
 )
 from scripts.shared.generic_contact_pipeline.core.solver import (
     LINE_CONTACT_SANDBOX_ARTIFACTS,
+    GENERIC_OBJECT_SANDBOX_ARTIFACTS,
     SANDBOX_MANIFEST_NAME,
     SPHERE_SANDBOX_ARTIFACTS,
     build_candidate_sandbox_manifest,
@@ -627,7 +628,7 @@ def test_sequence_solver_shadow_diagnostics_block_only_required_unmigrated_mecha
     assert chair["blocking_gap_ids"] == []
     assert chair["nonblocking_gap_ids"] == []
     assert stick["blocking_gap_ids"] == []
-    assert stick["nonblocking_gap_ids"] == ["line_contact_lock_special_refinement"]
+    assert stick["nonblocking_gap_ids"] == []
     assert mug["status"] == "ready_for_future_shadow_solve"
     assert chair["status"] == "ready_for_future_shadow_solve"
     assert stick["status"] == "ready_for_future_shadow_solve"
@@ -703,21 +704,9 @@ def test_candidate_sandbox_manifest_allows_ready_ball_and_chair_cases() -> None:
     assert basketball["planned_artifacts"] == SPHERE_SANDBOX_ARTIFACTS
     assert basketball["accepted_outputs_written"] is False
     assert mug["eligible_for_candidate_sandbox"] is True
-    assert mug["planned_artifacts"] == [
-        SANDBOX_MANIFEST_NAME,
-        "generic_periodic_body_candidate.csv",
-        "generic_periodic_phase_candidate.csv",
-        "generic_projected_periodic_attempt.json",
-    ]
+    assert mug["planned_artifacts"] == GENERIC_OBJECT_SANDBOX_ARTIFACTS
     assert chair["eligible_for_candidate_sandbox"] is True
-    assert chair["planned_artifacts"] == [
-        SANDBOX_MANIFEST_NAME,
-        "generic_chair_factor_candidate.csv",
-        "generic_chair_factor_residuals.csv",
-        "chair_generic_factor_executor_attempt.json",
-        "chair_generic_factor_residuals.json",
-        "generic_problem_preparation.json",
-    ]
+    assert chair["planned_artifacts"] == GENERIC_OBJECT_SANDBOX_ARTIFACTS
     assert chair["blocking_gap_ids"] == []
     assert chair["nonblocking_gap_ids"] == []
     assert validate_candidate_sandbox_manifest(basketball) == []
@@ -733,8 +722,8 @@ def test_candidate_sandbox_manifest_allows_line_contact_as_nonblocking_compatibi
     assert stick["eligible_for_candidate_sandbox"] is True
     assert stick["status"] == "sandbox_ready"
     assert stick["blocking_gap_ids"] == []
-    assert stick["nonblocking_gap_ids"] == ["line_contact_lock_special_refinement"]
-    assert stick["planned_artifacts"] == LINE_CONTACT_SANDBOX_ARTIFACTS
+    assert stick["nonblocking_gap_ids"] == []
+    assert stick["planned_artifacts"] == GENERIC_OBJECT_SANDBOX_ARTIFACTS
 
 
 def test_candidate_sandbox_validation_rejects_accepted_output_names() -> None:
@@ -807,18 +796,11 @@ def test_candidate_sandbox_materialize_writes_chair_safe_candidate_artifacts(tmp
     )
 
     assert manifest["eligible_for_candidate_sandbox"] is True
-    assert {path.name for path in candidate_dir.iterdir()} == {
-        SANDBOX_MANIFEST_NAME,
-        "generic_chair_factor_candidate.csv",
-        "generic_chair_factor_residuals.csv",
-        "chair_generic_factor_executor_attempt.json",
-        "chair_generic_factor_residuals.json",
-        "generic_problem_preparation.json",
-    }
-    attempt = json.loads((candidate_dir / "chair_generic_factor_executor_attempt.json").read_text())
-    assert attempt["solver_executed"] is True
-    assert attempt["executor_scope"] == "isolated_candidate_dir"
-    assert attempt["candidate_pose"]["source"] == "isolated_chair_factor_executor"
+    assert {path.name for path in candidate_dir.iterdir()} == set(GENERIC_OBJECT_SANDBOX_ARTIFACTS)
+    publication = json.loads((candidate_dir / "generic_object_publication.json").read_text())
+    assert publication["status"] == "candidate_blocked"
+    assert publication["case_dispatch_used"] is False
+    assert publication["human_state_optimized"] is False
     assert not (candidate_dir / "object_pose.csv").exists()
     assert not (candidate_dir / "object_contact_points.csv").exists()
 
@@ -832,18 +814,11 @@ def test_candidate_sandbox_materialize_writes_mug_safe_candidate_artifacts(tmp_p
     )
 
     assert manifest["eligible_for_candidate_sandbox"] is True
-    assert {path.name for path in candidate_dir.iterdir()} == {
-        SANDBOX_MANIFEST_NAME,
-        "generic_periodic_body_candidate.csv",
-        "generic_periodic_phase_candidate.csv",
-        "generic_projected_periodic_attempt.json",
-    }
-    attempt = json.loads((candidate_dir / "generic_projected_periodic_attempt.json").read_text())
-    assert attempt["solver_executed"] is True
-    assert attempt["accepted_outputs_written"] is False
-    assert attempt["baseline_pose_read"] is False
-    assert attempt["historical_phase_read"] is False
-    assert attempt["executor_scope"] == "isolated_candidate_dir"
+    assert {path.name for path in candidate_dir.iterdir()} == set(GENERIC_OBJECT_SANDBOX_ARTIFACTS)
+    preparation = json.loads((candidate_dir / "generic_problem_preparation.json").read_text())
+    assert preparation["initializer_kind"] == "observation_periodic_rigid"
+    assert preparation["baseline_pose_read"] is False
+    assert preparation["human_state_optimized"] is False
     assert not (candidate_dir / "object_pose.csv").exists()
     assert not (candidate_dir / "object_phase.csv").exists()
 
@@ -857,16 +832,12 @@ def test_candidate_sandbox_materialize_writes_stick_line_contact_safe_candidate_
     )
 
     assert manifest["eligible_for_candidate_sandbox"] is True
-    assert manifest["nonblocking_gap_ids"] == ["line_contact_lock_special_refinement"]
-    assert {path.name for path in candidate_dir.iterdir()} == set(LINE_CONTACT_SANDBOX_ARTIFACTS)
-    attempt = json.loads((candidate_dir / "generic_line_contact_attempt.json").read_text())
-    assert attempt["mode"] == "generic_line_contact_candidate"
-    assert attempt["solver_executed"] is True
-    assert attempt["accepted_outputs_written"] is False
-    assert attempt["baseline_pose_read"] is False
-    assert attempt["executor_scope"] == "isolated_candidate_dir"
-    assert attempt["compatibility_gap_id"] == "line_contact_lock_special_refinement"
-    assert attempt["compatibility_gap_status"] == "nonblocking"
+    assert manifest["nonblocking_gap_ids"] == []
+    assert {path.name for path in candidate_dir.iterdir()} == set(GENERIC_OBJECT_SANDBOX_ARTIFACTS)
+    preparation = json.loads((candidate_dir / "generic_problem_preparation.json").read_text())
+    assert preparation["initializer_kind"] == "line_s_two_site"
+    assert preparation["baseline_pose_read"] is False
+    assert preparation["human_state_optimized"] is False
     assert not (candidate_dir / "object_pose.csv").exists()
     assert not (candidate_dir / "object_contact_points.csv").exists()
 
@@ -937,8 +908,8 @@ def test_candidate_sandbox_verifier_cli_materializes_and_verifies_chair_candidat
 
     chair_dir = candidate_root / "benchmark_vlm_qwen_chair"
     assert "chair_materialized=True" in completed.stdout
-    assert (chair_dir / "generic_chair_factor_candidate.csv").exists()
-    assert (chair_dir / "generic_chair_factor_residuals.csv").exists()
+    assert (chair_dir / "generic_object_pose_candidate.csv").exists()
+    assert (chair_dir / "generic_object_publication.json").exists()
     assert not (chair_dir / "object_pose.csv").exists()
 
 
@@ -960,8 +931,8 @@ def test_candidate_sandbox_verifier_cli_materializes_and_verifies_mug_candidate(
 
     mug_dir = candidate_root / "benchmark_vlm_qwen_mug"
     assert "mug_materialized=True" in completed.stdout
-    assert (mug_dir / "generic_periodic_body_candidate.csv").exists()
-    assert (mug_dir / "generic_periodic_phase_candidate.csv").exists()
+    assert (mug_dir / "generic_object_pose_candidate.csv").exists()
+    assert (mug_dir / "generic_object_publication.json").exists()
     assert not (mug_dir / "object_pose.csv").exists()
     assert not (mug_dir / "object_phase.csv").exists()
 
@@ -1009,9 +980,9 @@ def test_candidate_sandbox_verifier_cli_materializes_all_supported_candidates(tm
     expected_artifacts = {
         "basketball": ("generic_sphere_sequence_candidate.csv", "generic_sphere_sequence_residuals.csv"),
         "football": ("generic_sphere_sequence_candidate.csv", "generic_sphere_sequence_residuals.csv"),
-        "mug": ("generic_periodic_body_candidate.csv", "generic_periodic_phase_candidate.csv"),
-        "chair": ("generic_chair_factor_candidate.csv", "generic_chair_factor_residuals.csv"),
-        "stick": ("generic_line_contact_candidate.csv", "generic_line_contact_residuals.csv"),
+            "mug": ("generic_object_pose_candidate.csv", "generic_object_publication.json"),
+            "chair": ("generic_object_pose_candidate.csv", "generic_object_publication.json"),
+            "stick": ("generic_object_pose_candidate.csv", "generic_object_publication.json"),
     }
     for case_name, artifacts in expected_artifacts.items():
         candidate_dir = candidate_root / f"benchmark_vlm_qwen_{case_name}"

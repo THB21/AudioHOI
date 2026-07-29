@@ -2,9 +2,35 @@ case_name: mug
 sample_dir: samples_known_object/02_mug
 object_family: graspable_articraft
 geometry_model: articraft_mug_mesh
+geometry_asset_descriptor: scripts/shared/generic_contact_pipeline/configs/assets/mug_periodic_rigid.json
 observation_model: rigid_body_plus_parts
 contact_policy: palm_handle_rim_body
 pose_model: rigid6_plus_phase
+generic_object_problem:
+  initializer: observation_periodic_rigid
+  initializer_artifacts:
+    - observation_seed/body_pose.csv
+    - observation_seed/axial_phase.csv
+    - object_contact_points.csv
+  contact_artifact: object_contact_points.csv
+factor_runtime:
+  temporal_velocity:
+    weight: 0.70
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: projected_periodic_sequence:temporal_body+phase_continuity
+    activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
+  contact_distance:
+    weight: 1.0
+    sigma: 0.035
+    sigma_unit: m
+    source: stable_grasp_anchor:contact_distance_scale
+    activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
+  periodic_phase_prior:
+    weight: 1.0
+    sigma: 0.20
+    sigma_unit: rad
+    source: observation_seed_axial_phase:measurement_prior
+    activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
 refinement_policy:
   - stable_grasp_anchor
   - anchor_depth

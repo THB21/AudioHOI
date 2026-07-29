@@ -20,6 +20,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (  # noqa: E402
     verify_materialized_line_contact_candidate,
     verify_materialized_sphere_sequence_candidate,
     verify_materialized_projected_periodic_candidate,
+    verify_materialized_generic_object_candidate,
 )
 from scripts.shared.generic_contact_pipeline.core.base.config import load_case_profile, with_runtime_overrides  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.base.io import REPO  # noqa: E402
@@ -81,7 +82,7 @@ def main() -> None:
             result_dir = REPO / "samples_known_object" / CANONICAL_CASE_DIRECTORIES[case_name] / "results" / args.result_name
             candidate_dir = args.candidate_root / f"{args.result_name}_{case_name}"
             write_candidate_sandbox_manifest(profile, result_dir, candidate_dir)
-            candidate_errors = verify_materialized_chair_factor_candidate(profile, result_dir, candidate_dir)
+            candidate_errors = verify_materialized_generic_object_candidate(candidate_dir)
             errors.extend(f"{case_name}: {error}" for error in candidate_errors)
             materialized_note = f" chair_materialized={not candidate_errors}"
         if materialize_mug and case_name == "mug" and summary["eligible_for_candidate_sandbox"] is True:
@@ -89,7 +90,7 @@ def main() -> None:
             result_dir = REPO / "samples_known_object" / CANONICAL_CASE_DIRECTORIES[case_name] / "results" / args.result_name
             candidate_dir = args.candidate_root / f"{args.result_name}_{case_name}"
             write_candidate_sandbox_manifest(profile, result_dir, candidate_dir)
-            candidate_errors = verify_materialized_projected_periodic_candidate(candidate_dir)
+            candidate_errors = verify_materialized_generic_object_candidate(candidate_dir)
             errors.extend(f"{case_name}: {error}" for error in candidate_errors)
             materialized_note = f" mug_materialized={not candidate_errors}"
         if (
@@ -109,7 +110,7 @@ def main() -> None:
             result_dir = REPO / "samples_known_object" / CANONICAL_CASE_DIRECTORIES[case_name] / "results" / args.result_name
             candidate_dir = args.candidate_root / f"{args.result_name}_{case_name}"
             write_candidate_sandbox_manifest(profile, result_dir, candidate_dir)
-            candidate_errors = verify_materialized_line_contact_candidate(candidate_dir)
+            candidate_errors = verify_materialized_generic_object_candidate(candidate_dir)
             errors.extend(f"{case_name}: {error}" for error in candidate_errors)
             materialized_note = f" stick_materialized={not candidate_errors}"
         nonblocking = ",".join(summary["nonblocking_gap_ids"])

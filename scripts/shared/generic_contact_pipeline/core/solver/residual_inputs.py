@@ -48,12 +48,15 @@ class WorldSpaceContactSample:
     frame: int
     source_xyz_m: tuple[float, float, float]
     object_feature_id: str | None = None
+    line_s: float | None = None
 
     def __post_init__(self) -> None:
         if self.frame < 1 or len(self.source_xyz_m) != 3 or not all(isfinite(value) for value in self.source_xyz_m):
             raise ValueError("world-space contact samples require a positive frame and xyz source")
         if self.object_feature_id is not None and not self.object_feature_id:
             raise ValueError("world-space contact sample feature id must be nonempty when present")
+        if self.line_s is not None and (not isfinite(self.line_s) or not 0.0 <= self.line_s <= 1.0):
+            raise ValueError("world-space contact sample line_s must be within [0, 1]")
 
 
 @dataclass(frozen=True)
@@ -84,6 +87,8 @@ class PeriodicPhaseFactorInput:
     target: tuple[float, ...]
     weight: float = 1.0
     sigma_rad: float = 1.0
+    state_index: int | None = None
+    target_by_frame: Mapping[int, float] | None = None
 
 
 @dataclass(frozen=True)
@@ -567,7 +572,13 @@ def build_world_space_contact_sample_residual_inputs(
             raise ValueError(
                 f"world-space contact sample at frame {sample.frame} requires a target feature id"
             )
-        target_xyz = geometry_provider.contact_point_world(state, feature_id, source_xyz)
+        if sample.line_s is None:
+            target_xyz = geometry_provider.contact_point_world(state, feature_id, source_xyz)
+        else:
+            line_point_world = getattr(geometry_provider, "line_point_world", None)
+            if line_point_world is None:
+                raise ValueError("LineS contact requires line-parameter geometry capability")
+            target_xyz = line_point_world(state, sample.line_s)
         anchors.append(source_xyz)
         targets.append([float(value) for value in target_xyz])
         row_weights.append(float((weight_by_frame or {}).get(int(sample.frame), weight)))
@@ -789,10 +800,18 @@ def build_geometry_sequence_residual_input_bundle(
         factor = (periodic_phase_factors or {}).get(request.factor_id)
         if factor is None:
             return None
+        values = factor.values
+        target = factor.target
+        if factor.state_index is not None:
+            if factor.target_by_frame is None:
+                raise ValueError("state-backed periodic phase factor requires frame targets")
+            frames = sorted(set(object_states) & {int(frame) for frame in factor.target_by_frame})
+            values = tuple(float(object_states[frame][factor.state_index]) for frame in frames)
+            target = tuple(float(factor.target_by_frame[frame]) for frame in frames)
         payload = build_periodic_phase_prior_residual_inputs(
             factor_id=request.factor_id,
-            values=factor.values,
-            target=factor.target,
+            values=values,
+            target=target,
             weight=factor.weight,
             sigma_rad=factor.sigma_rad,
         )

@@ -1,97 +1,95 @@
 {
-  "schema_version": 1,
   "cases": {
     "basketball": {
-      "problem_sha256": "702409bd2c7f8c75841718bf4e76a0a050f2ef408461fe0fdcd9698ccf74d41b",
+      "accepted_outputs_written": false,
       "attempt_id": "generic-attempt-bde350c89aa0",
-      "status": "ready_for_future_shadow_solve",
+      "baseline_pose_read": false,
       "blocking_gap_ids": [],
+      "canonical_sha256": "f70fb52cefa3756421f6a9cad6e4dfe8a1dafe0834f10e54e434624ff1bd8dc6",
       "nonblocking_gap_ids": [],
       "phase_statuses": {
         "assemble_problem": "pass",
+        "evaluate_candidate": "not_executed",
         "initialize_state": "not_executed",
-        "solve_sequence": "not_executed",
-        "evaluate_candidate": "not_executed"
+        "solve_sequence": "not_executed"
       },
+      "problem_sha256": "702409bd2c7f8c75841718bf4e76a0a050f2ef408461fe0fdcd9698ccf74d41b",
       "solver_executed": false,
-      "accepted_outputs_written": false,
-      "baseline_pose_read": false,
-      "validation_errors": [],
-      "canonical_sha256": "f70fb52cefa3756421f6a9cad6e4dfe8a1dafe0834f10e54e434624ff1bd8dc6"
-    },
-    "football": {
-      "problem_sha256": "bbebf58c208a5b72212f31b8c7f521cb5f2e765e5979f7f7dc36f11b14371a59",
-      "attempt_id": "generic-attempt-c2c01048dac2",
       "status": "ready_for_future_shadow_solve",
-      "blocking_gap_ids": [],
-      "nonblocking_gap_ids": [],
-      "phase_statuses": {
-        "assemble_problem": "pass",
-        "initialize_state": "not_executed",
-        "solve_sequence": "not_executed",
-        "evaluate_candidate": "not_executed"
-      },
-      "solver_executed": false,
-      "accepted_outputs_written": false,
-      "baseline_pose_read": false,
-      "validation_errors": [],
-      "canonical_sha256": "ed00edb18d8779070f37f7d8c3c900551358f397827a31eaf833e01074f9a57c"
-    },
-    "mug": {
-      "problem_sha256": "212f9d01b900eb8573865ceb89797751b24bbc72ffbb1dc895087dcd67a1b8be",
-      "attempt_id": "generic-attempt-d6cc86c8e13a",
-      "status": "ready_for_future_shadow_solve",
-      "blocking_gap_ids": [],
-      "nonblocking_gap_ids": [],
-      "phase_statuses": {
-        "assemble_problem": "pass",
-        "initialize_state": "not_executed",
-        "solve_sequence": "not_executed",
-        "evaluate_candidate": "not_executed"
-      },
-      "solver_executed": false,
-      "accepted_outputs_written": false,
-      "baseline_pose_read": false,
-      "validation_errors": [],
-      "canonical_sha256": "3098d92920d961d94bbe74c1c5ae8b56db303865d9fbb3d4b114fcca2671dbd6"
+      "validation_errors": []
     },
     "chair": {
-      "problem_sha256": "4d2bd5ad7045b2fdd2ffad4430c37f812f25460b8461d8c9c7a6e0bb533d4f88",
+      "accepted_outputs_written": false,
       "attempt_id": "generic-attempt-687390bd84ab",
-      "status": "ready_for_future_shadow_solve",
+      "baseline_pose_read": false,
       "blocking_gap_ids": [],
+      "canonical_sha256": "af3cd357003feef0906015e1923f5eff825cb7e6c3c4cecedb8baa7eac148556",
       "nonblocking_gap_ids": [],
       "phase_statuses": {
         "assemble_problem": "pass",
+        "evaluate_candidate": "not_executed",
         "initialize_state": "not_executed",
-        "solve_sequence": "not_executed",
-        "evaluate_candidate": "not_executed"
+        "solve_sequence": "not_executed"
       },
+      "problem_sha256": "4d2bd5ad7045b2fdd2ffad4430c37f812f25460b8461d8c9c7a6e0bb533d4f88",
       "solver_executed": false,
-      "accepted_outputs_written": false,
-      "baseline_pose_read": false,
-      "validation_errors": [],
-      "canonical_sha256": "af3cd357003feef0906015e1923f5eff825cb7e6c3c4cecedb8baa7eac148556"
-    },
-    "stick": {
-      "problem_sha256": "f75b0d8779395f8c7e5c9e827e6980cf0e7be66a9a7b7660787b0a4752b2126a",
-      "attempt_id": "generic-attempt-eafc4d30e909",
       "status": "ready_for_future_shadow_solve",
+      "validation_errors": []
+    },
+    "football": {
+      "accepted_outputs_written": false,
+      "attempt_id": "generic-attempt-c2c01048dac2",
+      "baseline_pose_read": false,
       "blocking_gap_ids": [],
-      "nonblocking_gap_ids": [
-        "line_contact_lock_special_refinement"
-      ],
+      "canonical_sha256": "ed00edb18d8779070f37f7d8c3c900551358f397827a31eaf833e01074f9a57c",
+      "nonblocking_gap_ids": [],
       "phase_statuses": {
         "assemble_problem": "pass",
+        "evaluate_candidate": "not_executed",
         "initialize_state": "not_executed",
-        "solve_sequence": "not_executed",
-        "evaluate_candidate": "not_executed"
+        "solve_sequence": "not_executed"
       },
+      "problem_sha256": "bbebf58c208a5b72212f31b8c7f521cb5f2e765e5979f7f7dc36f11b14371a59",
       "solver_executed": false,
+      "status": "ready_for_future_shadow_solve",
+      "validation_errors": []
+    },
+    "mug": {
       "accepted_outputs_written": false,
+      "attempt_id": "generic-attempt-e1d8f044eb9d",
       "baseline_pose_read": false,
-      "validation_errors": [],
-      "canonical_sha256": "7ded846037d1f3ac7169995efe2f7f76532f63829e274825f456173673546b79"
+      "blocking_gap_ids": [],
+      "canonical_sha256": "bf841b6eac458a549fd37cee2b971e27ee4fa58605c98cca2d1adc55068bab35",
+      "nonblocking_gap_ids": [],
+      "phase_statuses": {
+        "assemble_problem": "pass",
+        "evaluate_candidate": "not_executed",
+        "initialize_state": "not_executed",
+        "solve_sequence": "not_executed"
+      },
+      "problem_sha256": "b50ff98e74298eb152eff469713dd3323f3fbd8ba3d459c3a716bfcc617a84f5",
+      "solver_executed": false,
+      "status": "ready_for_future_shadow_solve",
+      "validation_errors": []
+    },
+    "stick": {
+      "accepted_outputs_written": false,
+      "attempt_id": "generic-attempt-735951cec5f2",
+      "baseline_pose_read": false,
+      "blocking_gap_ids": [],
+      "canonical_sha256": "694f659b4e08097c933d338c8d97f0f42deb71d862cf37c595f3bc1357cba3d5",
+      "nonblocking_gap_ids": [],
+      "phase_statuses": {
+        "assemble_problem": "pass",
+        "evaluate_candidate": "not_executed",
+        "initialize_state": "not_executed",
+        "solve_sequence": "not_executed"
+      },
+      "problem_sha256": "7118c568b9b8c6aba236e26aebe2e873009dec594c1cf310d5d43637e4015e76",
+      "solver_executed": false,
+      "status": "ready_for_future_shadow_solve",
+      "validation_errors": []
     }
-  }
+  },
+  "schema_version": 1
 }

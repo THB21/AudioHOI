@@ -467,7 +467,12 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 str(repo_relative_value(result_dir / "stage3_metrics.json")),
             )
         )
-    if stage4_metrics.get("line_object_special_refinement"):
+    generic_problem = profile.data.get("generic_object_problem", {})
+    line_capability_promoted = (
+        isinstance(generic_problem, dict)
+        and generic_problem.get("initializer") == "line_s_two_site"
+    )
+    if stage4_metrics.get("line_object_special_refinement") and not line_capability_promoted:
         gaps.append(
             FactorGap(
                 "line_contact_lock_special_refinement",

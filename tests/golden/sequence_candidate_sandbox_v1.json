@@ -1,14 +1,12 @@
 {
-  "schema_version": 1,
   "cases": {
     "basketball": {
-      "status": "sandbox_ready",
-      "eligible_for_candidate_sandbox": true,
-      "candidate_dir": "samples_known_object/01_basketball/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_basketball",
       "attempt_id": "generic-attempt-bde350c89aa0",
-      "problem_sha256": "702409bd2c7f8c75841718bf4e76a0a050f2ef408461fe0fdcd9698ccf74d41b",
+      "blocking_gap_ids": [],
+      "candidate_dir": "samples_known_object/01_basketball/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_basketball",
+      "canonical_sha256": "da8b5bcea1daaf58fd9bd2fa11ccc09808dee0e89830525d4bf6b044346823f8",
       "diagnostics_sha256": "f70fb52cefa3756421f6a9cad6e4dfe8a1dafe0834f10e54e434624ff1bd8dc6",
-      "blocking_gap_ids": [],
+      "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
         "generic_sequence_solver_shadow_candidate.json",
@@ -16,79 +14,80 @@
         "generic_sphere_sequence_residuals.csv",
         "generic_sphere_sequence_attempt.json"
       ],
-      "canonical_sha256": "3cf46ffcfc1f2fdf46599f04e84f845bfa0ad2cbe15bdce7c8f7284c85c182c6"
-    },
-    "football": {
-      "status": "sandbox_ready",
-      "eligible_for_candidate_sandbox": true,
-      "candidate_dir": "samples_known_object/10_football/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_football",
-      "attempt_id": "generic-attempt-c2c01048dac2",
-      "problem_sha256": "bbebf58c208a5b72212f31b8c7f521cb5f2e765e5979f7f7dc36f11b14371a59",
-      "diagnostics_sha256": "ed00edb18d8779070f37f7d8c3c900551358f397827a31eaf833e01074f9a57c",
-      "blocking_gap_ids": [],
-      "nonblocking_gap_ids": [],
-      "planned_artifacts": [
-        "generic_sequence_solver_shadow_candidate.json",
-        "generic_sphere_sequence_candidate.csv",
-        "generic_sphere_sequence_residuals.csv",
-        "generic_sphere_sequence_attempt.json"
-      ],
-      "canonical_sha256": "886b3f9d0d2266e973d95829227799c9a1c101627c3ab05e1109b9df2abbc0ce"
-    },
-    "mug": {
-      "status": "sandbox_ready",
-      "eligible_for_candidate_sandbox": true,
-      "candidate_dir": "samples_known_object/02_mug/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_mug",
-      "attempt_id": "generic-attempt-d6cc86c8e13a",
-      "problem_sha256": "212f9d01b900eb8573865ceb89797751b24bbc72ffbb1dc895087dcd67a1b8be",
-      "diagnostics_sha256": "3098d92920d961d94bbe74c1c5ae8b56db303865d9fbb3d4b114fcca2671dbd6",
-      "blocking_gap_ids": [],
-      "nonblocking_gap_ids": [],
-      "planned_artifacts": [
-        "generic_sequence_solver_shadow_candidate.json",
-        "generic_periodic_body_candidate.csv",
-        "generic_periodic_phase_candidate.csv",
-        "generic_projected_periodic_attempt.json"
-      ],
-      "canonical_sha256": "af6ca81fa9e49279db1f9ae328ce820dcdc451b5f94be8f107216f60c7c8be5a"
+      "problem_sha256": "702409bd2c7f8c75841718bf4e76a0a050f2ef408461fe0fdcd9698ccf74d41b",
+      "status": "sandbox_ready"
     },
     "chair": {
-      "status": "sandbox_ready",
-      "eligible_for_candidate_sandbox": true,
-      "candidate_dir": "samples_known_object/05_chair/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_chair",
       "attempt_id": "generic-attempt-687390bd84ab",
-      "problem_sha256": "4d2bd5ad7045b2fdd2ffad4430c37f812f25460b8461d8c9c7a6e0bb533d4f88",
-      "diagnostics_sha256": "af3cd357003feef0906015e1923f5eff825cb7e6c3c4cecedb8baa7eac148556",
       "blocking_gap_ids": [],
+      "candidate_dir": "samples_known_object/05_chair/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_chair",
+      "canonical_sha256": "f8360f49b5f4c07bca0efdcb758017dd11307834444e7330e2883fc16c935af7",
+      "diagnostics_sha256": "af3cd357003feef0906015e1923f5eff825cb7e6c3c4cecedb8baa7eac148556",
+      "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
         "generic_sequence_solver_shadow_candidate.json",
-        "generic_chair_factor_candidate.csv",
-        "generic_chair_factor_residuals.csv",
-        "chair_generic_factor_executor_attempt.json",
-        "chair_generic_factor_residuals.json",
-        "generic_problem_preparation.json"
+        "generic_object_pose_candidate.csv",
+        "generic_object_publication.json",
+        "generic_problem_preparation.json",
+        "generic_sequence_solver_attempts"
       ],
-      "canonical_sha256": "5db56a381b9c7be8cfce61162ba9a8699825ff5a2418f6081f88a1d0ccbae2d7"
+      "problem_sha256": "4d2bd5ad7045b2fdd2ffad4430c37f812f25460b8461d8c9c7a6e0bb533d4f88",
+      "status": "sandbox_ready"
     },
-    "stick": {
-      "status": "sandbox_ready",
-      "eligible_for_candidate_sandbox": true,
-      "candidate_dir": "samples_known_object/11_stick/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_stick",
-      "attempt_id": "generic-attempt-eafc4d30e909",
-      "problem_sha256": "f75b0d8779395f8c7e5c9e827e6980cf0e7be66a9a7b7660787b0a4752b2126a",
-      "diagnostics_sha256": "7ded846037d1f3ac7169995efe2f7f76532f63829e274825f456173673546b79",
+    "football": {
+      "attempt_id": "generic-attempt-c2c01048dac2",
       "blocking_gap_ids": [],
-      "nonblocking_gap_ids": [
-        "line_contact_lock_special_refinement"
-      ],
+      "candidate_dir": "samples_known_object/10_football/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_football",
+      "canonical_sha256": "aad1faa5dd8645789d215eb9371c162b433dd13d5a557b5aee0901c020c5eb38",
+      "diagnostics_sha256": "ed00edb18d8779070f37f7d8c3c900551358f397827a31eaf833e01074f9a57c",
+      "eligible_for_candidate_sandbox": true,
+      "nonblocking_gap_ids": [],
       "planned_artifacts": [
         "generic_sequence_solver_shadow_candidate.json",
-        "generic_line_contact_candidate.csv",
-        "generic_line_contact_residuals.csv",
-        "generic_line_contact_attempt.json"
+        "generic_sphere_sequence_candidate.csv",
+        "generic_sphere_sequence_residuals.csv",
+        "generic_sphere_sequence_attempt.json"
       ],
-      "canonical_sha256": "a71e400412e33a099c204a57d89eb709df219520913ddceb6f70e26d641023c2"
+      "problem_sha256": "bbebf58c208a5b72212f31b8c7f521cb5f2e765e5979f7f7dc36f11b14371a59",
+      "status": "sandbox_ready"
+    },
+    "mug": {
+      "attempt_id": "generic-attempt-e1d8f044eb9d",
+      "blocking_gap_ids": [],
+      "candidate_dir": "samples_known_object/02_mug/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_mug",
+      "canonical_sha256": "1e62e9f983f2c70d38a39c01828b3282d3f0ba4f89c5026824e19961b6a53b5d",
+      "diagnostics_sha256": "bf841b6eac458a549fd37cee2b971e27ee4fa58605c98cca2d1adc55068bab35",
+      "eligible_for_candidate_sandbox": true,
+      "nonblocking_gap_ids": [],
+      "planned_artifacts": [
+        "generic_sequence_solver_shadow_candidate.json",
+        "generic_object_pose_candidate.csv",
+        "generic_object_publication.json",
+        "generic_problem_preparation.json",
+        "generic_sequence_solver_attempts"
+      ],
+      "problem_sha256": "b50ff98e74298eb152eff469713dd3323f3fbd8ba3d459c3a716bfcc617a84f5",
+      "status": "sandbox_ready"
+    },
+    "stick": {
+      "attempt_id": "generic-attempt-735951cec5f2",
+      "blocking_gap_ids": [],
+      "candidate_dir": "samples_known_object/11_stick/results/generic_sequence_solver_shadow/benchmark_vlm_qwen_stick",
+      "canonical_sha256": "63c77e346bb3be403e20fac4c73327e5f358e25b3107c438ee042c4bb9813c21",
+      "diagnostics_sha256": "694f659b4e08097c933d338c8d97f0f42deb71d862cf37c595f3bc1357cba3d5",
+      "eligible_for_candidate_sandbox": true,
+      "nonblocking_gap_ids": [],
+      "planned_artifacts": [
+        "generic_sequence_solver_shadow_candidate.json",
+        "generic_object_pose_candidate.csv",
+        "generic_object_publication.json",
+        "generic_problem_preparation.json",
+        "generic_sequence_solver_attempts"
+      ],
+      "problem_sha256": "7118c568b9b8c6aba236e26aebe2e873009dec594c1cf310d5d43637e4015e76",
+      "status": "sandbox_ready"
     }
-  }
+  },
+  "schema_version": 1
 }

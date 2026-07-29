@@ -46,6 +46,7 @@ def test_chair_factor_candidate_attempt_writes_only_safe_manifest(tmp_path: Path
         CHAIR_FACTOR_RESIDUALS_NAME,
         CHAIR_FACTOR_CANDIDATE_NAME,
         CHAIR_FACTOR_RESIDUAL_TABLE_NAME,
+        "generic_problem_preparation.json",
     }
     assert attempt["isolated_candidate_materialized"] is True
     assert attempt["candidate_pose"]["rows"] == 192

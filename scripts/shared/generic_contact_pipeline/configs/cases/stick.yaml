@@ -2,9 +2,28 @@ case_name: stick
 sample_dir: samples_known_object/11_stick
 object_family: rigid_staff
 geometry_model: articraft_urdf
+geometry_asset_descriptor: scripts/shared/generic_contact_pipeline/configs/assets/stick_line_capsule.json
 observation_model: mask_track_center
 contact_policy: persistent_two_palm_line
 pose_model: translation3
+generic_object_problem:
+  initializer: line_s_two_site
+  initializer_artifacts:
+    - object_contact_points.csv
+    - line_observations.csv
+  contact_artifact: object_contact_points.csv
+factor_runtime:
+  temporal_velocity:
+    weight: 1.25
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: sequence_se3_optimizer:smooth_w
+    activation_weight_tiers: {active: 1.0, downweighted: 0.08, inactive: 0.0}
+  contact_distance:
+    weight: 0.92
+    sigma: 0.035
+    sigma_unit: m
+    source: sequence_se3_optimizer:trusted_physical_contact_weight
+    activation_weight_tiers: {active: 1.0, downweighted: 0.08, inactive: 0.0}
 refinement_policy:
   - line_contact_lock
   - backproject_xy

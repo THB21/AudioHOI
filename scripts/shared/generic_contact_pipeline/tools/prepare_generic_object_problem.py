@@ -18,12 +18,14 @@ from scripts.shared.generic_contact_pipeline.core.base.io import REPO
 from scripts.shared.generic_contact_pipeline.core.solver import (
     AcceptedObjectOutputPublisher,
     GenericSequenceExecutor,
-    ObjectPublicationGate,
     SequenceOptimizationParameters,
-    legacy_object_problem_preparation_record,
+    CapabilityObjectProblemPreparation,
+    capability_object_problem_preparation_record,
     object_publication_record,
-    prepare_legacy_articulated_object_problem,
+    evaluate_object_publication_gate,
+    prepare_capability_object_problem,
     write_isolated_sequence_attempt,
+    update_isolated_attempt_evidence,
 )
 
 
@@ -55,13 +57,13 @@ def main() -> None:
     )
     args = parser.parse_args()
     profile = with_runtime_overrides(load_case_profile(args.case), result_name=args.result_name)
-    prepared = prepare_legacy_articulated_object_problem(
+    prepared = prepare_capability_object_problem(
         profile=profile,
         result_dir=profile.result_dir,
         repository_root=REPO,
         body_models_root=args.body_models_root,
     )
-    _write_atomic(args.output, legacy_object_problem_preparation_record(prepared))
+    _write_atomic(args.output, capability_object_problem_preparation_record(prepared))
     if args.solve:
         if args.candidate_dir is None:
             raise SystemExit("--solve requires --candidate-dir")
@@ -74,15 +76,15 @@ def main() -> None:
             prepared.preparation.problem,
             result,
         )
-        with (profile.result_dir / "object_pose_init.csv").open(newline="") as handle:
-            import csv
+        if isinstance(prepared, CapabilityObjectProblemPreparation):
+            template_rows = list(prepared.template_rows)
+        else:
+            with (profile.result_dir / "object_pose_init.csv").open(newline="") as handle:
+                import csv
 
-            template_rows = list(csv.DictReader(handle))
-        gate = ObjectPublicationGate(
-            passed=False,
-            gate_ids=("hard_metrics_evaluated", "contact_gap", "projection_error"),
-            blocking_reasons=("hard_metrics_not_evaluated",),
-        )
+                template_rows = list(csv.DictReader(handle))
+        gate, hard_metrics = evaluate_object_publication_gate(prepared.preparation.problem, result)
+        update_isolated_attempt_evidence(attempt_dir, hard_metrics=hard_metrics)
         publication = AcceptedObjectOutputPublisher().publish(
             result=result,
             state_spec=prepared.state_adaptation.state_spec,

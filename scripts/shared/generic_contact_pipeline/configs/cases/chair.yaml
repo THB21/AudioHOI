@@ -6,6 +6,10 @@ geometry_asset_descriptor: scripts/shared/generic_contact_pipeline/configs/asset
 observation_model: semantic_graph_tracks
 contact_policy: two_hand_toprail_endpoint
 pose_model: semantic_graph_6d
+generic_object_problem:
+  initializer: legacy_state_artifact
+  initializer_artifacts: [object_pose_init.csv, object_contact_points.csv, object_observations.csv]
+  contact_artifact: object_contact_points.csv
 refinement_policy:
   - small_se3
   - anchor_propagate_freeze

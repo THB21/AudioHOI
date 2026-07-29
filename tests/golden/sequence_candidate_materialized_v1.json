@@ -1,44 +1,30 @@
 {
-  "schema_version": 1,
-  "result_name": "benchmark_vlm_qwen",
   "cases": {
     "basketball": {
-      "status": "sandbox_ready",
-      "eligible_for_candidate_sandbox": true,
-      "nonblocking_gap_ids": [],
-      "planned_artifacts": [
-        "generic_sequence_solver_shadow_candidate.json",
-        "generic_sphere_sequence_candidate.csv",
-        "generic_sphere_sequence_residuals.csv",
-        "generic_sphere_sequence_attempt.json"
-      ],
       "artifacts": {
-        "generic_sphere_sequence_candidate.csv": {
-          "sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8",
-          "rows": 192
-        },
-        "generic_sphere_sequence_residuals.csv": {
-          "sha256": "4d5243acff375179ee0dbe35f150b4044f3e3b46ec0068ceadd84b44c103df28",
-          "rows": 192
-        },
         "generic_sphere_sequence_attempt.json": {
           "attempt": {
-            "mode": "generic_sphere_sequence_candidate",
-            "solver_executed": true,
             "accepted_outputs_written": false,
             "baseline_pose_read": false,
+            "candidate_artifact": "generic_sphere_sequence_candidate.csv",
+            "candidate_sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8",
             "executor_scope": "isolated_candidate_dir",
             "frames": 192,
-            "candidate_artifact": "generic_sphere_sequence_candidate.csv",
+            "mode": "generic_sphere_sequence_candidate",
             "residual_artifact": "generic_sphere_sequence_residuals.csv",
-            "candidate_sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8",
-            "residual_sha256": "4d5243acff375179ee0dbe35f150b4044f3e3b46ec0068ceadd84b44c103df28"
+            "residual_sha256": "4d5243acff375179ee0dbe35f150b4044f3e3b46ec0068ceadd84b44c103df28",
+            "solver_executed": true
           }
+        },
+        "generic_sphere_sequence_candidate.csv": {
+          "rows": 192,
+          "sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8"
+        },
+        "generic_sphere_sequence_residuals.csv": {
+          "rows": 192,
+          "sha256": "4d5243acff375179ee0dbe35f150b4044f3e3b46ec0068ceadd84b44c103df28"
         }
-      }
-    },
-    "football": {
-      "status": "sandbox_ready",
+      },
       "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
@@ -47,146 +33,236 @@
         "generic_sphere_sequence_residuals.csv",
         "generic_sphere_sequence_attempt.json"
       ],
-      "artifacts": {
-        "generic_sphere_sequence_candidate.csv": {
-          "sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365",
-          "rows": 242
-        },
-        "generic_sphere_sequence_residuals.csv": {
-          "sha256": "2c25d8a10cd734d9a788e9c4b8efcd0b9103e9be4191b9793298549bddb80a60",
-          "rows": 242
-        },
-        "generic_sphere_sequence_attempt.json": {
-          "attempt": {
-            "mode": "generic_sphere_sequence_candidate",
-            "solver_executed": true,
-            "accepted_outputs_written": false,
-            "baseline_pose_read": false,
-            "executor_scope": "isolated_candidate_dir",
-            "frames": 242,
-            "candidate_artifact": "generic_sphere_sequence_candidate.csv",
-            "residual_artifact": "generic_sphere_sequence_residuals.csv",
-            "candidate_sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365",
-            "residual_sha256": "2c25d8a10cd734d9a788e9c4b8efcd0b9103e9be4191b9793298549bddb80a60"
-          }
-        }
-      }
-    },
-    "mug": {
-      "status": "sandbox_ready",
-      "eligible_for_candidate_sandbox": true,
-      "nonblocking_gap_ids": [],
-      "planned_artifacts": [
-        "generic_sequence_solver_shadow_candidate.json",
-        "generic_periodic_body_candidate.csv",
-        "generic_periodic_phase_candidate.csv",
-        "generic_projected_periodic_attempt.json"
-      ],
-      "artifacts": {
-        "generic_periodic_body_candidate.csv": {
-          "sha256": "3ea905dfe8de77646d9a240d0104edaa6998e921d2a8a5d6862ec7ebb125db7c",
-          "rows": 240
-        },
-        "generic_periodic_phase_candidate.csv": {
-          "sha256": "3dc05829ef95b5dc929d0e84c9163b924f9eaee42971b8c61ff2ac4634366eb6",
-          "rows": 240
-        },
-        "generic_projected_periodic_attempt.json": {
-          "attempt": {
-            "mode": "generic_projected_periodic_candidate",
-            "solver_executed": true,
-            "accepted_outputs_written": false,
-            "baseline_pose_read": false,
-            "historical_phase_read": false,
-            "executor_scope": "isolated_candidate_dir",
-            "frames": 240,
-            "body_candidate_artifact": "generic_periodic_body_candidate.csv",
-            "phase_candidate_artifact": "generic_periodic_phase_candidate.csv",
-            "body_candidate_sha256": "3ea905dfe8de77646d9a240d0104edaa6998e921d2a8a5d6862ec7ebb125db7c",
-            "phase_candidate_sha256": "3dc05829ef95b5dc929d0e84c9163b924f9eaee42971b8c61ff2ac4634366eb6"
-          }
-        }
-      }
+      "status": "sandbox_ready"
     },
     "chair": {
-      "status": "sandbox_ready",
+      "artifacts": {
+        "generic_object_pose_candidate.csv": {
+          "rows": 192,
+          "sha256": "12190f73b91b702c29bd99747eded46af434af578ff9a62281a78094155e9b3b"
+        },
+        "generic_object_publication.json": {
+          "publication": {
+            "accepted_output_written": false,
+            "case_dispatch_used": false,
+            "hard_gate": {
+              "blocking_reasons": [
+                "solver_not_converged"
+              ],
+              "gate_ids": [
+                "solver_converged",
+                "objective_nonincrease",
+                "projection_normalized_rmse",
+                "contact_distance_normalized_rmse"
+              ],
+              "passed": false
+            },
+            "human_state_optimized": false,
+            "status": "candidate_blocked"
+          }
+        },
+        "generic_problem_preparation.json": {
+          "preparation": {
+            "accepted_outputs_written": false,
+            "case_dispatch_used": false,
+            "human_state_optimized": false,
+            "initializer_kind": "legacy_state_artifact",
+            "selected_factor_ids": [
+              "temporal_velocity:E_smooth",
+              "line_reprojection:measurement_ir",
+              "contact_distance:contact_constraint_shadow"
+            ],
+            "state_spec_id": "semantic_graph_6d:chair"
+          }
+        },
+        "generic_sequence_solver_attempts": {
+          "attempt": {
+            "accepted_outputs_written": false,
+            "case_dispatch_used": false,
+            "factor_ids": [
+              "temporal_velocity:E_smooth",
+              "line_reprojection:measurement_ir",
+              "contact_distance:contact_constraint_shadow"
+            ],
+            "function_evaluations": 2,
+            "solver_executed": true
+          }
+        }
+      },
       "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
         "generic_sequence_solver_shadow_candidate.json",
-        "generic_chair_factor_candidate.csv",
-        "generic_chair_factor_residuals.csv",
-        "chair_generic_factor_executor_attempt.json",
-        "chair_generic_factor_residuals.json",
-        "generic_problem_preparation.json"
+        "generic_object_pose_candidate.csv",
+        "generic_object_publication.json",
+        "generic_problem_preparation.json",
+        "generic_sequence_solver_attempts"
       ],
+      "status": "sandbox_ready"
+    },
+    "football": {
       "artifacts": {
-        "generic_chair_factor_candidate.csv": {
-          "sha256": "fb82c2e626fca0908ef9c3024304dee1afd1097c77c47621f6d5c3ab6fccb969",
-          "rows": 192
-        },
-        "generic_chair_factor_residuals.csv": {
-          "sha256": "42ff23de9d7a871975643840ea39b12dc30623d4319a65d265719f740300f740",
-          "rows": 125
-        },
-        "chair_generic_factor_executor_attempt.json": {
+        "generic_sphere_sequence_attempt.json": {
           "attempt": {
-            "mode": "chair_generic_factor_executor_candidate_attempt",
-            "solver_executed": true,
-            "isolated_candidate_materialized": true,
             "accepted_outputs_written": false,
             "baseline_pose_read": false,
-            "executor_scope": "isolated_candidate_dir"
+            "candidate_artifact": "generic_sphere_sequence_candidate.csv",
+            "candidate_sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365",
+            "executor_scope": "isolated_candidate_dir",
+            "frames": 242,
+            "mode": "generic_sphere_sequence_candidate",
+            "residual_artifact": "generic_sphere_sequence_residuals.csv",
+            "residual_sha256": "2c25d8a10cd734d9a788e9c4b8efcd0b9103e9be4191b9793298549bddb80a60",
+            "solver_executed": true
           }
         },
-        "chair_generic_factor_residuals.json": {
-          "sha256": "7588d93992838fa1386197deda0beb711c714623059e52173a18925c46a87cb6"
+        "generic_sphere_sequence_candidate.csv": {
+          "rows": 242,
+          "sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365"
         },
-        "generic_problem_preparation.json": {
-          "sha256": "4365f45778da428bc615cff31497510767efadb26dc17f2c9ff54d7210fbc9c8"
+        "generic_sphere_sequence_residuals.csv": {
+          "rows": 242,
+          "sha256": "2c25d8a10cd734d9a788e9c4b8efcd0b9103e9be4191b9793298549bddb80a60"
         }
-      }
-    },
-    "stick": {
-      "status": "sandbox_ready",
+      },
       "eligible_for_candidate_sandbox": true,
-      "nonblocking_gap_ids": [
-        "line_contact_lock_special_refinement"
-      ],
+      "nonblocking_gap_ids": [],
       "planned_artifacts": [
         "generic_sequence_solver_shadow_candidate.json",
-        "generic_line_contact_candidate.csv",
-        "generic_line_contact_residuals.csv",
-        "generic_line_contact_attempt.json"
+        "generic_sphere_sequence_candidate.csv",
+        "generic_sphere_sequence_residuals.csv",
+        "generic_sphere_sequence_attempt.json"
       ],
+      "status": "sandbox_ready"
+    },
+    "mug": {
       "artifacts": {
-        "generic_line_contact_candidate.csv": {
-          "sha256": "330874e157f95608a5962c04fdb804a9086f429ec47d88eca8c27d3b31257994",
-          "rows": 240
+        "generic_object_pose_candidate.csv": {
+          "rows": 240,
+          "sha256": "e3167418db7688b9127e05699c3f802d242e36413d9f74b3879a6cb334e4f153"
         },
-        "generic_line_contact_residuals.csv": {
-          "sha256": "5eb5a93fd3cc1e1c0afc45cd482448f21617194c683b03597d15e4e13752509d",
-          "rows": 240
+        "generic_object_publication.json": {
+          "publication": {
+            "accepted_output_written": false,
+            "case_dispatch_used": false,
+            "hard_gate": {
+              "blocking_reasons": [
+                "solver_not_converged",
+                "contact_distance_normalized_rmse_failed"
+              ],
+              "gate_ids": [
+                "solver_converged",
+                "objective_nonincrease",
+                "contact_distance_normalized_rmse"
+              ],
+              "passed": false
+            },
+            "human_state_optimized": false,
+            "status": "candidate_blocked"
+          }
         },
-        "generic_line_contact_attempt.json": {
-          "attempt": {
-            "mode": "generic_line_contact_candidate",
-            "solver_executed": true,
+        "generic_problem_preparation.json": {
+          "preparation": {
             "accepted_outputs_written": false,
-            "baseline_pose_read": false,
-            "executor_scope": "isolated_candidate_dir",
-            "frames": 240,
-            "residual_rows": 240,
-            "candidate_artifact": "generic_line_contact_candidate.csv",
-            "residual_artifact": "generic_line_contact_residuals.csv",
-            "candidate_sha256": "330874e157f95608a5962c04fdb804a9086f429ec47d88eca8c27d3b31257994",
-            "residual_sha256": "5eb5a93fd3cc1e1c0afc45cd482448f21617194c683b03597d15e4e13752509d",
-            "compatibility_gap_id": "line_contact_lock_special_refinement",
-            "compatibility_gap_status": "nonblocking",
-            "mechanism": "line_contact_lock"
+            "case_dispatch_used": false,
+            "human_state_optimized": false,
+            "initializer_kind": "observation_periodic_rigid",
+            "selected_factor_ids": [
+              "temporal_velocity:E_smooth",
+              "contact_distance:contact_constraint_shadow",
+              "periodic_phase_prior:observation_seed_axial_phase"
+            ],
+            "state_spec_id": "rigid6_plus_phase:periodic_rigid"
+          }
+        },
+        "generic_sequence_solver_attempts": {
+          "attempt": {
+            "accepted_outputs_written": false,
+            "case_dispatch_used": false,
+            "factor_ids": [
+              "temporal_velocity:E_smooth",
+              "contact_distance:contact_constraint_shadow",
+              "periodic_phase_prior:observation_seed_axial_phase"
+            ],
+            "function_evaluations": 2,
+            "solver_executed": true
           }
         }
-      }
+      },
+      "eligible_for_candidate_sandbox": true,
+      "nonblocking_gap_ids": [],
+      "planned_artifacts": [
+        "generic_sequence_solver_shadow_candidate.json",
+        "generic_object_pose_candidate.csv",
+        "generic_object_publication.json",
+        "generic_problem_preparation.json",
+        "generic_sequence_solver_attempts"
+      ],
+      "status": "sandbox_ready"
+    },
+    "stick": {
+      "artifacts": {
+        "generic_object_pose_candidate.csv": {
+          "rows": 240,
+          "sha256": "853c66e062048d9c58ba6e6aa306603d8a5094175b0f7bd0ec77dd38a50e7636"
+        },
+        "generic_object_publication.json": {
+          "publication": {
+            "accepted_output_written": false,
+            "case_dispatch_used": false,
+            "hard_gate": {
+              "blocking_reasons": [
+                "solver_not_converged"
+              ],
+              "gate_ids": [
+                "solver_converged",
+                "objective_nonincrease",
+                "contact_distance_normalized_rmse"
+              ],
+              "passed": false
+            },
+            "human_state_optimized": false,
+            "status": "candidate_blocked"
+          }
+        },
+        "generic_problem_preparation.json": {
+          "preparation": {
+            "accepted_outputs_written": false,
+            "case_dispatch_used": false,
+            "human_state_optimized": false,
+            "initializer_kind": "line_s_two_site",
+            "selected_factor_ids": [
+              "temporal_velocity:E_smooth",
+              "contact_distance:contact_constraint_shadow"
+            ],
+            "state_spec_id": "rigid6:line_capsule"
+          }
+        },
+        "generic_sequence_solver_attempts": {
+          "attempt": {
+            "accepted_outputs_written": false,
+            "case_dispatch_used": false,
+            "factor_ids": [
+              "temporal_velocity:E_smooth",
+              "contact_distance:contact_constraint_shadow"
+            ],
+            "function_evaluations": 2,
+            "solver_executed": true
+          }
+        }
+      },
+      "eligible_for_candidate_sandbox": true,
+      "nonblocking_gap_ids": [],
+      "planned_artifacts": [
+        "generic_sequence_solver_shadow_candidate.json",
+        "generic_object_pose_candidate.csv",
+        "generic_object_publication.json",
+        "generic_problem_preparation.json",
+        "generic_sequence_solver_attempts"
+      ],
+      "status": "sandbox_ready"
     }
-  }
+  },
+  "result_name": "benchmark_vlm_qwen",
+  "schema_version": 1
 }

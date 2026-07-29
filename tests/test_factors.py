@@ -273,7 +273,7 @@ def test_specialized_legacy_paths_remain_explicit_gaps() -> None:
     stick = build_factor_shadow(load_case_profile("stick"), REPO / "samples_known_object/11_stick/results/benchmark_vlm_qwen")
     assert [gap["gap_id"] for gap in mug["gaps"]] == []
     assert "semantic_graph_solver_private" not in [gap["gap_id"] for gap in chair["gaps"]]
-    assert [gap["gap_id"] for gap in stick["gaps"]] == ["line_contact_lock_special_refinement"]
+    assert [gap["gap_id"] for gap in stick["gaps"]] == []
 
 
 def test_factor_shadow_export_cli_writes_reviewable_manifest(tmp_path: Path) -> None:
@@ -314,7 +314,7 @@ def test_factor_shadow_verifier_cli_reports_all_cases() -> None:
     lines = completed.stdout.strip().splitlines()
     assert len(lines) == len(CASE_DIRECTORIES)
     assert lines[0].startswith("basketball: factors=10")
-    assert any("line_contact_lock_special_refinement" in line for line in lines)
+    assert not any("line_contact_lock_special_refinement" in line for line in lines)
 
 
 def test_factor_shadow_validation_checks_composition_and_sources() -> None:

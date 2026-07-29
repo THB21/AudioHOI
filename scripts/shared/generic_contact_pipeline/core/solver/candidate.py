@@ -9,7 +9,7 @@ from ..base.config import CaseProfile
 from ..base.io import repo_relative_value, write_json
 from ..base.runtime import runtime_python
 from .diagnostics import build_sequence_solver_shadow_diagnostics
-from .line_diagnostics import LINE_CONTACT_SANDBOX_ARTIFACTS, prepare_line_contact_candidate
+from .line_diagnostics import LINE_CONTACT_SANDBOX_ARTIFACTS
 from .sphere_sequence import SPHERE_ATTEMPT_NAME, SPHERE_CANDIDATE_NAME, SPHERE_RESIDUAL_NAME
 
 
@@ -40,6 +40,13 @@ MUG_PERIODIC_SANDBOX_ARTIFACTS = [
     "generic_periodic_body_candidate.csv",
     "generic_periodic_phase_candidate.csv",
     "generic_projected_periodic_attempt.json",
+]
+GENERIC_OBJECT_SANDBOX_ARTIFACTS = [
+    SANDBOX_MANIFEST_NAME,
+    "generic_object_pose_candidate.csv",
+    "generic_object_publication.json",
+    "generic_problem_preparation.json",
+    "generic_sequence_solver_attempts",
 ]
 
 
@@ -89,27 +96,22 @@ def _run_isolated_sphere_sequence_executor(profile: CaseProfile, result_dir: Pat
     subprocess.run(cmd, cwd=Path(__file__).resolve().parents[5], check=True, text=True, capture_output=True)
 
 
-def _run_isolated_mug_periodic_executor(profile: CaseProfile, result_dir: Path, candidate_dir: Path) -> None:
-    if profile.case_name != "mug":
-        raise ValueError("isolated projected-periodic executor only supports the mug case")
-    inputs = {
-        "object observations": result_dir / "object_observations.csv",
-        "proxy depth": result_dir / "object_proxy_observations_internal/object_proxy_observations.csv",
-    }
-    for name, path in inputs.items():
-        if not path.exists():
-            raise FileNotFoundError(f"missing {name}: {path}")
+def _run_generic_object_executor(profile: CaseProfile, result_dir: Path, candidate_dir: Path) -> None:
+    """Run the one capability-driven object solver and hard-gated publisher."""
     cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
-        str(Path(__file__).resolve().parents[2] / "tools/solve_projected_periodic_candidate.py"),
-        "--sample-dir",
-        str(profile.sample_dir),
-        "--observations-csv",
-        str(inputs["object observations"]),
-        "--proxy-csv",
-        str(inputs["proxy depth"]),
+        str(Path(__file__).resolve().parents[2] / "tools/prepare_generic_object_problem.py"),
+        "--case",
+        profile.case_name,
+        "--result-name",
+        result_dir.name,
+        "--output",
+        str(candidate_dir / "generic_problem_preparation.json"),
+        "--solve",
         "--candidate-dir",
         str(candidate_dir),
+        "--max-nfev",
+        "2",
     ]
     subprocess.run(cmd, cwd=Path(__file__).resolve().parents[5], check=True, text=True, capture_output=True)
 
@@ -120,17 +122,11 @@ def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
     eligible = diagnostics["status"] == "ready_for_future_shadow_solve"
     status = "sandbox_ready" if eligible else "blocked_by_known_gaps"
     is_sphere = profile.component("pose_model") == "translation3" and profile.component("geometry_model") == "sphere_proxy"
-    is_mug_periodic = profile.case_name == "mug" and profile.component("pose_model") == "rigid6_plus_phase"
-    is_chair = profile.case_name == "chair"
-    is_line_contact = profile.case_name == "stick"
-    if eligible and is_sphere:
+    uses_generic_object_executor = isinstance(profile.data.get("generic_object_problem"), dict)
+    if eligible and uses_generic_object_executor:
+        planned_artifacts = GENERIC_OBJECT_SANDBOX_ARTIFACTS
+    elif eligible and is_sphere:
         planned_artifacts = SPHERE_SANDBOX_ARTIFACTS
-    elif eligible and is_mug_periodic:
-        planned_artifacts = MUG_PERIODIC_SANDBOX_ARTIFACTS
-    elif eligible and is_chair:
-        planned_artifacts = CHAIR_SANDBOX_ARTIFACTS
-    elif eligible and is_line_contact:
-        planned_artifacts = LINE_CONTACT_SANDBOX_ARTIFACTS
     elif eligible:
         planned_artifacts = [SANDBOX_MANIFEST_NAME]
     else:
@@ -139,6 +135,7 @@ def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
         "attempt_id": diagnostics["attempt_id"],
         "status": status,
         "geometry_kind": "sphere" if is_sphere else "other",
+        "generic_object_executor": uses_generic_object_executor,
         "candidate_dir": str(repo_relative_value(target_dir)),
         "planned_artifacts": planned_artifacts,
         "blocking_gap_ids": diagnostics["blocking_gap_ids"],
@@ -149,6 +146,7 @@ def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
         "mode": "generic_sequence_solver_candidate_sandbox",
         "sample_id": profile.case_name,
         "geometry_kind": "sphere" if is_sphere else "other",
+        "generic_object_executor": uses_generic_object_executor,
         "status": status,
         "eligible_for_candidate_sandbox": eligible,
         "solver_executed": False,
@@ -166,9 +164,7 @@ def build_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
         "write_policy": (
             "sphere_solver_writes_only_safe_candidate_attempt_and_residual_artifacts"
             if is_sphere
-            else "line_contact_writes_only_safe_candidate_attempt_and_residual_artifacts_with_nonblocking_gap"
-            if is_line_contact
-            else "sandbox_manifest_only_until_candidate_solver_is_accepted"
+            else "generic_executor_writes_candidate_and_attempt_then_hard_gate_controls_single_publisher"
         ),
         "canonical_sha256": _canonical_hash(canonical_payload),
     }
@@ -222,14 +218,10 @@ def validate_candidate_sandbox_manifest(manifest: dict[str, object]) -> list[str
         overlap = sorted(str(item) for item in planned if Path(str(item)).name in forbidden)
         if overlap:
             errors.append(f"planned artifacts include accepted output names: {overlap}")
-        if manifest.get("geometry_kind") == "sphere":
+        if manifest.get("generic_object_executor") is True:
+            expected = GENERIC_OBJECT_SANDBOX_ARTIFACTS
+        elif manifest.get("geometry_kind") == "sphere":
             expected = SPHERE_SANDBOX_ARTIFACTS
-        elif manifest.get("sample_id") == "mug":
-            expected = MUG_PERIODIC_SANDBOX_ARTIFACTS
-        elif manifest.get("sample_id") == "chair":
-            expected = CHAIR_SANDBOX_ARTIFACTS
-        elif manifest.get("sample_id") == "stick":
-            expected = LINE_CONTACT_SANDBOX_ARTIFACTS
         else:
             expected = [SANDBOX_MANIFEST_NAME]
         if eligible and planned != expected:
@@ -246,15 +238,37 @@ def write_candidate_sandbox_manifest(profile: CaseProfile, result_dir: Path, can
         raise ValueError("; ".join(errors))
     if manifest["eligible_for_candidate_sandbox"] is True:
         target_dir = Path(str(manifest["candidate_dir"]))
-        if profile.component("pose_model") == "translation3" and profile.component("geometry_model") == "sphere_proxy":
+        if isinstance(profile.data.get("generic_object_problem"), dict):
+            _run_generic_object_executor(profile, result_dir, target_dir)
+        elif profile.component("pose_model") == "translation3" and profile.component("geometry_model") == "sphere_proxy":
             _run_isolated_sphere_sequence_executor(profile, result_dir, target_dir)
-        elif profile.case_name == "mug":
-            _run_isolated_mug_periodic_executor(profile, result_dir, target_dir)
-        elif profile.case_name == "chair":
-            from .chair_factor_candidate import prepare_chair_factor_executor_candidate
-
-            prepare_chair_factor_executor_candidate(profile, result_dir, target_dir, execute_solver=True)
-        elif profile.case_name == "stick":
-            prepare_line_contact_candidate(result_dir, target_dir)
         write_json(target_dir / SANDBOX_MANIFEST_NAME, manifest)
     return manifest
+
+
+def verify_materialized_generic_object_candidate(candidate_dir: Path) -> list[str]:
+    errors: list[str] = []
+    required = (
+        "generic_object_pose_candidate.csv",
+        "generic_object_publication.json",
+        "generic_problem_preparation.json",
+        "generic_sequence_solver_attempts",
+    )
+    for name in required:
+        if not (candidate_dir / name).exists():
+            errors.append(f"missing generic object candidate artifact: {name}")
+    if errors:
+        return errors
+    publication = json.loads((candidate_dir / "generic_object_publication.json").read_text())
+    if publication.get("status") not in {"candidate_blocked", "accepted"}:
+        errors.append("generic object publication has invalid status")
+    if publication.get("case_dispatch_used") is not False:
+        errors.append("generic object publication used case dispatch")
+    if publication.get("human_state_optimized") is not False:
+        errors.append("generic object publication optimized human state")
+    attempts = [path for path in (candidate_dir / "generic_sequence_solver_attempts").iterdir() if path.is_dir()]
+    if len(attempts) != 1 or not (attempts[0] / "status.json").is_file():
+        errors.append("generic object candidate must contain one isolated solve attempt")
+    if (candidate_dir / "object_pose.csv").exists():
+        errors.append("candidate directory must not contain canonical object_pose.csv")
+    return errors

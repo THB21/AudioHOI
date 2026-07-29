@@ -1,7 +1,7 @@
 {
-  "schema_version": 1,
   "cases": {
     "basketball": {
+      "canonical_sha256": "5a0d23a21f9985b931e3673857c752f3d9467c260e4f917d69d5486e5ac9a3d7",
       "factor_count": 10,
       "factor_kinds": {
         "contact_distance": 2,
@@ -12,38 +12,10 @@
         "temporal_velocity": 3
       },
       "gap_ids": [],
-      "unmapped_nonempty_fields": [],
-      "canonical_sha256": "5a0d23a21f9985b931e3673857c752f3d9467c260e4f917d69d5486e5ac9a3d7"
-    },
-    "football": {
-      "factor_count": 10,
-      "factor_kinds": {
-        "contact_distance": 2,
-        "metric_depth": 1,
-        "pose_prior": 1,
-        "regularization": 2,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 3
-      },
-      "gap_ids": [],
-      "unmapped_nonempty_fields": [],
-      "canonical_sha256": "d7ccf65c6addb9cc865ceb85ebbf53ee8d81542e1f8c2cef129eaa8c0746f7bb"
-    },
-    "mug": {
-      "factor_count": 6,
-      "factor_kinds": {
-        "contact_distance": 1,
-        "periodic_phase_prior": 1,
-        "pose_prior": 1,
-        "regularization": 1,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 1
-      },
-      "gap_ids": [],
-      "unmapped_nonempty_fields": [],
-      "canonical_sha256": "b1d479d8dce868557c94247ad97380b6723b6f8ab38abcd3e4b69e33611001e1"
+      "unmapped_nonempty_fields": []
     },
     "chair": {
+      "canonical_sha256": "8a5edaac2c0d1c59f3caa6c75fc9e524e5a8823e395a44ead6ad70090e6842ad",
       "factor_count": 9,
       "factor_kinds": {
         "audio_event_prior": 1,
@@ -56,10 +28,38 @@
         "temporal_velocity": 1
       },
       "gap_ids": [],
-      "unmapped_nonempty_fields": [],
-      "canonical_sha256": "8a5edaac2c0d1c59f3caa6c75fc9e524e5a8823e395a44ead6ad70090e6842ad"
+      "unmapped_nonempty_fields": []
+    },
+    "football": {
+      "canonical_sha256": "d7ccf65c6addb9cc865ceb85ebbf53ee8d81542e1f8c2cef129eaa8c0746f7bb",
+      "factor_count": 10,
+      "factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
+      "gap_ids": [],
+      "unmapped_nonempty_fields": []
+    },
+    "mug": {
+      "canonical_sha256": "b1d479d8dce868557c94247ad97380b6723b6f8ab38abcd3e4b69e33611001e1",
+      "factor_count": 6,
+      "factor_kinds": {
+        "contact_distance": 1,
+        "periodic_phase_prior": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
+      "gap_ids": [],
+      "unmapped_nonempty_fields": []
     },
     "stick": {
+      "canonical_sha256": "472842cde5fc39233a4bebabaebaede91710447b813dc8192f76b25643546446",
       "factor_count": 5,
       "factor_kinds": {
         "contact_distance": 1,
@@ -68,11 +68,9 @@
         "temporal_acceleration": 1,
         "temporal_velocity": 1
       },
-      "gap_ids": [
-        "line_contact_lock_special_refinement"
-      ],
-      "unmapped_nonempty_fields": [],
-      "canonical_sha256": "3b6427a797f3679668cf47edba43832e2c610a19911dafe2be63f5be3cfca8c9"
+      "gap_ids": [],
+      "unmapped_nonempty_fields": []
     }
-  }
+  },
+  "schema_version": 1
 }

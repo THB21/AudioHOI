@@ -3790,12 +3790,20 @@
           "sha256": "63c0f964fbc31f53c4a61bff2635e1d313d22df49ce6d678be0d013c12161796"
         },
         {
+          "path": "scripts/shared/generic_contact_pipeline/configs/assets/mug_periodic_rigid.json",
+          "source_scope": "repository",
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 379,
+          "sha256": "2b62e7b0571425bdbdf684e0961ec744899bb309e1139e0d72e966762dbaed00"
+        },
+        {
           "path": "scripts/shared/generic_contact_pipeline/configs/cases/mug.yaml",
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 1624,
-          "sha256": "ff24773a63542465754ef0ca84272d7f98d01f7fceead202aaba0900c9057d5b"
+          "size_bytes": 2659,
+          "sha256": "9fa6b32e9e5ae5833e943fd8d32aa0d185d344fe7d3ece0f8d768fccc2944ef2"
         }
       ],
       "recorded_execution": {
@@ -5311,21 +5319,21 @@
           "size_bytes": 1302574,
           "sha256": "e43c4bb0d7f064926deaa2a9cbb7a1c4f50998a0fe7810c810e677ace2643c02"
         },
-    {
-      "path": "scripts/shared/generic_contact_pipeline/configs/assets/chair_articulated.json",
-      "source_scope": "repository",
-      "kind": "file",
-      "exists": true,
-      "size_bytes": 1362,
-      "sha256": "b708adfd3ad2eaa9005b33a034978fba4cf50837ceeed1b8e36b5123244625c0"
-    },
-    {
-      "path": "scripts/shared/generic_contact_pipeline/configs/cases/chair.yaml",
+        {
+          "path": "scripts/shared/generic_contact_pipeline/configs/assets/chair_articulated.json",
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-      "size_bytes": 2557,
-      "sha256": "baf0edbb47997945192c47a719ddd5b0e426315072612748ff9f0fcf7d00da15"
+          "size_bytes": 1362,
+          "sha256": "b708adfd3ad2eaa9005b33a034978fba4cf50837ceeed1b8e36b5123244625c0"
+        },
+        {
+          "path": "scripts/shared/generic_contact_pipeline/configs/cases/chair.yaml",
+          "source_scope": "repository",
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 2764,
+          "sha256": "fa3055dc2e26c6602c73d53c18f7f9e092f04a0d8bdce312f0d58605fa01e908"
         }
       ],
       "recorded_execution": {
@@ -6650,12 +6658,20 @@
           "sha256": "5aeafba78887443a81dfcb998d59ae428f9d3b2d07cc0b55800c855b3d15f5e3"
         },
         {
+          "path": "scripts/shared/generic_contact_pipeline/configs/assets/stick_line_capsule.json",
+          "source_scope": "repository",
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 390,
+          "sha256": "ea565cda91677072c29c50fd030879f4d1c8d1a95c31687fa4b9794008ef71aa"
+        },
+        {
           "path": "scripts/shared/generic_contact_pipeline/configs/cases/stick.yaml",
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 1533,
-          "sha256": "70bdc40f086e5f34a55bd51c799030d2856b702449f99d62b11e8c712b60e30f"
+          "size_bytes": 2272,
+          "sha256": "3ed75c6336960358ebfb4975923209bde4761f66e2de1f9c122f83581a105e27"
         }
       ],
       "recorded_execution": {

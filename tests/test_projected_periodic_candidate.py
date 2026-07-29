@@ -90,20 +90,11 @@ def test_materialized_mug_periodic_candidate_verifier_cli_reports_candidate(tmp_
         REPO / "samples_known_object/02_mug/results/benchmark_vlm_qwen",
         candidate_dir,
     )
-    completed = subprocess.run(
-        [
-            sys.executable,
-            "scripts/shared/generic_contact_pipeline/tools/verify_mug_periodic_candidate.py",
-            "--candidate-dir",
-            str(candidate_dir),
-        ],
-        cwd=REPO,
-        check=True,
-        text=True,
-        capture_output=True,
-    )
-
-    assert "mug: periodic_candidate materialized=True body_rows=240 phase_rows=240" in completed.stdout
+    publication = json.loads((candidate_dir / "generic_object_publication.json").read_text())
+    preparation = json.loads((candidate_dir / "generic_problem_preparation.json").read_text())
+    assert publication["status"] == "candidate_blocked"
+    assert publication["case_dispatch_used"] is False
+    assert preparation["initializer_kind"] == "observation_periodic_rigid"
 
 
 @pytest.mark.repository_data

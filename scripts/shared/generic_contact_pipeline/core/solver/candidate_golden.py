@@ -117,7 +117,39 @@ def materialized_candidate_case_summary(case_name: str, candidate_dir: Path, *, 
         if artifact_path.suffix == ".csv":
             record["sha256"] = _sha256(artifact_path)
             record["rows"] = _csv_rows(artifact_path)
-        if artifact_path.name.endswith("attempt.json"):
+        if artifact_path.name == "generic_object_publication.json":
+            payload = json.loads(artifact_path.read_text())
+            record["publication"] = {
+                "status": payload.get("status"),
+                "hard_gate": payload.get("hard_gate"),
+                "case_dispatch_used": payload.get("case_dispatch_used"),
+                "human_state_optimized": payload.get("human_state_optimized"),
+                "accepted_output_written": payload.get("accepted_path") is not None,
+            }
+        elif artifact_path.name == "generic_problem_preparation.json":
+            payload = json.loads(artifact_path.read_text())
+            problem = payload.get("problem", {})
+            record["preparation"] = {
+                "initializer_kind": payload.get("initializer_kind"),
+                "state_spec_id": payload.get("state_spec_id"),
+                "selected_factor_ids": problem.get("selected_factor_ids"),
+                "case_dispatch_used": payload.get("case_dispatch_used"),
+                "human_state_optimized": payload.get("human_state_optimized"),
+                "accepted_outputs_written": payload.get("accepted_outputs_written"),
+            }
+        elif artifact_path.name == "generic_sequence_solver_attempts":
+            statuses = sorted(artifact_path.glob("*/status.json"))
+            if len(statuses) != 1:
+                raise ValueError("generic candidate requires exactly one attempt status")
+            payload = json.loads(statuses[0].read_text())
+            record["attempt"] = {
+                "factor_ids": payload.get("factor_ids"),
+                "function_evaluations": payload.get("function_evaluations"),
+                "solver_executed": True,
+                "case_dispatch_used": payload.get("case_dispatch_used"),
+                "accepted_outputs_written": payload.get("accepted_outputs_written"),
+            }
+        elif artifact_path.name.endswith("attempt.json"):
             record["attempt"] = _attempt_summary(artifact_path)
         elif artifact_path.suffix == ".json":
             record["sha256"] = _sha256(artifact_path)

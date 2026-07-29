@@ -20,6 +20,16 @@ class GeometryProvider(Protocol):
     ) -> tuple[float, float, float]: ...
 
 
+class LineParameterGeometryProvider(GeometryProvider, Protocol):
+    """Geometry capability for a stable normalized coordinate on a line object."""
+
+    def line_point_world(
+        self,
+        state: Sequence[float],
+        line_s: float,
+    ) -> tuple[float, float, float]: ...
+
+
 class FeaturePointGeometryProvider(GeometryProvider, Protocol):
     def feature_points_world(self, state: Sequence[float], feature_id: str) -> np.ndarray: ...
 
@@ -209,6 +219,17 @@ class CapsuleGeometryProvider:
         if self.radius_m > 0.0 and distance > 1e-12:
             axis_point = axis_point + self.radius_m * radial / distance
         return tuple(float(value) for value in axis_point)
+
+    def line_point_world(
+        self,
+        state: Sequence[float],
+        line_s: float,
+    ) -> tuple[float, float, float]:
+        if not isfinite(line_s) or not 0.0 <= line_s <= 1.0:
+            raise ValueError("normalized line coordinate must be finite and within [0, 1]")
+        endpoints = self.feature_points_world(state, "line:axis")
+        point = endpoints[0] + float(line_s) * (endpoints[1] - endpoints[0])
+        return tuple(float(value) for value in point)
 
 
 @dataclass(frozen=True)

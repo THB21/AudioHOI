@@ -46,12 +46,14 @@ from .residual_inputs import (
 )
 from .candidate import (
     CHAIR_SANDBOX_ARTIFACTS,
+    GENERIC_OBJECT_SANDBOX_ARTIFACTS,
     SANDBOX_MANIFEST_NAME,
     SPHERE_SANDBOX_ARTIFACTS,
     build_candidate_sandbox_manifest,
     default_candidate_dir,
     validate_candidate_sandbox_manifest,
     write_candidate_sandbox_manifest,
+    verify_materialized_generic_object_candidate,
 )
 from .candidate_golden import (
     DEFAULT_CANDIDATE_SANDBOX_GOLDEN,
@@ -87,10 +89,16 @@ from .legacy_production_problem import (
     legacy_object_problem_preparation_record,
     prepare_legacy_articulated_object_problem,
 )
+from .capability_production_problem import (
+    CapabilityObjectProblemPreparation,
+    capability_object_problem_preparation_record,
+    prepare_capability_object_problem,
+)
 from .publisher import (
     AcceptedObjectOutputPublisher,
     ObjectPublicationGate,
     ObjectPublicationResult,
+    evaluate_object_publication_gate,
     object_publication_record,
 )
 from .optimization import (
@@ -201,8 +209,10 @@ __all__ = [
     "CHAIR_FACTOR_RESIDUAL_TABLE_NAME",
     "CHAIR_FACTOR_RESIDUALS_NAME",
     "CHAIR_SANDBOX_ARTIFACTS",
+    "GENERIC_OBJECT_SANDBOX_ARTIFACTS",
     "AudioAlignmentFactorInput",
     "AcceptedObjectOutputPublisher",
+    "CapabilityObjectProblemPreparation",
     "ContactFactorInput",
     "FactorResidualEvaluator",
     "GaugeFactorInput",
@@ -220,6 +230,7 @@ __all__ = [
     "SupportPlaneFactorInput",
     "PeriodicPhaseFactorInput",
     "ObjectPublicationGate",
+    "evaluate_object_publication_gate",
     "ObjectPublicationResult",
     "PosePriorFactorInput",
     "ResidualBoundaryRecord",
@@ -284,6 +295,8 @@ __all__ = [
     "sequence_problem_preparation_record",
     "load_isolated_attempt_state",
     "legacy_object_problem_preparation_record",
+    "capability_object_problem_preparation_record",
+    "prepare_capability_object_problem",
     "update_isolated_attempt_evidence",
     "write_isolated_sequence_attempt",
     "build_sequence_solver_shadow_diagnostics",
@@ -301,6 +314,7 @@ __all__ = [
     "validate_chair_factor_executor_candidate",
     "validate_chair_factor_residual_coverage",
     "verify_materialized_chair_factor_candidate",
+    "verify_materialized_generic_object_candidate",
     "verify_materialized_candidate_summary",
     "verify_materialized_line_contact_candidate",
     "verify_materialized_sphere_sequence_candidate",

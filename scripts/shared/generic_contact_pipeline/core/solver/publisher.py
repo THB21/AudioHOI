@@ -4,6 +4,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import math
 import os
 import tempfile
 from dataclasses import dataclass
@@ -12,6 +13,7 @@ from typing import Mapping, Sequence
 
 from ..state import StateSpec
 from .optimization import GenericSequenceSolveResult
+from .optimization import SequenceOptimizationProblem, build_runtime_residual_blocks
 
 
 def _sha256(path: Path) -> str:
@@ -108,6 +110,55 @@ class AcceptedObjectOutputPublisher:
             case_dispatch_used=False,
             human_state_optimized=False,
         )
+
+
+def evaluate_object_publication_gate(
+    problem: SequenceOptimizationProblem,
+    result: GenericSequenceSolveResult,
+    *,
+    normalized_contact_rmse_limit: float = 2.0,
+    normalized_projection_rmse_limit: float = 2.0,
+) -> tuple[ObjectPublicationGate, dict[str, object]]:
+    """Evaluate case-independent solver and geometry-factor publication gates."""
+
+    states = {frame: state for frame, state in zip(result.frames, result.states)}
+    blocks = build_runtime_residual_blocks(
+        problem.residual_execution_plan,
+        problem.residual_input_builder(states),
+        problem.factor_ids,
+    )
+    metrics: dict[str, object] = {
+        "solver_success": result.success,
+        "initial_squared_error": result.initial_squared_error,
+        "final_squared_error": result.final_squared_error,
+        "objective_nonincrease": result.final_squared_error <= result.initial_squared_error + 1e-9,
+    }
+    gate_ids = ["solver_converged", "objective_nonincrease"]
+    blocking: list[str] = []
+    if not result.success:
+        blocking.append("solver_not_converged")
+    if not metrics["objective_nonincrease"]:
+        blocking.append("objective_increased")
+    for factor_id, values in blocks:
+        if factor_id.startswith("contact_distance:"):
+            gate_id, limit = "contact_distance_normalized_rmse", normalized_contact_rmse_limit
+        elif factor_id.startswith(("line_reprojection:", "point_reprojection:")):
+            gate_id, limit = "projection_normalized_rmse", normalized_projection_rmse_limit
+        else:
+            continue
+        rmse = float((float(values @ values) / int(values.size)) ** 0.5)
+        metrics[gate_id] = rmse
+        metrics[f"{gate_id}_limit"] = limit
+        if gate_id not in gate_ids:
+            gate_ids.append(gate_id)
+        if not math.isfinite(rmse) or rmse > limit:
+            blocking.append(f"{gate_id}_failed")
+    gate = ObjectPublicationGate(
+        passed=not blocking,
+        gate_ids=tuple(gate_ids),
+        blocking_reasons=tuple(blocking),
+    )
+    return gate, metrics
 
 
 def object_publication_record(

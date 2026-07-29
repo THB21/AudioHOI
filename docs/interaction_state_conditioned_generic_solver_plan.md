@@ -1357,7 +1357,7 @@ YYYY-MM-DD:
 2026-07-29:
 
 - branch: `refactor/interaction-state-production`
-- commit: pending local commit after this update.
+- commit: `74400815` (`Build generic sequence problems`).
 - change: 新增 `SequenceProblemFactory` 与 `SequenceFactorInputs`。factory 不读取 case/object identity；只接收 `StateSpec`、frame-aligned object states、compiled residual execution plan、factor-id keyed typed inputs、可选 typed contact constraints 和只读 GVHMR sites。它统一应用 observation-derived rigid hypotheses，按存在 production `runtime_config` 的 factor records选择求解因子，对缺少 typed runtime input 的 configured factor直接失败，并自动构造 residual closure、`StateSpecParameterization` 和 row-level sparse dependencies。`SequenceProblemPreparation` 固化 selected factor ids、initial residual input hash、initializer ledger、dependency count，并强制 `case_dispatch_used=False`、`human_state_optimized=False`、`accepted_outputs_written=False`。
 - verification: 未新增测试。factory smoke execution 使用纯 translation `StateSpec` 和 temporal factor，得到 1 个 configured factor、2 个 frame dependencies、6 个实际 residual，且 `case_dispatch_used=False`、`human_state_optimized=False`；现有 solver suite `51 passed`。factor shadow、sequence problem shadow、solver diagnostics、candidate sandbox 四个五-case verifier 全部通过，Phase-0 golden manifest 仍 verified 5 cases，无 golden 变更。
 - remaining gap: factory 已消除 executable problem 本身的手工拼装，但 canonical chair caller尚未改为直接调用它；articulated semantic feature points / part mapping / kinematic rules仍由 validation adapter注册，尚未从 asset/geometry descriptor构造。accepted output继续保持不写，chair onset max contact gap仍是 promotion blocker。

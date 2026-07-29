@@ -76,6 +76,12 @@ from .contact_correspondence import (
     rigid_contact_hypothesis_ledger_record,
 )
 from .problem import build_sequence_problem_shadow
+from .problem_factory import (
+    SequenceFactorInputs,
+    SequenceProblemFactory,
+    SequenceProblemPreparation,
+    sequence_problem_preparation_record,
+)
 from .optimization import (
     GenericSequenceSolveResult,
     SequenceOptimizationParameters,
@@ -226,6 +232,9 @@ __all__ = [
     "SequenceProblemContract",
     "SequenceOptimizationParameters",
     "SequenceOptimizationProblem",
+    "SequenceFactorInputs",
+    "SequenceProblemFactory",
+    "SequenceProblemPreparation",
     "StateSpecParameterization",
     "SphereSequenceParameters",
     "build_candidate_sandbox_manifest",
@@ -257,6 +266,7 @@ __all__ = [
     "build_sequence_problem_shadow",
     "build_sequence_problem_contract",
     "solve_sequence_optimization",
+    "sequence_problem_preparation_record",
     "load_isolated_attempt_state",
     "update_isolated_attempt_evidence",
     "write_isolated_sequence_attempt",

@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Mapping, Sequence
 
+from ..audio_events import AudioEvent
+from ..interaction import ContactStateAxis, InteractionContactMode, InteractionTimeline
 from ..state.geometry_provider import GeometryProvider
 
 
@@ -76,6 +78,14 @@ class GaugeFactorInput:
     target: float = 0.0
     weight: float = 1.0
     sigma: float = 1.0
+
+
+@dataclass(frozen=True)
+class AudioAlignmentFactorInput:
+    events: tuple[AudioEvent, ...]
+    timeline: InteractionTimeline
+    weight: float = 1.0
+    sigma_s: float = 1.0
 
 
 def _numeric_vector(values: Sequence[float], label: str) -> list[float]:
@@ -390,6 +400,44 @@ def build_gauge_constraint_residual_inputs(
     }
 
 
+def build_audio_event_alignment_residual_inputs(
+    *,
+    factor_id: str,
+    events: Sequence[AudioEvent],
+    timeline: InteractionTimeline,
+    weight: float,
+    sigma_s: float,
+) -> dict[str, dict[str, Any]]:
+    """Align typed audio peaks only with inferred interaction transitions."""
+
+    events_by_id = {event.event_id: event for event in events}
+    predicted: list[float] = []
+    observed: list[float] = []
+    for state in timeline.frames:
+        is_transition = state.contact_state in {ContactStateAxis.ACTIVE, ContactStateAxis.RELEASE} or state.contact_mode in {
+            InteractionContactMode.IMPACT,
+            InteractionContactMode.RELEASE,
+        }
+        if not is_transition:
+            continue
+        for event_id in state.audio_event_ids:
+            event = events_by_id.get(event_id)
+            if event is None:
+                continue
+            predicted.append(float(state.time))
+            observed.append(float(event.peak_time_s))
+    if not predicted:
+        return {}
+    return {
+        factor_id: {
+            "predicted_event_time_s": predicted,
+            "observed_event_time_s": observed,
+            "weight": float(weight),
+            "sigma_s": float(sigma_s),
+        }
+    }
+
+
 def build_geometry_sequence_residual_input_bundle(
     residual_execution_plan: dict[str, object] | object,
     *,
@@ -401,6 +449,7 @@ def build_geometry_sequence_residual_input_bundle(
     periodic_phase_factors: Mapping[str, PeriodicPhaseFactorInput] | None = None,
     joint_limit_factors: Mapping[str, JointLimitFactorInput] | None = None,
     gauge_factors: Mapping[str, GaugeFactorInput] | None = None,
+    audio_alignment_factors: Mapping[str, AudioAlignmentFactorInput] | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Build common sequence residuals from explicit state and factor inputs.
 
@@ -505,6 +554,19 @@ def build_geometry_sequence_residual_input_bundle(
         )
         return payload.get(request.factor_id)
 
+    def audio_alignment(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (audio_alignment_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        payload = build_audio_event_alignment_residual_inputs(
+            factor_id=request.factor_id,
+            events=factor.events,
+            timeline=factor.timeline,
+            weight=factor.weight,
+            sigma_s=factor.sigma_s,
+        )
+        return payload.get(request.factor_id)
+
     return build_residual_input_bundle(
         residual_execution_plan,
         {
@@ -516,5 +578,6 @@ def build_geometry_sequence_residual_input_bundle(
             "shadow_residual::periodic_phase_prior": periodic_phase,
             "shadow_residual::joint_limit": joint_limit,
             "shadow_residual::gauge_constraint": gauge,
+            "shadow_residual::audio_event_prior": audio_alignment,
         },
     )

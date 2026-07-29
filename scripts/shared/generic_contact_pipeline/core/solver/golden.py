@@ -20,6 +20,7 @@ def sequence_problem_summary(case_name: str, result_dir: Path) -> dict[str, obje
         "sequence_contract_sha256": problem["sequence_problem_contract"]["canonical_sha256"],
         "sequence_contract_state_spec": problem["sequence_problem_contract"]["state_spec_id"],
         "sequence_contract_compiled_factors": problem["sequence_problem_contract"]["compiled_factor_count"],
+        "sequence_contract_audio_events": problem["sequence_problem_contract"]["audio_event_count"],
         "runtime_executor_id": problem["runtime_plan"]["executor_id"],
         "runtime_case_dispatch_used": problem["runtime_plan"]["case_dispatch_used"],
         "runtime_plan_sha256": problem["runtime_plan"]["canonical_sha256"],

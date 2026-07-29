@@ -9,6 +9,7 @@ from typing import Any
 
 from ..base.config import CaseProfile
 from ..base.io import repo_relative_value
+from ..audio_events import build_audio_event_shadow
 from ..contact_constraints.shadow import build_contact_constraint_shadow
 from ..factors.activation import FactorActivationLedger, activation_record, build_factor_activation_ledger
 from ..factors.adapters import adapt_factor_rows
@@ -125,8 +126,11 @@ def _interaction_state_shadow(profile: CaseProfile, result_dir: Path, timeline: 
             "inputs": [
                 str(repo_relative_value(result_dir / "object_observations.csv")),
                 str(repo_relative_value(result_dir / "contact_state_frames.csv")),
+                str(repo_relative_value(result_dir / "object_contact_points.csv")),
+                str(repo_relative_value(result_dir / "stage4_generic_refine/object_contact_points_vlm_gated.csv")),
                 str(repo_relative_value(result_dir / "contact_candidates_internal/audio_events.csv")),
                 str(repo_relative_value(result_dir / "events/audio_events.csv")),
+                str(repo_relative_value(result_dir.parent / "events/audio_events.csv")),
             ],
         },
         "frame_count": len(frames),
@@ -186,6 +190,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
     contact_csv = result_dir / "object_contact_points.csv"
     measurement_shadow = build_measurement_shadow(profile.case_name, observation_csv, _read_csv(observation_csv))
     measurement_shadow["source"]["path"] = str(repo_relative_value(observation_csv))
+    audio_event_shadow = build_audio_event_shadow(profile.case_name, result_dir)
     contact_shadow = build_contact_constraint_shadow(profile.case_name, contact_csv, _read_csv(contact_csv))
     contact_shadow["source"]["path"] = str(repo_relative_value(contact_csv))
     timeline = build_interaction_timeline(profile.case_name, result_dir)
@@ -200,6 +205,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
         sample_id=profile.case_name,
         state_contract=state_contract,
         measurement_shadow=measurement_shadow,
+        audio_event_shadow=audio_event_shadow,
         contact_shadow=contact_shadow,
         interaction_shadow=interaction_shadow,
         compiled_factor_shadow=compiled_factor_shadow,
@@ -227,6 +233,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
         "residual_execution_plan": residual_execution_plan_shadow,
         "state_contract": state_contract,
         "measurements": measurement_shadow["measurements"],
+        "audio_events": audio_event_shadow,
         "constraints": contact_shadow["constraints"],
         "interactions": {
             "frame_count": interaction_shadow["frame_count"],
@@ -288,6 +295,7 @@ def build_sequence_problem_shadow(profile: CaseProfile, result_dir: Path) -> dic
                 "canonical_sha256": measurement_shadow["measurements"]["canonical_sha256"],
                 "consumed_by_solver": False,
             },
+            "audio_event_shadow": audio_event_shadow,
             "contact_constraint_shadow": {
                 "source": contact_shadow["source"],
                 "count": contact_shadow["constraints"]["count"],

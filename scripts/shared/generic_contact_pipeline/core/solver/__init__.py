@@ -18,6 +18,7 @@ from .diagnostics_golden import (
 )
 from .factor_residuals import FactorResidualEvaluator
 from .residual_inputs import (
+    AudioAlignmentFactorInput,
     ContactFactorInput,
     GaugeFactorInput,
     JointLimitFactorInput,
@@ -25,6 +26,7 @@ from .residual_inputs import (
     PosePriorFactorInput,
     ResidualInputRequest,
     WorldSpaceContactSample,
+    build_audio_event_alignment_residual_inputs,
     build_gauge_constraint_residual_inputs,
     build_geometry_sequence_residual_input_bundle,
     build_joint_limit_residual_inputs,
@@ -151,6 +153,7 @@ __all__ = [
     "CHAIR_FACTOR_RESIDUAL_TABLE_NAME",
     "CHAIR_FACTOR_RESIDUALS_NAME",
     "CHAIR_SANDBOX_ARTIFACTS",
+    "AudioAlignmentFactorInput",
     "ContactFactorInput",
     "FactorResidualEvaluator",
     "GaugeFactorInput",
@@ -183,6 +186,7 @@ __all__ = [
     "SequenceProblemContract",
     "SphereSequenceParameters",
     "build_candidate_sandbox_manifest",
+    "build_audio_event_alignment_residual_inputs",
     "build_canonical_candidate_sandbox_summary",
     "build_materialized_candidate_summary",
     "build_canonical_sequence_problem_summary",

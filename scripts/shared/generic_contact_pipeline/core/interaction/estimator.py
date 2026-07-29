@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
+from ..audio_events import load_audio_events
 from .types import (
     ContactStateAxis,
     FrameInteractionState,
@@ -60,29 +61,33 @@ def _primary_rows(result_dir: Path) -> list[dict[str, str]]:
     return _read_csv(result_dir / "contact_state_frames.csv")
 
 
-def _contact_rows_by_frame(result_dir: Path) -> dict[int, list[dict[str, str]]]:
-    rows = _read_csv(result_dir / "contact_state_frames.csv")
+def _contact_rows_by_frame(result_dir: Path) -> tuple[dict[int, list[dict[str, str]]], str]:
+    candidates = (
+        result_dir / "contact_state_frames.csv",
+        result_dir / "object_contact_points.csv",
+        result_dir / "stage4_generic_refine/object_contact_points_vlm_gated.csv",
+    )
+    rows: list[dict[str, str]] = []
+    source = ""
+    for path in candidates:
+        rows = _read_csv(path)
+        if rows:
+            source = str(path)
+            break
     by_frame: dict[int, list[dict[str, str]]] = {}
     for row in rows:
         by_frame.setdefault(int(float(row["frame"])), []).append(row)
-    return by_frame
+    return by_frame, source
 
 
-def _audio_events_by_frame(result_dir: Path) -> dict[int, list[str]]:
-    candidates = (
-        result_dir / "contact_candidates_internal/audio_events.csv",
-        result_dir / "events/audio_events.csv",
-    )
+def _audio_events_by_frame(sample_id: str, result_dir: Path) -> tuple[dict[int, list[str]], str]:
+    adapted = load_audio_events(sample_id, result_dir)
     by_frame: dict[int, list[str]] = {}
-    for path in candidates:
-        for index, row in enumerate(_read_csv(path)):
-            frame_raw = row.get("audio_frame", row.get("frame", ""))
-            if frame_raw in {"", None}:
-                continue
-            frame = int(float(frame_raw))
-            event_id = str(row.get("event", "")) or f"audio_event_{index + 1}"
-            by_frame.setdefault(frame, []).append(event_id)
-    return by_frame
+    source = ""
+    for event in adapted.events:
+        by_frame.setdefault(event.frame, []).append(event.event_id)
+        source = event.source.artifact
+    return by_frame, source
 
 
 def _contact_ids(sample_id: str, frame: int, rows: list[dict[str, str]], support: bool) -> tuple[str, ...]:
@@ -118,6 +123,8 @@ def _frame_state(
     audio_event_ids: tuple[str, ...],
     previous_contact_active: bool,
     result_dir: Path,
+    contact_source: str,
+    audio_source: str,
 ) -> FrameInteractionState:
     frame = int(float(primary["frame"]))
     time = _float(primary, "time")
@@ -140,7 +147,7 @@ def _frame_state(
     else:
         contact_state = ContactStateAxis.INACTIVE
         contact_mode = InteractionContactMode.UNKNOWN
-        motion_mode = MotionMode.BALLISTIC if audio_event_ids else MotionMode.FREE
+        motion_mode = MotionMode.FREE
     return FrameInteractionState(
         frame=frame,
         time=time,
@@ -157,16 +164,16 @@ def _frame_state(
         provenance={
             "result_dir": str(result_dir),
             "primary_observation": "object_observations.csv",
-            "contact_state": "contact_state_frames.csv" if contacts else "",
-            "audio_events": "contact_candidates_internal/audio_events.csv|events/audio_events.csv" if audio_event_ids else "",
+            "contact_state": contact_source if contacts else "",
+            "audio_events": audio_source if audio_event_ids else "",
         },
     )
 
 
 def build_interaction_timeline(sample_id: str, result_dir: Path) -> InteractionTimeline:
     primary_rows = _primary_rows(result_dir)
-    contacts_by_frame = _contact_rows_by_frame(result_dir)
-    audio_by_frame = _audio_events_by_frame(result_dir)
+    contacts_by_frame, contact_source = _contact_rows_by_frame(result_dir)
+    audio_by_frame, audio_source = _audio_events_by_frame(sample_id, result_dir)
     frames: list[FrameInteractionState] = []
     previous_contact_active = False
     for primary in primary_rows:
@@ -179,6 +186,8 @@ def build_interaction_timeline(sample_id: str, result_dir: Path) -> InteractionT
             tuple(audio_by_frame.get(frame, ())),
             previous_contact_active,
             result_dir,
+            contact_source,
+            audio_source,
         )
         frames.append(state)
         previous_contact_active = bool(state.active_contact_ids or state.support_contact_ids)

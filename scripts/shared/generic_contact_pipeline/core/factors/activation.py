@@ -94,7 +94,14 @@ def _temporal_acceleration_state(state: FrameInteractionState) -> str:
 
 
 def _audio_state(state: FrameInteractionState) -> str:
-    return "active" if state.audio_event_ids else "inactive"
+    if not state.audio_event_ids:
+        return "inactive"
+    if state.contact_state in {ContactStateAxis.ACTIVE, ContactStateAxis.RELEASE} or state.contact_mode in {
+        InteractionContactMode.IMPACT,
+        InteractionContactMode.RELEASE,
+    } or state.motion_mode in {MotionMode.BALLISTIC, MotionMode.HIGH_SPEED}:
+        return "active"
+    return "downweighted"
 
 
 def _static_state(state: FrameInteractionState) -> str:
@@ -150,9 +157,9 @@ def _policy_for_kind(kind: FactorKind) -> tuple[str, object, tuple[str, ...]]:
         )
     if kind == FactorKind.AUDIO_EVENT_PRIOR:
         return (
-            "audio_event_ids_control_audio_alignment",
+            "audio_and_interaction_transition_control_alignment",
             _audio_state,
-            ("audio_event_ids", "ContactMode"),
+            ("AudioEventIR", "audio_event_ids", "ContactState", "ContactMode"),
         )
     return (
         "always_on_state_or_geometry_regularizer",

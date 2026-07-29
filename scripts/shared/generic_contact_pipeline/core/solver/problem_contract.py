@@ -13,6 +13,7 @@ class SequenceProblemContract:
     geometry_kind: str
     required_dofs: tuple[str, ...]
     measurement_count: int
+    audio_event_count: int
     contact_constraint_count: int
     interaction_frame_count: int
     compiled_factor_count: int
@@ -34,6 +35,8 @@ class SequenceProblemContract:
         ):
             if count <= 0:
                 raise ValueError(f"SequenceProblemContract requires positive {label}")
+        if self.audio_event_count < 0:
+            raise ValueError("SequenceProblemContract requires non-negative audio_event_count")
         if len(self.compiled_factor_ids) != self.compiled_factor_count:
             raise ValueError("compiled_factor_ids must match compiled_factor_count")
         if self.consumed_by_solver:
@@ -57,13 +60,16 @@ def build_sequence_problem_contract(
     contact_shadow: dict[str, object],
     interaction_shadow: dict[str, object],
     compiled_factor_shadow: dict[str, object],
+    audio_event_shadow: dict[str, object] | None = None,
 ) -> SequenceProblemContract:
     compiled_records = compiled_factor_shadow.get("records", [])
     if not isinstance(compiled_records, list):
         compiled_records = []
     compiled_factor_ids = tuple(str(record.get("factor_id")) for record in compiled_records if isinstance(record, dict) and record.get("factor_id"))
+    audio_shadow = audio_event_shadow or {"count": 0, "canonical_sha256": _canonical_hash({"schema": "audio_peak_events_v1", "records": []})}
     input_hashes = {
         "measurements": str(measurement_shadow["measurements"]["canonical_sha256"]),
+        "audio_events": str(audio_shadow["canonical_sha256"]),
         "contact_constraints": str(contact_shadow["constraints"]["canonical_sha256"]),
         "interaction_state": str(interaction_shadow["canonical_sha256"]),
         "compiled_factors": str(compiled_factor_shadow["canonical_sha256"]),
@@ -75,6 +81,7 @@ def build_sequence_problem_contract(
         "geometry_kind": str(state_contract["geometry_kind"]),
         "required_dofs": tuple(str(item) for item in state_contract["required_dofs"]),  # type: ignore[index]
         "measurement_count": int(measurement_shadow["measurements"]["count"]),
+        "audio_event_count": int(audio_shadow["count"]),
         "contact_constraint_count": int(contact_shadow["constraints"]["count"]),
         "interaction_frame_count": int(interaction_shadow["frame_count"]),
         "compiled_factor_count": int(compiled_factor_shadow["count"]),

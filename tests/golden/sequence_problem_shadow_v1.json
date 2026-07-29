@@ -1,25 +1,47 @@
 {
+  "schema_version": 1,
   "cases": {
     "basketball": {
-      "attempt_id": "generic-attempt-aad3c1bf209a",
+      "sequence_contract_sha256": "42ce59ae5418fda5a5c08ff88158b508d45b362c0d9229edc52a301642e44902",
+      "sequence_contract_state_spec": "translation3:sphere",
+      "sequence_contract_compiled_factors": 10,
+      "sequence_contract_audio_events": 16,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_case_dispatch_used": false,
+      "runtime_plan_sha256": "f8bdd47411240704ed5ea33e95e5c5d5c6942217ca0d8bdcbe211d42b9a8b73d",
+      "executor_prepare_status": "prepared_not_executed",
+      "executor_prepare_case_dispatch_used": false,
+      "executor_prepare_sha256": "0ee26f5483dbc9de904cf9e61661258166ba5a78baa6aa67af2b269425e1d191",
+      "attempt_ledger_status": "attempt_planned_not_executed",
       "attempt_ledger_case_dispatch_used": false,
       "attempt_ledger_residual_status": "not_executed",
-      "attempt_ledger_sha256": "106c91b8ae8d8b203098e102220f6d28a5c4afc8d35e9e98ea055b86eb19681c",
-      "attempt_ledger_status": "attempt_planned_not_executed",
-      "canonical_sha256": "1c3aae97163201977fedcb81613ee74899fd25842150075d4bc9c8cc2c743f94",
-      "compiled_factor_count": 10,
-      "compiled_factor_kinds": {
-        "contact_distance": 2,
-        "metric_depth": 1,
-        "pose_prior": 1,
-        "regularization": 2,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 3
-      },
+      "attempt_ledger_sha256": "828a14caf2dc86fa7521724299765f68823ca3c057befb360f0a616f0cbbc0bb",
+      "residual_boundary_supported": 10,
+      "residual_boundary_pending": 0,
+      "residual_boundary_gap_ids": [],
+      "residual_boundary_sha256": "538ef9535a3ad5ca752eabf104f7b4be4b18e729b7d375a0172cc743982f28b8",
+      "residual_execution_plan_records": 10,
+      "residual_execution_plan_ready": 10,
+      "residual_execution_plan_blocked": 0,
+      "residual_execution_plan_sha256": "fca55c5b6acf608f3b5e359e32610701a980dd21be8f13ccf25d357bec7eb92c",
+      "state_model": "translation3",
+      "geometry_kind": "sphere",
+      "measurement_count": 768,
+      "measurement_frames": 192,
       "contact_count": 192,
-      "executor_prepare_case_dispatch_used": false,
-      "executor_prepare_sha256": "18647cd9ac21a7e6ab60c8cd217f663f5e6adb13aff8f6f37b0eb22b3e20abe4",
-      "executor_prepare_status": "prepared_not_executed",
+      "interaction_frame_count": 192,
+      "interaction_interval_count": 73,
+      "interaction_contact_states": {
+        "active": 21,
+        "inactive": 108,
+        "persistent": 42,
+        "release": 21
+      },
+      "interaction_motion_modes": {
+        "attached": 56,
+        "free": 129,
+        "supported_static": 7
+      },
       "factor_activation_policies": {
         "always_on_state_or_geometry_regularizer": 3,
         "contact_state_controls_contact_distance": 2,
@@ -32,6 +54,15 @@
         "downweighted_frames": 45,
         "inactive_frames": 216
       },
+      "compiled_factor_count": 10,
+      "compiled_factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
       "factor_count": 10,
       "factor_kinds": {
         "contact_distance": 2,
@@ -42,46 +73,211 @@
         "temporal_velocity": 3
       },
       "gap_ids": [],
-      "geometry_kind": "sphere",
-      "interaction_contact_states": {
-        "active": 21,
-        "inactive": 108,
-        "persistent": 42,
-        "release": 21
-      },
-      "interaction_frame_count": 192,
-      "interaction_interval_count": 73,
-      "interaction_motion_modes": {
-        "attached": 56,
-        "free": 129,
-        "supported_static": 7
-      },
-      "measurement_count": 768,
-      "measurement_frames": 192,
-      "residual_boundary_gap_ids": [],
-      "residual_boundary_pending": 0,
-      "residual_boundary_sha256": "b5d3011393a92948726f02e1e596653b2ea42778d4a34c9d4b07bb457c8102d4",
-      "residual_boundary_supported": 10,
-      "residual_execution_plan_blocked": 0,
-      "residual_execution_plan_ready": 10,
-      "residual_execution_plan_records": 10,
-      "residual_execution_plan_sha256": "9da44222e11810195c5185292283181409cd15edd8373ab456f570b1b9d9cb1c",
-      "runtime_case_dispatch_used": false,
-      "runtime_executor_id": "generic_sequence_executor",
-      "runtime_plan_sha256": "5971491e64fb91c6ed19eb26e8d632cc114dd5c74486b71ac94e6ec74cc0f9cf",
-      "sequence_contract_compiled_factors": 10,
-      "sequence_contract_sha256": "f4157289f84e8cded4cecf2a4f3b09e30f59753b483e0c0b31ebc5241b234e3d",
-      "sequence_contract_state_spec": "translation3:sphere",
-      "state_model": "translation3",
-      "validation_errors": []
+      "attempt_id": "generic-attempt-b55fb4580a98",
+      "validation_errors": [],
+      "canonical_sha256": "36553e793f60fc5588e68a613ac324d88ba8ba2daa422c21434df5fa6eb45b10"
     },
-    "chair": {
-      "attempt_id": "generic-attempt-9b8263355dbd",
+    "football": {
+      "sequence_contract_sha256": "836d070031f986d9c222464e484b6930f02bd115dbce86dee5d0e56f32ac58e9",
+      "sequence_contract_state_spec": "translation3:sphere",
+      "sequence_contract_compiled_factors": 10,
+      "sequence_contract_audio_events": 13,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_case_dispatch_used": false,
+      "runtime_plan_sha256": "11b14e9540fe23f990cfd415b1948ce9b8b23903ac2a3ffc4a10e4274c93aeac",
+      "executor_prepare_status": "prepared_not_executed",
+      "executor_prepare_case_dispatch_used": false,
+      "executor_prepare_sha256": "849922be37e104b866116bfb1580ac0bedb6ff0124a193d003ba864f4e60ad47",
+      "attempt_ledger_status": "attempt_planned_not_executed",
       "attempt_ledger_case_dispatch_used": false,
       "attempt_ledger_residual_status": "not_executed",
-      "attempt_ledger_sha256": "c8650b6bcdc1f9f82f8e95a4e8771f31da9cedc2779c55f956eeba21cbe9cd87",
+      "attempt_ledger_sha256": "b78aee64763c8e9e892d65dd26b653f7ae9a9cc4a4dbbd3defe9054f0b19acbd",
+      "residual_boundary_supported": 10,
+      "residual_boundary_pending": 0,
+      "residual_boundary_gap_ids": [],
+      "residual_boundary_sha256": "846ee75a225a69d30db473e301ebbac83f8dff9a6ed8b15d54f80418597008fc",
+      "residual_execution_plan_records": 10,
+      "residual_execution_plan_ready": 10,
+      "residual_execution_plan_blocked": 0,
+      "residual_execution_plan_sha256": "654e8fefc6b13f7dea6788b69fa0928d8fb25d0bab3700753e4b586ad142f3fa",
+      "state_model": "translation3",
+      "geometry_kind": "sphere",
+      "measurement_count": 968,
+      "measurement_frames": 242,
+      "contact_count": 242,
+      "interaction_frame_count": 242,
+      "interaction_interval_count": 47,
+      "interaction_contact_states": {
+        "active": 57,
+        "inactive": 161,
+        "persistent": 10,
+        "release": 14
+      },
+      "interaction_motion_modes": {
+        "attached": 16,
+        "free": 175,
+        "supported_static": 51
+      },
+      "factor_activation_policies": {
+        "always_on_state_or_geometry_regularizer": 3,
+        "contact_state_controls_contact_distance": 2,
+        "interaction_state_controls_acceleration_smoothness": 1,
+        "motion_mode_controls_velocity_smoothness": 3,
+        "visibility_state_controls_visual_observation": 1
+      },
+      "factor_activation_totals": {
+        "active_frames": 2068,
+        "downweighted_frames": 30,
+        "inactive_frames": 322
+      },
+      "compiled_factor_count": 10,
+      "compiled_factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
+      "factor_count": 10,
+      "factor_kinds": {
+        "contact_distance": 2,
+        "metric_depth": 1,
+        "pose_prior": 1,
+        "regularization": 2,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 3
+      },
+      "gap_ids": [],
+      "attempt_id": "generic-attempt-3483567a543d",
+      "validation_errors": [],
+      "canonical_sha256": "cb59156911f64c9095291c5cf9bce740e1509fab3f62eab3ee26ae47cd153e11"
+    },
+    "mug": {
+      "sequence_contract_sha256": "59c009b42d30b4fcf396bd2ac2242d23a34d7e5906f9371bbd7c1b054426959b",
+      "sequence_contract_state_spec": "rigid6_plus_phase:rigid_mesh",
+      "sequence_contract_compiled_factors": 6,
+      "sequence_contract_audio_events": 2,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_case_dispatch_used": false,
+      "runtime_plan_sha256": "956d6ff3bb5bd54dec9cf126eba8bf44adfd939963b89fdd2738a5cb3d11e0a0",
+      "executor_prepare_status": "prepared_not_executed",
+      "executor_prepare_case_dispatch_used": false,
+      "executor_prepare_sha256": "a1726fc3d9922b6e216a6c775b392cf2c6d0515cf7150290a04fb733a0ee3a8c",
       "attempt_ledger_status": "attempt_planned_not_executed",
-      "canonical_sha256": "cd9a707d448fc329c571f8ca7b59495055700a56482557dcc0f46cf3f2826615",
+      "attempt_ledger_case_dispatch_used": false,
+      "attempt_ledger_residual_status": "not_executed",
+      "attempt_ledger_sha256": "fabeaf33bbeed39ce0c9de589278c1506d70f08a127d3ad0895965b530cd590b",
+      "residual_boundary_supported": 6,
+      "residual_boundary_pending": 0,
+      "residual_boundary_gap_ids": [],
+      "residual_boundary_sha256": "85fecf8f4c6098db944b467805c3354e78380e40277bd26bf1988515aca3fd2c",
+      "residual_execution_plan_records": 6,
+      "residual_execution_plan_ready": 6,
+      "residual_execution_plan_blocked": 0,
+      "residual_execution_plan_sha256": "c89c28b6bf11976dc2c8af4670be7ab5d0e3ad4847a5cd518534fe2fc0bfd245",
+      "state_model": "rigid6_plus_phase",
+      "geometry_kind": "rigid_mesh",
+      "measurement_count": 1359,
+      "measurement_frames": 240,
+      "contact_count": 240,
+      "interaction_frame_count": 240,
+      "interaction_interval_count": 14,
+      "interaction_contact_states": {
+        "active": 1,
+        "persistent": 239
+      },
+      "interaction_motion_modes": {
+        "attached": 240
+      },
+      "factor_activation_policies": {
+        "always_on_state_or_geometry_regularizer": 3,
+        "contact_state_controls_contact_distance": 1,
+        "interaction_state_controls_acceleration_smoothness": 1,
+        "motion_mode_controls_velocity_smoothness": 1
+      },
+      "factor_activation_totals": {
+        "active_frames": 1440,
+        "downweighted_frames": 0,
+        "inactive_frames": 0
+      },
+      "compiled_factor_count": 6,
+      "compiled_factor_kinds": {
+        "contact_distance": 1,
+        "periodic_phase_prior": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
+      "factor_count": 6,
+      "factor_kinds": {
+        "contact_distance": 1,
+        "periodic_phase_prior": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
+      },
+      "gap_ids": [],
+      "attempt_id": "generic-attempt-4480dd7d3037",
+      "validation_errors": [],
+      "canonical_sha256": "583a43cb9f4427d570da4b3704549194cd3957365f7c529a26d79a2032940b3f"
+    },
+    "chair": {
+      "sequence_contract_sha256": "dc8e424393594518150c878e17918148d03e3096e6ad40156e374df16b400930",
+      "sequence_contract_state_spec": "semantic_graph_6d:articulated",
+      "sequence_contract_compiled_factors": 13,
+      "sequence_contract_audio_events": 8,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_case_dispatch_used": false,
+      "runtime_plan_sha256": "27ebd2a9a5198db388daba76fac6a4f4dadefa39e3e2ada67dd120087fea8745",
+      "executor_prepare_status": "prepared_not_executed",
+      "executor_prepare_case_dispatch_used": false,
+      "executor_prepare_sha256": "a18a704292341e7e0d052622914b064a454453cf160fb030b68077c29d2613bb",
+      "attempt_ledger_status": "attempt_planned_not_executed",
+      "attempt_ledger_case_dispatch_used": false,
+      "attempt_ledger_residual_status": "not_executed",
+      "attempt_ledger_sha256": "ff58cf82bed22af491d21224f1020d3fbedccd07de9ea62167ce8fb90effecea",
+      "residual_boundary_supported": 13,
+      "residual_boundary_pending": 0,
+      "residual_boundary_gap_ids": [],
+      "residual_boundary_sha256": "ab5f3290f8adfcd533e1b0ca146c010ecb2701437debb55b5cb79f17bacb16de",
+      "residual_execution_plan_records": 13,
+      "residual_execution_plan_ready": 13,
+      "residual_execution_plan_blocked": 0,
+      "residual_execution_plan_sha256": "2c56ba9146cdcc0d8744c1aea62658334bf9204b26d5792d7b570c5f250b9305",
+      "state_model": "semantic_graph_6d",
+      "geometry_kind": "articulated_urdf",
+      "measurement_count": 1014,
+      "measurement_frames": 192,
+      "contact_count": 317,
+      "interaction_frame_count": 192,
+      "interaction_interval_count": 5,
+      "interaction_contact_states": {
+        "active": 1,
+        "inactive": 66,
+        "persistent": 124,
+        "release": 1
+      },
+      "interaction_motion_modes": {
+        "attached": 125,
+        "free": 67
+      },
+      "factor_activation_policies": {
+        "always_on_state_or_geometry_regularizer": 5,
+        "audio_and_interaction_transition_control_alignment": 1,
+        "contact_state_controls_contact_distance": 1,
+        "interaction_state_controls_acceleration_smoothness": 1,
+        "motion_mode_controls_velocity_smoothness": 1,
+        "support_state_controls_support_penetration": 1,
+        "visibility_state_controls_visual_observation": 3
+      },
+      "factor_activation_totals": {
+        "active_frames": 2046,
+        "downweighted_frames": 8,
+        "inactive_frames": 442
+      },
       "compiled_factor_count": 13,
       "compiled_factor_kinds": {
         "audio_event_prior": 1,
@@ -95,24 +291,6 @@
         "support_and_penetration": 1,
         "temporal_acceleration": 1,
         "temporal_velocity": 1
-      },
-      "contact_count": 317,
-      "executor_prepare_case_dispatch_used": false,
-      "executor_prepare_sha256": "47cff940dbc68ebf8524cb05a417b427afec46b89c5fed94fec4df1f0bb05560",
-      "executor_prepare_status": "prepared_not_executed",
-      "factor_activation_policies": {
-        "always_on_state_or_geometry_regularizer": 5,
-        "audio_event_ids_control_audio_alignment": 1,
-        "contact_state_controls_contact_distance": 1,
-        "interaction_state_controls_acceleration_smoothness": 1,
-        "motion_mode_controls_velocity_smoothness": 1,
-        "support_state_controls_support_penetration": 1,
-        "visibility_state_controls_visual_observation": 3
-      },
-      "factor_activation_totals": {
-        "active_frames": 1920,
-        "downweighted_frames": 0,
-        "inactive_frames": 576
       },
       "factor_count": 13,
       "factor_kinds": {
@@ -129,198 +307,47 @@
         "temporal_velocity": 1
       },
       "gap_ids": [],
-      "geometry_kind": "articulated_urdf",
-      "interaction_contact_states": {
-        "inactive": 192
-      },
-      "interaction_frame_count": 192,
-      "interaction_interval_count": 1,
-      "interaction_motion_modes": {
-        "free": 192
-      },
-      "measurement_count": 1014,
-      "measurement_frames": 192,
-      "residual_boundary_gap_ids": [],
-      "residual_boundary_pending": 0,
-      "residual_boundary_sha256": "5aa6b22d529f01279c277dcf696d90cb174dcf802802ef05c59522a3ceb3df33",
-      "residual_boundary_supported": 13,
-      "residual_execution_plan_blocked": 0,
-      "residual_execution_plan_ready": 13,
-      "residual_execution_plan_records": 13,
-      "residual_execution_plan_sha256": "da6b04416098e6572500b8e1b84c69df4b500761dbcf619ecb4631c3f593a99f",
-      "runtime_case_dispatch_used": false,
-      "runtime_executor_id": "generic_sequence_executor",
-      "runtime_plan_sha256": "509d556e7143377c7a293bd91c1757bcdc471395f3f473c5ec2b3e1e9e1ab4f4",
-      "sequence_contract_compiled_factors": 13,
-      "sequence_contract_sha256": "769dd54a9ab48b544933eeb674d4487e4f35ba4ef5381a8261a549d26937a5d1",
-      "sequence_contract_state_spec": "semantic_graph_6d:articulated",
-      "state_model": "semantic_graph_6d",
-      "validation_errors": []
-    },
-    "football": {
-      "attempt_id": "generic-attempt-9baf8ad8fcd7",
-      "attempt_ledger_case_dispatch_used": false,
-      "attempt_ledger_residual_status": "not_executed",
-      "attempt_ledger_sha256": "7b0733bfa7d62366536800d9bd65ec17527d5e954345b13cbf1c84367536afe7",
-      "attempt_ledger_status": "attempt_planned_not_executed",
-      "canonical_sha256": "4dff1af81ab1dd9dac533dc35ce3e915c1a6757e0a8c8f8c3c9a07e6dec79b19",
-      "compiled_factor_count": 10,
-      "compiled_factor_kinds": {
-        "contact_distance": 2,
-        "metric_depth": 1,
-        "pose_prior": 1,
-        "regularization": 2,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 3
-      },
-      "contact_count": 242,
-      "executor_prepare_case_dispatch_used": false,
-      "executor_prepare_sha256": "025598b84ce9ac0c18f211cf031e34a7ff1ba4e2a40ec6b34f299bfa4c301e34",
-      "executor_prepare_status": "prepared_not_executed",
-      "factor_activation_policies": {
-        "always_on_state_or_geometry_regularizer": 3,
-        "contact_state_controls_contact_distance": 2,
-        "interaction_state_controls_acceleration_smoothness": 1,
-        "motion_mode_controls_velocity_smoothness": 3,
-        "visibility_state_controls_visual_observation": 1
-      },
-      "factor_activation_totals": {
-        "active_frames": 2044,
-        "downweighted_frames": 54,
-        "inactive_frames": 322
-      },
-      "factor_count": 10,
-      "factor_kinds": {
-        "contact_distance": 2,
-        "metric_depth": 1,
-        "pose_prior": 1,
-        "regularization": 2,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 3
-      },
-      "gap_ids": [],
-      "geometry_kind": "sphere",
-      "interaction_contact_states": {
-        "active": 57,
-        "inactive": 161,
-        "persistent": 10,
-        "release": 14
-      },
-      "interaction_frame_count": 242,
-      "interaction_interval_count": 58,
-      "interaction_motion_modes": {
-        "attached": 16,
-        "ballistic": 6,
-        "free": 169,
-        "supported_static": 51
-      },
-      "measurement_count": 968,
-      "measurement_frames": 242,
-      "residual_boundary_gap_ids": [],
-      "residual_boundary_pending": 0,
-      "residual_boundary_sha256": "c80d1b03bf4f1fe6c7941196259e42881a3ff83b336698fb730f093192955f34",
-      "residual_boundary_supported": 10,
-      "residual_execution_plan_blocked": 0,
-      "residual_execution_plan_ready": 10,
-      "residual_execution_plan_records": 10,
-      "residual_execution_plan_sha256": "0c81573655fc02acd862222c45503da56f97bae906ffb1f1e870718b3a346b80",
-      "runtime_case_dispatch_used": false,
-      "runtime_executor_id": "generic_sequence_executor",
-      "runtime_plan_sha256": "3aae1a99e4620dbfdee15a0345c31a12db5473cf8a1d84194214835a9e2fef1e",
-      "sequence_contract_compiled_factors": 10,
-      "sequence_contract_sha256": "84e7bd88b308df0b7075431dd3ef75895553dc4144e2d645ad8a8649b404240b",
-      "sequence_contract_state_spec": "translation3:sphere",
-      "state_model": "translation3",
-      "validation_errors": []
-    },
-    "mug": {
-      "attempt_id": "generic-attempt-5e65dc595a39",
-      "attempt_ledger_case_dispatch_used": false,
-      "attempt_ledger_residual_status": "not_executed",
-      "attempt_ledger_sha256": "bc5dc0105ce8ef5765dfbd7700fa53a32c316cb58fddc4b13004287c54487fe1",
-      "attempt_ledger_status": "attempt_planned_not_executed",
-      "canonical_sha256": "a1d9264a5de4c2dba2b12647a3672aa741f7f2fd193a63929add01490484b9fe",
-      "compiled_factor_count": 6,
-      "compiled_factor_kinds": {
-        "contact_distance": 1,
-        "periodic_phase_prior": 1,
-        "pose_prior": 1,
-        "regularization": 1,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 1
-      },
-      "contact_count": 240,
-      "executor_prepare_case_dispatch_used": false,
-      "executor_prepare_sha256": "59c6d27135a7ba90a1d38ae16d02c73b379585ea48d70dd786f4e0b756d956ad",
-      "executor_prepare_status": "prepared_not_executed",
-      "factor_activation_policies": {
-        "always_on_state_or_geometry_regularizer": 3,
-        "contact_state_controls_contact_distance": 1,
-        "interaction_state_controls_acceleration_smoothness": 1,
-        "motion_mode_controls_velocity_smoothness": 1
-      },
-      "factor_activation_totals": {
-        "active_frames": 1200,
-        "downweighted_frames": 0,
-        "inactive_frames": 240
-      },
-      "factor_count": 6,
-      "factor_kinds": {
-        "contact_distance": 1,
-        "periodic_phase_prior": 1,
-        "pose_prior": 1,
-        "regularization": 1,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 1
-      },
-      "gap_ids": [],
-      "geometry_kind": "rigid_mesh",
-      "interaction_contact_states": {
-        "inactive": 240
-      },
-      "interaction_frame_count": 240,
-      "interaction_interval_count": 13,
-      "interaction_motion_modes": {
-        "free": 240
-      },
-      "measurement_count": 1359,
-      "measurement_frames": 240,
-      "residual_boundary_gap_ids": [],
-      "residual_boundary_pending": 0,
-      "residual_boundary_sha256": "3d4ffcdb988571f2e74150b2343d0016297dda3691eb7f863f856017cb013d74",
-      "residual_boundary_supported": 6,
-      "residual_execution_plan_blocked": 0,
-      "residual_execution_plan_ready": 6,
-      "residual_execution_plan_records": 6,
-      "residual_execution_plan_sha256": "4bf7b6f0d732b8ffd6f9a183690dceaeb58e10f25a50d89936f70f6e9b0cc20f",
-      "runtime_case_dispatch_used": false,
-      "runtime_executor_id": "generic_sequence_executor",
-      "runtime_plan_sha256": "b9343410cd434c949684191d9ad1d443bbfebf7e5c3fd8589d6a6d1a9a259dc4",
-      "sequence_contract_compiled_factors": 6,
-      "sequence_contract_sha256": "a860d6144efe320559be67666c7177d579d8e7e6bfa136a3a3db468b56b0639f",
-      "sequence_contract_state_spec": "rigid6_plus_phase:rigid_mesh",
-      "state_model": "rigid6_plus_phase",
-      "validation_errors": []
+      "attempt_id": "generic-attempt-6ea50bfb5033",
+      "validation_errors": [],
+      "canonical_sha256": "20e495531615c413ccaeac2191ed06fa867617339da5ee42fd2aec4de3e732ae"
     },
     "stick": {
-      "attempt_id": "generic-attempt-7b79b1b6dd46",
+      "sequence_contract_sha256": "4ede96e9a88516ba14d449405e91a693795dbf9a51c686ed8854650d99bb6781",
+      "sequence_contract_state_spec": "translation3:line_capsule",
+      "sequence_contract_compiled_factors": 5,
+      "sequence_contract_audio_events": 2,
+      "runtime_executor_id": "generic_sequence_executor",
+      "runtime_case_dispatch_used": false,
+      "runtime_plan_sha256": "22590e2b811690bb351a86e155a0d355df1f249812f352ca7a2f94ffc3ac779a",
+      "executor_prepare_status": "prepared_not_executed",
+      "executor_prepare_case_dispatch_used": false,
+      "executor_prepare_sha256": "b8dbec72e3d7917a1643b76940484ae23fe08a3564a380477d7e01bae3565afb",
+      "attempt_ledger_status": "attempt_planned_not_executed",
       "attempt_ledger_case_dispatch_used": false,
       "attempt_ledger_residual_status": "not_executed",
-      "attempt_ledger_sha256": "3828ffcaa36897446be6caa0243a1d826a0ed8b2c0e37bda121e1cdeb3779620",
-      "attempt_ledger_status": "attempt_planned_not_executed",
-      "canonical_sha256": "16d1a1e7064b26b283971f391c9764dd652a0bb887a400d89d78c626091f35b3",
-      "compiled_factor_count": 5,
-      "compiled_factor_kinds": {
-        "contact_distance": 1,
-        "pose_prior": 1,
-        "regularization": 1,
-        "temporal_acceleration": 1,
-        "temporal_velocity": 1
-      },
+      "attempt_ledger_sha256": "afb24f225011e72a32680531705f2851ef185d8312ada92d0cb3d37c3a488aae",
+      "residual_boundary_supported": 5,
+      "residual_boundary_pending": 0,
+      "residual_boundary_gap_ids": [],
+      "residual_boundary_sha256": "4fbf8e1e76e0b6ac4997799c483d6d3ec8ea17b078b3577a831c789a10bc7900",
+      "residual_execution_plan_records": 5,
+      "residual_execution_plan_ready": 5,
+      "residual_execution_plan_blocked": 0,
+      "residual_execution_plan_sha256": "8407813ce7fdc210cfb5f4381d26584ae1b50bf17250520b9875ed4ded0cfed1",
+      "state_model": "translation3_with_line_orientation_prior",
+      "geometry_kind": "line_capsule",
+      "measurement_count": 960,
+      "measurement_frames": 240,
       "contact_count": 480,
-      "executor_prepare_case_dispatch_used": false,
-      "executor_prepare_sha256": "ed924e287ddf643cc39c0b0c3a776002ba77f2ba38fa01bf63e13d9398b7b811",
-      "executor_prepare_status": "prepared_not_executed",
+      "interaction_frame_count": 240,
+      "interaction_interval_count": 2,
+      "interaction_contact_states": {
+        "active": 1,
+        "persistent": 239
+      },
+      "interaction_motion_modes": {
+        "attached": 240
+      },
       "factor_activation_policies": {
         "always_on_state_or_geometry_regularizer": 2,
         "contact_state_controls_contact_distance": 1,
@@ -331,6 +358,14 @@
         "active_frames": 1200,
         "downweighted_frames": 0,
         "inactive_frames": 0
+      },
+      "compiled_factor_count": 5,
+      "compiled_factor_kinds": {
+        "contact_distance": 1,
+        "pose_prior": 1,
+        "regularization": 1,
+        "temporal_acceleration": 1,
+        "temporal_velocity": 1
       },
       "factor_count": 5,
       "factor_kinds": {
@@ -343,35 +378,9 @@
       "gap_ids": [
         "line_contact_lock_special_refinement"
       ],
-      "geometry_kind": "line_capsule",
-      "interaction_contact_states": {
-        "active": 1,
-        "persistent": 239
-      },
-      "interaction_frame_count": 240,
-      "interaction_interval_count": 2,
-      "interaction_motion_modes": {
-        "attached": 240
-      },
-      "measurement_count": 960,
-      "measurement_frames": 240,
-      "residual_boundary_gap_ids": [],
-      "residual_boundary_pending": 0,
-      "residual_boundary_sha256": "3f0ed3e35ba898b8036d1a31dcb7ac1bd0a837e29e92679cb5d2e59434477e20",
-      "residual_boundary_supported": 5,
-      "residual_execution_plan_blocked": 0,
-      "residual_execution_plan_ready": 5,
-      "residual_execution_plan_records": 5,
-      "residual_execution_plan_sha256": "e97324615f6f031731096fcb049fff9ef5dcd12d810747c84f7c65c348377542",
-      "runtime_case_dispatch_used": false,
-      "runtime_executor_id": "generic_sequence_executor",
-      "runtime_plan_sha256": "903a35e1a88fcdcbe319ce0f2b8d2b7b73a6ae922ca0c6015509a7cd29a61ffa",
-      "sequence_contract_compiled_factors": 5,
-      "sequence_contract_sha256": "75a09bd0e1293abb49ad4657aa797ea4d242f66359ef83230cf0b3c712cdb776",
-      "sequence_contract_state_spec": "translation3:line_capsule",
-      "state_model": "translation3_with_line_orientation_prior",
-      "validation_errors": []
+      "attempt_id": "generic-attempt-8a1597ab6f90",
+      "validation_errors": [],
+      "canonical_sha256": "f5593cd94003814ddd1ea33816d2c28cc26a9a224c91febe1fd0de264936b4e7"
     }
-  },
-  "schema_version": 1
+  }
 }

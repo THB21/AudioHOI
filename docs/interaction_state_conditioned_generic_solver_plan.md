@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan、generic residual dry-run ledger，以及按 residual capability 解析显式输入的 case-independent provider boundary；五个 canonical case 的 residual capability pending 已清零。`core.solver` 不再公开 ball-named residual builder；state regularization、metric depth、full-sequence first/second-order temporal、pose prior、periodic phase、joint limit、gauge 和 repeated contact samples 均已有纯数值通用 input builders；world-space contact 已具备 sphere、capsule、periodic rigid semantic feature cloud、articulated semantic feature cloud 四类 GeometryProvider。stick / mug 的真实 geometry/contact dry-run 已 `skipped=0`；chair 的 contact、joint、temporal、pose/reg 已执行，剩余 6 项是 visual/depth/support/audio/gauge 输入 gap。GVHMR 只读 site extractor 已能从 `result.pkl` 生成固定 hand/foot measurements 并记录输入及 body-model hash。暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 把现有 MeasurementIR / AudioEventIR / support observations 接到同一个 bundle，清除 chair 剩余 6 个 missing-input 项；随后对五 case residual 做旧 optimizer trace 语义 parity，再让 `GenericSequenceExecutor` 真正消费这些 bundles。保持严格 object-only，不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR` 和 typed `AudioEventIR`，并将 Measurement / Audio / Contact / Interaction hashes 纳入 `SequenceProblemContract`；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic runtime / attempt / residual execution 边界，以及按 residual capability 解析显式输入的 case-independent provider boundary。contact/audio artifact 按能力路径解析，不依赖 case：mug 现为 240 帧 active/persistent grasp，chair 为 125 帧 grasp + 1 release，且五 case 共享 `results/events/audio_events.csv` 能进入正式 contract。audio factor 只有在 audio peak 与 inferred impact/release transition 同时存在时 active；chair 只激活 frame 145 的 release event，而非把 8 个峰值全部当 contact。world-space contact 已具备 sphere、capsule、periodic rigid semantic feature cloud、articulated semantic feature cloud 四类 GeometryProvider。stick / mug 的真实 geometry/contact dry-run 已 `skipped=0`；chair 的 contact、joint、temporal、pose/reg 与真实 audio alignment 已执行。GVHMR 只读 site extractor 记录输入及 body-model hash。暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 清理 chair legacy loss audit 中 `E_2d == E_visual`、`E_depth == E_support` 的重复/错误 factor 声明，并从 typed line measurements、geometry support query 和 contact-chord observation 编译真实 visual/support/gauge residual inputs；随后做旧 optimizer trace 语义 parity，再让 `GenericSequenceExecutor` 真正消费 runtime bundles。保持严格 object-only，不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1351,6 +1351,14 @@ YYYY-MM-DD:
 ```
 
 ## 21. 维护记录
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update.
+- change: 修复通用 InteractionState artifact resolution：当 `contact_state_frames.csv` 不存在时按 contract role 回退到 `object_contact_points.csv`，audio event 按 result-local / shared `results/events/audio_events.csv` 解析，并把实际 source 写入 provenance。新增 typed `AudioEventIR` adapter/shadow，保留 detector event 为 `unknown`，不凭峰值擅自声明 impact；`SequenceProblemContract` 现在包含 audio event count/hash。audio activation 改成 audio evidence 与 `ACTIVE/RELEASE/IMPACT` interaction transition或已有 `BALLISTIC/HIGH_SPEED` motion evidence 联合门控；单独一个 audio peak 不再把 `FREE` motion 推断成 `BALLISTIC`。新增 typed audio-event alignment residual input builder。
+- verification: 按用户要求未新增测试。五 case contract audio counts 为 basketball 16、football 13、mug 2、chair 8、stick 2。mug interaction state 从错误的 mostly inactive 修正为 1 active + 239 persistent；chair 修正为 1 active + 124 persistent + 1 release + 66 inactive。chair audio alignment 只消费 frame 145 release：predicted `6.000s`、observed `6.048s`，generic evaluator 执行 1 个 residual，RMS `0.048`；其余 7 个无 interaction transition 的声音峰值仅 downweight，不冒充 contact truth。现有相关回归 `90 passed in 119.91s`；sequence problem、diagnostics、candidate sandbox 三个五-case verifier 全部通过。
+- remaining gap: `CompiledFactor` / runtime 仍是 shadow / dry-run，尚未 solve 或 publish。chair factor table 仍含 legacy audit 产生的两个重复 alias（`E_2d == E_visual`、`E_depth == E_support`），真实 line reprojection、3D support/penetration 和 contact-chord gauge 输入尚未完成；下一步先纠正这些 factor 声明，不能用 audit energy 或零残差填充。
 
 2026-07-29:
 

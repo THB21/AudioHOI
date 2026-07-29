@@ -102,7 +102,7 @@ def main() -> None:
             result_dir = REPO / "samples_known_object" / CANONICAL_CASE_DIRECTORIES[case_name] / "results" / args.result_name
             candidate_dir = args.candidate_root / f"{args.result_name}_{case_name}"
             write_candidate_sandbox_manifest(profile, result_dir, candidate_dir)
-            candidate_errors = verify_materialized_sphere_sequence_candidate(candidate_dir)
+            candidate_errors = verify_materialized_generic_object_candidate(candidate_dir)
             errors.extend(f"{case_name}: {error}" for error in candidate_errors)
             materialized_note = f" {case_name}_materialized={not candidate_errors}"
         if materialize_line_contact and case_name == "stick" and summary["eligible_for_candidate_sandbox"] is True:

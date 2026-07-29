@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ..base.config import CaseProfile
 from ..base.io import repo_relative_value
-from ..measurements import Line2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
+from ..measurements import Line2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
 from .types import (
     FactorEnergySummary,
     FactorGap,
@@ -254,6 +254,7 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 )
             )
 
+    generic_problem = profile.data.get("generic_object_problem", {})
     if observation_rows:
         typed_observations = list(adapt_legacy_observation_rows(
             profile.case_name,
@@ -262,6 +263,41 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
         ).measurements)
         supplemental = adapt_configured_supplemental_measurements(profile, result_dir)
         typed_observations.extend(supplemental.measurements)
+        problem_config = profile.data.get("generic_object_problem", {})
+        measurement_factors = set(problem_config.get("measurement_factors", ())) if isinstance(problem_config, dict) else set()
+        measurement_roles = problem_config.get("measurement_roles", {}) if isinstance(problem_config, dict) else {}
+        typed_factor_specs = (
+            ("point_reprojection", FactorKind.POINT_REPROJECTION, Point2DMeasurement, "pixel_point_delta"),
+            ("metric_depth", FactorKind.METRIC_DEPTH, MetricDepthMeasurement, "metric_depth_delta"),
+        )
+        for factor_name, factor_kind, measurement_type, residual_unit in typed_factor_specs:
+            if factor_name not in measurement_factors:
+                continue
+            configured_roles = set(measurement_roles.get(factor_name, ())) if isinstance(measurement_roles, dict) else set()
+            selected = tuple(
+                measurement
+                for measurement in typed_observations
+                if isinstance(measurement, measurement_type)
+                and (not configured_roles or measurement.meta.feature.semantic_role in configured_roles)
+            )
+            if not selected:
+                continue
+            factors = [factor for factor in factors if factor.kind != factor_kind]
+            summaries = [summary for summary in summaries if summary.kind != factor_kind]
+            source_fields = tuple(sorted({field for measurement in selected for field in measurement.meta.source.fields}))
+            factors.append(
+                FactorSpec(
+                    factor_id=f"{factor_name}:measurement_ir",
+                    kind=factor_kind,
+                    frame_count=len(selected),
+                    input_refs=_input_refs(factor_kind),
+                    residual_unit=residual_unit,
+                    weight_source=f"factor_runtime_configuration:{factor_name}",
+                    gate_source="VisibilityState activation",
+                    residual_source=_source(Path(selected[0].meta.source.artifact), source_fields, f"measurement_ir_{factor_name}"),
+                )
+            )
+            summaries.append(FactorEnergySummary(f"measurement_ir:{factor_name}", factor_kind, len(selected), 0.0))
         line_measurements = tuple(
             measurement
             for measurement in typed_observations
@@ -315,6 +351,96 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                     "measurement_ir:line_reprojection",
                     FactorKind.LINE_REPROJECTION,
                     len(line_measurements),
+                    0.0,
+                )
+            )
+
+    sequence_factors = set(generic_problem.get("sequence_factors", ())) if isinstance(generic_problem, dict) else set()
+    for factor_name, factor_kind, order in (
+        ("temporal_velocity", FactorKind.TEMPORAL_VELOCITY, 1),
+        ("temporal_acceleration", FactorKind.TEMPORAL_ACCELERATION, 2),
+    ):
+        if factor_name not in sequence_factors:
+            continue
+        factors = [factor for factor in factors if factor.kind != factor_kind]
+        summaries = [summary for summary in summaries if summary.kind != factor_kind]
+        temporal_rows = max(0, len(observation_rows) - order)
+        factors.append(
+            FactorSpec(
+                factor_id=f"{factor_name}:state_sequence",
+                kind=factor_kind,
+                frame_count=temporal_rows,
+                input_refs=_input_refs(factor_kind),
+                residual_unit=f"state_{'first' if order == 1 else 'second'}_difference",
+                weight_source=f"factor_runtime_configuration:{factor_name}",
+                gate_source="InteractionState ContactMode/MotionMode activation",
+                residual_source=_source(
+                    observation_csv,
+                    ("frame", "time"),
+                    f"state_spec_sequence_{factor_name}_prior",
+                ),
+            )
+        )
+        summaries.append(
+            FactorEnergySummary(
+                f"state_spec:sequence_{factor_name}_prior",
+                factor_kind,
+                temporal_rows,
+                0.0,
+            )
+        )
+
+    if isinstance(generic_problem, dict) and generic_problem.get("contact_source") in {"interaction_state", "event_directional"}:
+        contact_source = str(generic_problem["contact_source"])
+        contact_state_csv = result_dir / str(generic_problem.get("contact_state_artifact", "contact_state_frames.csv"))
+        contact_state_rows = _read_csv(contact_state_csv)
+        contact_source_csv = (
+            result_dir / str(generic_problem["contact_event_artifact"])
+            if contact_source == "event_directional"
+            else contact_state_csv
+        )
+        contact_source_rows = _read_csv(contact_source_csv)
+        active_contact_rows = sum(
+            1
+            for row in contact_source_rows
+            if (
+                row.get("contact_type") not in {"floor_contact_event", "plane_support_contact_event"}
+                if contact_source == "event_directional"
+                else int(float(row.get("human_contact_state", row.get("anchor_contact_state", "0")) or 0)) == 1
+            )
+        )
+        if active_contact_rows:
+            factors = [factor for factor in factors if factor.kind != FactorKind.CONTACT_DISTANCE]
+            summaries = [summary for summary in summaries if summary.kind != FactorKind.CONTACT_DISTANCE]
+            fields = tuple(
+                field
+                for field in (
+                    "frame",
+                    "time",
+                    "human_contact_state",
+                    "anchor_contact_state",
+                    "contact_label",
+                    "anchor_score",
+                )
+                if field in contact_source_rows[0]
+            )
+            factors.append(
+                FactorSpec(
+                    factor_id="contact_distance:interaction_state",
+                    kind=FactorKind.CONTACT_DISTANCE,
+                    frame_count=active_contact_rows,
+                    input_refs=_input_refs(FactorKind.CONTACT_DISTANCE),
+                    residual_unit="metric_surface_distance",
+                    weight_source="factor_runtime_configuration:contact_distance",
+                    gate_source="InteractionState human_active",
+                    residual_source=_source(contact_source_csv, fields, f"contact_{contact_source}_adapter"),
+                )
+            )
+            summaries.append(
+                FactorEnergySummary(
+                    "interaction_state:contact_distance",
+                    FactorKind.CONTACT_DISTANCE,
+                    active_contact_rows,
                     0.0,
                 )
             )

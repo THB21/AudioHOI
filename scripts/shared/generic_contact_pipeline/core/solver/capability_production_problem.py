@@ -12,9 +12,9 @@ from typing import Mapping, Sequence
 import numpy as np
 
 from ..base.config import CaseProfile
-from ..contact_constraints import ContactConstraint, ContactState, LineS, LocalXYZ, adapt_legacy_contact_rows
+from ..contact_constraints import ContactConstraint, ContactMode, ContactState, LineS, LocalXYZ, adapt_contact_event_rows, adapt_contact_state_rows, adapt_legacy_contact_rows
 from ..human_sites import GVHMRSiteExtractionResult, HumanSiteMeasurement, extract_gvhmr_site_measurements
-from ..measurements import Line2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
+from ..measurements import Line2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
 from ..state import (
     Bound,
     CapsuleGeometryProvider,
@@ -26,6 +26,7 @@ from ..state import (
     PeriodicFeatureRule,
     PinholeCamera,
     RigidFeatureGeometryProvider,
+    SphereGeometryProvider,
     StateAdaptationResult,
     StateSpec,
     StaticParameter,
@@ -40,7 +41,7 @@ from .legacy_production_problem import (
 )
 from .problem import build_sequence_problem_shadow
 from .problem_factory import SequenceFactorInputs, SequenceProblemFactory, SequenceProblemPreparation
-from .residual_inputs import ContactFactorInput, LineReprojectionFactorInput, PeriodicPhaseFactorInput, WorldSpaceContactSample
+from .residual_inputs import ContactFactorInput, LineReprojectionFactorInput, MetricDepthFactorInput, PeriodicPhaseFactorInput, PointReprojectionFactorInput, WorldSpaceContactSample
 
 
 def _sha256(path: Path) -> str:
@@ -98,7 +99,13 @@ def _quaternion_align_x(axis: np.ndarray) -> tuple[float, float, float, float]:
     return tuple(float(value) for value in quaternion)
 
 
-def _state_spec(kind: GeometryKind, source: str, *, length_m: float | None = None) -> StateAdaptationResult:
+def _state_spec(
+    kind: GeometryKind,
+    source: str,
+    *,
+    length_m: float | None = None,
+    radius_m: float | None = None,
+) -> StateAdaptationResult:
     camera_depth_margin = 1e-4
     if kind == GeometryKind.LINE_CAPSULE and length_m is not None:
         camera_depth_margin += 0.5 * length_m
@@ -142,6 +149,17 @@ def _state_spec(kind: GeometryKind, source: str, *, length_m: float | None = Non
         )
         geometry = GeometryDescriptor("line_capsule_asset", kind, ("line:axis", "line:left_endpoint", "line:right_endpoint"), ("project_line", "line_parameter", "contact_point"), parameters=spec.static_parameters)
         schema = "line_s_correspondence_v1"
+    elif kind == GeometryKind.SPHERE:
+        if radius_m is None or radius_m <= 0.0:
+            raise ValueError("sphere StateSpec requires positive radius")
+        spec = StateSpec(
+            spec_id="translation3:sphere",
+            state_model="translation3",
+            dofs=(translation,),
+            static_parameters=(StaticParameter("sphere.radius", radius_m, "meter", ("asset_profile.radius_m",)),),
+        )
+        geometry = GeometryDescriptor("sphere_asset", kind, ("object:center", "object:surface", "object:support"), ("project_point", "surface_query", "contact_point"), parameters=spec.static_parameters)
+        schema = "point_depth_sphere_v1"
     else:
         raise ValueError(f"unsupported capability initializer geometry: {kind.value}")
     return StateAdaptationResult(schema, spec, geometry, tuple(field for dof in spec.dofs for field in dof.source_fields), ())
@@ -220,6 +238,26 @@ def _line_seed(contact_rows: Sequence[Mapping[str, str]], length_m: float, sourc
     return adaptation, states, templates, times
 
 
+def _point_depth_seed(measurements: Sequence[object], camera: PinholeCamera, radius_m: float, source: str) -> tuple[StateAdaptationResult, dict[int, tuple[float, ...]], list[dict[str, object]], dict[int, float]]:
+    points = {m.meta.frame: m for m in measurements if isinstance(m, Point2DMeasurement) and m.meta.feature.semantic_role == "object_center"}
+    depths = {m.meta.frame: m for m in measurements if isinstance(m, MetricDepthMeasurement) and m.meta.feature.semantic_role == "object_center_depth"}
+    frames = sorted(set(points) & set(depths))
+    if not frames:
+        raise ValueError("point/depth initializer requires frame-aligned object center and metric depth")
+    adaptation = _state_spec(GeometryKind.SPHERE, source, radius_m=radius_m)
+    states: dict[int, tuple[float, ...]] = {}
+    templates: list[dict[str, object]] = []
+    times: dict[int, float] = {}
+    for frame in frames:
+        point, depth = points[frame], depths[frame]
+        z = float(depth.depth_m)
+        state = ((float(point.u) - camera.cx) * z / camera.fx, (float(point.v) - camera.cy) * z / camera.fy, z)
+        states[frame] = state
+        times[frame] = float(point.meta.time)
+        templates.append({"frame": frame, "time": point.meta.time, "tx": state[0], "ty": state[1], "tz": state[2], "qw": 1.0, "qx": 0.0, "qy": 0.0, "qz": 0.0, "radius_m": radius_m, "source": "point_depth_capability_initializer"})
+    return adaptation, states, templates, times
+
+
 def _contact_samples_with_line_s(
     constraints: Sequence[ContactConstraint],
     sites: Sequence[HumanSiteMeasurement],
@@ -247,6 +285,130 @@ def _contact_samples_with_line_s(
                     )
                 )
     return tuple(local_samples)
+
+
+def _surface_contact_samples_from_states(
+    contact_states: Sequence[object],
+    sites: Sequence[HumanSiteMeasurement],
+) -> tuple[WorldSpaceContactSample, ...]:
+    """Join typed active contact states to fixed human sites by semantic site identity."""
+    sites_by_key = {
+        (site.frame, site.site.body_part, site.site.side): site
+        for site in sites
+    }
+    samples: list[WorldSpaceContactSample] = []
+    for state in contact_states:
+        if not state.human_active:
+            continue
+        site = sites_by_key.get((state.frame, state.human_site.body_part, state.human_site.side))
+        if site is None:
+            continue
+        state_confidence = state.confidence if state.confidence is not None else 1.0
+        site_confidence = site.confidence if site.confidence is not None else 1.0
+        samples.append(
+            WorldSpaceContactSample(
+                state.frame,
+                site.xyz_m,
+                "object:surface",
+                None,
+                state_confidence * site_confidence,
+            )
+        )
+    return tuple(samples)
+
+
+def _directional_contact_samples_from_events(
+    events: Sequence[object],
+    contact_states: Sequence[object],
+    sites: Sequence[HumanSiteMeasurement],
+    *,
+    target_feature_id: str,
+    residual_axes: tuple[int, ...],
+    maximum_offset_m: float | None,
+) -> tuple[WorldSpaceContactSample, ...]:
+    """Resolve event-timed directional contact observations without object-family dispatch."""
+    states_by_frame = {state.frame: state for state in contact_states}
+    sites_by_key = {
+        (site.frame, site.site.body_part, site.site.side): site
+        for site in sites
+    }
+    samples: list[WorldSpaceContactSample] = []
+    for event in events:
+        if event.mode == ContactMode.SUPPORT:
+            continue
+        state = states_by_frame.get(event.peak_frame)
+        site = sites_by_key.get((event.peak_frame, event.human_site.body_part, event.human_site.side))
+        if state is None or site is None:
+            continue
+        offset = [0.0, 0.0, 0.0]
+        if 2 in residual_axes:
+            raw_offset = float(state.contact_depth_offset_m)
+            if maximum_offset_m is None or abs(raw_offset) <= maximum_offset_m:
+                offset[2] = -raw_offset
+        samples.append(
+            WorldSpaceContactSample(
+                event.peak_frame,
+                site.xyz_m,
+                target_feature_id,
+                None,
+                event.confidence,
+                tuple(offset),
+            )
+        )
+    return tuple(samples)
+
+
+def _directional_anchor_depth_reference(
+    frames: Sequence[int],
+    samples: Sequence[WorldSpaceContactSample],
+) -> dict[int, float]:
+    """Interpolate a camera-depth gauge from sparse directional contact anchors."""
+    anchors = sorted(
+        (sample.frame, sample.source_xyz_m[2] + sample.source_offset_xyz_m[2])
+        for sample in samples
+    )
+    if not anchors:
+        raise ValueError("directional contact depth reference requires at least one anchor")
+    anchor_frames = np.asarray([frame for frame, _ in anchors], dtype=float)
+    anchor_depths = np.asarray([depth for _, depth in anchors], dtype=float)
+    target_frames = np.asarray([int(frame) for frame in frames], dtype=float)
+    interpolated = np.interp(target_frames, anchor_frames, anchor_depths)
+    return {int(frame): float(depth) for frame, depth in zip(frames, interpolated)}
+
+
+def _apply_translation_depth_reference(
+    initial_states: Mapping[int, Sequence[float]],
+    template_rows: Sequence[Mapping[str, object]],
+    measurements: Sequence[object],
+    camera: PinholeCamera,
+    depth_by_frame: Mapping[int, float],
+) -> tuple[dict[int, tuple[float, ...]], list[dict[str, object]]]:
+    centers = {
+        measurement.meta.frame: measurement
+        for measurement in measurements
+        if isinstance(measurement, Point2DMeasurement)
+        and measurement.meta.feature.semantic_role == "object_center"
+    }
+    states = {int(frame): tuple(float(value) for value in state) for frame, state in initial_states.items()}
+    for frame, depth in depth_by_frame.items():
+        center = centers.get(frame)
+        if center is None or frame not in states:
+            continue
+        state = list(states[frame])
+        state[:3] = [
+            (float(center.u) - camera.cx) * depth / camera.fx,
+            (float(center.v) - camera.cy) * depth / camera.fy,
+            depth,
+        ]
+        states[frame] = tuple(state)
+    rows = [dict(row) for row in template_rows]
+    for row in rows:
+        frame = int(row["frame"])
+        if frame not in states:
+            continue
+        row.update({"tx": states[frame][0], "ty": states[frame][1], "tz": states[frame][2]})
+        row["source"] = f"{row.get('source', 'capability_initializer')}+directional_anchor_depth_reference"
+    return states, rows
 
 
 @dataclass(frozen=True)
@@ -278,6 +440,9 @@ def prepare_capability_object_problem(*, profile: CaseProfile, result_dir: Path,
 
     descriptor_path = repository_root / str(profile.data["geometry_asset_descriptor"])
     descriptor = json.loads(descriptor_path.read_text())
+    observation_path = result_dir / "object_observations.csv"
+    measurements = list(adapt_legacy_observation_rows(profile.case_name, _rows(observation_path), str(observation_path)).measurements)
+    measurements.extend(adapt_configured_supplemental_measurements(profile, result_dir).measurements)
     contact_path = result_dir / str(config.get("contact_artifact", "object_contact_points.csv"))
     contact_rows = _rows(contact_path)
     constraints = adapt_legacy_contact_rows(profile.case_name, contact_rows, str(contact_path)).constraints
@@ -295,13 +460,19 @@ def prepare_capability_object_problem(*, profile: CaseProfile, result_dir: Path,
         length_m = float(descriptor["length_m"])
         adaptation, initial_states, templates, frame_times = _line_seed(contact_rows, length_m, str(contact_path))
         provider = CapsuleGeometryProvider(length_m, float(descriptor.get("radius_m", 0.0)), tuple(descriptor.get("axis_local", (1.0, 0.0, 0.0))))
+    elif initializer == "point_depth":
+        radius_m = float(profile.data["sphere"]["radius_m"])
+        adaptation, initial_states, templates, frame_times = _point_depth_seed(
+            measurements,
+            PinholeCamera(**profile.camera),
+            radius_m,
+            str(observation_path),
+        )
+        provider = SphereGeometryProvider(radius_m)
     else:
         raise ValueError(f"unsupported object capability initializer: {initializer}")
 
     gvhmr_sites = _gvhmr_sites(profile, frame_times, body_models_root)
-    observation_path = result_dir / "object_observations.csv"
-    measurements = list(adapt_legacy_observation_rows(profile.case_name, _rows(observation_path), str(observation_path)).measurements)
-    measurements.extend(adapt_configured_supplemental_measurements(profile, result_dir).measurements)
     shadow = build_sequence_problem_shadow(profile, result_dir)
     records = _configured_records(shadow["residual_execution_plan"])
     samples = _contact_samples_with_line_s(
@@ -309,16 +480,57 @@ def prepare_capability_object_problem(*, profile: CaseProfile, result_dir: Path,
         gvhmr_sites.measurements,
         line_contact_projection=str(descriptor.get("contact_projection", "line_s")),
     )
+    contact_state_path = result_dir / str(config.get("contact_state_artifact", "contact_state_frames.csv"))
+    if config.get("contact_source") == "interaction_state":
+        contact_states = adapt_contact_state_rows(profile.case_name, _rows(contact_state_path), str(contact_state_path))
+        samples = _surface_contact_samples_from_states(contact_states, gvhmr_sites.measurements)
+    elif config.get("contact_source") == "event_directional":
+        contact_states = adapt_contact_state_rows(profile.case_name, _rows(contact_state_path), str(contact_state_path))
+        contact_event_path = result_dir / str(config["contact_event_artifact"])
+        contact_events = adapt_contact_event_rows(profile.case_name, _rows(contact_event_path), str(contact_event_path))
+        residual_axes = tuple(int(axis) for axis in config.get("contact_residual_axes", (0, 1, 2)))
+        samples = _directional_contact_samples_from_events(
+            contact_events,
+            contact_states,
+            gvhmr_sites.measurements,
+            target_feature_id=str(config.get("contact_target_feature", "object:surface")),
+            residual_axes=residual_axes,
+            maximum_offset_m=(
+                None
+                if config.get("maximum_contact_offset_m") is None
+                else float(config["maximum_contact_offset_m"])
+            ),
+        )
+    depth_targets: dict[int, float] | None = None
+    if config.get("depth_reference") == "directional_contact_interpolation":
+        depth_targets = _directional_anchor_depth_reference(sorted(initial_states), samples)
+        initial_states, templates = _apply_translation_depth_reference(
+            initial_states,
+            templates,
+            measurements,
+            PinholeCamera(**profile.camera),
+            depth_targets,
+        )
     contact_factors: dict[str, ContactFactorInput] = {}
     phase_factors: dict[str, PeriodicPhaseFactorInput] = {}
     line_factors: dict[str, LineReprojectionFactorInput] = {}
+    point_factors: dict[str, PointReprojectionFactorInput] = {}
+    depth_factors: dict[str, MetricDepthFactorInput] = {}
     cameras = {frame: PinholeCamera(**profile.camera) for frame in initial_states}
     line_measurements = tuple(item for item in measurements if isinstance(item, Line2DMeasurement))
+    measurement_roles = config.get("measurement_roles", {})
+    point_roles = set(measurement_roles.get("point_reprojection", ())) if isinstance(measurement_roles, Mapping) else set()
+    depth_roles = set(measurement_roles.get("metric_depth", ())) if isinstance(measurement_roles, Mapping) else set()
     for record in records:
         factor_id = str(record["factor_id"])
         residual_ref = str(record["residual_fn_ref"])
         if residual_ref == "shadow_residual::contact_distance":
-            contact_factors[factor_id] = ContactFactorInput(provider, samples, None)
+            contact_factors[factor_id] = ContactFactorInput(
+                provider,
+                samples,
+                None,
+                residual_axes=tuple(int(axis) for axis in config.get("contact_residual_axes", (0, 1, 2))),
+            )
         elif residual_ref == "shadow_residual::periodic_phase_prior":
             phase_targets = {frame: initial_states[frame][8] for frame in sorted(initial_states)}
             phase_factors[factor_id] = PeriodicPhaseFactorInput((), (), state_index=8, target_by_frame=phase_targets)
@@ -330,11 +542,34 @@ def prepare_capability_object_problem(*, profile: CaseProfile, result_dir: Path,
                 allow_endpoint_swap=True,
                 constraint_mode=str(descriptor.get("line_reprojection_constraint", "endpoints")),
             )
+        elif residual_ref == "shadow_residual::point_reprojection":
+            point_factors[factor_id] = PointReprojectionFactorInput(
+                provider,
+                tuple(
+                    item
+                    for item in measurements
+                    if isinstance(item, Point2DMeasurement)
+                    and (not point_roles or item.meta.feature.semantic_role in point_roles)
+                ),
+                cameras,
+            )
+        elif residual_ref == "shadow_residual::metric_depth":
+            depth_factors[factor_id] = MetricDepthFactorInput(
+                tuple(
+                    item
+                    for item in measurements
+                    if isinstance(item, MetricDepthMeasurement)
+                    and (not depth_roles or item.meta.feature.semantic_role in depth_roles)
+                ),
+                target_by_frame=depth_targets,
+            )
     factor_inputs = SequenceFactorInputs(
         state_scales=_state_scales(records, sum(dof.dimension for dof in adaptation.state_spec.dofs)),
         contact_factors=contact_factors,
         periodic_phase_factors=phase_factors,
         line_reprojection_factors=line_factors,
+        point_reprojection_factors=point_factors,
+        metric_depth_factors=depth_factors,
     )
     preparation = SequenceProblemFactory().prepare(
         attempt_id=str(shadow["attempt_ledger"]["attempt_id"]),

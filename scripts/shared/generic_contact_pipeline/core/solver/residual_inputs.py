@@ -6,7 +6,7 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from ..audio_events import AudioEvent
 from ..interaction import ContactStateAxis, InteractionContactMode, InteractionTimeline
-from ..measurements import Line2DMeasurement
+from ..measurements import Line2DMeasurement, MetricDepthMeasurement, Point2DMeasurement
 from ..state.geometry_provider import FeaturePointGeometryProvider, GeometryProvider, PinholeCamera, PlaneSurface
 from .sparsity import ResidualRowDependency
 
@@ -50,6 +50,7 @@ class WorldSpaceContactSample:
     object_feature_id: str | None = None
     line_s: float | None = None
     confidence: float | None = None
+    source_offset_xyz_m: tuple[float, float, float] = (0.0, 0.0, 0.0)
 
     def __post_init__(self) -> None:
         if self.frame < 1 or len(self.source_xyz_m) != 3 or not all(isfinite(value) for value in self.source_xyz_m):
@@ -62,6 +63,8 @@ class WorldSpaceContactSample:
             not isfinite(self.confidence) or not 0.0 <= self.confidence <= 1.0
         ):
             raise ValueError("world-space contact sample confidence must be within [0, 1]")
+        if len(self.source_offset_xyz_m) != 3 or not all(isfinite(value) for value in self.source_offset_xyz_m):
+            raise ValueError("world-space contact sample offset must contain three finite coordinates")
 
 
 @dataclass(frozen=True)
@@ -71,6 +74,11 @@ class ContactFactorInput:
     object_feature_id: str | None
     weight: float = 1.0
     sigma_m: float = 1.0
+    residual_axes: tuple[int, ...] = (0, 1, 2)
+
+    def __post_init__(self) -> None:
+        if not self.residual_axes or any(axis not in {0, 1, 2} for axis in self.residual_axes):
+            raise ValueError("contact residual axes must be a nonempty subset of x/y/z")
 
 
 @dataclass(frozen=True)
@@ -134,6 +142,24 @@ class LineReprojectionFactorInput:
     def __post_init__(self) -> None:
         if self.constraint_mode not in {"endpoints", "axis_line"}:
             raise ValueError("line reprojection constraint mode must be endpoints or axis_line")
+
+
+@dataclass(frozen=True)
+class PointReprojectionFactorInput:
+    geometry_provider: FeaturePointGeometryProvider
+    measurements: tuple[Point2DMeasurement, ...]
+    cameras_by_frame: Mapping[int, PinholeCamera]
+    weight: float = 1.0
+    sigma_px: float = 1.0
+
+
+@dataclass(frozen=True)
+class MetricDepthFactorInput:
+    measurements: tuple[MetricDepthMeasurement, ...]
+    state_index: int = 2
+    weight: float = 1.0
+    sigma_m: float = 1.0
+    target_by_frame: Mapping[int, float] | None = None
 
 
 @dataclass(frozen=True)
@@ -414,6 +440,55 @@ def build_line_reprojection_residual_inputs(
     }
 
 
+def build_point_reprojection_residual_inputs(
+    *, factor_id: str, geometry_provider: FeaturePointGeometryProvider,
+    object_states: Mapping[int, Sequence[float]], measurements: Sequence[Point2DMeasurement],
+    cameras_by_frame: Mapping[int, PinholeCamera], weight: float, sigma_px: float,
+    weight_by_frame: Mapping[int, float] | None = None,
+) -> dict[str, dict[str, Any]]:
+    predicted: list[list[float]] = []
+    target: list[list[float]] = []
+    row_weights: list[float] = []
+    for measurement in measurements:
+        frame = measurement.meta.frame
+        state = object_states.get(frame)
+        camera = cameras_by_frame.get(frame)
+        if state is None or camera is None:
+            continue
+        points = geometry_provider.feature_points_world(state, measurement.meta.feature.geometry_feature_id)
+        if points.shape != (1, 3):
+            raise ValueError("point geometry features must resolve to exactly one 3D point")
+        predicted.append(camera.project(points)[0].astype(float).tolist())
+        target.append([float(measurement.u), float(measurement.v)])
+        frame_weight = float((weight_by_frame or {}).get(frame, weight))
+        row_weights.append(frame_weight * (measurement.meta.confidence if measurement.meta.confidence is not None else 1.0))
+    if not predicted:
+        return {}
+    return {factor_id: {"predicted": predicted, "target": target, "weight": _scalar_or_row_weights(row_weights, weight), "sigma_px": float(sigma_px)}}
+
+
+def build_metric_depth_measurement_residual_inputs(
+    *, factor_id: str, object_states: Mapping[int, Sequence[float]],
+    measurements: Sequence[MetricDepthMeasurement], state_index: int,
+    weight: float, sigma_m: float, weight_by_frame: Mapping[int, float] | None = None,
+    target_by_frame: Mapping[int, float] | None = None,
+) -> dict[str, dict[str, Any]]:
+    predicted: list[float] = []
+    target: list[float] = []
+    row_weights: list[float] = []
+    for measurement in measurements:
+        state = object_states.get(measurement.meta.frame)
+        if state is None:
+            continue
+        predicted.append(float(state[state_index]))
+        target.append(float((target_by_frame or {}).get(measurement.meta.frame, measurement.depth_m)))
+        frame_weight = float((weight_by_frame or {}).get(measurement.meta.frame, weight))
+        row_weights.append(frame_weight * (measurement.meta.confidence if measurement.meta.confidence is not None else 1.0))
+    if not predicted:
+        return {}
+    return {factor_id: {"predicted_depth_m": predicted, "target_depth_m": target, "weight": _scalar_or_row_weights(row_weights, weight), "sigma_m": float(sigma_m)}}
+
+
 def build_support_plane_residual_inputs(
     *,
     factor_id: str,
@@ -564,6 +639,7 @@ def build_world_space_contact_sample_residual_inputs(
     weight: float,
     sigma_m: float,
     weight_by_frame: Mapping[int, float] | None = None,
+    residual_axes: tuple[int, ...] = (0, 1, 2),
 ) -> dict[str, dict[str, Any]]:
     """Resolve repeated world-space contact samples against object geometry."""
 
@@ -576,7 +652,10 @@ def build_world_space_contact_sample_residual_inputs(
         state = object_states.get(int(sample.frame))
         if state is None:
             continue
-        source_xyz = [float(value) for value in sample.source_xyz_m]
+        source_xyz = [
+            float(value) + float(offset)
+            for value, offset in zip(sample.source_xyz_m, sample.source_offset_xyz_m)
+        ]
         if len(source_xyz) != 3:
             raise ValueError("world-space source sites must have exactly three coordinates")
         feature_id = sample.object_feature_id or object_feature_id
@@ -591,8 +670,11 @@ def build_world_space_contact_sample_residual_inputs(
             if line_point_world is None:
                 raise ValueError("LineS contact requires line-parameter geometry capability")
             target_xyz = line_point_world(state, sample.line_s)
+        target_xyz = [float(value) for value in target_xyz]
+        for axis in {0, 1, 2} - set(residual_axes):
+            source_xyz[axis] = target_xyz[axis]
         anchors.append(source_xyz)
-        targets.append([float(value) for value in target_xyz])
+        targets.append(target_xyz)
         frame_weight = float((weight_by_frame or {}).get(int(sample.frame), weight))
         row_weights.append(frame_weight * (sample.confidence if sample.confidence is not None else 1.0))
         sample_confidences.append(sample.confidence if sample.confidence is not None else 1.0)
@@ -729,6 +811,8 @@ def build_geometry_sequence_residual_input_bundle(
     gauge_factors: Mapping[str, GaugeFactorInput] | None = None,
     audio_alignment_factors: Mapping[str, AudioAlignmentFactorInput] | None = None,
     line_reprojection_factors: Mapping[str, LineReprojectionFactorInput] | None = None,
+    point_reprojection_factors: Mapping[str, PointReprojectionFactorInput] | None = None,
+    metric_depth_factors: Mapping[str, MetricDepthFactorInput] | None = None,
     support_plane_factors: Mapping[str, SupportPlaneFactorInput] | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Build common sequence residuals from explicit state and factor inputs.
@@ -787,6 +871,7 @@ def build_geometry_sequence_residual_input_bundle(
                 (sample.frame for sample in factor.samples),
                 base_weight,
             ),
+            residual_axes=factor.residual_axes,
         )
         return payload.get(request.factor_id)
 
@@ -892,6 +977,34 @@ def build_geometry_sequence_residual_input_bundle(
         )
         return payload.get(request.factor_id)
 
+    def point_reprojection(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (point_reprojection_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        base_weight = _runtime_weight(request, factor.weight)
+        payload = build_point_reprojection_residual_inputs(
+            factor_id=request.factor_id, geometry_provider=factor.geometry_provider,
+            object_states=object_states, measurements=factor.measurements,
+            cameras_by_frame=factor.cameras_by_frame, weight=base_weight,
+            sigma_px=_runtime_sigma(request, factor.sigma_px, "px"),
+            weight_by_frame=_runtime_weights_by_frame(request, (m.meta.frame for m in factor.measurements), base_weight),
+        )
+        return payload.get(request.factor_id)
+
+    def metric_depth(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (metric_depth_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        base_weight = _runtime_weight(request, factor.weight)
+        payload = build_metric_depth_measurement_residual_inputs(
+            factor_id=request.factor_id, object_states=object_states,
+            measurements=factor.measurements, state_index=factor.state_index,
+            weight=base_weight, sigma_m=_runtime_sigma(request, factor.sigma_m, "m"),
+            weight_by_frame=_runtime_weights_by_frame(request, (m.meta.frame for m in factor.measurements), base_weight),
+            target_by_frame=factor.target_by_frame,
+        )
+        return payload.get(request.factor_id)
+
     def support_plane(request: ResidualInputRequest) -> dict[str, Any] | None:
         factor = (support_plane_factors or {}).get(request.factor_id)
         if factor is None:
@@ -922,6 +1035,8 @@ def build_geometry_sequence_residual_input_bundle(
             "shadow_residual::gauge_constraint": gauge,
             "shadow_residual::audio_event_prior": audio_alignment,
             "shadow_residual::line_reprojection": line_reprojection,
+            "shadow_residual::point_reprojection": point_reprojection,
+            "shadow_residual::metric_depth": metric_depth,
             "shadow_residual::support_and_penetration": support_plane,
         },
     )
@@ -936,6 +1051,8 @@ def build_geometry_sequence_residual_dependencies(
     contact_factors: Mapping[str, ContactFactorInput] | None = None,
     periodic_phase_factors: Mapping[str, PeriodicPhaseFactorInput] | None = None,
     line_reprojection_factors: Mapping[str, LineReprojectionFactorInput] | None = None,
+    point_reprojection_factors: Mapping[str, PointReprojectionFactorInput] | None = None,
+    metric_depth_factors: Mapping[str, MetricDepthFactorInput] | None = None,
     support_plane_factors: Mapping[str, SupportPlaneFactorInput] | None = None,
 ) -> tuple[ResidualRowDependency, ...]:
     """Compile typed runtime input ordering into row-level state dependencies.
@@ -1043,6 +1160,28 @@ def build_geometry_sequence_residual_dependencies(
                     )
                 )
                 residual_index += 1
+            continue
+        if residual_ref == "shadow_residual::point_reprojection":
+            factor = (point_reprojection_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            residual_index = 0
+            for measurement in factor.measurements:
+                frame = int(measurement.meta.frame)
+                if frame in object_states and frame in factor.cameras_by_frame:
+                    dependencies.append(ResidualRowDependency(factor_id, 2 * residual_index, 2 * (residual_index + 1), (frame,)))
+                    residual_index += 1
+            continue
+        if residual_ref == "shadow_residual::metric_depth":
+            factor = (metric_depth_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            residual_index = 0
+            for measurement in factor.measurements:
+                frame = int(measurement.meta.frame)
+                if frame in object_states:
+                    dependencies.append(ResidualRowDependency(factor_id, residual_index, residual_index + 1, (frame,)))
+                    residual_index += 1
             continue
         if residual_ref == "shadow_residual::support_and_penetration":
             factor = (support_plane_factors or {}).get(factor_id)

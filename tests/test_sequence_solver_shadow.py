@@ -16,7 +16,6 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     LINE_CONTACT_SANDBOX_ARTIFACTS,
     GENERIC_OBJECT_SANDBOX_ARTIFACTS,
     SANDBOX_MANIFEST_NAME,
-    SPHERE_SANDBOX_ARTIFACTS,
     build_candidate_sandbox_manifest,
     build_canonical_candidate_sandbox_summary,
     build_canonical_sequence_problem_summary,
@@ -452,9 +451,10 @@ def test_legacy_ball_residual_input_bundle_executes_generic_depth_contact_tempor
         dry_run = build_generic_residual_dry_run(problem["residual_execution_plan"], bundle)
 
         executed = {record.factor_id: record for record in dry_run.records if record.status == "executed"}
-        assert "metric_depth:stage4_anchor_depth_final:E_depth" in executed
-        assert "contact_distance:stage4_anchor_depth_final:E_contact" in executed
-        assert "temporal_velocity:stage4_anchor_depth_final:E_smooth" in executed
+        assert "point_reprojection:measurement_ir" in executed
+        assert "metric_depth:measurement_ir" in executed
+        assert "contact_distance:interaction_state" in executed
+        assert "temporal_acceleration:state_sequence" in executed
         assert any(factor_id.startswith("pose_prior:") for factor_id in executed)
         assert dry_run.solver_executed is False
         assert dry_run.accepted_outputs_written is False
@@ -701,7 +701,7 @@ def test_candidate_sandbox_manifest_allows_ready_ball_and_chair_cases() -> None:
         REPO / "samples_known_object/05_chair/results/benchmark_vlm_qwen",
     )
     assert basketball["eligible_for_candidate_sandbox"] is True
-    assert basketball["planned_artifacts"] == SPHERE_SANDBOX_ARTIFACTS
+    assert basketball["planned_artifacts"] == GENERIC_OBJECT_SANDBOX_ARTIFACTS
     assert basketball["accepted_outputs_written"] is False
     assert mug["eligible_for_candidate_sandbox"] is True
     assert mug["planned_artifacts"] == GENERIC_OBJECT_SANDBOX_ARTIFACTS
@@ -762,7 +762,7 @@ def test_candidate_sandbox_validation_rejects_inconsistent_gap_eligibility() -> 
 
 
 @pytest.mark.parametrize("case_name", ["basketball", "football"])
-def test_candidate_sandbox_materialize_writes_sphere_safe_candidate_artifacts(case_name: str, tmp_path: Path) -> None:
+def test_candidate_sandbox_materialize_writes_generic_sphere_candidate_artifacts(case_name: str, tmp_path: Path) -> None:
     candidate_dir = tmp_path / f"{case_name}_candidate"
     manifest = write_candidate_sandbox_manifest(
         load_case_profile(case_name),
@@ -774,15 +774,17 @@ def test_candidate_sandbox_materialize_writes_sphere_safe_candidate_artifacts(ca
     assert json.loads(written.read_text()) == manifest
     assert {path.name for path in candidate_dir.iterdir()} == {
         SANDBOX_MANIFEST_NAME,
-        "generic_sphere_sequence_candidate.csv",
-        "generic_sphere_sequence_residuals.csv",
-        "generic_sphere_sequence_attempt.json",
+        "generic_problem_preparation.json",
+        "generic_object_pose_candidate.csv",
+        "generic_object_publication.json",
+        "generic_sequence_solver_attempts",
     }
-    attempt = json.loads((candidate_dir / "generic_sphere_sequence_attempt.json").read_text())
-    assert attempt["solver_executed"] is True
-    assert attempt["accepted_outputs_written"] is False
-    assert attempt["baseline_pose_read"] is False
-    assert attempt["executor_scope"] == "isolated_candidate_dir"
+    publication = json.loads((candidate_dir / "generic_object_publication.json").read_text())
+    assert publication["accepted_path"] is None
+    assert publication["case_dispatch_used"] is False
+    preparation = json.loads((candidate_dir / "generic_problem_preparation.json").read_text())
+    assert preparation["case_dispatch_used"] is False
+    assert preparation["baseline_pose_read"] is False
     assert not (candidate_dir / "object_pose_init.csv").exists()
     assert not (candidate_dir / "object_pose.csv").exists()
 
@@ -870,7 +872,7 @@ def test_candidate_sandbox_export_cli_writes_reviewable_manifest(tmp_path: Path)
     payload = json.loads(out.read_text())
     assert json.loads(completed.stdout) == payload
     assert payload["mode"] == "generic_sequence_solver_candidate_sandbox"
-    assert payload["planned_artifacts"] == SPHERE_SANDBOX_ARTIFACTS
+    assert payload["planned_artifacts"] == GENERIC_OBJECT_SANDBOX_ARTIFACTS
 
 
 def test_candidate_sandbox_verifier_cli_reports_all_cases() -> None:
@@ -956,8 +958,8 @@ def test_candidate_sandbox_verifier_cli_materializes_and_verifies_sphere_candida
     for case_name in ("basketball", "football"):
         candidate_dir = candidate_root / f"benchmark_vlm_qwen_{case_name}"
         assert f"{case_name}_materialized=True" in completed.stdout
-        assert (candidate_dir / "generic_sphere_sequence_candidate.csv").exists()
-        assert (candidate_dir / "generic_sphere_sequence_residuals.csv").exists()
+        assert (candidate_dir / "generic_object_pose_candidate.csv").exists()
+        assert (candidate_dir / "generic_object_publication.json").exists()
         assert not (candidate_dir / "object_pose.csv").exists()
 
 
@@ -978,8 +980,8 @@ def test_candidate_sandbox_verifier_cli_materializes_all_supported_candidates(tm
     )
 
     expected_artifacts = {
-        "basketball": ("generic_sphere_sequence_candidate.csv", "generic_sphere_sequence_residuals.csv"),
-        "football": ("generic_sphere_sequence_candidate.csv", "generic_sphere_sequence_residuals.csv"),
+        "basketball": ("generic_object_pose_candidate.csv", "generic_object_publication.json"),
+        "football": ("generic_object_pose_candidate.csv", "generic_object_publication.json"),
             "mug": ("generic_object_pose_candidate.csv", "generic_object_publication.json"),
             "chair": ("generic_object_pose_candidate.csv", "generic_object_publication.json"),
             "stick": ("generic_object_pose_candidate.csv", "generic_object_publication.json"),

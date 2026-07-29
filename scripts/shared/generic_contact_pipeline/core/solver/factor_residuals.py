@@ -102,10 +102,11 @@ class FactorResidualEvaluator:
             / float(sigma_m)
         ).reshape(-1).astype(float)
 
-    def metric_depth(self, predicted_depth_m: np.ndarray, target_depth_m: np.ndarray, *, weight: float, sigma_m: float) -> np.ndarray:
+    def metric_depth(self, predicted_depth_m: np.ndarray, target_depth_m: np.ndarray, *, weight: float | np.ndarray, sigma_m: float) -> np.ndarray:
         if predicted_depth_m.shape != target_depth_m.shape:
             raise ValueError("metric depth residuals require matching depth arrays")
-        return (float(weight) * (predicted_depth_m.reshape(-1) - target_depth_m.reshape(-1)) / float(sigma_m)).astype(float)
+        delta = predicted_depth_m.reshape(-1) - target_depth_m.reshape(-1)
+        return (_row_weights(weight, len(delta)) * delta / float(sigma_m)).astype(float)
 
     def support_penetration(self, signed_distance_m: np.ndarray, *, weight: float, sigma_m: float) -> np.ndarray:
         penetration = np.minimum(signed_distance_m.reshape(-1), 0.0)

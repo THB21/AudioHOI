@@ -2,7 +2,7 @@
 
 维护分支：`refactor/interaction-state-production`
 
-最后更新：2026-07-29
+最后更新：2026-07-30
 
 ## 当前维护状态
 
@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 前三项基础与 normal-budget isolated solve 已完成：mug/stick/chair 均由 `prepare_capability_object_problem()` 按 geometry capability 组装 `SequenceProblemFactory`，再由唯一 `GenericSequenceExecutor` 求解并进入唯一 `AcceptedObjectOutputPublisher`。mug 的 periodic sparsity、stick/chair 的 typed `axis_line` reprojection、closest-line contact、measurement/contact confidence、camera positive-depth bounds、raw meter/pixel hard gates 和 stationary termination provenance 已接入。stick 数值 gate 通过；chair 200-eval 保存 state 重新评估后数值 gate 通过。两者都因未提供显式 promotion 授权而没有写 canonical output。GVHMR 仍是只读 object-side measurement，未优化人体、未修改或编排 downstream human pipeline。 |
-| 下一步 | pending | 完成五 case object pose 与 object render 回归；现有 golden manifests / verifier expectations 已刷新，不新增测试文件。确认 canonical parity 后，才用单独显式授权决定 accepted promotion。之后进入 held-out zero-shot object examples。权重变化可由 interaction/VLM gate 在有 provenance 的通用 tiers 内选择，但不得恢复 case-name solver或对象专用优化器。 |
+| `refactor/interaction-state-production` | in_progress | basketball / football 已从独立 sphere executor 迁入 `prepare_capability_object_problem() -> SequenceProblemFactory -> GenericSequenceExecutor -> AcceptedObjectOutputPublisher`。两者共享 sphere capability、typed point/depth、event-directional contact、temporal factor 和 contact-conditioned monocular depth-gauge initializer；solver 内无 case dispatch，canonical accepted output 未写。benchmark pose regression 与旧 sphere compatibility candidate 基本等价。stick endpoint/extent 观测实验把 translation p95 从 `0.797m` 降至 `0.454m`，但 typed endpoint 与 GVHMR closest-line contact 存在不可同时满足的 evidence conflict，500 nfev 仍未通过 contact gate，因此不 promotion。GVHMR 始终只读，未优化人体或编排 downstream human pipeline。 |
+| 下一步 | pending | 保持 basketball / football 统一路径，补其 object render 回归记录；stick 由 interaction/VLM provenance 对冲突的 endpoint/contact evidence 做通用 gate，而不是新增 stick solver。随后处理 chair 的 point/support/freeze/joint observation 缺口和 mug periodic phase observation。五 case 全部过 pose/render gate 后才进入 held-out zero-shot。 |
 
 当前主线目标收束为一句话：
 
@@ -1720,3 +1720,14 @@ YYYY-MM-DD:
 - decoded render regression: 六帧object-overlay candidate-vs-canonical changed-pixel ratio (`|delta|>10`) 为 basketball `1.707%`、football `0.692%`、mug `0.325%`、stick `1.525%`、chair `1.997%`；对应GVHMR skeleton + object HOI render为`1.959%/0.758%/0.369%/2.056%/2.073%`。video hashes全部不同。背景占绝大多数，因此只作为严格非等价证据，不作为quality分数。
 - conclusion: 五 case回归未通过，不能promotion。最重要的架构blocker是basketball / football仍走`generic_sphere_sequence_candidate`，尚未进入唯一`GenericSequenceExecutor + AcceptedObjectOutputPublisher`；这也是代码中球类独立executor仍存在的原因。下一步优先新增sphere capability initializer及point/depth/contact/support typed factor inputs，使两球进入同一executor；随后用新增的render gate定位stick的axis/extent/depth gauge、chair的joint/support observation和mug的periodic phase observation缺口。禁止用case-specific solver或放宽pose/render gate掩盖这些差异。
 - stage localization: Stage 0 inputs完整且hash冻结，render只负责确定性解码，不是gap来源。basketball/football的Stage 3 init到canonical translation p95为`1.403/3.193m`，旧sphere sequence solve把它降到`0.253/0.095m`，所以球类差异来自Stage 4双executor尚未统一。mug Stage 3 init到canonical translation p95=`0.485m`，Stage 4降到`0.104m`，但rotation p95保持约`57deg`，说明contact solve有效而visual rotation/periodic phase不可观测。stick Stage 3已有translation/rotation p95=`0.533m/137.86deg`，Stage 4变成`0.797m/139.73deg`，根因是line_s seed歧义加`axis_line + closest_line_contact`缺少extent/depth/endpoint identity。chair Stage 3已有`0.748m/35.53deg`，Stage 4 median改善但tail变成`0.937m/27.44deg`，根因是legacy state seed/contact chord与当前URDF bounds冲突，且Stage 4只有line/contact/temporal，缺少point/support/freeze与充分joint observations。
+
+2026-07-30（sphere 迁入唯一 generic executor；stick extent/depth 修复实验）:
+
+- branch: `refactor/interaction-state-production`; local worktree only; no remote push; canonical accepted outputs 未写。
+- generic production change: `SphereGeometryProvider` 补齐 fixed center/support feature；generic residual input 增加 typed point reprojection、metric-depth measurement target、逐 row confidence/activation weights和 directional contact axes/offset。`SequenceFactorInputs` / dependency builder / factory 只按 factor id 与 geometry capability 接线，不读取 object identity。
+- sphere initializer/gauge: basketball / football 共用 `point_depth` initializer、同一个 `sphere_proxy.json` asset capability 与完全相同的 factor runtime档位。稀疏 impact event 通过 typed target site、camera-z directional offset 和显式 `maximum_contact_offset_m=1.0` gate 校准 monocular depth hypothesis；非法的 `1.8–2.7m` football offset 被 provenance gate 拒绝。该校准是 directional-anchor depth gauge capability，不是 ball least-squares solver，也没有 basketball/football 分支。
+- factor execution: 两球 production factor 均严格为 `point_reprojection:measurement_ir`、`metric_depth:measurement_ir`、`temporal_acceleration:state_sequence`、`contact_distance:interaction_state`，历史 loss audit 中重复的 temporal/contact blocks 不进入执行路径。benchmark solve 均由 SciPy 正常收敛：basketball 5 evaluations、football 6 evaluations；`case_dispatch_used=False`、`accepted_outputs_written=False`。
+- sphere regression: benchmark basketball unified-vs-canonical translation mean/p95/max=`0.12270/0.25250/0.28892m`，旧 sphere compatibility candidate 为`0.12251/0.25291/0.28986m`；football unified=`0.03886/0.10353/0.16691m`，旧 compatibility=`0.03749/0.09461/0.16736m`。clean full run basketball p95=`0.25250m`、football p95=`0.08744m`。因此球类独立 executor 不再是 production architecture blocker；旧 `sphere_sequence.py` 仅剩 compatibility/evidence path，尚未删除。
+- stick experiment: 将同一个 `LineReprojectionFactor` 从 infinite `axis_line` 切到 descriptor-declared `endpoints`，没有新增 stick residual或 optimizer。200/500 nfev 结果稳定一致，translation mean/p50/p95 从 axis-line 的`0.295/0.235/0.797m`改善为`0.138/0.088/0.454m`，但 contact p95=`0.187m`，objective约`1753.07`且500 nfev仍未满足 termination。endpoint residual约`33.05`，contact residual约`1703.42`，证明 blocker 是 typed image extent 与只读 GVHMR closest-line contact evidence 冲突，不是求解预算不足。未校准 DA3 metric depth实验使translation p95恶化到`0.991m`，已撤销；不以对象专用 depth补丁掩盖。
+- verification: 未新增测试文件；旧 sphere artifact 断言更新为 generic executor 的 preparation / candidate / attempt / publisher artifacts。现有相关 suite `60 passed in 66.81s`。Phase-0 manifest重捕获只改变 basketball / football case config 与 stick asset descriptor 的受控 input hash；fresh `verify_phase0_regression.py` 四个 gate（pytest、golden manifest、candidate sandbox summary、materialized candidate golden）全部通过。`py_compile`与`git diff --check`通过。
+- remaining gap: basketball / football 仍需用 unified candidate补记 decoded object/skeleton render regression后才可 promotion。stick endpoint配置保留为正确的 extent/depth观测语义，但当前 candidate 明确 blocked；下一步必须让通用 interaction/VLM gate 根据 visibility/contact provenance 选择或降权冲突证据。mug phase 与 chair joint/support gaps 未在本次改动中伪装为已解决。

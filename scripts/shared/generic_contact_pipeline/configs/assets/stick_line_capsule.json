@@ -5,7 +5,7 @@
   "semantic_parts": ["main_body"],
   "contact_coordinate": "line_s",
   "contact_projection": "closest_line_point",
-  "line_reprojection_constraint": "axis_line",
+  "line_reprojection_constraint": "endpoints",
   "axis_local": [1.0, 0.0, 0.0],
   "length_m": 1.86,
   "radius_m": 0.0

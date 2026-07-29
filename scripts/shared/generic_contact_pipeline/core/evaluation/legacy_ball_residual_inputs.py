@@ -13,7 +13,7 @@ from typing import Any
 
 from ..contact_constraints import adapt_contact_state_rows
 from ..human_sites import adapt_human_site_rows
-from ..measurements import MetricDepthMeasurement, adapt_legacy_observation_rows
+from ..measurements import MetricDepthMeasurement, Point2DMeasurement, adapt_legacy_observation_rows
 from ..solver.residual_inputs import (
     ResidualInputRequest,
     build_metric_depth_residual_inputs,
@@ -101,6 +101,12 @@ def build_legacy_ball_residual_input_bundle(
         and measurement.meta.feature.semantic_role == "object_center_depth"
     }
     predicted_depth_by_frame = {frame: state[2] for frame, state in object_states.items()}
+    center_by_frame = {
+        measurement.meta.frame: measurement
+        for measurement in typed_observations
+        if isinstance(measurement, Point2DMeasurement)
+        and measurement.meta.feature.semantic_role == "object_center"
+    }
     radius_m = _finite_float(pose_by_frame[min(pose_by_frame)], "radius_m")
     if radius_m is None or radius_m <= 0.0:
         raise ValueError("legacy sphere parity input requires a positive radius_m")
@@ -125,6 +131,26 @@ def build_legacy_ball_residual_input_bundle(
             sigma_m=1.0,
         )
         return payload.get(request.factor_id)
+
+    def point_reprojection(request: ResidualInputRequest) -> dict[str, Any] | None:
+        predicted: list[list[float]] = []
+        target: list[list[float]] = []
+        for frame in sorted(set(pose_by_frame) & set(center_by_frame)):
+            row = pose_by_frame[frame]
+            u_proj = _finite_float(row, "u_proj")
+            v_proj = _finite_float(row, "v_proj")
+            if u_proj is None or v_proj is None:
+                continue
+            predicted.append([u_proj, v_proj])
+            target.append([center_by_frame[frame].u, center_by_frame[frame].v])
+        if not predicted:
+            return None
+        return {
+            "predicted": predicted,
+            "target": target,
+            "weight": 1.0,
+            "sigma_px": 1.0,
+        }
 
     def contact_distance(request: ResidualInputRequest) -> dict[str, Any] | None:
         payload = build_world_space_contact_residual_inputs(
@@ -192,6 +218,7 @@ def build_legacy_ball_residual_input_bundle(
     return build_residual_input_bundle(
         residual_execution_plan,
         {
+            "shadow_residual::point_reprojection": point_reprojection,
             "shadow_residual::metric_depth": metric_depth,
             "shadow_residual::contact_distance": contact_distance,
             "shadow_residual::temporal_velocity": temporal,

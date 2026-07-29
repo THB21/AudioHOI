@@ -473,12 +473,20 @@
           "sha256": "6ba716b2264f07527655157c3932c9499c7eba06f2ff450a65071ff695d0522c"
         },
         {
+          "path": "scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json",
+          "source_scope": "repository",
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 229,
+          "sha256": "416edc831d556e0cc32dd3b2d7e603928d40a26da5a90eb6756eabe9652bd765"
+        },
+        {
           "path": "scripts/shared/generic_contact_pipeline/configs/cases/basketball.yaml",
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 1670,
-          "sha256": "ca27a89fff7f121ed9bb4e367dbf23d20807cb04e86ad7f5c173aea9f22503f8"
+          "size_bytes": 3424,
+          "sha256": "a88dacbd557ed8c44d6f1ae6364285bbdd929ed64c9c538748bde7cfb153c82d"
         }
       ],
       "recorded_execution": {
@@ -2179,12 +2187,20 @@
           "sha256": "888333b328165ced3f4ada0354588363558c4da3c4bb7feb8e90ddc8bc34b866"
         },
         {
+          "path": "scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json",
+          "source_scope": "repository",
+          "kind": "file",
+          "exists": true,
+          "size_bytes": 229,
+          "sha256": "416edc831d556e0cc32dd3b2d7e603928d40a26da5a90eb6756eabe9652bd765"
+        },
+        {
           "path": "scripts/shared/generic_contact_pipeline/configs/cases/football.yaml",
           "source_scope": "repository",
           "kind": "file",
           "exists": true,
-          "size_bytes": 1649,
-          "sha256": "a597f13b1ee11c5c2a3bc0783af3b69ca3e8edb2c4ecef3fcae861728a47f3fc"
+          "size_bytes": 3403,
+          "sha256": "c2d608749534668a0b55ebba9fd80388f2d3011eef20002dae977807e1ee2fb4"
         }
       ],
       "recorded_execution": {
@@ -6663,7 +6679,7 @@
           "kind": "file",
           "exists": true,
           "size_bytes": 483,
-          "sha256": "89a1cf6f9b5a5efd7be6d1a2cbaa949dc9b9671e4cbfebb0ddbc8f1c331c2766"
+          "sha256": "be1229e5155afe7c15451490097fcdd2a97c48179d7548f394731eea8bf40de9"
         },
         {
           "path": "scripts/shared/generic_contact_pipeline/configs/cases/stick.yaml",

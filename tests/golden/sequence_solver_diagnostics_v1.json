@@ -2,10 +2,10 @@
   "cases": {
     "basketball": {
       "accepted_outputs_written": false,
-      "attempt_id": "generic-attempt-bde350c89aa0",
+      "attempt_id": "generic-attempt-60cc616c3dec",
       "baseline_pose_read": false,
       "blocking_gap_ids": [],
-      "canonical_sha256": "f70fb52cefa3756421f6a9cad6e4dfe8a1dafe0834f10e54e434624ff1bd8dc6",
+      "canonical_sha256": "919ac0f561b83283e802cca89ccad141a0e78fcc297644369b3cf5206a4e2cb9",
       "nonblocking_gap_ids": [],
       "phase_statuses": {
         "assemble_problem": "pass",
@@ -13,7 +13,7 @@
         "initialize_state": "not_executed",
         "solve_sequence": "not_executed"
       },
-      "problem_sha256": "702409bd2c7f8c75841718bf4e76a0a050f2ef408461fe0fdcd9698ccf74d41b",
+      "problem_sha256": "9d1b287eba38cb211fbcb3868bb647476678a117f73f889cfccbd6dc4eef29bf",
       "solver_executed": false,
       "status": "ready_for_future_shadow_solve",
       "validation_errors": []
@@ -38,10 +38,10 @@
     },
     "football": {
       "accepted_outputs_written": false,
-      "attempt_id": "generic-attempt-c2c01048dac2",
+      "attempt_id": "generic-attempt-7278f77fa82a",
       "baseline_pose_read": false,
       "blocking_gap_ids": [],
-      "canonical_sha256": "ed00edb18d8779070f37f7d8c3c900551358f397827a31eaf833e01074f9a57c",
+      "canonical_sha256": "a3467c5ce8161857e704f111e998af4c79f494aa3cc11dcd111fb11e43f98733",
       "nonblocking_gap_ids": [],
       "phase_statuses": {
         "assemble_problem": "pass",
@@ -49,7 +49,7 @@
         "initialize_state": "not_executed",
         "solve_sequence": "not_executed"
       },
-      "problem_sha256": "bbebf58c208a5b72212f31b8c7f521cb5f2e765e5979f7f7dc36f11b14371a59",
+      "problem_sha256": "b6eec0dee82858508138f2f241787fce328100478f84db2b04dfff81414325e4",
       "solver_executed": false,
       "status": "ready_for_future_shadow_solve",
       "validation_errors": []

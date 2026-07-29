@@ -150,6 +150,14 @@ class SphereGeometryProvider:
         if not isfinite(self.radius_m) or self.radius_m <= 0.0:
             raise ValueError("sphere radius must be finite and positive")
 
+    def feature_points_world(self, state: Sequence[float], feature_id: str) -> np.ndarray:
+        center = np.asarray(_xyz(state, "sphere state"), dtype=float)
+        if feature_id == "object:center":
+            return center[None, :]
+        if feature_id == "object:support":
+            return (center + np.asarray((0.0, self.radius_m, 0.0), dtype=float))[None, :]
+        raise ValueError(f"sphere feature is not a fixed point: {feature_id}")
+
     def contact_point_world(
         self,
         state: Sequence[float],

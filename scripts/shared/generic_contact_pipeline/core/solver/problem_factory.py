@@ -22,6 +22,8 @@ from .residual_inputs import (
     GaugeFactorInput,
     JointLimitFactorInput,
     LineReprojectionFactorInput,
+    MetricDepthFactorInput,
+    PointReprojectionFactorInput,
     PeriodicPhaseFactorInput,
     PosePriorFactorInput,
     SupportPlaneFactorInput,
@@ -66,6 +68,8 @@ class SequenceFactorInputs:
     gauge_factors: Mapping[str, GaugeFactorInput] = field(default_factory=dict)
     audio_alignment_factors: Mapping[str, AudioAlignmentFactorInput] = field(default_factory=dict)
     line_reprojection_factors: Mapping[str, LineReprojectionFactorInput] = field(default_factory=dict)
+    point_reprojection_factors: Mapping[str, PointReprojectionFactorInput] = field(default_factory=dict)
+    metric_depth_factors: Mapping[str, MetricDepthFactorInput] = field(default_factory=dict)
     support_plane_factors: Mapping[str, SupportPlaneFactorInput] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -152,6 +156,8 @@ class SequenceProblemFactory:
                 gauge_factors=factor_inputs.gauge_factors,
                 audio_alignment_factors=factor_inputs.audio_alignment_factors,
                 line_reprojection_factors=factor_inputs.line_reprojection_factors,
+                point_reprojection_factors=factor_inputs.point_reprojection_factors,
+                metric_depth_factors=factor_inputs.metric_depth_factors,
                 support_plane_factors=factor_inputs.support_plane_factors,
             )
 
@@ -176,6 +182,8 @@ class SequenceProblemFactory:
             contact_factors=factor_inputs.contact_factors,
             periodic_phase_factors=factor_inputs.periodic_phase_factors,
             line_reprojection_factors=factor_inputs.line_reprojection_factors,
+            point_reprojection_factors=factor_inputs.point_reprojection_factors,
+            metric_depth_factors=factor_inputs.metric_depth_factors,
             support_plane_factors=factor_inputs.support_plane_factors,
         )
         seeded = initialization_ledger is not None and initialization_ledger.seeded_frame_count > 0

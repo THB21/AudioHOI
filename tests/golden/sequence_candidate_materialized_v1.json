@@ -2,36 +2,71 @@
   "cases": {
     "basketball": {
       "artifacts": {
-        "generic_sphere_sequence_attempt.json": {
-          "attempt": {
-            "accepted_outputs_written": false,
-            "baseline_pose_read": false,
-            "candidate_artifact": "generic_sphere_sequence_candidate.csv",
-            "candidate_sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8",
-            "executor_scope": "isolated_candidate_dir",
-            "frames": 192,
-            "mode": "generic_sphere_sequence_candidate",
-            "residual_artifact": "generic_sphere_sequence_residuals.csv",
-            "residual_sha256": "4d5243acff375179ee0dbe35f150b4044f3e3b46ec0068ceadd84b44c103df28",
-            "solver_executed": true
+        "generic_object_pose_candidate.csv": {
+          "rows": 192,
+          "sha256": "c48d37ec06c268ba522ee20e6025a0732dce0b1e3b100f8a7eaf085b724b8fae"
+        },
+        "generic_object_publication.json": {
+          "publication": {
+            "accepted_output_written": false,
+            "case_dispatch_used": false,
+            "hard_gate": {
+              "blocking_reasons": [
+                "promotion_not_requested"
+              ],
+              "gate_ids": [
+                "solver_converged_or_stationary",
+                "objective_nonincrease",
+                "projection_normalized_rmse",
+                "contact_distance_normalized_rmse",
+                "contact_gap_p95_m",
+                "contact_gap_max_m",
+                "explicit_promotion_authorized"
+              ],
+              "passed": false
+            },
+            "human_state_optimized": false,
+            "status": "candidate_blocked"
           }
         },
-        "generic_sphere_sequence_candidate.csv": {
-          "rows": 192,
-          "sha256": "9345db0b4d65e829c0b346c96c70de5c81a5ca5dc9da7463345d184734394ba8"
+        "generic_problem_preparation.json": {
+          "preparation": {
+            "accepted_outputs_written": false,
+            "case_dispatch_used": false,
+            "human_state_optimized": false,
+            "initializer_kind": "point_depth",
+            "selected_factor_ids": [
+              "point_reprojection:measurement_ir",
+              "metric_depth:measurement_ir",
+              "temporal_acceleration:state_sequence",
+              "contact_distance:interaction_state"
+            ],
+            "state_spec_id": "translation3:sphere"
+          }
         },
-        "generic_sphere_sequence_residuals.csv": {
-          "rows": 192,
-          "sha256": "4d5243acff375179ee0dbe35f150b4044f3e3b46ec0068ceadd84b44c103df28"
+        "generic_sequence_solver_attempts": {
+          "attempt": {
+            "accepted_outputs_written": false,
+            "case_dispatch_used": false,
+            "factor_ids": [
+              "point_reprojection:measurement_ir",
+              "metric_depth:measurement_ir",
+              "temporal_acceleration:state_sequence",
+              "contact_distance:interaction_state"
+            ],
+            "function_evaluations": 2,
+            "solver_executed": true
+          }
         }
       },
       "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
         "generic_sequence_solver_shadow_candidate.json",
-        "generic_sphere_sequence_candidate.csv",
-        "generic_sphere_sequence_residuals.csv",
-        "generic_sphere_sequence_attempt.json"
+        "generic_object_pose_candidate.csv",
+        "generic_object_publication.json",
+        "generic_problem_preparation.json",
+        "generic_sequence_solver_attempts"
       ],
       "status": "sandbox_ready"
     },
@@ -106,36 +141,70 @@
     },
     "football": {
       "artifacts": {
-        "generic_sphere_sequence_attempt.json": {
-          "attempt": {
-            "accepted_outputs_written": false,
-            "baseline_pose_read": false,
-            "candidate_artifact": "generic_sphere_sequence_candidate.csv",
-            "candidate_sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365",
-            "executor_scope": "isolated_candidate_dir",
-            "frames": 242,
-            "mode": "generic_sphere_sequence_candidate",
-            "residual_artifact": "generic_sphere_sequence_residuals.csv",
-            "residual_sha256": "2c25d8a10cd734d9a788e9c4b8efcd0b9103e9be4191b9793298549bddb80a60",
-            "solver_executed": true
+        "generic_object_pose_candidate.csv": {
+          "rows": 242,
+          "sha256": "e5ba698713124ebae10b4dec682945ba6d6aab5e3d8e09c8b09cbfb52706fd44"
+        },
+        "generic_object_publication.json": {
+          "publication": {
+            "accepted_output_written": false,
+            "case_dispatch_used": false,
+            "hard_gate": {
+              "blocking_reasons": [
+                "solver_not_converged_or_stationary"
+              ],
+              "gate_ids": [
+                "solver_converged_or_stationary",
+                "objective_nonincrease",
+                "projection_normalized_rmse",
+                "contact_distance_normalized_rmse",
+                "contact_gap_p95_m",
+                "contact_gap_max_m"
+              ],
+              "passed": false
+            },
+            "human_state_optimized": false,
+            "status": "candidate_blocked"
           }
         },
-        "generic_sphere_sequence_candidate.csv": {
-          "rows": 242,
-          "sha256": "0b697481bbd5bf6fed68b7ac3f4f5bef711e9f8954869ed1c864e9b0d0294365"
+        "generic_problem_preparation.json": {
+          "preparation": {
+            "accepted_outputs_written": false,
+            "case_dispatch_used": false,
+            "human_state_optimized": false,
+            "initializer_kind": "point_depth",
+            "selected_factor_ids": [
+              "point_reprojection:measurement_ir",
+              "metric_depth:measurement_ir",
+              "temporal_acceleration:state_sequence",
+              "contact_distance:interaction_state"
+            ],
+            "state_spec_id": "translation3:sphere"
+          }
         },
-        "generic_sphere_sequence_residuals.csv": {
-          "rows": 242,
-          "sha256": "2c25d8a10cd734d9a788e9c4b8efcd0b9103e9be4191b9793298549bddb80a60"
+        "generic_sequence_solver_attempts": {
+          "attempt": {
+            "accepted_outputs_written": false,
+            "case_dispatch_used": false,
+            "factor_ids": [
+              "point_reprojection:measurement_ir",
+              "metric_depth:measurement_ir",
+              "temporal_acceleration:state_sequence",
+              "contact_distance:interaction_state"
+            ],
+            "function_evaluations": 2,
+            "solver_executed": true
+          }
         }
       },
       "eligible_for_candidate_sandbox": true,
       "nonblocking_gap_ids": [],
       "planned_artifacts": [
         "generic_sequence_solver_shadow_candidate.json",
-        "generic_sphere_sequence_candidate.csv",
-        "generic_sphere_sequence_residuals.csv",
-        "generic_sphere_sequence_attempt.json"
+        "generic_object_pose_candidate.csv",
+        "generic_object_publication.json",
+        "generic_problem_preparation.json",
+        "generic_sequence_solver_attempts"
       ],
       "status": "sandbox_ready"
     },
@@ -212,7 +281,7 @@
       "artifacts": {
         "generic_object_pose_candidate.csv": {
           "rows": 240,
-          "sha256": "14e0c8208b8034ce3f8659ff875cb9ff5c8be38c3c00fae765e8b3b5531af804"
+          "sha256": "28b9e9c767fe6efa3cb0d94996fdb4d35200922b07f3c41613d9fd2951079279"
         },
         "generic_object_publication.json": {
           "publication": {

@@ -9,8 +9,8 @@
 | 项目 | 状态 | 说明 |
 | --- | --- | --- |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger 和 residual execution plan；五个 canonical case 的 residual capability pending 已清零，execution plan 均为 ready / not executed；暂不改变 accepted output、loss、阈值或求解路径。 |
-| 下一步 | pending | 进入 generic residual execution / parity：先选 basketball / football 的 point、depth、contact、temporal residual 做数值执行与旧 residual 对齐；保持不 solve、不写 accepted、不引入 case dispatcher。 |
+| `refactor/interaction-state-production` | in_progress | 已引入生产级 `InteractionStateIR`，并接入 sequence problem / diagnostics / candidate sandbox shadow 输入链；已新增通用 factor activation ledger、`CompiledFactor` shadow contract、generic `SequenceProblemContract`、`GenericExecutorRuntimePlan`、`GenericSequenceExecutor.prepare()` skeleton、generic attempt ledger、residual evaluation boundary、pending residual gap ledger、residual execution plan 和 generic residual dry-run ledger；五个 canonical case 的 residual capability pending 已清零，execution plan 均为 ready / not executed；暂不改变 accepted output、loss、阈值或求解路径。 |
+| 下一步 | pending | 把 dry-run ledger 连接到 basketball / football 的真实 point、depth、contact、temporal runtime input bundle，做旧 residual parity；保持不 solve、不写 accepted、不引入 case dispatcher。 |
 
 当前主线目标收束为一句话：
 
@@ -1452,3 +1452,11 @@ YYYY-MM-DD:
 - change: 新增 generic `ResidualExecutionPlan`，从 `CompiledFactor` 和 `GenericResidualBoundary` 生成每个 factor 的 evaluator ref、input ids、gate provenance、ready / blocked 状态，并接入 `build_sequence_problem_shadow()`、diagnostics reads 和 golden summary。五个 canonical case 的 residual execution plan 均为 ready / not executed，blocked count 为 0。
 - verification: 先跑新增测试确认 RED：`ImportError: cannot import name 'build_generic_residual_execution_plan'`；实现后轻量范围 48 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
 - remaining gap: residual execution plan 仍不执行 residual 数值、不 solve、不写 accepted；下一步应选择球类通用 residual block 做数值执行 / 旧 residual parity，再推广到 mug / chair / stick。
+
+2026-07-29:
+
+- branch: `refactor/interaction-state-production`
+- commit: pending local commit after this update
+- change: 新增 generic `ResidualDryRunLedger`，可用显式 residual input bundle 调用 `FactorResidualEvaluator` 执行单个或多个 compiled factor residual，记录 residual count、RMS、residual hash 和 executed / skipped 状态；该接口不读取 case artifact、不使用 `case_name`、不 solve、不写 accepted output。当前只作为 parity 前置 capability，canonical 五 case manifest 仍保持 not-executed。
+- verification: 先跑新增测试确认 RED：`ImportError: cannot import name 'build_generic_residual_dry_run'`；实现后轻量范围 49 个 pytest 通过；`verify_sequence_problem_shadow.py`、`verify_sequence_solver_diagnostics.py`、`verify_candidate_sandbox.py` 通过。
+- remaining gap: dry-run 目前使用手工 input bundle，尚未从 basketball / football 的真实 MeasurementIR / ContactConstraintIR / state candidate 构造 runtime residual inputs；仍未做旧 residual parity、未 solve、未写 accepted output。

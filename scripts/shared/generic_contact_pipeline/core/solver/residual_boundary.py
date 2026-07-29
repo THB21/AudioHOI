@@ -3,7 +3,11 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict, dataclass
+from typing import Any
 
+import numpy as np
+
+from .factor_residuals import FactorResidualEvaluator
 from .runtime import GenericExecutorAttemptLedger
 
 
@@ -127,6 +131,52 @@ class GenericResidualExecutionPlan:
             raise ValueError("residual execution plan must not dispatch, execute residuals, solve, or write accepted outputs")
 
 
+@dataclass(frozen=True)
+class ResidualDryRunRecord:
+    factor_id: str
+    evaluator_ref: str
+    status: str
+    residual_count: int
+    rms: float
+    residual_sha256: str
+
+    def __post_init__(self) -> None:
+        if not self.factor_id or not self.evaluator_ref or not self.status:
+            raise ValueError("ResidualDryRunRecord requires factor id, evaluator ref, and status")
+        if self.status not in {"executed", "skipped_missing_inputs", "blocked_pending_residual"}:
+            raise ValueError("invalid residual dry-run status")
+        if self.residual_count < 0 or self.rms < 0.0:
+            raise ValueError("invalid residual dry-run metrics")
+
+
+@dataclass(frozen=True)
+class GenericResidualDryRunLedger:
+    schema_version: int
+    execution_plan_sha256: str
+    status: str
+    record_count: int
+    executed_count: int
+    skipped_count: int
+    records: tuple[ResidualDryRunRecord, ...]
+    case_dispatch_used: bool
+    residuals_executed: bool
+    solver_executed: bool
+    accepted_outputs_written: bool
+    canonical_sha256: str
+
+    def __post_init__(self) -> None:
+        if self.status != "residuals_executed_dry_run":
+            raise ValueError("residual dry-run ledger must use residuals_executed_dry_run status")
+        if self.record_count != len(self.records):
+            raise ValueError("residual dry-run record count mismatch")
+        if self.executed_count + self.skipped_count != self.record_count:
+            raise ValueError("residual dry-run executed/skipped count mismatch")
+        if self.case_dispatch_used or self.solver_executed or self.accepted_outputs_written:
+            raise ValueError("residual dry-run must not dispatch, solve, or write accepted outputs")
+        if self.residuals_executed != (self.executed_count > 0):
+            raise ValueError("residuals_executed must reflect whether any residual block executed")
+
+
 def _canonical_hash(value: object) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(payload).hexdigest()
@@ -154,6 +204,16 @@ def residual_execution_plan_record(record: ResidualExecutionPlanRecord) -> dict[
 def residual_execution_plan_ledger_record(plan: GenericResidualExecutionPlan) -> dict[str, object]:
     payload = asdict(plan)
     payload["records"] = [residual_execution_plan_record(record) for record in plan.records]
+    return payload
+
+
+def residual_dry_run_record(record: ResidualDryRunRecord) -> dict[str, object]:
+    return asdict(record)
+
+
+def residual_dry_run_ledger_record(ledger: GenericResidualDryRunLedger) -> dict[str, object]:
+    payload = asdict(ledger)
+    payload["records"] = [residual_dry_run_record(record) for record in ledger.records]
     return payload
 
 
@@ -284,6 +344,98 @@ def build_generic_residual_execution_plan(
         records=tuple(plan_records),
         case_dispatch_used=False,
         residuals_executed=False,
+        solver_executed=False,
+        accepted_outputs_written=False,
+        canonical_sha256=_canonical_hash(payload),
+    )
+
+
+def _array_kwargs(raw_kwargs: dict[str, Any]) -> dict[str, Any]:
+    kwargs: dict[str, Any] = {}
+    for key, value in raw_kwargs.items():
+        if isinstance(value, list):
+            kwargs[key] = np.asarray(value, dtype=float)
+        else:
+            kwargs[key] = value
+    return kwargs
+
+
+def _residual_hash(residual: np.ndarray) -> str:
+    payload = residual.astype(float).reshape(-1).tolist()
+    return _canonical_hash(payload)
+
+
+def build_generic_residual_dry_run(
+    execution_plan: GenericResidualExecutionPlan,
+    residual_inputs: dict[str, dict[str, Any]],
+) -> GenericResidualDryRunLedger:
+    evaluator = FactorResidualEvaluator()
+    dry_run_records: list[ResidualDryRunRecord] = []
+    for plan_record in execution_plan.records:
+        if plan_record.status != "ready_not_executed":
+            dry_run_records.append(
+                ResidualDryRunRecord(
+                    factor_id=plan_record.factor_id,
+                    evaluator_ref=plan_record.evaluator_ref,
+                    status="blocked_pending_residual",
+                    residual_count=0,
+                    rms=0.0,
+                    residual_sha256="",
+                )
+            )
+            continue
+        raw_kwargs = residual_inputs.get(plan_record.factor_id)
+        if raw_kwargs is None:
+            dry_run_records.append(
+                ResidualDryRunRecord(
+                    factor_id=plan_record.factor_id,
+                    evaluator_ref=plan_record.evaluator_ref,
+                    status="skipped_missing_inputs",
+                    residual_count=0,
+                    rms=0.0,
+                    residual_sha256="",
+                )
+            )
+            continue
+        method_name = plan_record.evaluator_ref.removeprefix("FactorResidualEvaluator.")
+        method = getattr(evaluator, method_name)
+        residual = np.asarray(method(**_array_kwargs(raw_kwargs)), dtype=float).reshape(-1)
+        rms = float(np.sqrt(np.mean(residual * residual))) if residual.size else 0.0
+        dry_run_records.append(
+            ResidualDryRunRecord(
+                factor_id=plan_record.factor_id,
+                evaluator_ref=plan_record.evaluator_ref,
+                status="executed",
+                residual_count=int(residual.size),
+                rms=rms,
+                residual_sha256=_residual_hash(residual),
+            )
+        )
+    executed = sum(1 for record in dry_run_records if record.status == "executed")
+    skipped = len(dry_run_records) - executed
+    payload = {
+        "schema_version": 1,
+        "execution_plan_sha256": execution_plan.canonical_sha256,
+        "status": "residuals_executed_dry_run",
+        "record_count": len(dry_run_records),
+        "executed_count": executed,
+        "skipped_count": skipped,
+        "records": [residual_dry_run_record(record) for record in dry_run_records],
+        "case_dispatch_used": False,
+        "residuals_executed": executed > 0,
+        "solver_executed": False,
+        "accepted_outputs_written": False,
+    }
+    return GenericResidualDryRunLedger(
+        schema_version=1,
+        execution_plan_sha256=execution_plan.canonical_sha256,
+        status="residuals_executed_dry_run",
+        record_count=len(dry_run_records),
+        executed_count=executed,
+        skipped_count=skipped,
+        records=tuple(dry_run_records),
+        case_dispatch_used=False,
+        residuals_executed=executed > 0,
         solver_executed=False,
         accepted_outputs_written=False,
         canonical_sha256=_canonical_hash(payload),

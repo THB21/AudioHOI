@@ -21,6 +21,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     build_generic_executor_runtime_plan,
     GenericSequenceExecutor,
     build_generic_residual_boundary,
+    build_generic_residual_dry_run,
     build_generic_residual_execution_plan,
     build_sequence_solver_shadow_diagnostics,
     validate_candidate_sandbox_manifest,
@@ -292,6 +293,69 @@ def test_generic_residual_execution_plan_records_inputs_without_executing() -> N
     )
     assert record.gate_provenance == ("activation_policy:audio_event_aligned",)
     assert record.status == "ready_not_executed"
+
+
+def test_generic_residual_dry_run_executes_factor_values_without_solving() -> None:
+    state_contract = {
+        "spec_id": "translation3:heldout_sphere",
+        "geometry_kind": "sphere",
+        "required_dofs": ["root.translation"],
+    }
+    measurement_shadow = {"measurements": {"count": 2, "canonical_sha256": "m" * 64}}
+    contact_shadow = {"constraints": {"count": 1, "canonical_sha256": "c" * 64}}
+    interaction_shadow = {"frame_count": 2, "canonical_sha256": "i" * 64}
+    compiled_factor_shadow = {
+        "count": 1,
+        "canonical_sha256": "f" * 64,
+        "records": [
+            {
+                "factor_id": "point_reprojection:center",
+                "kind": "point_reprojection",
+                "residual_fn_ref": "shadow_residual::point_reprojection",
+                "input_ids": ["state:StateSpec:root", "measurement:MeasurementIR:visual_observation"],
+                "gate_provenance": ["activation_policy:visible_free"],
+            },
+        ],
+    }
+    contract = build_sequence_problem_contract(
+        sample_id="heldout_sphere",
+        state_contract=state_contract,
+        measurement_shadow=measurement_shadow,
+        contact_shadow=contact_shadow,
+        interaction_shadow=interaction_shadow,
+        compiled_factor_shadow=compiled_factor_shadow,
+    )
+    runtime_plan = build_generic_executor_runtime_plan(contract, compiled_factor_shadow)
+    executor = GenericSequenceExecutor()
+    prepared = executor.prepare(contract, runtime_plan, compiled_factor_shadow)
+    attempt = executor.plan_attempt(contract, runtime_plan, prepared)
+    boundary = build_generic_residual_boundary(attempt, compiled_factor_shadow)
+    residual_plan = build_generic_residual_execution_plan(attempt, compiled_factor_shadow, boundary)
+
+    dry_run = build_generic_residual_dry_run(
+        residual_plan,
+        {
+            "point_reprojection:center": {
+                "predicted": [[12.0, 21.0], [29.0, 41.0]],
+                "target": [[10.0, 20.0], [30.0, 40.0]],
+                "weight": 2.0,
+                "sigma_px": 5.0,
+            }
+        },
+    )
+
+    assert dry_run.status == "residuals_executed_dry_run"
+    assert dry_run.residuals_executed is True
+    assert dry_run.solver_executed is False
+    assert dry_run.accepted_outputs_written is False
+    assert dry_run.executed_count == 1
+    assert dry_run.skipped_count == 0
+    record = dry_run.records[0]
+    assert record.factor_id == "point_reprojection:center"
+    assert record.status == "executed"
+    assert record.residual_count == 4
+    assert record.residual_sha256
+    assert record.rms > 0.0
 
 
 def test_sequence_problem_uses_profile_state_contract_not_object_pose_init() -> None:

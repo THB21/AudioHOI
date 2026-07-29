@@ -17,11 +17,13 @@ CHAIR_FACTOR_ATTEMPT_NAME = "chair_generic_factor_executor_attempt.json"
 CHAIR_FACTOR_RESIDUALS_NAME = "chair_generic_factor_residuals.json"
 CHAIR_FACTOR_CANDIDATE_NAME = "generic_chair_factor_candidate.csv"
 CHAIR_FACTOR_RESIDUAL_TABLE_NAME = "generic_chair_factor_residuals.csv"
+GENERIC_PROBLEM_PREPARATION_NAME = "generic_problem_preparation.json"
 CHAIR_FACTOR_SAFE_OUTPUTS = [
     CHAIR_FACTOR_ATTEMPT_NAME,
     CHAIR_FACTOR_RESIDUALS_NAME,
     CHAIR_FACTOR_CANDIDATE_NAME,
     CHAIR_FACTOR_RESIDUAL_TABLE_NAME,
+    GENERIC_PROBLEM_PREPARATION_NAME,
 ]
 CHAIR_SUPPORTED_RESIDUAL_BLOCKS = (
     "line_reprojection",
@@ -51,6 +53,22 @@ def _pairprop_metrics_path(result_dir: Path) -> Path:
 
 def _candidate_executor_metrics_path(candidate_dir: Path) -> Path:
     return candidate_dir / ".generic_chair_factor_executor_metrics.json"
+
+
+def _prepare_generic_problem(profile: CaseProfile, result_dir: Path, candidate_dir: Path) -> Path:
+    output = candidate_dir / GENERIC_PROBLEM_PREPARATION_NAME
+    cmd = [
+        runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
+        str(REPO / "scripts/shared/generic_contact_pipeline/tools/prepare_generic_object_problem.py"),
+        "--case",
+        profile.case_name,
+        "--result-name",
+        result_dir.name,
+        "--output",
+        str(output),
+    ]
+    subprocess.run(cmd, cwd=REPO, check=True, text=True, capture_output=True)
+    return output
 
 
 def _gated_contacts_path(result_dir: Path) -> Path:
@@ -232,6 +250,7 @@ def build_chair_factor_executor_candidate(
     solver_executed: bool = False,
     pose_path: Path | None = None,
     metrics_path: Path | None = None,
+    generic_preparation_path: Path | None = None,
 ) -> dict[str, object]:
     if profile.case_name != "chair":
         raise ValueError("chair factor executor candidate only supports the chair case")
@@ -248,6 +267,7 @@ def build_chair_factor_executor_candidate(
     materialized = status == "ready_for_candidate_executor" and bool(pose_rows) and bool(residual_rows)
     candidate_source = "isolated_chair_factor_executor" if solver_executed else str(repo_relative_value(pose_path))
     residual_source = "isolated_chair_factor_executor" if solver_executed else str(repo_relative_value(metrics_path))
+    preparation = _load_json(generic_preparation_path) if generic_preparation_path is not None else {}
     core = {
         "bundle_sha256": bundle["canonical_sha256"],
         "contact_diagnostics_sha256": diagnostics["canonical_sha256"],
@@ -264,6 +284,9 @@ def build_chair_factor_executor_candidate(
         "candidate_pose_rows": len(pose_rows),
         "residual_rows": len(residual_rows),
         "solver_executed": solver_executed,
+        "generic_problem_preparation_sha256": (
+            _sha256(generic_preparation_path) if generic_preparation_path is not None else None
+        ),
         "executor_scope": "isolated_candidate_dir" if solver_executed else "source_artifact_materialization",
     }
     canonical = _canonical_hash(core)
@@ -305,6 +328,14 @@ def build_chair_factor_executor_candidate(
             "seed_policy": diagnostics["summary"]["seed_policy"],
             "compatibility_gap_status": diagnostics["compatibility_gap_status"],
         },
+        "generic_problem_preparation": {
+            "mode": preparation.get("mode"),
+            "selected_factor_ids": preparation.get("problem", {}).get("selected_factor_ids", []),
+            "case_dispatch_used": preparation.get("case_dispatch_used"),
+            "human_state_optimized": preparation.get("human_state_optimized"),
+            "accepted_outputs_written": preparation.get("accepted_outputs_written"),
+            "source_sha256": _sha256(generic_preparation_path) if generic_preparation_path is not None else None,
+        },
         "blocking_reasons": list(bundle.get("blocking_reasons", [])),
         "validation_errors": bundle_errors + diagnostics_errors,
         "planned_outputs": list(CHAIR_FACTOR_SAFE_OUTPUTS),
@@ -321,6 +352,12 @@ def validate_chair_factor_executor_candidate(attempt: dict[str, object]) -> list
         errors.append("chair factor candidate must not write accepted outputs")
     if attempt.get("baseline_pose_read") is not False:
         errors.append("chair factor candidate must not read baseline pose")
+    preparation = attempt.get("generic_problem_preparation", {})
+    if attempt.get("solver_executed") is True or preparation.get("source_sha256") is not None:
+        if preparation.get("mode") != "generic_object_sequence_problem_preparation":
+            errors.append("executed chair factor candidate must use the generic SequenceProblemFactory path")
+        elif preparation.get("case_dispatch_used") is not False or preparation.get("human_state_optimized") is not False:
+            errors.append("generic chair preparation must remain case-independent and object-only")
     if attempt.get("solver_executed") is True and attempt.get("executor_scope") != "isolated_candidate_dir":
         errors.append("executed chair factor candidate must record isolated_candidate_dir scope")
     planned = attempt.get("planned_outputs", [])
@@ -418,6 +455,8 @@ def prepare_chair_factor_executor_candidate(
     *,
     execute_solver: bool = False,
 ) -> dict[str, object]:
+    candidate_dir.mkdir(parents=True, exist_ok=True)
+    generic_preparation_path = _prepare_generic_problem(profile, result_dir, candidate_dir)
     executed_pose_path: Path | None = None
     executed_metrics_path: Path | None = None
     if execute_solver:
@@ -429,6 +468,7 @@ def prepare_chair_factor_executor_candidate(
         solver_executed=execute_solver,
         pose_path=executed_pose_path,
         metrics_path=executed_metrics_path,
+        generic_preparation_path=generic_preparation_path,
     )
     errors = validate_chair_factor_executor_candidate(attempt)
     if errors:
@@ -437,7 +477,6 @@ def prepare_chair_factor_executor_candidate(
     residual_errors = validate_chair_factor_residual_coverage(residuals)
     if residual_errors:
         raise ValueError("; ".join(residual_errors))
-    candidate_dir.mkdir(parents=True, exist_ok=True)
     if attempt.get("status") == "ready_for_candidate_executor":
         if not execute_solver:
             copy_file(_pairprop_pose_path(result_dir), candidate_dir / CHAIR_FACTOR_CANDIDATE_NAME)

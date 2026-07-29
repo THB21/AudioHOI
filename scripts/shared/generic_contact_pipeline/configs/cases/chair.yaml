@@ -2,6 +2,7 @@ case_name: chair
 sample_dir: samples_known_object/05_chair
 object_family: articulated_support_object
 geometry_model: articraft_chair_urdf
+geometry_asset_descriptor: scripts/shared/generic_contact_pipeline/configs/assets/chair_articulated.json
 observation_model: semantic_graph_tracks
 contact_policy: two_hand_toprail_endpoint
 pose_model: semantic_graph_6d

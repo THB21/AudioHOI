@@ -117,7 +117,8 @@
         "generic_chair_factor_candidate.csv",
         "generic_chair_factor_residuals.csv",
         "chair_generic_factor_executor_attempt.json",
-        "chair_generic_factor_residuals.json"
+        "chair_generic_factor_residuals.json",
+        "generic_problem_preparation.json"
       ],
       "artifacts": {
         "generic_chair_factor_candidate.csv": {
@@ -140,6 +141,9 @@
         },
         "chair_generic_factor_residuals.json": {
           "sha256": "7588d93992838fa1386197deda0beb711c714623059e52173a18925c46a87cb6"
+        },
+        "generic_problem_preparation.json": {
+          "sha256": "4365f45778da428bc615cff31497510767efadb26dc17f2c9ff54d7210fbc9c8"
         }
       }
     },

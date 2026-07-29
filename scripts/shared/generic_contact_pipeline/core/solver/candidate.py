@@ -33,6 +33,7 @@ CHAIR_SANDBOX_ARTIFACTS = [
     "generic_chair_factor_residuals.csv",
     "chair_generic_factor_executor_attempt.json",
     "chair_generic_factor_residuals.json",
+    "generic_problem_preparation.json",
 ]
 MUG_PERIODIC_SANDBOX_ARTIFACTS = [
     SANDBOX_MANIFEST_NAME,

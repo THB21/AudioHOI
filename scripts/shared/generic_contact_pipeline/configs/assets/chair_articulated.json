@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "geometry_kind": "articulated_urdf",
+  "resource_path": "samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/model.urdf",
+  "semantic_segments_artifact": "object_local_segments.csv",
+  "feature_segments": {
+    "backrest:top_edge": "backrest_top_edge",
+    "seat:front_edge": "seat_front_edge",
+    "leg:front_left": "front_leg_left",
+    "leg:front_right": "front_leg_right",
+    "leg:rear_left": "rear_leg_left",
+    "leg:rear_right": "rear_leg_right"
+  },
+  "articulation_rules": [
+    {
+      "rule_id": "rear_link",
+      "urdf_joint": "front_to_rear",
+      "state_dof_id": "joint.front_to_rear",
+      "parts": ["rear_leg", "rear_stretcher"],
+      "segment_ids": ["rear_feet_line", "rear_lower_stretcher"],
+      "endpoint_selector": "all"
+    },
+    {
+      "rule_id": "side_stretcher_rear_endpoint",
+      "urdf_joint": "front_to_rear",
+      "state_dof_id": "joint.front_to_rear",
+      "parts": ["side_stretcher"],
+      "segment_ids": ["side_lower_stretcher"],
+      "endpoint_selector": "max_y"
+    },
+    {
+      "rule_id": "seat_link",
+      "urdf_joint": "front_to_seat",
+      "state_dof_id": "joint.front_to_seat",
+      "parts": ["seat", "seat_slat"],
+      "segment_ids": ["seat_hinge_edge"],
+      "endpoint_selector": "all"
+    }
+  ]
+}

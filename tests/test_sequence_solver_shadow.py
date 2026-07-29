@@ -716,6 +716,7 @@ def test_candidate_sandbox_manifest_allows_ready_ball_and_chair_cases() -> None:
         "generic_chair_factor_residuals.csv",
         "chair_generic_factor_executor_attempt.json",
         "chair_generic_factor_residuals.json",
+        "generic_problem_preparation.json",
     ]
     assert chair["blocking_gap_ids"] == []
     assert chair["nonblocking_gap_ids"] == []
@@ -812,6 +813,7 @@ def test_candidate_sandbox_materialize_writes_chair_safe_candidate_artifacts(tmp
         "generic_chair_factor_residuals.csv",
         "chair_generic_factor_executor_attempt.json",
         "chair_generic_factor_residuals.json",
+        "generic_problem_preparation.json",
     }
     attempt = json.loads((candidate_dir / "chair_generic_factor_executor_attempt.json").read_text())
     assert attempt["solver_executed"] is True

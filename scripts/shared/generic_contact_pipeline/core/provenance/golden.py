@@ -105,7 +105,7 @@ def _input_records(profile: Any, *, input_root: Path | None = None) -> list[dict
     ]
     for value in profile.baseline.values():
         paths.append(_repo_path_from_recorded(str(value)))
-    for key in ("articraft_model_py", "articraft_urdf"):
+    for key in ("articraft_model_py", "articraft_urdf", "geometry_asset_descriptor"):
         if profile.data.get(key):
             paths.append(_repo_path_from_recorded(str(profile.data[key])))
     stage0_manifest = stage_paths(profile)["stage0_inputs_manifest"]

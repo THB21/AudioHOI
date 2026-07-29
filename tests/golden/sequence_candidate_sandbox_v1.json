@@ -66,9 +66,10 @@
         "generic_chair_factor_candidate.csv",
         "generic_chair_factor_residuals.csv",
         "chair_generic_factor_executor_attempt.json",
-        "chair_generic_factor_residuals.json"
+        "chair_generic_factor_residuals.json",
+        "generic_problem_preparation.json"
       ],
-      "canonical_sha256": "b83144bf6611d8d8fdcbf6c6b7b6fd0ebdbe9d3d37797a53e40e6346f815c286"
+      "canonical_sha256": "5db56a381b9c7be8cfce61162ba9a8699825ff5a2418f6081f88a1d0ccbae2d7"
     },
     "stick": {
       "status": "sandbox_ready",

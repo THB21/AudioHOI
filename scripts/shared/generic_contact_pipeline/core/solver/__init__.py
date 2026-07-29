@@ -82,6 +82,11 @@ from .problem_factory import (
     SequenceProblemPreparation,
     sequence_problem_preparation_record,
 )
+from .legacy_production_problem import (
+    LegacyObjectProblemPreparation,
+    legacy_object_problem_preparation_record,
+    prepare_legacy_articulated_object_problem,
+)
 from .optimization import (
     GenericSequenceSolveResult,
     SequenceOptimizationParameters,
@@ -204,6 +209,7 @@ __all__ = [
     "ISOLATED_ATTEMPT_FILENAMES",
     "IsolatedAttemptState",
     "LineReprojectionFactorInput",
+    "LegacyObjectProblemPreparation",
     "SupportPlaneFactorInput",
     "PeriodicPhaseFactorInput",
     "PosePriorFactorInput",
@@ -268,6 +274,7 @@ __all__ = [
     "solve_sequence_optimization",
     "sequence_problem_preparation_record",
     "load_isolated_attempt_state",
+    "legacy_object_problem_preparation_record",
     "update_isolated_attempt_evidence",
     "write_isolated_sequence_attempt",
     "build_sequence_solver_shadow_diagnostics",
@@ -306,6 +313,7 @@ __all__ = [
     "apply_rigid_contact_hypotheses",
     "rigid_contact_hypothesis_ledger_record",
     "prepare_result_record",
+    "prepare_legacy_articulated_object_problem",
     "attempt_ledger_record",
     "residual_boundary_ledger_record",
     "residual_boundary_record",

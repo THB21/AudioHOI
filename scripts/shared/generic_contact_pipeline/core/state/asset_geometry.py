@@ -1,0 +1,176 @@
+"""Build geometry providers from asset descriptors and typed feature artifacts."""
+from __future__ import annotations
+
+import csv
+import hashlib
+import json
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Mapping, Sequence
+
+import numpy as np
+
+from ..contact_constraints import ContactConstraint, LocalXYZ
+from .articulated import ArticulatedKinematicProvider, SegmentJointRule
+from .geometry_provider import ArticulatedFeatureGeometryProvider
+from .types import StateSpec
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _canonical_hash(value: object) -> str:
+    payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _vector(text: str | None, label: str) -> np.ndarray:
+    values = np.asarray([float(value) for value in str(text or "").split()], dtype=float)
+    if values.shape != (3,) or not np.isfinite(values).all():
+        raise ValueError(f"{label} must contain three finite values")
+    return values
+
+
+def _state_indices(state_spec: StateSpec) -> dict[str, int]:
+    indices: dict[str, int] = {}
+    offset = 0
+    for dof in state_spec.dofs:
+        if dof.dimension == 1:
+            indices[dof.dof_id] = offset
+        offset += dof.dimension
+    return indices
+
+
+@dataclass(frozen=True)
+class AssetGeometryBuildResult:
+    provider: ArticulatedFeatureGeometryProvider
+    descriptor_path: str
+    descriptor_sha256: str
+    resource_path: str
+    resource_sha256: str
+    semantic_segments_path: str
+    semantic_segments_sha256: str
+    feature_ids: tuple[str, ...]
+    contact_feature_ids: tuple[str, ...]
+    case_dispatch_used: bool
+    canonical_sha256: str
+
+    def __post_init__(self) -> None:
+        if self.case_dispatch_used:
+            raise ValueError("asset geometry construction cannot use case dispatch")
+        if not self.feature_ids:
+            raise ValueError("asset geometry construction requires semantic features")
+
+
+def build_articulated_geometry_from_asset_descriptor(
+    *,
+    descriptor_path: Path,
+    repository_root: Path,
+    result_dir: Path,
+    state_spec: StateSpec,
+    contact_constraints: Sequence[ContactConstraint] = (),
+) -> AssetGeometryBuildResult:
+    descriptor = json.loads(descriptor_path.read_text())
+    if descriptor.get("schema_version") != 1 or descriptor.get("geometry_kind") != "articulated_urdf":
+        raise ValueError("unsupported asset geometry descriptor")
+    resource_path = repository_root / str(descriptor["resource_path"])
+    segments_path = result_dir / str(descriptor["semantic_segments_artifact"])
+    if not resource_path.is_file() or not segments_path.is_file():
+        raise FileNotFoundError("asset descriptor resource or semantic segment artifact is missing")
+
+    segments: dict[str, tuple[str, np.ndarray]] = {}
+    with segments_path.open(newline="") as handle:
+        for row in csv.DictReader(handle):
+            segment_id = str(row["segment_id"])
+            points = np.asarray(
+                [
+                    [float(row[f"start_local_{axis}"]) for axis in "xyz"],
+                    [float(row[f"end_local_{axis}"]) for axis in "xyz"],
+                ],
+                dtype=float,
+            )
+            if segment_id in segments or not np.isfinite(points).all():
+                raise ValueError(f"invalid or duplicate semantic segment: {segment_id}")
+            segments[segment_id] = (str(row["part"]), points)
+
+    feature_points: dict[str, Sequence[Sequence[float]]] = {}
+    feature_parts: dict[str, str] = {}
+    for feature_id, segment_id in dict(descriptor["feature_segments"]).items():
+        if str(segment_id) not in segments:
+            raise ValueError(f"asset feature references missing semantic segment: {segment_id}")
+        part, points = segments[str(segment_id)]
+        feature_points[str(feature_id)] = points
+        feature_parts[str(feature_id)] = part
+
+    contact_feature_ids: set[str] = set()
+    for constraint in contact_constraints:
+        coordinate = constraint.object_coordinate
+        if not isinstance(coordinate, LocalXYZ):
+            continue
+        feature_id = constraint.object_feature.geometry_feature_id
+        point = [[coordinate.x_m, coordinate.y_m, coordinate.z_m]]
+        existing = feature_points.get(feature_id)
+        if existing is not None and not np.allclose(np.asarray(existing, dtype=float), point, atol=1e-9):
+            raise ValueError(f"contact feature has inconsistent LocalXYZ coordinates: {feature_id}")
+        feature_points[feature_id] = point
+        feature_parts[feature_id] = constraint.object_feature.semantic_role
+        contact_feature_ids.add(feature_id)
+
+    root = ET.parse(resource_path).getroot()
+    urdf_joints = {str(node.attrib.get("name", "")): node for node in root.findall("joint")}
+    state_indices = _state_indices(state_spec)
+    joint_state_indices: dict[str, int] = {}
+    rules: list[SegmentJointRule] = []
+    for raw_rule in descriptor["articulation_rules"]:
+        urdf_joint = str(raw_rule["urdf_joint"])
+        state_dof_id = str(raw_rule["state_dof_id"])
+        node = urdf_joints.get(urdf_joint)
+        if node is None or state_dof_id not in state_indices:
+            raise ValueError(f"asset articulation rule cannot resolve joint: {urdf_joint}/{state_dof_id}")
+        origin_node = node.find("origin")
+        axis_node = node.find("axis")
+        origin = _vector(origin_node.attrib.get("xyz") if origin_node is not None else None, "joint origin")
+        axis = _vector(axis_node.attrib.get("xyz") if axis_node is not None else None, "joint axis")
+        joint_state_indices[state_dof_id] = state_indices[state_dof_id]
+        rules.append(
+            SegmentJointRule(
+                rule_id=str(raw_rule["rule_id"]),
+                joint_id=state_dof_id,
+                parts=tuple(str(value) for value in raw_rule.get("parts", ())),
+                segment_ids=tuple(str(value) for value in raw_rule.get("segment_ids", ())),
+                origin=origin,
+                axis=axis,
+                endpoint_selector=str(raw_rule.get("endpoint_selector", "all")),
+            )
+        )
+
+    provider = ArticulatedFeatureGeometryProvider(
+        feature_points_local=feature_points,
+        feature_parts=feature_parts,
+        kinematic_provider=ArticulatedKinematicProvider(tuple(rules)),
+        joint_state_indices=joint_state_indices,
+    )
+    payload = {
+        "descriptor_sha256": _sha256(descriptor_path),
+        "resource_sha256": _sha256(resource_path),
+        "semantic_segments_sha256": _sha256(segments_path),
+        "state_spec_id": state_spec.spec_id,
+        "feature_ids": sorted(feature_points),
+        "contact_feature_ids": sorted(contact_feature_ids),
+        "case_dispatch_used": False,
+    }
+    return AssetGeometryBuildResult(
+        provider=provider,
+        descriptor_path=str(descriptor_path),
+        descriptor_sha256=payload["descriptor_sha256"],
+        resource_path=str(resource_path),
+        resource_sha256=payload["resource_sha256"],
+        semantic_segments_path=str(segments_path),
+        semantic_segments_sha256=payload["semantic_segments_sha256"],
+        feature_ids=tuple(sorted(feature_points)),
+        contact_feature_ids=tuple(sorted(contact_feature_ids)),
+        case_dispatch_used=False,
+        canonical_sha256=_canonical_hash(payload),
+    )

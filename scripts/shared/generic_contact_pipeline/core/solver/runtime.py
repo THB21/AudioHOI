@@ -4,6 +4,12 @@ import hashlib
 import json
 from dataclasses import asdict, dataclass
 
+from .optimization import (
+    GenericSequenceSolveResult,
+    SequenceOptimizationParameters,
+    SequenceOptimizationProblem,
+    solve_sequence_optimization,
+)
 from .problem_contract import SequenceProblemContract
 
 
@@ -152,6 +158,13 @@ class GenericSequenceExecutor:
             attempt_id=f"generic-attempt-{attempt_hash[:12]}",
             canonical_sha256=_canonical_hash({"attempt_id": f"generic-attempt-{attempt_hash[:12]}", **payload}),
         )
+
+    def solve(
+        self,
+        problem: SequenceOptimizationProblem,
+        parameters: SequenceOptimizationParameters = SequenceOptimizationParameters(),
+    ) -> GenericSequenceSolveResult:
+        return solve_sequence_optimization(problem, parameters)
 
 
 def _canonical_hash(value: object) -> str:

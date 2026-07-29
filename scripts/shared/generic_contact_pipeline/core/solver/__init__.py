@@ -61,6 +61,13 @@ from .candidate_golden import (
     verify_candidate_sandbox_summary,
 )
 from .problem import build_sequence_problem_shadow
+from .optimization import (
+    GenericSequenceSolveResult,
+    SequenceOptimizationParameters,
+    SequenceOptimizationProblem,
+    build_runtime_residual_vector,
+    solve_sequence_optimization,
+)
 from .problem_contract import SequenceProblemContract, build_sequence_problem_contract, sequence_problem_contract_record
 from .runtime import (
     GenericExecutorAttemptLedger,
@@ -166,6 +173,7 @@ __all__ = [
     "GenericExecutorAttemptLedger",
     "GenericResidualBoundary",
     "GenericSequenceExecutor",
+    "GenericSequenceSolveResult",
     "JointLimitFactorInput",
     "LineReprojectionFactorInput",
     "SupportPlaneFactorInput",
@@ -190,6 +198,8 @@ __all__ = [
     "ProjectedPeriodicSolution",
     "RigidCorrespondenceInitializer",
     "SequenceProblemContract",
+    "SequenceOptimizationParameters",
+    "SequenceOptimizationProblem",
     "SphereSequenceParameters",
     "build_candidate_sandbox_manifest",
     "build_audio_event_alignment_residual_inputs",
@@ -208,12 +218,14 @@ __all__ = [
     "build_periodic_phase_prior_residual_inputs",
     "build_pose_prior_residual_inputs",
     "build_residual_input_bundle",
+    "build_runtime_residual_vector",
     "build_sequence_temporal_residual_inputs",
     "build_state_regularization_residual_inputs",
     "build_world_space_contact_residual_inputs",
     "build_world_space_contact_sample_residual_inputs",
     "build_sequence_problem_shadow",
     "build_sequence_problem_contract",
+    "solve_sequence_optimization",
     "build_sequence_solver_shadow_diagnostics",
     "build_sphere_sequence_regression_summary",
     "build_projected_periodic_regression_summary",

@@ -131,7 +131,8 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
     gvhmr_tool = REPO / "scripts/shared/human/gvhmr/run_gvhmr.py"
     da3_root = Path(os.environ.get("AUDIOHOI_DA3_ROOT", REPO / "third-party/Depth-Anything-3"))
     da3_cli = da3_root / "src/depth_anything_3/cli.py"
-    da3_model = str(preprocess.get("da3_model", ""))
+    da3_model = str(preprocess.get("da3_model", "depth-anything/DA3METRIC-LARGE"))
+    da3_chunk_size = int(preprocess.get("da3_chunk_size", 16))
     gvhmr_checkpoint = REPO / "third-party/GVHMR/inputs/checkpoints/gvhmr/gvhmr_siga24_release.ckpt"
     frame_args = ("--sample-dir", str(sample), "--kind", "frames")
     audio_args = ("--sample-dir", str(sample), "--kind", "audio")
@@ -153,8 +154,7 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
     if preprocess.get("tracker_resize_width"):
         cotracker_args.extend(("--resize-width", str(preprocess["tracker_resize_width"])))
     da3_args = ["--sample-dir", str(sample), "--da3-root", str(da3_root)]
-    if da3_model:
-        da3_args.extend(("--model-dir", da3_model))
+    da3_args.extend(("--model-dir", da3_model, "--chunk-size", str(da3_chunk_size)))
     if preprocess.get("da3_process_res"):
         da3_args.extend(("--process-res", str(preprocess["da3_process_res"])))
     gvhmr_args = ["--sample-dir", str(sample), "--fps", str(int(round(fps or 30.0)))]
@@ -208,8 +208,8 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
         _task(
             "da3", "da3", ("frame_extract",), (frames, ArtifactSpec("da3_cli", da3_cli)), (depth,),
             _runtime_command("da3", da3_tool, *da3_args),
-            config={"process_res": preprocess.get("da3_process_res", 504), "da3_root": str(da3_root)},
-            model={"model": da3_model or "default"}, validator=lambda count: _validate_da3(depth.path, count),
+            config={"process_res": preprocess.get("da3_process_res", 504), "chunk_size": da3_chunk_size, "da3_root": str(da3_root)},
+            model={"model": da3_model}, validator=lambda count: _validate_da3(depth.path, count),
         ),
         _task(
             "gvhmr", "gvhmr", ("frame_extract",),

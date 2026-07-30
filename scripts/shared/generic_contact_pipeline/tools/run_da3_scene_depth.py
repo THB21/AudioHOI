@@ -8,7 +8,6 @@ import hashlib
 import json
 import os
 import shutil
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -18,14 +17,7 @@ import numpy as np
 
 REPO = Path(__file__).resolve().parents[4]
 DEFAULT_DA3_ROOT = REPO / "third-party/Depth-Anything-3"
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+DEFAULT_MODEL = "depth-anything/DA3METRIC-LARGE"
 
 
 def _frame_files(frames_dir: Path) -> list[Path]:
@@ -54,6 +46,7 @@ def generate_scene_depth(
     da3_root: Path,
     model_dir: str,
     process_res: int,
+    chunk_size: int,
 ) -> dict[str, object]:
     sample_dir = sample_dir.resolve()
     da3_root = da3_root.resolve()
@@ -69,45 +62,33 @@ def generate_scene_depth(
     results_dir.mkdir(parents=True, exist_ok=True)
     work = Path(tempfile.mkdtemp(prefix="audiohoi-da3-", dir=str(results_dir)))
     normalized = work / "scene_depth"
-    export_dir = work / "da3_export"
-    env = os.environ.copy()
-    python_path = str(da3_root / "src")
-    env["PYTHONPATH"] = python_path + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
-    command = [
-        sys.executable,
-        "-m",
-        "depth_anything_3.cli",
-        "images",
-        str(frames_dir),
-        "--export-dir",
-        str(export_dir),
-        "--export-format",
-        "mini_npz",
-        "--process-res",
-        str(process_res),
-        "--auto-cleanup",
-    ]
-    if model_dir:
-        command.extend(("--model-dir", model_dir))
+    if chunk_size <= 0:
+        raise ValueError("DA3 chunk size must be positive")
+    sys.path.insert(0, str(da3_root / "src"))
     try:
-        completed = subprocess.run(
-            command,
-            cwd=da3_root,
-            env=env,
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-        if completed.returncode != 0:
-            raise RuntimeError(
-                "DA3 inference failed: "
-                + (completed.stderr or completed.stdout or f"return code {completed.returncode}")[-4000:]
+        import torch
+        from depth_anything_3.api import DepthAnything3
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model = DepthAnything3.from_pretrained(model_dir).to(device).eval()
+        chunks: list[np.ndarray] = []
+        for start in range(0, len(frames), chunk_size):
+            selected = frames[start : start + chunk_size]
+            prediction = model.inference(
+                image=[str(path) for path in selected],
+                process_res=process_res,
+                export_dir=None,
             )
-        result_npz = export_dir / "exports/mini_npz/results.npz"
-        if not result_npz.is_file():
-            raise FileNotFoundError(f"DA3 did not write expected mini NPZ: {result_npz}")
-        with np.load(result_npz) as archive:
-            depth = np.asarray(archive["depth"], dtype=np.float32)
+            values = np.asarray(prediction.depth, dtype=np.float32)
+            if values.ndim != 3 or values.shape[0] != len(selected):
+                raise ValueError(
+                    f"DA3 chunk depth shape {values.shape} does not match {len(selected)} frames"
+                )
+            chunks.append(values)
+            del prediction
+            if device == "cuda":
+                torch.cuda.empty_cache()
+        depth = np.concatenate(chunks, axis=0)
         if depth.ndim != 3 or depth.shape[0] != len(frames):
             raise ValueError(
                 f"DA3 depth shape {depth.shape} does not match {len(frames)} input frames"
@@ -115,7 +96,12 @@ def generate_scene_depth(
         if not np.isfinite(depth).all():
             raise ValueError("DA3 depth contains non-finite values")
         normalized.mkdir(parents=True)
-        source_hash = _sha256(result_npz)
+        digest = hashlib.sha256()
+        digest.update(model_dir.encode())
+        digest.update(str(process_res).encode())
+        for values in depth:
+            digest.update(np.ascontiguousarray(values).tobytes())
+        source_hash = digest.hexdigest()
         index_rows: list[dict[str, object]] = []
         for frame, values in enumerate(depth, start=1):
             filename = f"{frame:05d}.npy"
@@ -124,7 +110,7 @@ def generate_scene_depth(
                 {
                     "frame": frame,
                     "file": filename,
-                    "source_file": f"da3_mini_npz:{source_hash}:depth[{frame - 1}]",
+                    "source_file": f"da3_chunked_metric:{source_hash}:depth[{frame - 1}]",
                     "storage": "unpacked",
                 }
             )
@@ -145,11 +131,12 @@ def generate_scene_depth(
             "output": str(target),
             "frame_count": len(frames),
             "depth_shape": list(depth.shape),
-            "source_npz_sha256": source_hash,
+            "normalized_depth_sha256": source_hash,
             "da3_root": str(da3_root),
-            "model_dir": model_dir or "default",
+            "model_dir": model_dir,
             "process_res": process_res,
-            "command": command,
+            "chunk_size": chunk_size,
+            "device": device,
         }
         (target / "generation_summary.json").write_text(
             json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
@@ -163,8 +150,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sample-dir", type=Path, required=True)
     parser.add_argument("--da3-root", type=Path, default=DEFAULT_DA3_ROOT)
-    parser.add_argument("--model-dir", default="")
+    parser.add_argument("--model-dir", default=DEFAULT_MODEL)
     parser.add_argument("--process-res", type=int, default=504)
+    parser.add_argument("--chunk-size", type=int, default=16)
     args = parser.parse_args()
     print(
         json.dumps(
@@ -173,6 +161,7 @@ def main() -> None:
                 da3_root=args.da3_root,
                 model_dir=args.model_dir,
                 process_res=args.process_res,
+                chunk_size=args.chunk_size,
             ),
             ensure_ascii=False,
             sort_keys=True,

@@ -54,6 +54,7 @@ render_backend: urdf_solid
 render_scene: generic_urdf
 result_name: generic_pipeline_v1
 preprocess:
+  static_camera: true
   detector_model: IDEA-Research/grounding-dino-tiny
   detector_text: wooden staff.
   segmenter_model: facebook/sam2.1-hiera-tiny

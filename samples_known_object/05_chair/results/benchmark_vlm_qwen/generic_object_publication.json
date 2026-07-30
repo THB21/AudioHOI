@@ -1,0 +1,48 @@
+{
+  "accepted_path": "/mnt/hdd/AudioHOI-interaction-state-production/samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose.csv",
+  "accepted_sha256": "d60c66ec55637d6cdf182d0c7d586a739ee68b3da70b8304876ef84d90ab05b7",
+  "attempt_dir": "/tmp/audiohoi-chair-support-gauge-solve/generic_sequence_solver_attempts/generic-solve-a3ee3bf3ab65",
+  "automatic_hard_gate": {
+    "blocking_reasons": [
+      "solver_not_converged_or_stationary",
+      "point_projection_p95_px_failed",
+      "projection_p95_px_failed"
+    ],
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px",
+      "projection_p95_px",
+      "contact_distance_normalized_rmse",
+      "contact_gap_p95_m",
+      "contact_gap_max_m"
+    ],
+    "passed": false
+  },
+  "candidate_path": "/tmp/audiohoi-chair-support-gauge-solve/generic_object_pose_candidate.csv",
+  "candidate_sha256": "d60c66ec55637d6cdf182d0c7d586a739ee68b3da70b8304876ef84d90ab05b7",
+  "case_dispatch_used": false,
+  "hard_gate": {
+    "blocking_reasons": [],
+    "gate_ids": [
+      "manual_full_video_3d_render_acceptance",
+      "explicit_promotion_authorized"
+    ],
+    "passed": true
+  },
+  "human_state_optimized": false,
+  "manual_override": {
+    "authorization_text": "通过 chair",
+    "authorized": true,
+    "automatic_failures_preserved": [
+      "solver_not_converged_or_stationary",
+      "point_projection_p95_px_failed",
+      "projection_p95_px_failed"
+    ],
+    "scope": "full_video_3d_render_visual_acceptance"
+  },
+  "schema_version": 1,
+  "solve_attempt_id": "generic-solve-a3ee3bf3ab65",
+  "status": "accepted"
+}

@@ -46,6 +46,8 @@ from .residual_inputs import (
     build_sequence_temporal_residual_inputs,
     build_state_regularization_residual_inputs,
     build_world_space_contact_residual_inputs,
+    build_world_space_contact_relative_velocity_residual_inputs,
+    build_world_space_contact_twist_gauge_residual_inputs,
     build_world_space_contact_sample_residual_inputs,
 )
 from .candidate import (
@@ -262,6 +264,8 @@ __all__ = [
     "SphereSequenceParameters",
     "build_candidate_sandbox_manifest",
     "build_audio_event_alignment_residual_inputs",
+    "build_world_space_contact_relative_velocity_residual_inputs",
+    "build_world_space_contact_twist_gauge_residual_inputs",
     "build_canonical_candidate_sandbox_summary",
     "build_materialized_candidate_summary",
     "build_canonical_sequence_problem_summary",

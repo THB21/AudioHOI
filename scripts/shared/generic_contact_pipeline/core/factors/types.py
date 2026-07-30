@@ -12,6 +12,8 @@ class FactorKind(str, Enum):
     METRIC_DEPTH = "metric_depth"
     DEPTH_ORDER = "depth_order"
     CONTACT_DISTANCE = "contact_distance"
+    CONTACT_RELATIVE_VELOCITY = "contact_relative_velocity"
+    CONTACT_TWIST_GAUGE = "contact_twist_gauge"
     SUPPORT_AND_PENETRATION = "support_and_penetration"
     TEMPORAL_VELOCITY = "temporal_velocity"
     TEMPORAL_ACCELERATION = "temporal_acceleration"

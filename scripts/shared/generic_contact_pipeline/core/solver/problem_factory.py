@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from typing import Mapping, Sequence
 
 from ..contact_constraints import ContactConstraint
@@ -61,11 +61,10 @@ def _project_static_interval_initial_states(
 ) -> dict[int, tuple[float, ...]]:
     """Make initialization obey generic supported-static state boundaries.
 
-    A leading static interval uses its first state as the anchor.  A later
-    static interval inherits the immediately preceding state, which represents
-    the pose at which motion stopped.  The first moving frame after a leading
-    static interval also inherits that anchor so a contact-state transition
-    cannot create an initialization discontinuity.
+    Initialization carries the preceding moving pose into a later static
+    interval to avoid a missing-observation jump.  The runtime static residual
+    still anchors to the first supported state itself, so support geometry can
+    move that state and the full frozen tail together.
     """
 
     projected = {
@@ -104,6 +103,43 @@ def _project_static_interval_initial_states(
     return projected
 
 
+def _freeze_support_proximity_gates(
+    factor_inputs: "SequenceFactorInputs",
+    states: Mapping[int, Sequence[float]],
+) -> "SequenceFactorInputs":
+    """Freeze geometry-derived support gates against the final initializer."""
+
+    support_factors: dict[str, SupportPlaneFactorInput] = {}
+    for factor_id, factor in factor_inputs.support_plane_factors.items():
+        if factor.proximity_gate_m is None:
+            support_factors[factor_id] = factor
+            continue
+        weights = dict(factor.activation_weight_by_frame or {})
+        statuses = factor.activation_status_by_frame or {}
+        for frame, status in statuses.items():
+            if status == "active" or frame not in states:
+                continue
+            distances = [
+                abs(float(value))
+                for feature_id in factor.support_feature_ids
+                for value in factor.plane.signed_distance(
+                    factor.geometry_provider.feature_points_world(states[frame], feature_id)
+                )
+            ]
+            nearest = min(distances)
+            weights[frame] = float(weights.get(frame, 0.0)) * max(
+                0.0,
+                min(1.0, 1.0 - nearest / float(factor.proximity_gate_m)),
+            )
+        support_factors[factor_id] = replace(
+            factor,
+            active_frames=tuple(frame for frame in sorted(weights) if weights[frame] > 0.0),
+            activation_weight_by_frame=weights,
+            proximity_gate_m=None,
+        )
+    return replace(factor_inputs, support_plane_factors=support_factors)
+
+
 @dataclass(frozen=True)
 class SequenceFactorInputs:
     """Factor-id keyed typed inputs; no object identity or case dispatch."""
@@ -111,6 +147,8 @@ class SequenceFactorInputs:
     state_scales: tuple[float, ...]
     reference_states: Mapping[int, Sequence[float]] | None = None
     contact_factors: Mapping[str, ContactFactorInput] = field(default_factory=dict)
+    contact_relative_velocity_factors: Mapping[str, ContactFactorInput] = field(default_factory=dict)
+    contact_twist_gauge_factors: Mapping[str, ContactFactorInput] = field(default_factory=dict)
     pose_prior_factors: Mapping[str, PosePriorFactorInput] = field(default_factory=dict)
     periodic_phase_factors: Mapping[str, PeriodicPhaseFactorInput] = field(default_factory=dict)
     joint_limit_factors: Mapping[str, JointLimitFactorInput] = field(default_factory=dict)
@@ -203,6 +241,8 @@ class SequenceProblemFactory:
 
         states = _project_static_interval_initial_states(states, residual_execution_plan)
 
+        factor_inputs = _freeze_support_proximity_gates(factor_inputs, states)
+
         def residual_input_builder(
             object_states: Mapping[int, Sequence[float]],
         ) -> dict[str, dict[str, object]]:
@@ -212,6 +252,8 @@ class SequenceProblemFactory:
                 state_scales=factor_inputs.state_scales,
                 reference_states=factor_inputs.reference_states,
                 contact_factors=factor_inputs.contact_factors,
+                contact_relative_velocity_factors=factor_inputs.contact_relative_velocity_factors,
+                contact_twist_gauge_factors=factor_inputs.contact_twist_gauge_factors,
                 pose_prior_factors=factor_inputs.pose_prior_factors,
                 periodic_phase_factors=factor_inputs.periodic_phase_factors,
                 joint_limit_factors=factor_inputs.joint_limit_factors,
@@ -242,6 +284,8 @@ class SequenceProblemFactory:
             factor_ids=configured_factor_ids,
             reference_states=factor_inputs.reference_states,
             contact_factors=factor_inputs.contact_factors,
+            contact_relative_velocity_factors=factor_inputs.contact_relative_velocity_factors,
+            contact_twist_gauge_factors=factor_inputs.contact_twist_gauge_factors,
             periodic_phase_factors=factor_inputs.periodic_phase_factors,
             line_reprojection_factors=factor_inputs.line_reprojection_factors,
             point_reprojection_factors=factor_inputs.point_reprojection_factors,

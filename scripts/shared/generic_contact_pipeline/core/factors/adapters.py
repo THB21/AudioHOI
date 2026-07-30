@@ -113,7 +113,12 @@ def _input_refs(kind: FactorKind) -> tuple[FactorInputRef, ...]:
         refs.append(FactorInputRef("measurement", "MeasurementIR", "visual_observation"))
     if kind in {FactorKind.METRIC_DEPTH, FactorKind.DEPTH_ORDER}:
         refs.append(FactorInputRef("measurement", "MeasurementIR", "depth_observation"))
-    if kind in {FactorKind.CONTACT_DISTANCE, FactorKind.SUPPORT_AND_PENETRATION}:
+    if kind in {
+        FactorKind.CONTACT_DISTANCE,
+        FactorKind.CONTACT_RELATIVE_VELOCITY,
+        FactorKind.CONTACT_TWIST_GAUGE,
+        FactorKind.SUPPORT_AND_PENETRATION,
+    }:
         refs.append(FactorInputRef("constraint", "ContactConstraintIR", "contact_or_support"))
     if kind == FactorKind.AUDIO_EVENT_PRIOR:
         refs.append(FactorInputRef("measurement", "AudioEventIR", "audio_events"))
@@ -425,6 +430,62 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 "interaction_state:support_and_penetration",
                 FactorKind.SUPPORT_AND_PENETRATION,
                 len(observation_rows),
+                0.0,
+            )
+        )
+
+    interaction_factors = set(generic_problem.get("interaction_factors", ())) if isinstance(generic_problem, dict) else set()
+    if "contact_relative_velocity" in interaction_factors:
+        factors = [factor for factor in factors if factor.kind != FactorKind.CONTACT_RELATIVE_VELOCITY]
+        summaries = [summary for summary in summaries if summary.kind != FactorKind.CONTACT_RELATIVE_VELOCITY]
+        factors.append(
+            FactorSpec(
+                factor_id="contact_relative_velocity:interaction_state",
+                kind=FactorKind.CONTACT_RELATIVE_VELOCITY,
+                frame_count=max(0, len(observation_rows) - 1),
+                input_refs=_input_refs(FactorKind.CONTACT_RELATIVE_VELOCITY),
+                residual_unit="metric_contact_displacement_delta",
+                weight_source="factor_runtime_configuration:contact_relative_velocity",
+                gate_source="InteractionState persistent/occluded_hold activation",
+                residual_source=_source(
+                    contact_csv,
+                    ("frame", "contact_active"),
+                    "typed_contact_relative_velocity",
+                ),
+            )
+        )
+        summaries.append(
+            FactorEnergySummary(
+                "interaction_state:contact_relative_velocity",
+                FactorKind.CONTACT_RELATIVE_VELOCITY,
+                max(0, len(observation_rows) - 1),
+                0.0,
+            )
+        )
+    if "contact_twist_gauge" in interaction_factors:
+        factors = [factor for factor in factors if factor.kind != FactorKind.CONTACT_TWIST_GAUGE]
+        summaries = [summary for summary in summaries if summary.kind != FactorKind.CONTACT_TWIST_GAUGE]
+        factors.append(
+            FactorSpec(
+                factor_id="contact_twist_gauge:interaction_state",
+                kind=FactorKind.CONTACT_TWIST_GAUGE,
+                frame_count=max(0, len(observation_rows) - 1),
+                input_refs=_input_refs(FactorKind.CONTACT_TWIST_GAUGE),
+                residual_unit="radian_unobservable_contact_chord_twist",
+                weight_source="factor_runtime_configuration:contact_twist_gauge",
+                gate_source="InteractionState persistent two-site grasp activation",
+                residual_source=_source(
+                    contact_csv,
+                    ("frame", "contact_active"),
+                    "typed_contact_chord_twist_gauge",
+                ),
+            )
+        )
+        summaries.append(
+            FactorEnergySummary(
+                "interaction_state:contact_twist_gauge",
+                FactorKind.CONTACT_TWIST_GAUGE,
+                max(0, len(observation_rows) - 1),
                 0.0,
             )
         )

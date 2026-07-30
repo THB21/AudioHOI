@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import isfinite
+from math import atan2, isfinite
 from typing import Any, Callable, Iterable, Mapping, Sequence
+
+import numpy as np
 
 from ..audio_events import AudioEvent
 from ..interaction import ContactStateAxis, InteractionContactMode, InteractionTimeline
@@ -60,6 +62,7 @@ class WorldSpaceContactSample:
     line_s: float | None = None
     confidence: float | None = None
     source_offset_xyz_m: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    contact_track_id: str | None = None
 
     def __post_init__(self) -> None:
         if self.frame < 1 or len(self.source_xyz_m) != 3 or not all(isfinite(value) for value in self.source_xyz_m):
@@ -74,6 +77,8 @@ class WorldSpaceContactSample:
             raise ValueError("world-space contact sample confidence must be within [0, 1]")
         if len(self.source_offset_xyz_m) != 3 or not all(isfinite(value) for value in self.source_offset_xyz_m):
             raise ValueError("world-space contact sample offset must contain three finite coordinates")
+        if self.contact_track_id is not None and not self.contact_track_id:
+            raise ValueError("world-space contact track id must be nonempty when present")
 
 
 @dataclass(frozen=True)
@@ -180,6 +185,11 @@ class SupportPlaneFactorInput:
     support_weight: float = 1.0
     penetration_weight: float = 1.0
     sigma_m: float = 1.0
+    activation_status_by_frame: Mapping[int, str] | None = None
+    activation_weight_by_frame: Mapping[int, float] | None = None
+    proximity_gate_m: float | None = None
+    tangent_gauge_weight: float = 0.0
+    tangent_gauge_sigma_rad: float = 1.0
 
 
 def _numeric_vector(values: Sequence[float], label: str) -> list[float]:
@@ -509,25 +519,58 @@ def build_support_plane_residual_inputs(
     support_weight: float,
     penetration_weight: float,
     sigma_m: float,
+    activation_status_by_frame: Mapping[int, str] | None = None,
+    activation_weight_by_frame: Mapping[int, float] | None = None,
+    proximity_gate_m: float | None = None,
+    tangent_gauge_weight: float = 0.0,
+    tangent_gauge_sigma_rad: float = 1.0,
 ) -> dict[str, dict[str, Any]]:
     distances: list[float] = []
+    row_weights: list[float] = []
     for frame in sorted(set(int(value) for value in active_frames)):
         state = object_states.get(frame)
         if state is None:
             continue
+        frame_distances: list[float] = []
         for feature_id in support_feature_ids:
             points = geometry_provider.feature_points_world(state, feature_id)
-            distances.extend(float(value) for value in plane.signed_distance(points))
+            frame_distances.extend(float(value) for value in plane.signed_distance(points))
+        frame_weight = float((activation_weight_by_frame or {}).get(frame, 1.0))
+        if (
+            proximity_gate_m is not None
+            and (activation_status_by_frame or {}).get(frame) != "active"
+        ):
+            nearest = min(abs(value) for value in frame_distances)
+            frame_weight *= max(0.0, min(1.0, 1.0 - nearest / float(proximity_gate_m)))
+        distances.extend(frame_distances)
+        row_weights.extend([frame_weight] * len(frame_distances))
     if not distances:
         return {}
-    return {
-        factor_id: {
+    payload: dict[str, Any] = {
             "signed_distance_m": distances,
-            "support_weight": float(support_weight),
-            "penetration_weight": float(penetration_weight),
+            "support_weight": [float(support_weight) * value for value in row_weights],
+            "penetration_weight": [float(penetration_weight) * value for value in row_weights],
             "sigma_m": float(sigma_m),
-        }
     }
+    tangent_rows: list[float] = []
+    tangent_weights: list[float] = []
+    if tangent_gauge_weight > 0.0:
+        for frame in sorted(set(int(value) for value in active_frames)):
+            if (activation_status_by_frame or {}).get(frame) != "active":
+                continue
+            if frame - 1 not in object_states or frame not in object_states:
+                continue
+            rotvec = _quaternion_relative_rotvec_world(object_states[frame - 1], object_states[frame])
+            tangent_rows.append(float(np.dot(rotvec, np.asarray(plane.normal, dtype=float))))
+            tangent_weights.append(
+                float(tangent_gauge_weight)
+                * float((activation_weight_by_frame or {}).get(frame, 1.0))
+            )
+    if tangent_rows:
+        payload["tangent_twist_rad"] = tangent_rows
+        payload["tangent_weight"] = tangent_weights
+        payload["tangent_sigma_rad"] = float(tangent_gauge_sigma_rad)
+    return {factor_id: payload}
 
 
 def build_sequence_temporal_residual_inputs(
@@ -594,10 +637,9 @@ def build_sequence_static_freeze_residual_inputs(
     if len(frames) <= 1:
         return {}
     interval_anchor: dict[int, int] = {}
-    first_frame = frames[0]
     for interval in activation_intervals:
         start, end = int(interval["start_frame"]), int(interval["end_frame"])
-        anchor = start - 1 if start > first_frame and start - 1 in states_by_frame else start
+        anchor = start
         for frame in range(start, end + 1):
             if frame in states_by_frame:
                 interval_anchor[frame] = anchor
@@ -751,6 +793,197 @@ def build_world_space_contact_sample_residual_inputs(
     return {factor_id: payload}
 
 
+def _world_space_contact_velocity_pairs(
+    samples: Iterable[WorldSpaceContactSample],
+    object_states: Mapping[int, Sequence[float]],
+) -> tuple[tuple[WorldSpaceContactSample, WorldSpaceContactSample], ...]:
+    """Pair consecutive observations of the same semantic grasp edge."""
+
+    selected: dict[tuple[str, str, float | None, int], WorldSpaceContactSample] = {}
+    for sample in samples:
+        feature_id = sample.object_feature_id or ""
+        track_id = sample.contact_track_id or feature_id
+        if not track_id or not feature_id or sample.frame not in object_states:
+            continue
+        key = (track_id, feature_id, sample.line_s, int(sample.frame))
+        previous = selected.get(key)
+        previous_confidence = -1.0 if previous is None or previous.confidence is None else previous.confidence
+        confidence = 1.0 if sample.confidence is None else sample.confidence
+        if previous is None or confidence > previous_confidence:
+            selected[key] = sample
+    grouped: dict[tuple[str, str, float | None], dict[int, WorldSpaceContactSample]] = {}
+    for (track_id, feature_id, line_s, frame), sample in selected.items():
+        grouped.setdefault((track_id, feature_id, line_s), {})[frame] = sample
+    pairs: list[tuple[WorldSpaceContactSample, WorldSpaceContactSample]] = []
+    for rows in grouped.values():
+        for frame in sorted(rows):
+            if frame - 1 in rows:
+                pairs.append((rows[frame - 1], rows[frame]))
+    return tuple(sorted(pairs, key=lambda pair: (pair[1].frame, pair[1].contact_track_id or "", pair[1].object_feature_id or "")))
+
+
+def build_world_space_contact_relative_velocity_residual_inputs(
+    *,
+    factor_id: str,
+    geometry_provider: GeometryProvider,
+    object_states: Mapping[int, Sequence[float]],
+    samples: Iterable[WorldSpaceContactSample],
+    object_feature_id: str | None,
+    weight: float,
+    sigma_m_per_frame: float,
+    weight_by_frame: Mapping[int, float] | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Match object-anchor and read-only human-site displacement during a persistent grasp."""
+
+    source_displacements: list[list[float]] = []
+    target_displacements: list[list[float]] = []
+    row_weights: list[float] = []
+    for previous, current in _world_space_contact_velocity_pairs(samples, object_states):
+        feature_id = current.object_feature_id or object_feature_id
+        if feature_id is None:
+            raise ValueError("contact relative velocity requires a target feature id")
+        previous_source = np.asarray(previous.source_xyz_m, dtype=float) + np.asarray(previous.source_offset_xyz_m, dtype=float)
+        current_source = np.asarray(current.source_xyz_m, dtype=float) + np.asarray(current.source_offset_xyz_m, dtype=float)
+        if current.line_s is None:
+            previous_target = np.asarray(
+                geometry_provider.contact_point_world(object_states[previous.frame], feature_id, previous_source),
+                dtype=float,
+            )
+            current_target = np.asarray(
+                geometry_provider.contact_point_world(object_states[current.frame], feature_id, current_source),
+                dtype=float,
+            )
+        else:
+            line_point_world = getattr(geometry_provider, "line_point_world", None)
+            if line_point_world is None:
+                raise ValueError("LineS relative velocity requires line-parameter geometry capability")
+            previous_target = np.asarray(line_point_world(object_states[previous.frame], previous.line_s), dtype=float)
+            current_target = np.asarray(line_point_world(object_states[current.frame], current.line_s), dtype=float)
+        source_displacements.append((current_source - previous_source).tolist())
+        target_displacements.append((current_target - previous_target).tolist())
+        confidence = min(
+            1.0 if previous.confidence is None else previous.confidence,
+            1.0 if current.confidence is None else current.confidence,
+        )
+        row_weights.append(float((weight_by_frame or {}).get(current.frame, weight)) * confidence)
+    if not source_displacements:
+        return {}
+    return {
+        factor_id: {
+            "source_displacement_m": source_displacements,
+            "target_displacement_m": target_displacements,
+            "weight": _scalar_or_row_weights(row_weights, weight),
+            "sigma_m_per_frame": float(sigma_m_per_frame),
+        }
+    }
+
+
+def _quaternion_relative_rotvec_world(
+    previous_state: Sequence[float],
+    current_state: Sequence[float],
+) -> np.ndarray:
+    if len(previous_state) < 7 or len(current_state) < 7:
+        raise ValueError("contact twist gauge requires a root quaternion at state indices 3:7")
+    previous = np.asarray(previous_state[3:7], dtype=float)
+    current = np.asarray(current_state[3:7], dtype=float)
+    previous /= np.linalg.norm(previous)
+    current /= np.linalg.norm(current)
+    previous_inverse = previous * np.asarray((1.0, -1.0, -1.0, -1.0), dtype=float)
+    aw, ax, ay, az = current
+    bw, bx, by, bz = previous_inverse
+    relative = np.asarray(
+        (
+            aw * bw - ax * bx - ay * by - az * bz,
+            aw * bx + ax * bw + ay * bz - az * by,
+            aw * by - ax * bz + ay * bw + az * bx,
+            aw * bz + ax * by - ay * bx + az * bw,
+        ),
+        dtype=float,
+    )
+    relative /= np.linalg.norm(relative)
+    if relative[0] < 0.0:
+        relative *= -1.0
+    vector_norm = float(np.linalg.norm(relative[1:]))
+    if vector_norm <= 1e-12:
+        return np.zeros(3, dtype=float)
+    angle = 2.0 * atan2(vector_norm, float(relative[0]))
+    return angle * relative[1:] / vector_norm
+
+
+def _contact_chord_twist_rows(
+    samples: Iterable[WorldSpaceContactSample],
+    object_states: Mapping[int, Sequence[float]],
+    geometry_provider: GeometryProvider,
+    object_feature_id: str | None,
+) -> tuple[tuple[int, float], ...]:
+    anchors_by_frame: dict[int, dict[str, np.ndarray]] = {}
+    for sample in samples:
+        if sample.frame not in object_states:
+            continue
+        feature_id = sample.object_feature_id or object_feature_id
+        track_id = sample.contact_track_id or feature_id
+        if feature_id is None or track_id is None:
+            continue
+        source = np.asarray(sample.source_xyz_m, dtype=float) + np.asarray(sample.source_offset_xyz_m, dtype=float)
+        if sample.line_s is None:
+            target = geometry_provider.contact_point_world(object_states[sample.frame], feature_id, source)
+        else:
+            line_point_world = getattr(geometry_provider, "line_point_world", None)
+            if line_point_world is None:
+                raise ValueError("LineS twist gauge requires line-parameter geometry capability")
+            target = line_point_world(object_states[sample.frame], sample.line_s)
+        anchors_by_frame.setdefault(sample.frame, {})[track_id] = np.asarray(target, dtype=float)
+    rows: list[tuple[int, float]] = []
+    for frame in sorted(anchors_by_frame):
+        if frame - 1 not in anchors_by_frame or frame - 1 not in object_states:
+            continue
+        anchors = tuple(anchors_by_frame[frame].values())
+        if len(anchors) < 2:
+            continue
+        best_axis: np.ndarray | None = None
+        best_length = 0.0
+        for left_index, left in enumerate(anchors[:-1]):
+            for right in anchors[left_index + 1 :]:
+                axis = right - left
+                length = float(np.linalg.norm(axis))
+                if length > best_length:
+                    best_axis, best_length = axis, length
+        if best_axis is None or best_length <= 1e-6:
+            continue
+        axis_world = best_axis / best_length
+        rotvec_world = _quaternion_relative_rotvec_world(object_states[frame - 1], object_states[frame])
+        rows.append((frame, float(np.dot(rotvec_world, axis_world))))
+    return tuple(rows)
+
+
+def build_world_space_contact_twist_gauge_residual_inputs(
+    *,
+    factor_id: str,
+    geometry_provider: GeometryProvider,
+    object_states: Mapping[int, Sequence[float]],
+    samples: Iterable[WorldSpaceContactSample],
+    object_feature_id: str | None,
+    weight: float,
+    sigma_rad: float,
+    weight_by_frame: Mapping[int, float] | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Suppress only the unobservable spin around a persistent two-site contact chord."""
+
+    rows = _contact_chord_twist_rows(samples, object_states, geometry_provider, object_feature_id)
+    if not rows:
+        return {}
+    return {
+        factor_id: {
+            "twist_rad": [value for _frame, value in rows],
+            "weight": _scalar_or_row_weights(
+                [float((weight_by_frame or {}).get(frame, weight)) for frame, _value in rows],
+                weight,
+            ),
+            "sigma_rad": float(sigma_rad),
+        }
+    }
+
+
 def build_periodic_phase_prior_residual_inputs(
     *,
     factor_id: str,
@@ -864,6 +1097,8 @@ def build_geometry_sequence_residual_input_bundle(
     state_scales: tuple[float, ...],
     reference_states: Mapping[int, Sequence[float]] | None = None,
     contact_factors: Mapping[str, ContactFactorInput] | None = None,
+    contact_relative_velocity_factors: Mapping[str, ContactFactorInput] | None = None,
+    contact_twist_gauge_factors: Mapping[str, ContactFactorInput] | None = None,
     pose_prior_factors: Mapping[str, PosePriorFactorInput] | None = None,
     periodic_phase_factors: Mapping[str, PeriodicPhaseFactorInput] | None = None,
     joint_limit_factors: Mapping[str, JointLimitFactorInput] | None = None,
@@ -937,6 +1172,48 @@ def build_geometry_sequence_residual_input_bundle(
                 base_weight,
             ),
             residual_axes=factor.residual_axes,
+        )
+        return payload.get(request.factor_id)
+
+    def contact_relative_velocity(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (contact_relative_velocity_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        base_weight = _runtime_weight(request, factor.weight)
+        payload = build_world_space_contact_relative_velocity_residual_inputs(
+            factor_id=request.factor_id,
+            geometry_provider=factor.geometry_provider,
+            object_states=object_states,
+            samples=factor.samples,
+            object_feature_id=factor.object_feature_id,
+            weight=base_weight,
+            sigma_m_per_frame=_runtime_sigma(request, factor.sigma_m, "m/frame"),
+            weight_by_frame=_runtime_weights_by_frame(
+                request,
+                (sample.frame for sample in factor.samples),
+                base_weight,
+            ),
+        )
+        return payload.get(request.factor_id)
+
+    def contact_twist_gauge(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (contact_twist_gauge_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        base_weight = _runtime_weight(request, factor.weight)
+        payload = build_world_space_contact_twist_gauge_residual_inputs(
+            factor_id=request.factor_id,
+            geometry_provider=factor.geometry_provider,
+            object_states=object_states,
+            samples=factor.samples,
+            object_feature_id=factor.object_feature_id,
+            weight=base_weight,
+            sigma_rad=_runtime_sigma(request, factor.sigma_m, "rad"),
+            weight_by_frame=_runtime_weights_by_frame(
+                request,
+                (sample.frame for sample in factor.samples),
+                base_weight,
+            ),
         )
         return payload.get(request.factor_id)
 
@@ -1084,6 +1361,11 @@ def build_geometry_sequence_residual_input_bundle(
             support_weight=factor.support_weight,
             penetration_weight=factor.penetration_weight,
             sigma_m=factor.sigma_m,
+            activation_status_by_frame=factor.activation_status_by_frame,
+            activation_weight_by_frame=factor.activation_weight_by_frame,
+            proximity_gate_m=factor.proximity_gate_m,
+            tangent_gauge_weight=factor.tangent_gauge_weight,
+            tangent_gauge_sigma_rad=factor.tangent_gauge_sigma_rad,
         )
         return payload.get(request.factor_id)
 
@@ -1095,6 +1377,8 @@ def build_geometry_sequence_residual_input_bundle(
             "shadow_residual::static_freeze": temporal,
             "shadow_residual::regularization": regularization,
             "shadow_residual::contact_distance": contact,
+            "shadow_residual::contact_relative_velocity": contact_relative_velocity,
+            "shadow_residual::contact_twist_gauge": contact_twist_gauge,
             "shadow_residual::pose_prior": pose_prior,
             "shadow_residual::periodic_phase_prior": periodic_phase,
             "shadow_residual::joint_limit": joint_limit,
@@ -1115,6 +1399,8 @@ def build_geometry_sequence_residual_dependencies(
     factor_ids: Sequence[str] | None = None,
     reference_states: Mapping[int, Sequence[float]] | None = None,
     contact_factors: Mapping[str, ContactFactorInput] | None = None,
+    contact_relative_velocity_factors: Mapping[str, ContactFactorInput] | None = None,
+    contact_twist_gauge_factors: Mapping[str, ContactFactorInput] | None = None,
     periodic_phase_factors: Mapping[str, PeriodicPhaseFactorInput] | None = None,
     line_reprojection_factors: Mapping[str, LineReprojectionFactorInput] | None = None,
     point_reprojection_factors: Mapping[str, PointReprojectionFactorInput] | None = None,
@@ -1164,7 +1450,6 @@ def build_geometry_sequence_residual_dependencies(
                     for item in record.get("activation_intervals", ())
                     if isinstance(item, Mapping)
                 )
-                first_frame = frames[0]
                 for residual_index, frame in enumerate(frames[1:]):
                     interval = next(
                         interval
@@ -1172,7 +1457,7 @@ def build_geometry_sequence_residual_dependencies(
                         if int(interval["start_frame"]) <= frame <= int(interval["end_frame"])
                     )
                     start = int(interval["start_frame"])
-                    anchor = start - 1 if start > first_frame and start - 1 in object_states else start
+                    anchor = start
                     dependency_frames = (frame,) if anchor == frame else (anchor, frame)
                     dependencies.append(
                         ResidualRowDependency(
@@ -1220,6 +1505,42 @@ def build_geometry_sequence_residual_dependencies(
                     ResidualRowDependency(factor_id, 3 * residual_index, 3 * (residual_index + 1), (frame,))
                 )
                 residual_index += 1
+            continue
+        if residual_ref == "shadow_residual::contact_relative_velocity":
+            factor = (contact_relative_velocity_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            for residual_index, (previous, current) in enumerate(
+                _world_space_contact_velocity_pairs(factor.samples, object_states)
+            ):
+                dependencies.append(
+                    ResidualRowDependency(
+                        factor_id,
+                        3 * residual_index,
+                        3 * (residual_index + 1),
+                        (previous.frame, current.frame),
+                    )
+                )
+            continue
+        if residual_ref == "shadow_residual::contact_twist_gauge":
+            factor = (contact_twist_gauge_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            rows = _contact_chord_twist_rows(
+                factor.samples,
+                object_states,
+                factor.geometry_provider,
+                factor.object_feature_id,
+            )
+            for residual_index, (frame, _value) in enumerate(rows):
+                dependencies.append(
+                    ResidualRowDependency(
+                        factor_id,
+                        residual_index,
+                        residual_index + 1,
+                        (frame - 1, frame),
+                    )
+                )
             continue
         if residual_ref == "shadow_residual::periodic_phase_prior":
             factor = (periodic_phase_factors or {}).get(factor_id)
@@ -1297,4 +1618,22 @@ def build_geometry_sequence_residual_dependencies(
                         (frame,),
                     )
                 )
+            if factor.tangent_gauge_weight > 0.0:
+                tangent_frames = tuple(
+                    frame
+                    for frame in sorted(set(int(value) for value in factor.active_frames))
+                    if (factor.activation_status_by_frame or {}).get(frame) == "active"
+                    and frame - 1 in object_states
+                    and frame in object_states
+                )
+                tangent_offset = 2 * point_count
+                for residual_index, frame in enumerate(tangent_frames):
+                    dependencies.append(
+                        ResidualRowDependency(
+                            factor_id,
+                            tangent_offset + residual_index,
+                            tangent_offset + residual_index + 1,
+                            (frame - 1, frame),
+                        )
+                    )
     return tuple(dependencies)

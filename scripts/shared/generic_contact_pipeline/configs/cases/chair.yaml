@@ -14,11 +14,15 @@ generic_object_problem:
   measurement_roles:
     point_reprojection: [contact_anchor_keypoint]
   sequence_factors: [temporal_velocity, temporal_acceleration, static_freeze]
-  environment_factors: []
+  interaction_factors: [contact_relative_velocity, contact_twist_gauge]
+  environment_factors: [support_and_penetration]
   support_plane:
     source: gvhmr_foot_sites
     human_site_surface_offset_m: 0.05
+    proximity_gate_m: 0.05
     penetration_weight: 2.0
+    tangent_gauge_weight: 1.0
+    tangent_gauge_sigma_rad: 0.035
 refinement_policy:
   - small_se3
   - anchor_propagate_freeze
@@ -47,6 +51,18 @@ factor_runtime:
     sigma_unit: m
     source: legacy_chair_pairprop_cli:w_contact_sigma_contact_m
     activation_weight_tiers: {active: 1.0, downweighted: 1.0, inactive: 0.0}
+  contact_relative_velocity:
+    weight: 2.0
+    sigma: 0.008
+    sigma_unit: m/frame
+    source: generic_persistent_grasp_contact_comotion
+    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
+  contact_twist_gauge:
+    weight: 1.0
+    sigma: 0.035
+    sigma_unit: rad
+    source: generic_persistent_two_site_grasp_unobservable_twist_gauge
+    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
   temporal_velocity:
     weight: 0.35
     state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
@@ -67,7 +83,7 @@ factor_runtime:
     sigma: 0.035
     sigma_unit: m
     source: asset_declared_reliable_support_sites_plus_unilateral_penetration
-    activation_weight_tiers: {active: 1.0, downweighted: 0.5, inactive: 0.0}
+    activation_weight_tiers: {active: 1.0, downweighted: 1.0, inactive: 0.0}
 render_backend: urdf_solid_mesh
 result_name: generic_pipeline_v1
 articraft_model_py: samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/revisions/rev_000001/model.py

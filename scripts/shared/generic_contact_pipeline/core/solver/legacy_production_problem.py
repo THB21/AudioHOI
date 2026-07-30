@@ -82,6 +82,10 @@ def _contact_samples(
                     source_xyz_m=measurement.xyz_m,
                     object_feature_id=constraint.object_feature.geometry_feature_id,
                     confidence=constraint.confidence,
+                    contact_track_id=(
+                        f"human:{constraint.human_site.body_part}:{constraint.human_site.side}"
+                        f"->object:{constraint.object_feature.geometry_feature_id}"
+                    ),
                 )
             )
     return tuple(samples)

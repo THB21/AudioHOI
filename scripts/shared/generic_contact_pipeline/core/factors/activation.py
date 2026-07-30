@@ -103,6 +103,17 @@ def _contact_state(state: FrameInteractionState) -> str:
     return "inactive"
 
 
+def _persistent_contact_state(state: FrameInteractionState) -> str:
+    if (
+        state.contact_mode == InteractionContactMode.GRASP
+        and state.contact_state in {ContactStateAxis.PERSISTENT, ContactStateAxis.OCCLUDED_HOLD}
+    ):
+        return "active"
+    if state.contact_mode == InteractionContactMode.GRASP and state.contact_state == ContactStateAxis.ACTIVE:
+        return "downweighted"
+    return "inactive"
+
+
 def _support_state(state: FrameInteractionState) -> str:
     if state.support_contact_ids or state.contact_mode in {
         InteractionContactMode.SUPPORT,
@@ -112,6 +123,8 @@ def _support_state(state: FrameInteractionState) -> str:
         return "active"
     if state.motion_mode in {MotionMode.SUPPORTED_STATIC, MotionMode.SUPPORTED_MOVING}:
         return "active"
+    if state.motion_mode == MotionMode.ATTACHED:
+        return "downweighted"
     return "inactive"
 
 
@@ -163,6 +176,16 @@ def _policy_for_kind(kind: FactorKind) -> tuple[str, object, tuple[str, ...]]:
         return (
             "contact_state_controls_contact_distance",
             _contact_state,
+            ("ContactState", "ContactMode", "active_contact_ids"),
+        )
+    if kind in {FactorKind.CONTACT_RELATIVE_VELOCITY, FactorKind.CONTACT_TWIST_GAUGE}:
+        return (
+            (
+                "persistent_contact_controls_relative_velocity"
+                if kind == FactorKind.CONTACT_RELATIVE_VELOCITY
+                else "persistent_two_site_contact_controls_unobservable_twist"
+            ),
+            _persistent_contact_state,
             ("ContactState", "ContactMode", "active_contact_ids"),
         )
     if kind == FactorKind.SUPPORT_AND_PENETRATION:

@@ -121,10 +121,17 @@ def _robust_loss(kind: FactorKind) -> str:
         FactorKind.MASK_SILHOUETTE,
         FactorKind.METRIC_DEPTH,
         FactorKind.CONTACT_DISTANCE,
+        FactorKind.CONTACT_RELATIVE_VELOCITY,
+        FactorKind.CONTACT_TWIST_GAUGE,
         FactorKind.SUPPORT_AND_PENETRATION,
     }:
         return "huber_shadow"
-    if kind in {FactorKind.TEMPORAL_VELOCITY, FactorKind.TEMPORAL_ACCELERATION, FactorKind.STATIC_FREEZE}:
+    if kind in {
+        FactorKind.TEMPORAL_VELOCITY,
+        FactorKind.TEMPORAL_ACCELERATION,
+        FactorKind.STATIC_FREEZE,
+        FactorKind.CONTACT_TWIST_GAUGE,
+    }:
         return "quadratic_shadow"
     return "identity_shadow"
 

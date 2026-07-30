@@ -102,6 +102,39 @@ class FactorResidualEvaluator:
             / float(sigma_m)
         ).reshape(-1).astype(float)
 
+    def contact_relative_velocity(
+        self,
+        source_displacement_m: np.ndarray,
+        target_displacement_m: np.ndarray,
+        *,
+        weight: float | np.ndarray,
+        sigma_m_per_frame: float,
+    ) -> np.ndarray:
+        if (
+            source_displacement_m.shape != target_displacement_m.shape
+            or source_displacement_m.ndim != 2
+            or source_displacement_m.shape[1] != 3
+        ):
+            raise ValueError("contact relative velocity requires matching (N, 3) displacement arrays")
+        delta = target_displacement_m - source_displacement_m
+        if np.asarray(weight).ndim == 0:
+            return (float(weight) * delta.reshape(-1) / float(sigma_m_per_frame)).astype(float)
+        return (
+            _row_weights(weight, len(delta))[:, None]
+            * delta
+            / float(sigma_m_per_frame)
+        ).reshape(-1).astype(float)
+
+    def contact_twist_gauge(
+        self,
+        twist_rad: np.ndarray,
+        *,
+        weight: float | np.ndarray,
+        sigma_rad: float,
+    ) -> np.ndarray:
+        values = np.asarray(twist_rad, dtype=float).reshape(-1)
+        return (_row_weights(weight, len(values)) * values / float(sigma_rad)).astype(float)
+
     def metric_depth(self, predicted_depth_m: np.ndarray, target_depth_m: np.ndarray, *, weight: float | np.ndarray, sigma_m: float) -> np.ndarray:
         if predicted_depth_m.shape != target_depth_m.shape:
             raise ValueError("metric depth residuals require matching depth arrays")
@@ -116,14 +149,29 @@ class FactorResidualEvaluator:
         self,
         signed_distance_m: np.ndarray,
         *,
-        support_weight: float,
-        penetration_weight: float,
+        support_weight: float | np.ndarray,
+        penetration_weight: float | np.ndarray,
         sigma_m: float,
+        tangent_twist_rad: np.ndarray | None = None,
+        tangent_weight: float | np.ndarray = 0.0,
+        tangent_sigma_rad: float = 1.0,
     ) -> np.ndarray:
         distances = signed_distance_m.reshape(-1)
-        support = float(support_weight) * distances / float(sigma_m)
-        penetration = float(penetration_weight) * np.minimum(distances, 0.0) / float(sigma_m)
-        return np.concatenate((support, penetration)).astype(float)
+        support = _row_weights(support_weight, len(distances)) * distances / float(sigma_m)
+        penetration = (
+            _row_weights(penetration_weight, len(distances))
+            * np.minimum(distances, 0.0)
+            / float(sigma_m)
+        )
+        blocks = [support, penetration]
+        if tangent_twist_rad is not None:
+            tangent = np.asarray(tangent_twist_rad, dtype=float).reshape(-1)
+            blocks.append(
+                _row_weights(tangent_weight, len(tangent))
+                * tangent
+                / float(tangent_sigma_rad)
+            )
+        return np.concatenate(blocks).astype(float)
 
     def pose_prior(
         self,

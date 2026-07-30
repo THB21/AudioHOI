@@ -71,10 +71,15 @@ def _support_plane_from_human_foot_sites(
     center = np.median(points, axis=0)
     _u, _singular_values, vectors = np.linalg.svd(points - center, full_matrices=False)
     normal = vectors[-1]
-    if normal[1] < 0.0:
+    # Camera-meter coordinates follow image axes, so +Y points downward.
+    # The support-plane normal must point into free space (upward), otherwise
+    # carried objects are classified as penetrating the floor.
+    if normal[1] > 0.0:
         normal = -normal
     normal = normal / np.linalg.norm(normal)
-    offset = -float(normal @ center) - float(surface_offset_m)
+    # Read-only foot joints sit above the physical floor by the configured
+    # surface offset, hence they have positive signed distance.
+    offset = -float(normal @ center) + float(surface_offset_m)
     return PlaneSurface(tuple(float(value) for value in normal), offset)
 
 
@@ -308,6 +313,10 @@ def _contact_samples_with_line_s(
                         "line:axis",
                         line_s,
                         constraint.confidence,
+                        contact_track_id=(
+                            f"human:{constraint.human_site.body_part}:{constraint.human_site.side}"
+                            "->object:line:axis"
+                        ),
                     )
                 )
     return tuple(local_samples)
@@ -338,6 +347,9 @@ def _surface_contact_samples_from_states(
                 "object:surface",
                 None,
                 state_confidence * site_confidence,
+                contact_track_id=(
+                    f"human:{state.human_site.body_part}:{state.human_site.side}->object:surface"
+                ),
             )
         )
     return tuple(samples)
@@ -379,6 +391,7 @@ def _directional_contact_samples_from_events(
                 None,
                 event.confidence,
                 tuple(offset),
+                f"human:{event.human_site.body_part}:{event.human_site.side}->object:{target_feature_id}",
             )
         )
     return tuple(samples)
@@ -614,6 +627,8 @@ def prepare_capability_object_problem(
             depth_targets,
         )
     contact_factors: dict[str, ContactFactorInput] = {}
+    contact_relative_velocity_factors: dict[str, ContactFactorInput] = {}
+    contact_twist_gauge_factors: dict[str, ContactFactorInput] = {}
     phase_factors: dict[str, PeriodicPhaseFactorInput] = {}
     line_factors: dict[str, LineReprojectionFactorInput] = {}
     point_factors: dict[str, PointReprojectionFactorInput] = {}
@@ -634,6 +649,15 @@ def prepare_capability_object_problem(
                 None,
                 residual_axes=tuple(int(axis) for axis in config.get("contact_residual_axes", (0, 1, 2))),
             )
+        elif residual_ref == "shadow_residual::contact_relative_velocity":
+            contact_relative_velocity_factors[factor_id] = ContactFactorInput(
+                provider,
+                samples,
+                None,
+                residual_axes=tuple(int(axis) for axis in config.get("contact_residual_axes", (0, 1, 2))),
+            )
+        elif residual_ref == "shadow_residual::contact_twist_gauge":
+            contact_twist_gauge_factors[factor_id] = ContactFactorInput(provider, samples, None)
         elif residual_ref == "shadow_residual::periodic_phase_prior":
             phase_targets = {frame: initial_states[frame][8] for frame in sorted(initial_states)}
             phase_factors[factor_id] = PeriodicPhaseFactorInput((), (), state_index=8, target_by_frame=phase_targets)
@@ -673,30 +697,54 @@ def prepare_capability_object_problem(
             support_feature_ids = tuple(str(value) for value in descriptor.get("support_features", ()))
             if not support_feature_ids:
                 raise ValueError("support factor requires asset-declared support features")
-            active_frames = tuple(
-                frame
-                for interval in record.get("activation_intervals", ())
-                if isinstance(interval, Mapping) and interval.get("status") == "active"
-                for frame in range(int(interval["start_frame"]), int(interval["end_frame"]) + 1)
-            )
             runtime = profile.data.get("factor_runtime", {}).get("support_and_penetration", {})
             if not isinstance(runtime, Mapping):
                 raise ValueError("support factor requires runtime configuration")
+            raw_tiers = runtime.get(
+                "activation_weight_tiers",
+                {"active": 1.0, "downweighted": 1.0, "inactive": 0.0},
+            )
+            if not isinstance(raw_tiers, Mapping):
+                raise ValueError("support factor activation tiers must be a mapping")
+            plane = _support_plane_from_human_foot_sites(
+                gvhmr_sites.measurements,
+                surface_offset_m=float(support_config.get("human_site_surface_offset_m", 0.0)),
+            )
+            proximity_gate_m = (
+                None
+                if support_config.get("proximity_gate_m") is None
+                else float(support_config["proximity_gate_m"])
+            )
+            status_by_frame: dict[int, str] = {}
+            weight_by_frame: dict[int, float] = {}
+            for interval in record.get("activation_intervals", ()):
+                if not isinstance(interval, Mapping):
+                    continue
+                status = str(interval["status"])
+                tier_weight = float(raw_tiers[status])
+                for frame in range(int(interval["start_frame"]), int(interval["end_frame"]) + 1):
+                    status_by_frame[frame] = status
+                    weight_by_frame[frame] = tier_weight
+            active_frames = tuple(frame for frame in sorted(status_by_frame) if weight_by_frame[frame] > 0.0)
             support_factors[factor_id] = SupportPlaneFactorInput(
                 provider,
                 support_feature_ids,
                 active_frames,
-                _support_plane_from_human_foot_sites(
-                    gvhmr_sites.measurements,
-                    surface_offset_m=float(support_config.get("human_site_surface_offset_m", 0.0)),
-                ),
+                plane,
                 support_weight=float(runtime.get("weight", 1.0)),
                 penetration_weight=float(support_config.get("penetration_weight", runtime.get("weight", 1.0))),
                 sigma_m=float(runtime.get("sigma", 1.0)),
+                activation_status_by_frame=status_by_frame,
+                activation_weight_by_frame=weight_by_frame,
+                proximity_gate_m=proximity_gate_m,
+                tangent_gauge_weight=float(support_config.get("tangent_gauge_weight", 0.0)),
+                tangent_gauge_sigma_rad=float(support_config.get("tangent_gauge_sigma_rad", 1.0)),
             )
     factor_inputs = SequenceFactorInputs(
         state_scales=_state_scales(records, sum(dof.dimension for dof in adaptation.state_spec.dofs)),
         contact_factors=contact_factors,
+        contact_relative_velocity_factors=contact_relative_velocity_factors,
+        contact_twist_gauge_factors=contact_twist_gauge_factors,
         periodic_phase_factors=phase_factors,
         line_reprojection_factors=line_factors,
         point_reprojection_factors=point_factors,

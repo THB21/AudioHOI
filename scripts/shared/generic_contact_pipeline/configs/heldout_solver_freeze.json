@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "freeze_name": "heldout_zero_shot_v1",
+  "frozen_at_commit": "bea345ac741e98535242a4da076b51c9cbfaa74a",
+  "scope": "object_only",
+  "frozen_code": {
+    "core_solver_tree": "fefd4fe3d382842620867fa3f13ecebc9dd8de65",
+    "core_factors_tree": "54189af6160910b4ab43305983eeb1d48c9bf26f",
+    "core_state_tree": "83a13e9931faa66487a626bcdffd9da626899d2e",
+    "core_interaction_tree": "6c484de65f63db9448b4bd8c4b734e70726115ab",
+    "stage4_entry_blob": "5e7c5d273ef932a14b00e92e2848462989d2330f",
+    "pipeline_entry_blob": "64f109db5e045519d6a85282f0a79c509b43f911"
+  },
+  "allowed_heldout_additions": [
+    "sample video/audio/metadata",
+    "case capability config",
+    "asset descriptor and immutable geometry resource",
+    "semantic feature mapping",
+    "detector prompt"
+  ],
+  "forbidden_after_freeze": [
+    "changes under core/solver",
+    "changes under core/factors",
+    "changes under core/state",
+    "changes under core/interaction",
+    "object-specific optimizer or executor",
+    "heldout-specific loss weight or threshold change",
+    "manual contact annotation as solver input",
+    "copying a solved or canonical pose into initialization"
+  ],
+  "heldout_order": [
+    "back_view_basketball",
+    "suitcase_drag",
+    "high_speed_pingpong"
+  ],
+  "input_availability_at_freeze": {
+    "back_view_basketball": "missing_raw_video",
+    "suitcase_drag": "missing_raw_video_and_asset",
+    "high_speed_pingpong": "missing_raw_video_and_paddle_asset"
+  },
+  "human_boundary": {
+    "gvhmr_role": "read_only_observed",
+    "human_state_optimized": false,
+    "downstream_human_pipeline": false
+  }
+}

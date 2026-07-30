@@ -11,7 +11,7 @@
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
 | `refactor/interaction-state-production` | in_progress | basketball / football / mug / chair / stick 五个 canonical trajectory 均由唯一 `GenericSequenceExecutor` 与 `AcceptedObjectOutputPublisher` 产生，coverage=`5/5`；所有 publication 均记录 `case_dispatch_used=false`、`human_state_optimized=false`。Stage 0 已接入固定八任务 ingestion DAG，且 fresh Stage 0 → typed Measurement/Contact/Interaction IR → unified solve 已实际闭环。chair / stick 的自动 gate gap 仍原样保留，不伪装为自动 zero-shot pass。 |
-| 下一步 | pending | 冻结 solver与通用 gate/weight档位，建立 held-out sample/asset配置后依次运行 back-view basketball、suitcase、ping-pong benchmark；chair/stick自动gate按此前决定暂缓。 |
+| 下一步 | blocked_on_input | solver已冻结为`heldout_zero_shot_v1`。本地缺少 back-view basketball、suitcase、ping-pong 三组raw video，且后两者缺少asset；数据就位后只能新增sample/config/asset/feature mapping，依次运行benchmark，不得修改core solver或通用权重。chair/stick自动gate按此前决定暂缓。 |
 
 当前主线目标收束为一句话：
 
@@ -1872,3 +1872,11 @@ YYYY-MM-DD:
 - VLM rerun: Stage 4第一次solve后若正式VLM产生有效离散factor gates，`run_pipeline.py`通过同一个Stage 4入口重新prepare/compile/solve；不再回退legacy smoother。若无有效gate则不重复solve。VLM仍不能写连续pose。
 - fresh smoke: 对fresh stick profile用1-evaluation预算调用正式Stage 4，得到`generic-solve-920caefeb3a3`和`candidate_blocked`；记录`case_dispatch_used=false`、`baseline_pose_read=false`、`human_state_optimized=false`、`accepted_outputs_written=false`，且没有生成canonical。此前200-evaluation完整fresh solve证据仍为`generic-solve-ef8f4dff4b81`。
 - scope: 本次只收束object Stage 4入口和失败边界，不修改loss、阈值、factor权重、求解算法或人体代码。五case已发布canonical不因本次smoke而改变。
+
+2026-07-30（held-out zero-shot solver freeze）:
+
+- freeze artifact: `scripts/shared/generic_contact_pipeline/configs/heldout_solver_freeze.json` 固定`heldout_zero_shot_v1`，基准commit=`bea345ac741e98535242a4da076b51c9cbfaa74a`。记录core solver/factors/state/interaction tree hash以及Stage4/pipeline入口blob hash。
+- allowed: held-out开始后只允许新增raw sample、case capability config、asset descriptor/geometry、semantic feature mapping和detector prompt。
+- forbidden: 禁止修改core solver/factors/state/interaction、增加对象专用optimizer/executor、按held-out调loss权重或阈值、把人工contact标注作为solver输入、复制solved/canonical pose作初始化。
+- availability audit: 当前worktree、`/mnt/hdd`和本轮附件中均没有三组held-out素材。back-view basketball缺raw video；suitcase缺raw video和asset；high-speed ping-pong缺raw video和paddle asset。因此benchmark仍为`0/3`，这是输入blocker，不是继续改solver的理由。
+- boundary: GVHMR继续仅为`read_only_observed`，不优化人体，也不引入downstream human pipeline。

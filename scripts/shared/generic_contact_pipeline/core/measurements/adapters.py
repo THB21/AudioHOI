@@ -134,10 +134,33 @@ def adapt_legacy_observation_rows(sample_id: str, rows: list[dict[str, str]], ar
             _point(out, mapped, sample_id, row, artifact, "lowest_visible_point", "object:lowest_visible", "lowest_visible_x", "lowest_visible_y", conf)
             _mask(out, mapped, sample_id, row, artifact, "object_mask", "object:body", ("bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2"), _confidence(row, "mask_conf"), "mask_area_px")
             _mask(out, mapped, sample_id, row, artifact, "object_body_mask", "object:body", ("body_bbox_x1", "body_bbox_y1", "body_bbox_x2", "body_bbox_y2"), conf)
-            _point(out, mapped, sample_id, row, artifact, "handle_center", "object:handle", "handle_center_x", "handle_center_y", _confidence(row, "handle_conf"))
-            state = {"1": "visible", "0": "occluded"}.get(row.get("handle_visible", ""), "unknown")
+            semantic_visibility = row.get("vlm_visibility", "").strip().lower()
+            visibility_blocks_observation = semantic_visibility in {
+                "hidden",
+                "occluded",
+                "occluded_by_human",
+                "absent",
+            }
+            if not visibility_blocks_observation:
+                _point(out, mapped, sample_id, row, artifact, "handle_center", "object:handle", "handle_center_x", "handle_center_y", _confidence(row, "handle_conf"))
+            if semantic_visibility:
+                state = {
+                    "visible": "visible",
+                    "partially_visible": "visible",
+                    "hidden": "occluded",
+                    "occluded": "occluded",
+                    "occluded_by_human": "occluded",
+                    "absent": "absent",
+                    "unknown": "unknown",
+                    "unclear": "unknown",
+                }.get(semantic_visibility, "unknown")
+                mapped.add("vlm_visibility")
+                visibility_fields = ("vlm_visibility",)
+            else:
+                state = {"1": "visible", "0": "occluded"}.get(row.get("handle_visible", ""), "unknown")
+                visibility_fields = ("handle_visible",)
             mapped.add("handle_visible")
-            out.append(VisibilityMeasurement(_meta(sample_id, row, "visibility", "handle_visibility", "object:handle", artifact, ("handle_visible",), _confidence(row, "handle_conf"), CoordinateFrame.IMAGE_PIXELS, Unit.UNITLESS), state))
+            out.append(VisibilityMeasurement(_meta(sample_id, row, "visibility", "handle_visibility", "object:handle", artifact, visibility_fields, _confidence(row, "handle_conf"), CoordinateFrame.IMAGE_PIXELS, Unit.UNITLESS), state))
         else:
             conf = _confidence(row, "semantic_conf")
             _mask(out, mapped, sample_id, row, artifact, "object_mask_bbox", "object:body", ("mask_bbox_x1", "mask_bbox_y1", "mask_bbox_x2", "mask_bbox_y2"), conf)

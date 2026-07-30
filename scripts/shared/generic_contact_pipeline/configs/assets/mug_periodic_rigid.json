@@ -23,8 +23,9 @@
         "dof_id": "scale",
         "kind": "scalar",
         "field": "scale",
-        "bounds": [0.25, 3.5],
-        "default": 1.0
+        "bounds": [0.75, 1.5],
+        "default": 1.0,
+        "observable": false
       }
     ]
   },
@@ -37,6 +38,7 @@
     "axis_local": [0.0, 1.0, 0.0],
     "body_radius_m": 0.04,
     "body_height_m": 0.096,
+    "scale_prior_sigma": 0.12,
     "phase_grid_samples": 721,
     "phase_candidate_count": 8,
     "temporal_phase_sigma_rad_per_frame": 0.25
@@ -44,5 +46,9 @@
   "feature_points": {
     "object:center": [[0.0, 0.0, 0.0]],
     "object:handle": [[-0.068282, -0.007, 0.0]]
+  },
+  "contact_visibility_features": {
+    "handle_loop": "object:handle",
+    "body_shell_or_occluded_handle_region": "object:handle"
   }
 }

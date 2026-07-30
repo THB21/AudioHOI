@@ -383,6 +383,30 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
     if local_feature.shape != (1, 3):
         raise ValueError("axial rigid off-axis feature must resolve to one fixed local point")
 
+    scale_dof = next((dof for dof in request.state_spec.dofs if dof.dof_id == "scale"), None)
+    if (
+        scale_dof is None
+        or scale_dof.bound is None
+        or not isinstance(scale_dof.bound.lower, (float, int))
+        or not isinstance(scale_dof.bound.upper, (float, int))
+    ):
+        raise ValueError("axial rigid initializer requires finite asset-declared scale bounds")
+    scale_lower = float(scale_dof.bound.lower)
+    scale_upper = float(scale_dof.bound.upper)
+    raw_scale_by_frame = {
+        frame: ((masks[frame].bbox_xyxy[3] - masks[frame].bbox_xyxy[1]) * float(depths[frame].depth_m))
+        / (request.cameras[frame].fy * height_m)
+        for frame in frames
+    }
+    sequence_scale = float(
+        np.clip(np.median(tuple(raw_scale_by_frame.values())), scale_lower, scale_upper)
+    )
+    scale_prior_sigma = float(initializer.get("scale_prior_sigma", 0.15))
+    if scale_prior_sigma <= 0.0:
+        raise ValueError("axial rigid initializer scale prior sigma must be positive")
+    fit_scale_lower = scale_lower if scale_dof.observable else sequence_scale - 1e-9
+    fit_scale_upper = scale_upper if scale_dof.observable else sequence_scale + 1e-9
+
     body_fits: dict[int, tuple[np.ndarray, np.ndarray, float]] = {}
     body_errors: dict[int, float] = {}
     artifacts: set[str] = set()
@@ -406,8 +430,11 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
             dtype=float,
         )
         x1, y1, x2, y2 = mask.bbox_xyxy
-        scale0 = float(np.clip(((y2 - y1) * z0) / (camera.fy * height_m), 0.25, 3.5))
-        initial = np.asarray((*translation0, 0.0, 0.0, scale0), dtype=float)
+        scale0 = float(np.clip(raw_scale_by_frame[frame], scale_lower, scale_upper))
+        initial = np.asarray(
+            (*translation0, 0.0, 0.0, scale0 if scale_dof.observable else sequence_scale),
+            dtype=float,
+        )
 
         def body_residual(values: np.ndarray) -> np.ndarray:
             translation = values[:3]
@@ -423,15 +450,15 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
             residuals = ((center_uv - np.asarray((center.u, center.v))) / 7.0).tolist()
             residuals.extend((np.asarray(predicted_bbox) - np.asarray(mask.bbox_xyxy)) / 10.0)
             residuals.append((float(translation[2]) - z0) / float(depth.sigma_m or 0.55))
-            residuals.append((float(values[5]) - scale0) / 0.45)
+            residuals.append((float(values[5]) - sequence_scale) / scale_prior_sigma)
             return np.asarray(residuals, dtype=float)
 
         fit = least_squares(
             body_residual,
             initial,
             bounds=(
-                np.asarray((translation0[0] - 0.45, translation0[1] - 0.45, max(0.2, z0 - 0.9), math.radians(-85.0), math.radians(-85.0), 0.25)),
-                np.asarray((translation0[0] + 0.45, translation0[1] + 0.45, z0 + 0.9, math.radians(80.0), math.radians(85.0), 3.5)),
+                np.asarray((translation0[0] - 0.45, translation0[1] - 0.45, max(0.2, z0 - 0.9), math.radians(-85.0), math.radians(-85.0), fit_scale_lower)),
+                np.asarray((translation0[0] + 0.45, translation0[1] + 0.45, z0 + 0.9, math.radians(80.0), math.radians(85.0), fit_scale_upper)),
             ),
             loss="soft_l1",
             f_scale=1.0,
@@ -553,6 +580,10 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
             "fabricated_feature_measurement_count": 0,
             "body_residual_rms_median": float(np.median(tuple(body_errors.values()))),
             "body_residual_rms_p90": float(np.quantile(tuple(body_errors.values()), 0.90)),
+            "asset_scale_bounds": [scale_lower, scale_upper],
+            "sequence_scale_prior": sequence_scale,
+            "scale_prior_sigma": scale_prior_sigma,
+            "scale_optimized_by_sequence_solver": scale_dof.observable,
             "feature_reprojection_median_px": float(np.median(feature_errors)),
             "feature_reprojection_p90_px": float(np.quantile(feature_errors, 0.90)),
             "baseline_pose_read": False,

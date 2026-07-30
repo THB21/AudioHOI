@@ -38,7 +38,7 @@ The same phase seed is then reused as the target of `PeriodicPhasePriorFactor`. 
 
 This is a state-contract and measurement-consumption defect, not a weight-tuning defect.
 
-The current sequence has 240 frames. A handle-center observation exists in 159 frames and is absent in 81 frames. Contact evidence is active for all 240 frames. Occlusion handling is therefore a primary requirement, not a missing-data edge case.
+The current sequence has 240 frames. The old thin-part detector exposes 159 handle centers and 81 missing centers, but those rows flicker inside true occlusion. The dense Qwen visibility artifact marks 60 semantic hidden frames in intervals 27–42, 46–47, 62, 64, 66–88, and 98–114. Applying semantic visibility before numerical factor construction leaves 131 reliable handle-point rows and 109 frames without a handle point. Contact evidence is active for all 240 frames. Occlusion handling is therefore a primary requirement, not a missing-data edge case.
 
 ## Selected architecture
 
@@ -116,9 +116,13 @@ VLM may classify only discrete evidence states:
 - hand contacts handle / body / unclear;
 - candidate has obvious floating, penetration, or wrong-side handle placement.
 
-VLM may downweight a predefined visual or contact factor tier and may reject a candidate. It cannot output pose, phase, continuous weights, or override hard geometry metrics.
+VLM may downweight a predefined visual or contact factor tier and may reject a candidate. A visible label enables an existing pixel measurement but does not raise that pixel detector's confidence; an occluded label removes the feature reprojection and changes persistent contact to `occluded_hold + keep_previous`. VLM cannot output pose, phase, continuous weights, or override hard geometry metrics.
 
-### 6. Publication and provenance
+### 6. Metric-asset scale responsibility
+
+Body silhouette and metric depth estimate one sequence-level asset scale. For a known metric rigid asset this scale is constant and is not an object-motion degree of freedom. The axial initializer must read scale bounds from `StateSpec`, compute a robust sequence estimate from body bbox/depth, and publish it as an unobservable fixed DOF for the subsequent trajectory solve. Contact factors cannot change scale to manufacture a zero hand gap.
+
+### 7. Publication and provenance
 
 Every isolated attempt writes state, residuals, factor ledger, hard metrics, visibility/contact gates, and status. `AcceptedObjectOutputPublisher` remains the only writer of canonical `object_pose.csv`.
 

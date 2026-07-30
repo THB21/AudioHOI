@@ -16,7 +16,7 @@ from ..contact_constraints import ContactConstraint, ContactMode, ContactState, 
 from ..human_sites import GVHMRSiteExtractionResult, HumanSiteMeasurement, extract_gvhmr_site_measurements
 from ..factors import FactorArbitrationLedger, build_factor_arbitration_ledger, factor_arbitration_ledger_record
 from ..gates import load_factor_arbitration_ledger
-from ..measurements import Line2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
+from ..measurements import Line2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, VisibilityMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
 from ..state import (
     Bound,
     CapsuleGeometryProvider,
@@ -494,6 +494,32 @@ def prepare_capability_object_problem(
     measurements.extend(adapt_configured_supplemental_measurements(profile, result_dir).measurements)
     contact_path = result_dir / str(config.get("contact_artifact", "object_contact_points.csv"))
     contact_rows = _rows(contact_path)
+    visibility_by_feature_frame = {
+        (measurement.meta.feature.geometry_feature_id, measurement.meta.frame): measurement.state
+        for measurement in measurements
+        if isinstance(measurement, VisibilityMeasurement)
+    }
+    contact_visibility_features = descriptor.get("contact_visibility_features", {})
+    if contact_visibility_features:
+        if not isinstance(contact_visibility_features, Mapping):
+            raise ValueError("asset contact_visibility_features must be a mapping")
+        gated_contact_rows: list[dict[str, str]] = []
+        for source_row in contact_rows:
+            row = dict(source_row)
+            visibility_feature = contact_visibility_features.get(row.get("object_part", ""))
+            visibility = visibility_by_feature_frame.get(
+                (str(visibility_feature), int(row["frame"]))
+            )
+            if visibility in {"occluded", "absent"} and row.get("contact_active") == "1":
+                row["visibility"] = "hidden"
+                row["anchor_update"] = "0"
+                row["keep_previous"] = "1"
+                row["source"] = (
+                    row.get("source", "")
+                    + f"+semantic_visibility_gate:{visibility_feature}"
+                ).lstrip("+")
+            gated_contact_rows.append(row)
+        contact_rows = gated_contact_rows
     constraints = adapt_legacy_contact_rows(profile.case_name, contact_rows, str(contact_path)).constraints
     gvhmr_sites: GVHMRSiteExtractionResult | None = None
     initializer_ledger: Mapping[str, object] = {

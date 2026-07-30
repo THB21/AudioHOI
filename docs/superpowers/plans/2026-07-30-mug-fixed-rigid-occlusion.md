@@ -4,7 +4,7 @@
 
 **Goal:** Produce the 240-frame mug trajectory with the single generic sequence solver, treating body and handle as one fixed rigid asset and preserving pose through handle occlusion with read-only hand contact evidence.
 
-**Architecture:** Replace the nine-dimensional root-plus-phase production state with an eight-dimensional fixed-rigid state. A descriptor-driven axial-rigid initializer composes body tilt and off-axis feature phase into one root quaternion; typed visual factors run only where their measurements exist, while persistent-contact and temporal factors carry the object through the 81 handle-hidden frames.
+**Architecture:** Replace the nine-dimensional root-plus-phase production state with an eight-dimensional fixed-rigid state. A descriptor-driven axial-rigid initializer composes body tilt and off-axis feature phase into one root quaternion; typed visual factors run only where their measurements exist, while persistent-contact and temporal factors carry the object through semantic handle occlusion. Qwen marks 60 frame-local hidden states; after combining that gate with missing thin-handle detections, 131 handle points remain and 109 frames contain no fabricated handle point.
 
 **Tech Stack:** Python, NumPy, SciPy, OpenCV, typed Measurement/Interaction/Factor IR, `GenericSequenceExecutor`, URDF/OBJ asset descriptors, FFmpeg.
 
@@ -48,7 +48,7 @@ Update the asset descriptor with this contract shape:
     "dofs": [
       {"dof_id": "root.translation", "kind": "translation", "fields": ["tx", "ty", "tz"]},
       {"dof_id": "root.rotation", "kind": "rotation_so3", "fields": ["qw", "qx", "qy", "qz"]},
-      {"dof_id": "scale", "kind": "scalar", "field": "scale", "bounds": [0.25, 3.5], "default": 1.0}
+      {"dof_id": "scale", "kind": "scalar", "field": "scale", "bounds": [0.75, 1.5], "default": 1.0, "observable": false}
     ]
   },
   "initializer": {
@@ -136,8 +136,8 @@ The hypothesis ledger must record:
 ```python
 {
     "initializer_kind": "axial_rigid_feature_correspondence",
-    "visible_feature_frame_count": 159,
-    "hidden_feature_frame_count": 81,
+    "visible_feature_frame_count": 131,
+    "hidden_feature_frame_count": 109,
     "fabricated_feature_measurement_count": 0,
     "baseline_pose_read": False,
     "historical_phase_read": False,
@@ -221,7 +221,7 @@ git commit -m "feat: constrain hidden rigid assets with persistent contact"
 
 ### Task 4: Solve and diagnose the full sequence
 
-- [ ] **Step 1: Run an isolated solve**
+- [x] **Step 1: Run an isolated solve**
 
 ```bash
 /home/yang/miniconda3/envs/audiohoi/bin/python \
@@ -231,7 +231,7 @@ git commit -m "feat: constrain hidden rigid assets with persistent contact"
   --solve --candidate-dir /tmp/audiohoi-mug-fixed-rigid --max-nfev 200
 ```
 
-- [ ] **Step 2: Audit physical and occlusion metrics**
+- [x] **Step 2: Audit physical and occlusion metrics**
 
 Record:
 
@@ -246,11 +246,11 @@ rotation step p95/max
 reappearance correction at every hidden -> visible boundary
 ```
 
-- [ ] **Step 3: Localize any failure before changing code**
+- [x] **Step 3: Localize any failure before changing code**
 
 For each failed metric, inspect initial state, factor residuals, activation rows, and solved state at the same frames. Change only a generic capability or descriptor value justified by asset geometry. Do not add a mug branch, change global gate thresholds, or reintroduce pose/phase seeds.
 
-- [ ] **Step 4: Verify source boundaries**
+- [x] **Step 4: Verify source boundaries**
 
 ```bash
 git diff -U0 -- scripts/shared/generic_contact_pipeline/core | \
@@ -261,11 +261,11 @@ Expected: no new object-name dispatch in core.
 
 ### Task 5: Decode, render, and publish only after review
 
-- [ ] **Step 1: Provide phase-zero render compatibility**
+- [x] **Step 1: Provide phase-zero render compatibility**
 
 The root quaternion already contains the axial angle. Generate a derived render-only zero-relative-phase track, or update the Articraft render adapter to use zero relative phase for a fixed-rigid state. The artifact is never a solver input.
 
-- [ ] **Step 2: Render all 240 frames**
+- [x] **Step 2: Render all 240 frames**
 
 Produce:
 
@@ -281,7 +281,7 @@ keyframes_montage.png
 
 The skeleton is read-only relationship visualization.
 
-- [ ] **Step 3: Verify render artifacts**
+- [x] **Step 3: Verify render artifacts**
 
 Use `ffprobe` to confirm 240 frames at 24 fps and full decode. Record SHA-256 for all six videos.
 

@@ -55,6 +55,55 @@ def _plan_records(plan: dict[str, object] | object) -> tuple[dict[str, object], 
     )
 
 
+def _project_static_interval_initial_states(
+    states: Mapping[int, Sequence[float]],
+    residual_execution_plan: dict[str, object] | object,
+) -> dict[int, tuple[float, ...]]:
+    """Make initialization obey generic supported-static state boundaries.
+
+    A leading static interval uses its first state as the anchor.  A later
+    static interval inherits the immediately preceding state, which represents
+    the pose at which motion stopped.  The first moving frame after a leading
+    static interval also inherits that anchor so a contact-state transition
+    cannot create an initialization discontinuity.
+    """
+
+    projected = {
+        int(frame): tuple(float(value) for value in state)
+        for frame, state in states.items()
+    }
+    frames = tuple(sorted(projected))
+    if not frames:
+        return projected
+    frame_set = set(frames)
+    for record in _plan_records(residual_execution_plan):
+        if record.get("residual_fn_ref") != "shadow_residual::static_freeze":
+            continue
+        runtime_config = record.get("runtime_config")
+        if not isinstance(runtime_config, Mapping):
+            continue
+        intervals = record.get("activation_intervals", ())
+        if not isinstance(intervals, (list, tuple)):
+            continue
+        for interval in intervals:
+            if not isinstance(interval, Mapping) or interval.get("status") != "active":
+                continue
+            start = int(interval["start_frame"])
+            end = int(interval["end_frame"])
+            predecessor = start - 1
+            anchor_frame = predecessor if predecessor in frame_set else start
+            if anchor_frame not in projected:
+                continue
+            anchor = projected[anchor_frame]
+            for frame in range(start, end + 1):
+                if frame in frame_set:
+                    projected[frame] = anchor
+            successor = end + 1
+            if predecessor not in frame_set and successor in frame_set:
+                projected[successor] = anchor
+    return projected
+
+
 @dataclass(frozen=True)
 class SequenceFactorInputs:
     """Factor-id keyed typed inputs; no object identity or case dispatch."""
@@ -112,6 +161,7 @@ class SequenceProblemFactory:
         factor_inputs: SequenceFactorInputs,
         contact_constraints: Sequence[ContactConstraint] = (),
         human_sites: Sequence[HumanSiteMeasurement] = (),
+        contact_initialization_mode: str = "residual_only",
         parent_solve_attempt_id: str | None = None,
     ) -> SequenceProblemPreparation:
         if not initial_states:
@@ -129,6 +179,11 @@ class SequenceProblemFactory:
         if any(len(state) != parameterization.state_width for state in states.values()):
             raise ValueError("initial object states must match StateSpec width")
 
+        if contact_initialization_mode not in {"residual_only", "seed"}:
+            raise ValueError("contact initialization mode must be residual_only or seed")
+        # Resolve unobservable contact gauge against a state-continuous visual
+        # initializer, not against independent per-frame PnP outliers.
+        states = _project_static_interval_initial_states(states, residual_execution_plan)
         initialization_ledger: RigidContactHypothesisLedger | None = None
         if contact_constraints or human_sites:
             if not contact_constraints or not human_sites:
@@ -139,7 +194,14 @@ class SequenceProblemFactory:
                 contact_constraints=contact_constraints,
                 human_sites=human_sites,
             )
-            states = apply_rigid_contact_hypotheses(states, initialization_ledger)
+            # Contact is a noisy, read-only human-derived constraint.  Record its
+            # rigid correspondence hypotheses for provenance, but do not replace
+            # a geometry/vision initializer unless the caller explicitly asks
+            # for a separate contact-seeded hypothesis.
+            if contact_initialization_mode == "seed":
+                states = apply_rigid_contact_hypotheses(states, initialization_ledger)
+
+        states = _project_static_interval_initial_states(states, residual_execution_plan)
 
         def residual_input_builder(
             object_states: Mapping[int, Sequence[float]],
@@ -186,7 +248,11 @@ class SequenceProblemFactory:
             metric_depth_factors=factor_inputs.metric_depth_factors,
             support_plane_factors=factor_inputs.support_plane_factors,
         )
-        seeded = initialization_ledger is not None and initialization_ledger.seeded_frame_count > 0
+        seeded = (
+            contact_initialization_mode == "seed"
+            and initialization_ledger is not None
+            and initialization_ledger.seeded_frame_count > 0
+        )
         problem = SequenceOptimizationProblem(
             attempt_id=attempt_id,
             sequence_contract_sha256=sequence_contract_sha256,

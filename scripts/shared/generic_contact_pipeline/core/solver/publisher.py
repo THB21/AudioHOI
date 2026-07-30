@@ -258,6 +258,26 @@ def evaluate_object_publication_gate(
             gate_ids.append("projection_p95_px")
             if p95_px > projection_p95_px_limit:
                 blocking.append("projection_p95_px_failed")
+        elif factor_id.startswith("point_reprojection:"):
+            predicted = np.asarray(raw_inputs["predicted"], dtype=float)
+            target = np.asarray(raw_inputs["target"], dtype=float)
+            errors_px = np.linalg.norm(predicted - target, axis=1)
+            active_errors_px = errors_px[active_rows(raw_inputs["weight"], len(errors_px))]
+            if not len(active_errors_px):
+                blocking.append("point_reprojection_has_no_active_rows")
+                continue
+            p95_px = float(np.quantile(active_errors_px, 0.95))
+            metrics.update(
+                {
+                    "point_projection_all_rows_p95_px": float(np.quantile(errors_px, 0.95)),
+                    "point_projection_p95_px": p95_px,
+                    "point_projection_p95_px_limit": projection_p95_px_limit,
+                    "point_projection_max_px": float(np.max(active_errors_px)),
+                }
+            )
+            gate_ids.append("point_projection_p95_px")
+            if p95_px > projection_p95_px_limit:
+                blocking.append("point_projection_p95_px_failed")
     gate = ObjectPublicationGate(
         passed=not blocking,
         gate_ids=tuple(gate_ids),

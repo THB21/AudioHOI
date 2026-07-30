@@ -188,22 +188,6 @@ from .line_diagnostics import (
     validate_line_contact_diagnostics,
     verify_materialized_line_contact_candidate,
 )
-from .chair_diagnostics import (
-    build_chair_contact_diagnostics,
-    validate_chair_contact_diagnostics,
-)
-from .chair_factor_candidate import (
-    CHAIR_FACTOR_CANDIDATE_NAME,
-    CHAIR_FACTOR_ATTEMPT_NAME,
-    CHAIR_FACTOR_RESIDUAL_TABLE_NAME,
-    CHAIR_FACTOR_RESIDUALS_NAME,
-    build_chair_factor_executor_candidate,
-    build_chair_factor_residual_coverage,
-    prepare_chair_factor_executor_candidate,
-    validate_chair_factor_executor_candidate,
-    validate_chair_factor_residual_coverage,
-    verify_materialized_chair_factor_candidate,
-)
 from .validation import validate_sequence_problem_shadow
 
 __all__ = [
@@ -358,3 +342,32 @@ __all__ = [
     "residual_boundary_ledger_record",
     "residual_boundary_record",
 ]
+
+
+_COMPATIBILITY_EXPORTS = {
+    "build_chair_contact_diagnostics": (".chair_diagnostics", "build_chair_contact_diagnostics"),
+    "validate_chair_contact_diagnostics": (".chair_diagnostics", "validate_chair_contact_diagnostics"),
+    "CHAIR_FACTOR_CANDIDATE_NAME": (".chair_factor_candidate", "CHAIR_FACTOR_CANDIDATE_NAME"),
+    "CHAIR_FACTOR_ATTEMPT_NAME": (".chair_factor_candidate", "CHAIR_FACTOR_ATTEMPT_NAME"),
+    "CHAIR_FACTOR_RESIDUAL_TABLE_NAME": (".chair_factor_candidate", "CHAIR_FACTOR_RESIDUAL_TABLE_NAME"),
+    "CHAIR_FACTOR_RESIDUALS_NAME": (".chair_factor_candidate", "CHAIR_FACTOR_RESIDUALS_NAME"),
+    "build_chair_factor_executor_candidate": (".chair_factor_candidate", "build_chair_factor_executor_candidate"),
+    "build_chair_factor_residual_coverage": (".chair_factor_candidate", "build_chair_factor_residual_coverage"),
+    "prepare_chair_factor_executor_candidate": (".chair_factor_candidate", "prepare_chair_factor_executor_candidate"),
+    "validate_chair_factor_executor_candidate": (".chair_factor_candidate", "validate_chair_factor_executor_candidate"),
+    "validate_chair_factor_residual_coverage": (".chair_factor_candidate", "validate_chair_factor_residual_coverage"),
+    "verify_materialized_chair_factor_candidate": (".chair_factor_candidate", "verify_materialized_chair_factor_candidate"),
+}
+
+
+def __getattr__(name: str):
+    """Lazy-load legacy chair evidence APIs outside the production import graph."""
+    target = _COMPATIBILITY_EXPORTS.get(name)
+    if target is None:
+        raise AttributeError(name)
+    from importlib import import_module
+
+    module_name, attribute = target
+    value = getattr(import_module(module_name, __name__), attribute)
+    globals()[name] = value
+    return value

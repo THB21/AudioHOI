@@ -13,6 +13,22 @@
     "leg:rear_left": "rear_leg_left",
     "leg:rear_right": "rear_leg_right"
   },
+  "point_features": {
+    "backrest_top_left": {"segment": "backrest_top_edge", "endpoint": "start"},
+    "backrest_top_right": {"segment": "backrest_top_edge", "endpoint": "end"},
+    "seat_front_left": {"segment": "seat_front_edge", "endpoint": "start"},
+    "seat_front_right": {"segment": "seat_front_edge", "endpoint": "end"},
+    "front_leg_left_bottom": {"segment": "front_leg_left", "endpoint": "end"},
+    "front_leg_right_bottom": {"segment": "front_leg_right", "endpoint": "end"},
+    "rear_leg_left_bottom": {"segment": "rear_leg_left", "endpoint": "end"},
+    "rear_leg_right_bottom": {"segment": "rear_leg_right", "endpoint": "end"}
+  },
+  "support_features": [
+    "front_leg_left_bottom",
+    "front_leg_right_bottom",
+    "rear_leg_left_bottom",
+    "rear_leg_right_bottom"
+  ],
   "state_contract": {
     "spec_id": "articulated6:urdf",
     "state_model": "articulated_root_se3",
@@ -31,14 +47,16 @@
         "dof_id": "joint.front_to_rear",
         "kind": "revolute",
         "field": "rear_joint_angle",
-        "default": 0.0,
+        "default": -0.169615616,
+        "observable": false,
         "bounds_from_urdf": "front_to_rear"
       },
       {
         "dof_id": "joint.front_to_seat",
         "kind": "revolute",
         "field": "seat_joint_angle",
-        "default": 0.0,
+        "default": 0.105957362,
+        "observable": false,
         "bounds_from_urdf": "front_to_seat"
       }
     ]
@@ -52,6 +70,10 @@
       "leg:front_right",
       "leg:rear_left",
       "leg:rear_right"
+    ],
+    "line_constraint_mode": "axis_line",
+    "point_semantic_roles": [
+      "contact_anchor_keypoint"
     ],
     "minimum_line_count": 2,
     "joint_hypotheses": "descriptor_default_and_observed",

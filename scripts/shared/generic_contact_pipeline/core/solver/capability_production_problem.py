@@ -26,12 +26,15 @@ from ..state import (
     GeometryDescriptor,
     GeometryKind,
     PeriodicFeatureRule,
+    PlaneSurface,
     PinholeCamera,
     RigidFeatureGeometryProvider,
     SphereGeometryProvider,
     StateAdaptationResult,
     StateSpec,
     StaticParameter,
+    build_articulated_geometry_from_asset_descriptor,
+    build_asset_state_contract,
 )
 from .legacy_production_problem import (
     LegacyObjectProblemPreparation,
@@ -39,11 +42,11 @@ from .legacy_production_problem import (
     _contact_samples,
     _rows,
     _state_scales,
-    prepare_legacy_articulated_object_problem,
 )
+from .capability_initializers import InitializationRequest, initialize_from_capabilities
 from .problem import build_sequence_problem_shadow
 from .problem_factory import SequenceFactorInputs, SequenceProblemFactory, SequenceProblemPreparation
-from .residual_inputs import ContactFactorInput, LineReprojectionFactorInput, MetricDepthFactorInput, PeriodicPhaseFactorInput, PointReprojectionFactorInput, WorldSpaceContactSample
+from .residual_inputs import ContactFactorInput, LineReprojectionFactorInput, MetricDepthFactorInput, PeriodicPhaseFactorInput, PointReprojectionFactorInput, SupportPlaneFactorInput, WorldSpaceContactSample
 
 
 def _sha256(path: Path) -> str:
@@ -52,6 +55,27 @@ def _sha256(path: Path) -> str:
 
 def _canonical_hash(value: object) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def _support_plane_from_human_foot_sites(
+    measurements: Sequence[HumanSiteMeasurement],
+    *,
+    surface_offset_m: float,
+) -> PlaneSurface:
+    points = np.asarray(
+        [measurement.xyz_m for measurement in measurements if measurement.site.body_part == "foot"],
+        dtype=float,
+    )
+    if points.ndim != 2 or points.shape[0] < 6 or points.shape[1] != 3 or not np.isfinite(points).all():
+        raise ValueError("support-plane fitting requires at least six finite read-only foot sites")
+    center = np.median(points, axis=0)
+    _u, _singular_values, vectors = np.linalg.svd(points - center, full_matrices=False)
+    normal = vectors[-1]
+    if normal[1] < 0.0:
+        normal = -normal
+    normal = normal / np.linalg.norm(normal)
+    offset = -float(normal @ center) - float(surface_offset_m)
+    return PlaneSurface(tuple(float(value) for value in normal), offset)
 
 
 def _quaternion_from_matrix(matrix: np.ndarray) -> tuple[float, float, float, float]:
@@ -423,6 +447,7 @@ class CapabilityObjectProblemPreparation:
     geometry_descriptor_sha256: str
     initializer_kind: str
     initializer_input_sha256: str
+    initializer_ledger: Mapping[str, object]
     gvhmr_sites: GVHMRSiteExtractionResult
     measurement_count: int
     contact_constraint_count: int
@@ -447,8 +472,6 @@ def prepare_capability_object_problem(
     if not isinstance(config, Mapping):
         raise ValueError("case profile is missing generic_object_problem capability configuration")
     initializer = str(config["initializer"])
-    if initializer == "legacy_state_artifact":
-        return prepare_legacy_articulated_object_problem(profile=profile, result_dir=result_dir, repository_root=repository_root, body_models_root=body_models_root)
 
     descriptor_path = repository_root / str(profile.data["geometry_asset_descriptor"])
     descriptor = json.loads(descriptor_path.read_text())
@@ -458,7 +481,56 @@ def prepare_capability_object_problem(
     contact_path = result_dir / str(config.get("contact_artifact", "object_contact_points.csv"))
     contact_rows = _rows(contact_path)
     constraints = adapt_legacy_contact_rows(profile.case_name, contact_rows, str(contact_path)).constraints
-    if initializer == "observation_periodic_rigid":
+    gvhmr_sites: GVHMRSiteExtractionResult | None = None
+    initializer_ledger: Mapping[str, object] = {
+        "initializer_kind": initializer,
+        "case_dispatch_used": False,
+        "baseline_pose_read": False,
+        "human_state_optimized": False,
+    }
+    if initializer == "articulated_correspondence":
+        contract = build_asset_state_contract(descriptor_path, repository_root)
+        if str(contract.initializer["kind"]) != initializer:
+            raise ValueError("case initializer and asset initializer capability disagree")
+        frame_times = {
+            measurement.meta.frame: measurement.meta.time
+            for measurement in measurements
+        }
+        if not frame_times:
+            raise ValueError("articulated initializer requires typed frame measurements")
+        gvhmr_sites = _gvhmr_sites(profile, frame_times, body_models_root)
+        geometry_build = build_articulated_geometry_from_asset_descriptor(
+            descriptor_path=descriptor_path,
+            repository_root=repository_root,
+            result_dir=result_dir,
+            state_spec=contract.state_spec,
+            contact_constraints=constraints,
+        )
+        cameras = {frame: PinholeCamera(**profile.camera) for frame in sorted(frame_times)}
+        initialized = initialize_from_capabilities(
+            InitializationRequest(
+                state_spec=contract.state_spec,
+                geometry_provider=geometry_build.provider,
+                measurements=tuple(measurements),
+                contact_constraints=tuple(constraints),
+                human_sites=tuple(gvhmr_sites.measurements),
+                cameras=cameras,
+                initializer=contract.initializer,
+                default_state_by_dof=contract.default_state_by_dof,
+            )
+        )
+        adaptation = StateAdaptationResult(
+            schema="articulated_correspondence_v1",
+            state_spec=contract.state_spec,
+            geometry=contract.geometry,
+            mapped_fields=tuple(field for dof in contract.state_spec.dofs for field in dof.source_fields),
+            unmapped_nonempty_fields=(),
+        )
+        initial_states = dict(initialized.states_by_frame)
+        templates = [dict(row) for row in initialized.template_rows]
+        provider = geometry_build.provider
+        initializer_ledger = initialized.hypothesis_ledger
+    elif initializer == "observation_periodic_rigid":
         adaptation, initial_states, templates, frame_times = _periodic_seed(result_dir)
         feature_points: dict[str, list[list[float]]] = {"object:body": [[0.0, 0.0, 0.0]]}
         periodic_rules: dict[str, PeriodicFeatureRule] = {}
@@ -484,7 +556,8 @@ def prepare_capability_object_problem(
     else:
         raise ValueError(f"unsupported object capability initializer: {initializer}")
 
-    gvhmr_sites = _gvhmr_sites(profile, frame_times, body_models_root)
+    if gvhmr_sites is None:
+        gvhmr_sites = _gvhmr_sites(profile, frame_times, body_models_root)
     base_shadow = build_sequence_problem_shadow(profile, result_dir)
     base_compiled_records = base_shadow["inputs"]["compiled_factor_shadow"]["records"]
     factor_arbitration = (
@@ -545,6 +618,7 @@ def prepare_capability_object_problem(
     line_factors: dict[str, LineReprojectionFactorInput] = {}
     point_factors: dict[str, PointReprojectionFactorInput] = {}
     depth_factors: dict[str, MetricDepthFactorInput] = {}
+    support_factors: dict[str, SupportPlaneFactorInput] = {}
     cameras = {frame: PinholeCamera(**profile.camera) for frame in initial_states}
     line_measurements = tuple(item for item in measurements if isinstance(item, Line2DMeasurement))
     measurement_roles = config.get("measurement_roles", {})
@@ -592,6 +666,34 @@ def prepare_capability_object_problem(
                 ),
                 target_by_frame=depth_targets,
             )
+        elif residual_ref == "shadow_residual::support_and_penetration":
+            support_config = config.get("support_plane", {})
+            if not isinstance(support_config, Mapping) or support_config.get("source") != "gvhmr_foot_sites":
+                raise ValueError("support factor requires a configured generic support-plane source")
+            support_feature_ids = tuple(str(value) for value in descriptor.get("support_features", ()))
+            if not support_feature_ids:
+                raise ValueError("support factor requires asset-declared support features")
+            active_frames = tuple(
+                frame
+                for interval in record.get("activation_intervals", ())
+                if isinstance(interval, Mapping) and interval.get("status") == "active"
+                for frame in range(int(interval["start_frame"]), int(interval["end_frame"]) + 1)
+            )
+            runtime = profile.data.get("factor_runtime", {}).get("support_and_penetration", {})
+            if not isinstance(runtime, Mapping):
+                raise ValueError("support factor requires runtime configuration")
+            support_factors[factor_id] = SupportPlaneFactorInput(
+                provider,
+                support_feature_ids,
+                active_frames,
+                _support_plane_from_human_foot_sites(
+                    gvhmr_sites.measurements,
+                    surface_offset_m=float(support_config.get("human_site_surface_offset_m", 0.0)),
+                ),
+                support_weight=float(runtime.get("weight", 1.0)),
+                penetration_weight=float(support_config.get("penetration_weight", runtime.get("weight", 1.0))),
+                sigma_m=float(runtime.get("sigma", 1.0)),
+            )
     factor_inputs = SequenceFactorInputs(
         state_scales=_state_scales(records, sum(dof.dimension for dof in adaptation.state_spec.dofs)),
         contact_factors=contact_factors,
@@ -599,6 +701,7 @@ def prepare_capability_object_problem(
         line_reprojection_factors=line_factors,
         point_reprojection_factors=point_factors,
         metric_depth_factors=depth_factors,
+        support_plane_factors=support_factors,
     )
     preparation = SequenceProblemFactory().prepare(
         attempt_id=str(shadow["attempt_ledger"]["attempt_id"]),
@@ -607,6 +710,9 @@ def prepare_capability_object_problem(
         initial_states=initial_states,
         residual_execution_plan=shadow["residual_execution_plan"],
         factor_inputs=factor_inputs,
+        contact_constraints=constraints,
+        human_sites=gvhmr_sites.measurements,
+        contact_initialization_mode="seed",
     )
     initializer_inputs = [result_dir / str(path) for path in config.get("initializer_artifacts", ())]
     return CapabilityObjectProblemPreparation(
@@ -618,6 +724,7 @@ def prepare_capability_object_problem(
         geometry_descriptor_sha256=_sha256(descriptor_path),
         initializer_kind=initializer,
         initializer_input_sha256=_canonical_hash({str(path): _sha256(path) for path in initializer_inputs}),
+        initializer_ledger=initializer_ledger,
         gvhmr_sites=gvhmr_sites,
         measurement_count=len(measurements),
         contact_constraint_count=len(constraints),
@@ -641,6 +748,7 @@ def capability_object_problem_preparation_record(prepared: CapabilityObjectProbl
         "geometry": {"kind": prepared.geometry_kind, "descriptor_path": prepared.geometry_descriptor_path, "descriptor_sha256": prepared.geometry_descriptor_sha256},
         "initializer_kind": prepared.initializer_kind,
         "initializer_input_sha256": prepared.initializer_input_sha256,
+        "initializer_ledger": prepared.initializer_ledger,
         "read_only_human_sites": {"measurement_count": len(prepared.gvhmr_sites.measurements), "source_artifact": prepared.gvhmr_sites.source_artifact, "source_sha256": prepared.gvhmr_sites.source_sha256, "read_only": True},
         "measurement_count": prepared.measurement_count,
         "contact_constraint_count": prepared.contact_constraint_count,

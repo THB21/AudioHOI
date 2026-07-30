@@ -18,6 +18,7 @@ generic_object_problem:
     - object_contact_points.csv
     - line_observations.csv
   contact_artifact: object_contact_points.csv
+  sequence_factors: [temporal_velocity, static_freeze]
 factor_runtime:
   line_reprojection:
     weight: 1.0
@@ -36,6 +37,11 @@ factor_runtime:
     sigma_unit: m
     source: sequence_se3_optimizer:trusted_physical_contact_weight
     activation_weight_tiers: {active: 1.0, downweighted: 0.08, inactive: 0.0}
+  static_freeze:
+    weight: 100.0
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: generic_supported_static_interval_anchor
+    activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
 refinement_policy:
   - line_contact_lock
   - backproject_xy

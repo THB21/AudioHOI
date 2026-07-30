@@ -7,9 +7,18 @@ observation_model: semantic_graph_tracks
 contact_policy: two_hand_toprail_endpoint
 pose_model: semantic_graph_6d
 generic_object_problem:
-  initializer: legacy_state_artifact
-  initializer_artifacts: [object_pose_init.csv, object_contact_points.csv, object_observations.csv]
+  initializer: articulated_correspondence
+  initializer_artifacts: [object_local_segments.csv, object_contact_points.csv, object_observations.csv]
   contact_artifact: object_contact_points.csv
+  measurement_factors: [point_reprojection]
+  measurement_roles:
+    point_reprojection: [contact_anchor_keypoint]
+  sequence_factors: [temporal_velocity, static_freeze]
+  environment_factors: [support_and_penetration]
+  support_plane:
+    source: gvhmr_foot_sites
+    human_site_surface_offset_m: 0.05
+    penetration_weight: 2.0
 refinement_policy:
   - small_se3
   - anchor_propagate_freeze
@@ -20,6 +29,12 @@ sequence_se3_optimizer:
   smooth_w: 0.95
   accel_w: 4.2
 factor_runtime:
+  point_reprojection:
+    weight: 0.35
+    sigma: 7.5
+    sigma_unit: px
+    source: legacy_chair_pairprop_cli:w_2d_sigma_px
+    activation_weight_tiers: {active: 1.0, downweighted: 1.0, inactive: 0.0}
   line_reprojection:
     weight: 0.35
     sigma: 7.5
@@ -37,6 +52,17 @@ factor_runtime:
     state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     source: legacy_chair_pairprop_cli:w_temporal+generic_state_contract:unit_scales
     activation_weight_tiers: {active: 1.0, downweighted: 1.0, inactive: 0.0}
+  static_freeze:
+    weight: 100.0
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: generic_supported_static_interval_anchor
+    activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
+  support_and_penetration:
+    weight: 1.0
+    sigma: 0.035
+    sigma_unit: m
+    source: typed_support_plane_from_read_only_human_foot_sites
+    activation_weight_tiers: {active: 1.0, downweighted: 0.5, inactive: 0.0}
 render_backend: urdf_solid_mesh
 result_name: generic_pipeline_v1
 articraft_model_py: samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/revisions/rev_000001/model.py

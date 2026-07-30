@@ -123,6 +123,8 @@ def build_typed_rigid_contact_hypotheses(
     initializer = StateSpecRigidCorrespondenceInitializer(state_spec)
     hypotheses: list[RigidContactHypothesis] = []
     skipped = Counter()
+    previous_hypothesis_state: tuple[float, ...] | None = None
+    previous_hypothesis_frame: int | None = None
     for frame, constraints in sorted(constraints_by_frame.items()):
         if len(constraints) != 2:
             skipped["requires_exactly_two_local_xyz_contacts"] += 1
@@ -152,7 +154,14 @@ def build_typed_rigid_contact_hypotheses(
             dtype=float,
         )
         target = np.asarray([measurement.xyz_m for measurement in measurements], dtype=float)
-        state, metrics = initializer.align_two_points(initial_states[frame], local, target)
+        reference_state = (
+            previous_hypothesis_state
+            if previous_hypothesis_state is not None
+            and previous_hypothesis_frame is not None
+            and frame == previous_hypothesis_frame + 1
+            else initial_states[frame]
+        )
+        state, metrics = initializer.align_two_points(reference_state, local, target)
         if not bool(metrics.get("used")):
             skipped["degenerate_two_point_correspondence"] += 1
             continue
@@ -172,6 +181,8 @@ def build_typed_rigid_contact_hypotheses(
                 correspondence_metrics=metrics,
             )
         )
+        previous_hypothesis_state = state
+        previous_hypothesis_frame = frame
 
     payload = {
         "schema_version": 1,

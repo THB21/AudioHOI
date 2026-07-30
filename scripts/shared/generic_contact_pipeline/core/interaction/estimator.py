@@ -80,6 +80,12 @@ def _contact_rows_by_frame(result_dir: Path) -> tuple[dict[int, list[dict[str, s
     return by_frame, source
 
 
+def _motion_rows_by_frame(result_dir: Path) -> tuple[dict[int, dict[str, str]], str]:
+    path = result_dir / "motion_regime.csv"
+    rows = _read_csv(path)
+    return ({int(float(row["frame"])): row for row in rows}, str(path) if rows else "")
+
+
 def _audio_events_by_frame(sample_id: str, result_dir: Path) -> tuple[dict[int, list[str]], str]:
     adapted = load_audio_events(sample_id, result_dir)
     by_frame: dict[int, list[str]] = {}
@@ -125,11 +131,16 @@ def _frame_state(
     result_dir: Path,
     contact_source: str,
     audio_source: str,
+    motion_row: dict[str, str] | None,
+    motion_source: str,
 ) -> FrameInteractionState:
     frame = int(float(primary["frame"]))
     time = _float(primary, "time")
     active_contact_ids = _contact_ids(sample_id, frame, contacts, support=False)
     support_contact_ids = _contact_ids(sample_id, frame, contacts, support=True)
+    motion_regime = str((motion_row or {}).get("motion_regime", "")).strip().lower()
+    if not active_contact_ids and not support_contact_ids and motion_regime == "static_hold":
+        support_contact_ids = (f"{sample_id}:{frame}:static_support:motion_regime",)
     any_contact = bool(active_contact_ids or support_contact_ids)
     visibility = _visibility(primary)
     if active_contact_ids:
@@ -166,6 +177,7 @@ def _frame_state(
             "primary_observation": "object_observations.csv",
             "contact_state": contact_source if contacts else "",
             "audio_events": audio_source if audio_event_ids else "",
+            "motion_mode": motion_source if motion_row else "",
         },
     )
 
@@ -173,6 +185,7 @@ def _frame_state(
 def build_interaction_timeline(sample_id: str, result_dir: Path) -> InteractionTimeline:
     primary_rows = _primary_rows(result_dir)
     contacts_by_frame, contact_source = _contact_rows_by_frame(result_dir)
+    motion_by_frame, motion_source = _motion_rows_by_frame(result_dir)
     audio_by_frame, audio_source = _audio_events_by_frame(sample_id, result_dir)
     frames: list[FrameInteractionState] = []
     previous_contact_active = False
@@ -188,6 +201,8 @@ def build_interaction_timeline(sample_id: str, result_dir: Path) -> InteractionT
             result_dir,
             contact_source,
             audio_source,
+            motion_by_frame.get(frame),
+            motion_source,
         )
         frames.append(state)
         previous_contact_active = bool(state.active_contact_ids or state.support_contact_ids)

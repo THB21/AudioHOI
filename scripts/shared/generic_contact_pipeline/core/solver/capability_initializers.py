@@ -10,7 +10,7 @@ import numpy as np
 
 from ..contact_constraints import ContactConstraint
 from ..human_sites import HumanSiteMeasurement
-from ..measurements import Line2DMeasurement, Measurement
+from ..measurements import Line2DMeasurement, Measurement, Point2DMeasurement
 from ..state import DofKind, PinholeCamera, StateSpec
 
 
@@ -71,7 +71,12 @@ def _joint_hypotheses(request: InitializationRequest, base: np.ndarray) -> tuple
         joint_ids.append(dof.dof_id)
         default = float(base[layout[dof.dof_id]][0])
         values = [default]
-        if dof.bound is not None and isinstance(dof.bound.lower, (float, int)) and isinstance(dof.bound.upper, (float, int)):
+        if (
+            dof.observable
+            and dof.bound is not None
+            and isinstance(dof.bound.lower, (float, int))
+            and isinstance(dof.bound.upper, (float, int))
+        ):
             lower, upper = float(dof.bound.lower), float(dof.bound.upper)
             values.extend((lower, 0.5 * (lower + upper), upper))
         candidates.append(tuple(dict.fromkeys(round(value, 12) for value in values)))
@@ -98,6 +103,7 @@ def _state_from_pnp(
     hypothesis: np.ndarray,
     lines: Sequence[Line2DMeasurement],
     camera: PinholeCamera,
+    point_measurements: Sequence[Point2DMeasurement] = (),
 ) -> tuple[np.ndarray, float] | None:
     try:
         import cv2
@@ -116,13 +122,13 @@ def _state_from_pnp(
     if feature_points_world is None:
         raise ValueError("articulated_correspondence requires feature_points_world geometry capability")
     for measurement in lines:
-        points = np.asarray(
+        feature_points = np.asarray(
             feature_points_world(local_state, measurement.meta.feature.geometry_feature_id),
             dtype=np.float64,
         )
-        if points.shape[0] < 2:
+        if feature_points.shape[0] < 2:
             continue
-        local_points.extend((points[0], points[-1]))
+        local_points.extend((feature_points[0], feature_points[-1]))
         image_points.extend((measurement.start_uv, measurement.end_uv))
     if len(local_points) < 6:
         return None
@@ -149,12 +155,87 @@ def _state_from_pnp(
     )
     if not success or not np.isfinite(rvec).all() or not np.isfinite(tvec).all():
         return None
+    if str(request.initializer.get("line_constraint_mode", "endpoints")) == "axis_line":
+        from scipy.optimize import least_squares
+
+        line_local: list[np.ndarray] = []
+        line_targets: list[tuple[np.ndarray, np.ndarray]] = []
+        for measurement in lines:
+            feature = np.asarray(
+                feature_points_world(local_state, measurement.meta.feature.geometry_feature_id),
+                dtype=np.float64,
+            )
+            if feature.shape[0] < 2:
+                continue
+            line_local.extend((feature[0], feature[-1]))
+            line_targets.append(
+                (
+                    np.asarray(measurement.start_uv, dtype=float),
+                    np.asarray(measurement.end_uv, dtype=float),
+                )
+            )
+        point_local: list[np.ndarray] = []
+        point_targets: list[np.ndarray] = []
+        for measurement in point_measurements:
+            feature = np.asarray(
+                feature_points_world(local_state, measurement.meta.feature.geometry_feature_id),
+                dtype=np.float64,
+            )
+            if feature.shape != (1, 3):
+                continue
+            point_local.append(feature[0])
+            point_targets.append(np.asarray((measurement.u, measurement.v), dtype=float))
+
+        def axis_line_residual(parameters: np.ndarray) -> np.ndarray:
+            trial_rvec = parameters[:3].reshape(3, 1)
+            trial_tvec = parameters[3:].reshape(3, 1)
+            residuals: list[float] = []
+            cursor = 0
+            for start_uv, end_uv in line_targets:
+                local_pair = np.asarray(line_local[cursor:cursor + 2], dtype=np.float64)
+                cursor += 2
+                projected_pair, _ = cv2.projectPoints(
+                    local_pair, trial_rvec, trial_tvec, _camera_matrix(camera), None
+                )
+                direction = end_uv - start_uv
+                norm = float(np.linalg.norm(direction))
+                if norm <= 1e-6:
+                    residuals.extend((1e4, 1e4))
+                    continue
+                for projected_uv in projected_pair.reshape(-1, 2):
+                    residuals.append(float(np.cross(direction, projected_uv - start_uv) / norm))
+            if point_local:
+                projected_points, _ = cv2.projectPoints(
+                    np.asarray(point_local, dtype=np.float64),
+                    trial_rvec,
+                    trial_tvec,
+                    _camera_matrix(camera),
+                    None,
+                )
+                for projected_uv, target_uv in zip(projected_points.reshape(-1, 2), point_targets):
+                    residuals.extend((float(projected_uv[0] - target_uv[0]), float(projected_uv[1] - target_uv[1])))
+            return np.asarray(residuals, dtype=float)
+
+        refined = least_squares(
+            axis_line_residual,
+            np.concatenate((rvec.reshape(3), tvec.reshape(3))),
+            method="trf",
+            loss="soft_l1",
+            f_scale=7.5,
+            max_nfev=30,
+        )
+        rvec = refined.x[:3].reshape(3, 1)
+        tvec = refined.x[3:].reshape(3, 1)
     rotation_matrix, _ = cv2.Rodrigues(rvec)
     camera_points = object_array @ rotation_matrix.T + tvec.reshape(1, 3)
     if float(np.min(camera_points[:, 2])) <= 1e-4:
         return None
     projected, _ = cv2.projectPoints(object_array, rvec, tvec, _camera_matrix(camera), None)
-    error = float(np.sqrt(np.mean(np.sum((projected.reshape(-1, 2) - image_array) ** 2, axis=1))))
+    if str(request.initializer.get("line_constraint_mode", "endpoints")) == "axis_line":
+        residual_values = axis_line_residual(np.concatenate((rvec.reshape(3), tvec.reshape(3))))
+        error = float(np.sqrt(np.mean(residual_values ** 2)))
+    else:
+        error = float(np.sqrt(np.mean(np.sum((projected.reshape(-1, 2) - image_array) ** 2, axis=1))))
     qx, qy, qz, qw = Rotation.from_matrix(rotation_matrix).as_quat()
     state = hypothesis.copy()
     layout = _layout(request.state_spec)
@@ -211,9 +292,16 @@ def _articulated_correspondence(request: InitializationRequest) -> Initializatio
     allowed = {str(value) for value in request.initializer.get("line_feature_roles", ())}
     minimum = int(request.initializer.get("minimum_line_count", 2))
     by_frame: dict[int, list[Line2DMeasurement]] = {}
+    points_by_frame: dict[int, list[Point2DMeasurement]] = {}
+    allowed_point_roles = {str(value) for value in request.initializer.get("point_semantic_roles", ())}
     times: dict[int, float] = {}
     artifacts: set[str] = set()
     for measurement in request.measurements:
+        if isinstance(measurement, Point2DMeasurement):
+            if not allowed_point_roles or measurement.meta.feature.semantic_role in allowed_point_roles:
+                points_by_frame.setdefault(measurement.meta.frame, []).append(measurement)
+                artifacts.add(measurement.meta.source.artifact)
+            continue
         if not isinstance(measurement, Line2DMeasurement):
             continue
         feature_id = measurement.meta.feature.geometry_feature_id
@@ -227,26 +315,61 @@ def _articulated_correspondence(request: InitializationRequest) -> Initializatio
     hypotheses = _joint_hypotheses(request, base)
     solved: dict[int, np.ndarray] = {}
     selections: list[dict[str, object]] = []
+    candidates_by_frame: dict[int, list[tuple[float, np.ndarray, int]]] = {}
     for frame in frames:
         lines = by_frame.get(frame, ())
         if len(lines) < minimum:
             continue
         candidates: list[tuple[float, np.ndarray, int]] = []
         for index, hypothesis in enumerate(hypotheses):
-            result = _state_from_pnp(request, hypothesis, lines, request.cameras[frame])
+            result = _state_from_pnp(
+                request,
+                hypothesis,
+                lines,
+                request.cameras[frame],
+                points_by_frame.get(frame, ()),
+            )
             if result is not None and math.isfinite(result[1]):
                 candidates.append((result[1], result[0], index))
         if not candidates:
             continue
-        score, state, selected_index = min(candidates, key=lambda value: value[0])
+        candidates_by_frame[frame] = candidates
+    sequence_constant_joints = any(
+        dof.kind in {DofKind.REVOLUTE, DofKind.PRISMATIC} and not dof.observable
+        for dof in request.state_spec.dofs
+    )
+    selected_hypothesis: int | None = None
+    if sequence_constant_joints and candidates_by_frame:
+        aggregate: list[tuple[int, float, int]] = []
+        for hypothesis_index in range(len(hypotheses)):
+            scores = [
+                score
+                for candidates in candidates_by_frame.values()
+                for score, _state, index in candidates
+                if index == hypothesis_index
+            ]
+            if scores:
+                aggregate.append((-len(scores), float(np.median(scores)), hypothesis_index))
+        if aggregate:
+            selected_hypothesis = min(aggregate)[2]
+    for frame, candidates in sorted(candidates_by_frame.items()):
+        eligible = (
+            [candidate for candidate in candidates if candidate[2] == selected_hypothesis]
+            if selected_hypothesis is not None
+            else candidates
+        )
+        if not eligible:
+            continue
+        score, state, selected_index = min(eligible, key=lambda value: value[0])
         solved[frame] = state
         selections.append(
             {
                 "frame": frame,
                 "selected_hypothesis_id": f"joint-grid-{selected_index:03d}",
-                "line_measurement_count": len(lines),
+                "line_measurement_count": len(by_frame.get(frame, ())),
                 "reprojection_rmse_px": score,
                 "rejected_hypothesis_count": len(candidates) - 1,
+                "joint_selection_scope": "sequence_constant" if selected_hypothesis is not None else "per_frame",
             }
         )
     states = _interpolate_states(frames, solved, request.state_spec)
@@ -269,6 +392,9 @@ def _articulated_correspondence(request: InitializationRequest) -> Initializatio
             "frame_count": len(frames),
             "directly_solved_frame_count": len(solved),
             "joint_hypothesis_count": len(hypotheses),
+            "selected_sequence_joint_hypothesis_id": (
+                None if selected_hypothesis is None else f"joint-grid-{selected_hypothesis:03d}"
+            ),
             "selections": selections,
             "case_dispatch_used": False,
             "baseline_pose_read": False,

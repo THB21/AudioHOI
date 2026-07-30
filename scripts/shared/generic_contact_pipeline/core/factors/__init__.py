@@ -7,7 +7,6 @@ from .activation import (
     activation_record,
     build_factor_activation_ledger,
 )
-from .chair_bundle import build_chair_factor_executor_bundle, validate_chair_factor_executor_bundle
 from .compiler import (
     CompiledFactor,
     CompiledFactorLedger,
@@ -78,3 +77,22 @@ __all__ = [
     "factor_gate_decision_record",
     "merge_factor_activation_ledger",
 ]
+
+
+_COMPATIBILITY_EXPORTS = {
+    "build_chair_factor_executor_bundle": (".chair_bundle", "build_chair_factor_executor_bundle"),
+    "validate_chair_factor_executor_bundle": (".chair_bundle", "validate_chair_factor_executor_bundle"),
+}
+
+
+def __getattr__(name: str):
+    """Lazy-load legacy audit helpers without importing them in production."""
+    target = _COMPATIBILITY_EXPORTS.get(name)
+    if target is None:
+        raise AttributeError(name)
+    from importlib import import_module
+
+    module_name, attribute = target
+    value = getattr(import_module(module_name, __name__), attribute)
+    globals()[name] = value
+    return value

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..base.config import CaseProfile
-from ..base.io import repo_relative_value
+from ..base.io import repo_path, repo_relative_value
 from ..measurements import Line2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
 from .types import (
     FactorEnergySummary,
@@ -138,17 +138,17 @@ def _stage_factor_id(stage_label: str, term: str, kind: FactorKind) -> str:
     return f"{kind.value}:{stage_label}:{term}"
 
 
-def _chair_private_solver_gap_is_resolved(profile: CaseProfile, result_dir: Path) -> bool:
-    """Return true only when chair Stage4 provenance proves current-run generic readiness."""
-    if profile.case_name != "chair":
-        return False
-    try:
-        from ..solver.chair_diagnostics import build_chair_contact_diagnostics, validate_chair_contact_diagnostics
-
-        diagnostics = build_chair_contact_diagnostics(result_dir)
-    except Exception:
-        return False
-    return diagnostics.get("compatibility_gap_status") == "nonblocking" and not validate_chair_contact_diagnostics(diagnostics)
+def _asset_state_dofs(profile: CaseProfile) -> tuple[dict[str, object], ...]:
+    configured = profile.data.get("geometry_asset_descriptor")
+    if not configured:
+        return ()
+    path = repo_path(str(configured))
+    if not path.is_file():
+        return ()
+    descriptor = _read_json(path)
+    contract = descriptor.get("state_contract", {})
+    raw_dofs = contract.get("dofs", ()) if isinstance(contract, dict) else ()
+    return tuple(dict(value) for value in raw_dofs if isinstance(value, dict))
 
 
 def _mug_periodic_phase_prior_is_resolved(result_dir: Path) -> tuple[bool, int, dict[str, object]]:
@@ -356,9 +356,14 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
             )
 
     sequence_factors = set(generic_problem.get("sequence_factors", ())) if isinstance(generic_problem, dict) else set()
+    # Static intervals are a property of InteractionState, not an object/case
+    # capability.  Every sequence problem compiles the same freeze factor; its
+    # active mask decides whether it contributes any residuals.
+    sequence_factors.add("static_freeze")
     for factor_name, factor_kind, order in (
         ("temporal_velocity", FactorKind.TEMPORAL_VELOCITY, 1),
         ("temporal_acceleration", FactorKind.TEMPORAL_ACCELERATION, 2),
+        ("static_freeze", FactorKind.STATIC_FREEZE, 1),
     ):
         if factor_name not in sequence_factors:
             continue
@@ -371,7 +376,11 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 kind=factor_kind,
                 frame_count=temporal_rows,
                 input_refs=_input_refs(factor_kind),
-                residual_unit=f"state_{'first' if order == 1 else 'second'}_difference",
+                residual_unit=(
+                    "state_first_difference_on_supported_static_intervals"
+                    if factor_kind == FactorKind.STATIC_FREEZE
+                    else f"state_{'first' if order == 1 else 'second'}_difference"
+                ),
                 weight_source=f"factor_runtime_configuration:{factor_name}",
                 gate_source="InteractionState ContactMode/MotionMode activation",
                 residual_source=_source(
@@ -386,6 +395,35 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 f"state_spec:sequence_{factor_name}_prior",
                 factor_kind,
                 temporal_rows,
+                0.0,
+            )
+        )
+
+    environment_factors = set(generic_problem.get("environment_factors", ())) if isinstance(generic_problem, dict) else set()
+    if "support_and_penetration" in environment_factors:
+        factors = [factor for factor in factors if factor.kind != FactorKind.SUPPORT_AND_PENETRATION]
+        summaries = [summary for summary in summaries if summary.kind != FactorKind.SUPPORT_AND_PENETRATION]
+        factors.append(
+            FactorSpec(
+                factor_id="support_and_penetration:interaction_state",
+                kind=FactorKind.SUPPORT_AND_PENETRATION,
+                frame_count=len(observation_rows),
+                input_refs=_input_refs(FactorKind.SUPPORT_AND_PENETRATION),
+                residual_unit="metric_signed_plane_distance",
+                weight_source="factor_runtime_configuration:support_and_penetration",
+                gate_source="InteractionState support_contact_ids/MotionMode activation",
+                residual_source=_source(
+                    result_dir / "motion_regime.csv",
+                    ("frame", "motion_regime"),
+                    "interaction_state_support_plane_prior",
+                ),
+            )
+        )
+        summaries.append(
+            FactorEnergySummary(
+                "interaction_state:support_and_penetration",
+                FactorKind.SUPPORT_AND_PENETRATION,
+                len(observation_rows),
                 0.0,
             )
         )
@@ -510,11 +548,11 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
         summaries.append(FactorEnergySummary("object_contact_points:contact_active", FactorKind.CONTACT_DISTANCE, active_contact_rows, 0.0))
 
     adapter = stage3_metrics.get("adapter", {}) if isinstance(stage3_metrics.get("adapter"), dict) else {}
-    if profile.case_name == "chair" or adapter.get("component") == "semantic_graph_6d" or adapter.get("solver"):
-        for joint_id, field in (
-            ("joint.front_to_rear", "rear_joint_angle"),
-            ("joint.front_to_seat", "seat_joint_angle"),
-        ):
+    joint_dofs = tuple(dof for dof in _asset_state_dofs(profile) if dof.get("kind") in {"revolute", "prismatic"})
+    if joint_dofs:
+        for dof in joint_dofs:
+            joint_id = str(dof["dof_id"])
+            field = str(dof.get("field") or tuple(dof.get("fields", ("joint_value",)))[0])
             factors.append(
                 FactorSpec(
                     factor_id=f"joint_limit:{joint_id}",
@@ -587,7 +625,12 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 str(repo_relative_value(result_dir / "stage3_metrics.json")),
             )
         )
-    if (adapter.get("component") == "semantic_graph_6d" or adapter.get("solver")) and not _chair_private_solver_gap_is_resolved(profile, result_dir):
+    generic_problem = profile.data.get("generic_object_problem", {})
+    articulated_initializer_promoted = (
+        isinstance(generic_problem, dict)
+        and generic_problem.get("initializer") == "articulated_correspondence"
+    )
+    if (adapter.get("component") == "semantic_graph_6d" or adapter.get("solver")) and not articulated_initializer_promoted:
         gaps.append(
             FactorGap(
                 "semantic_graph_solver_private",
@@ -596,7 +639,6 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 str(repo_relative_value(result_dir / "stage3_metrics.json")),
             )
         )
-    generic_problem = profile.data.get("generic_object_problem", {})
     line_capability_promoted = (
         isinstance(generic_problem, dict)
         and generic_problem.get("initializer") == "line_s_two_site"

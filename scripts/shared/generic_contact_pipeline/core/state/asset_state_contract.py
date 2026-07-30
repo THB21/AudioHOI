@@ -123,7 +123,17 @@ def build_asset_state_contract(
         elif isinstance(raw.get("bounds"), (list, tuple)) and len(raw["bounds"]) == 2:
             lower, upper = (float(value) for value in raw["bounds"])
             bound = Bound(lower, upper, unit, "asset_descriptor")
-        dofs.append(DofSpec(dof_id, kind, dimension, unit, fields, bound))
+        dofs.append(
+            DofSpec(
+                dof_id,
+                kind,
+                dimension,
+                unit,
+                fields,
+                bound,
+                observable=bool(raw.get("observable", True)),
+            )
+        )
         raw_default = raw.get("default")
         if raw_default is not None:
             values = raw_default if isinstance(raw_default, (list, tuple)) else (raw_default,)

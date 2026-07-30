@@ -150,6 +150,23 @@ def adapt_legacy_observation_rows(sample_id: str, rows: list[dict[str, str]], ar
                 ("rear_leg_right", "leg:rear_right", ("rear_leg_right_top_u", "rear_leg_right_top_v", "rear_leg_right_bottom_u", "rear_leg_right_bottom_v")),
             ):
                 _line(out, mapped, sample_id, row, artifact, role, fid, fields, conf)
+            for fid, u_field, v_field in (
+                ("backrest_top_left", "top_rail_left_u", "top_rail_left_v"),
+                ("backrest_top_right", "top_rail_right_u", "top_rail_right_v"),
+            ):
+                _point(out, mapped, sample_id, row, artifact, "contact_anchor_keypoint", fid, u_field, v_field, conf)
+            for fid, u_field, v_field in (
+                ("seat_front_left", "seat_front_left_u", "seat_front_left_v"),
+                ("seat_front_right", "seat_front_right_u", "seat_front_right_v"),
+            ):
+                _point(out, mapped, sample_id, row, artifact, "rigid_keypoint_diagnostic", fid, u_field, v_field, conf)
+            for fid, u_field, v_field in (
+                ("front_leg_left_bottom", "front_leg_left_bottom_u", "front_leg_left_bottom_v"),
+                ("front_leg_right_bottom", "front_leg_right_bottom_u", "front_leg_right_bottom_v"),
+                ("rear_leg_left_bottom", "rear_leg_left_bottom_u", "rear_leg_left_bottom_v"),
+                ("rear_leg_right_bottom", "rear_leg_right_bottom_u", "rear_leg_right_bottom_v"),
+            ):
+                _point(out, mapped, sample_id, row, artifact, "support_foot", fid, u_field, v_field, conf)
 
     nonempty = {field for field in rows[0] if any(row.get(field, "") not in {"", None} for row in rows)}
     return AdaptationResult(schema, tuple(out), tuple(sorted(mapped)), tuple(sorted(nonempty - mapped)))

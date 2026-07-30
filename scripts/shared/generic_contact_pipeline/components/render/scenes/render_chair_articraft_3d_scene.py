@@ -88,8 +88,22 @@ def ff(row: dict[str, str], key: str, default: float = math.nan) -> float:
 
 
 def pose_params(row: dict[str, str]) -> np.ndarray:
-    keys = ["rx_delta", "ry_delta", "rz_delta", "tx", "ty", "tz", "rear_joint_angle", "seat_joint_angle"]
-    return np.asarray([ff(row, k, 0.0) for k in keys], dtype=float)
+    legacy_rotation_fields = ("rx_delta", "ry_delta", "rz_delta")
+    if all(row.get(key, "") not in ("", None) for key in legacy_rotation_fields):
+        rotation_delta = np.asarray([ff(row, key) for key in legacy_rotation_fields], dtype=float)
+    else:
+        quaternion_fields = ("qx", "qy", "qz", "qw")
+        if not all(row.get(key, "") not in ("", None) for key in quaternion_fields):
+            raise ValueError("chair pose requires either legacy rotation deltas or a quaternion")
+        quaternion = np.asarray([ff(row, key) for key in quaternion_fields], dtype=float)
+        quaternion /= np.linalg.norm(quaternion)
+        camera_rotation = Rotation.from_quat(quaternion).as_matrix()
+        rotation_delta = Rotation.from_matrix(camera_rotation @ fit.BASE_LOCAL_TO_CAM.T).as_rotvec()
+    remaining = np.asarray(
+        [ff(row, key, 0.0) for key in ("tx", "ty", "tz", "rear_joint_angle", "seat_joint_angle")],
+        dtype=float,
+    )
+    return np.concatenate((rotation_delta, remaining))
 
 
 def rotation_matrix(params: np.ndarray) -> np.ndarray:

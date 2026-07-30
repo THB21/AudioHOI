@@ -27,7 +27,7 @@ generic_object_problem:
   measurement_roles:
     point_reprojection: [object_center]
     metric_depth: [object_center_depth]
-  sequence_factors: [temporal_acceleration]
+  sequence_factors: [temporal_acceleration, static_freeze]
 factor_runtime:
   point_reprojection:
     weight: 1.0
@@ -52,6 +52,11 @@ factor_runtime:
     state_scales: [0.8, 0.67, 0.2]
     source: sequence_translation_optimizer:second_difference_continuity
     activation_weight_tiers: {active: 1.0, downweighted: 0.12, inactive: 0.0}
+  static_freeze:
+    weight: 100.0
+    state_scales: [0.8, 0.67, 0.2]
+    source: generic_supported_static_interval_anchor
+    activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
 refinement_policy:
   - generic_sphere_sequence
   - backproject_xy

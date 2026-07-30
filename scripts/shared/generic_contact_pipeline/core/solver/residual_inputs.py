@@ -43,6 +43,15 @@ class ResidualInputRequest:
 ResidualInputProvider = Callable[[ResidualInputRequest], dict[str, Any] | None]
 
 
+def _optimization_safe_project(camera: PinholeCamera, points: Any) -> Any:
+    """Keep reprojection residuals defined for rejected behind-camera trials."""
+
+    if bool((points[:, 2] <= 1e-4).any()):
+        points = points.copy()
+        points[:, 2] = points[:, 2].clip(min=1e-4)
+    return camera.project(points)
+
+
 @dataclass(frozen=True)
 class WorldSpaceContactSample:
     frame: int
@@ -415,7 +424,7 @@ def build_line_reprojection_residual_inputs(
         )
         if points.shape != (2, 3):
             raise ValueError("line geometry features must resolve to exactly two 3D endpoints")
-        projected = camera.project(points)
+        projected = _optimization_safe_project(camera, points)
         predicted.append(projected.astype(float).tolist())
         target.append(
             [
@@ -458,7 +467,7 @@ def build_point_reprojection_residual_inputs(
         points = geometry_provider.feature_points_world(state, measurement.meta.feature.geometry_feature_id)
         if points.shape != (1, 3):
             raise ValueError("point geometry features must resolve to exactly one 3D point")
-        predicted.append(camera.project(points)[0].astype(float).tolist())
+        predicted.append(_optimization_safe_project(camera, points)[0].astype(float).tolist())
         target.append([float(measurement.u), float(measurement.v)])
         frame_weight = float((weight_by_frame or {}).get(frame, weight))
         row_weights.append(frame_weight * (measurement.meta.confidence if measurement.meta.confidence is not None else 1.0))
@@ -556,6 +565,56 @@ def build_sequence_temporal_residual_inputs(
         factor_id: {
             "x": current,
             "prev": previous,
+            "weight": _scalar_or_row_weights(
+                [float(weight_by_frame.get(frame, weight)) for frame in residual_frames],
+                weight,
+            ) if weight_by_frame is not None else float(weight),
+            "scales": [float(scale) for scale in scales],
+        }
+    }
+
+
+def build_sequence_static_freeze_residual_inputs(
+    *,
+    factor_id: str,
+    states_by_frame: Mapping[int, Sequence[float]],
+    activation_intervals: Sequence[Mapping[str, object]],
+    scales: tuple[float, ...],
+    weight: float,
+    weight_by_frame: Mapping[int, float] | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Reference every frame to its interaction-state interval anchor.
+
+    Pairwise velocity penalties can accumulate slow drift. A static interval
+    instead shares one anchor pose, while inactive intervals retain zero rows
+    so residual ordering remains deterministic.
+    """
+
+    frames = sorted(int(frame) for frame in states_by_frame)
+    if len(frames) <= 1:
+        return {}
+    interval_anchor: dict[int, int] = {}
+    first_frame = frames[0]
+    for interval in activation_intervals:
+        start, end = int(interval["start_frame"]), int(interval["end_frame"])
+        anchor = start - 1 if start > first_frame and start - 1 in states_by_frame else start
+        for frame in range(start, end + 1):
+            if frame in states_by_frame:
+                interval_anchor[frame] = anchor
+    current: list[list[float]] = []
+    anchors: list[list[float]] = []
+    residual_frames: list[int] = []
+    for frame in frames[1:]:
+        anchor = interval_anchor.get(frame)
+        if anchor is None or anchor not in states_by_frame:
+            raise ValueError(f"static-freeze factor {factor_id} has no interval anchor for frame {frame}")
+        current.append(_numeric_vector(states_by_frame[frame], "static-freeze current state"))
+        anchors.append(_numeric_vector(states_by_frame[anchor], "static-freeze anchor state"))
+        residual_frames.append(frame)
+    return {
+        factor_id: {
+            "x": current,
+            "prev": anchors,
             "weight": _scalar_or_row_weights(
                 [float(weight_by_frame.get(frame, weight)) for frame in residual_frames],
                 weight,
@@ -822,16 +881,22 @@ def build_geometry_sequence_residual_input_bundle(
     """
 
     def temporal(request: ResidualInputRequest) -> dict[str, Any] | None:
-        order = 1 if request.residual_fn_ref == "shadow_residual::temporal_velocity" else 2
+        order = 1 if request.residual_fn_ref in {"shadow_residual::temporal_velocity", "shadow_residual::static_freeze"} else 2
         base_weight = _runtime_weight(request, 1.0)
-        payload = build_sequence_temporal_residual_inputs(
-            factor_id=request.factor_id,
-            states_by_frame=object_states,
-            order=order,
-            scales=_runtime_state_scales(request, state_scales),
-            weight=base_weight,
-            weight_by_frame=_runtime_weights_by_frame(request, object_states, base_weight),
-        )
+        common = {
+            "factor_id": request.factor_id,
+            "states_by_frame": object_states,
+            "scales": _runtime_state_scales(request, state_scales),
+            "weight": base_weight,
+            "weight_by_frame": _runtime_weights_by_frame(request, object_states, base_weight),
+        }
+        if request.residual_fn_ref == "shadow_residual::static_freeze":
+            payload = build_sequence_static_freeze_residual_inputs(
+                **common,
+                activation_intervals=request.activation_intervals,
+            )
+        else:
+            payload = build_sequence_temporal_residual_inputs(**common, order=order)
         return payload.get(request.factor_id)
 
     def regularization(request: ResidualInputRequest) -> dict[str, Any] | None:
@@ -1027,6 +1092,7 @@ def build_geometry_sequence_residual_input_bundle(
         {
             "shadow_residual::temporal_velocity": temporal,
             "shadow_residual::temporal_acceleration": temporal,
+            "shadow_residual::static_freeze": temporal,
             "shadow_residual::regularization": regularization,
             "shadow_residual::contact_distance": contact,
             "shadow_residual::pose_prior": pose_prior,
@@ -1091,8 +1157,33 @@ def build_geometry_sequence_residual_dependencies(
         if selected is not None and factor_id not in selected:
             continue
         residual_ref = str(record.get("residual_fn_ref", ""))
-        if residual_ref in {"shadow_residual::temporal_velocity", "shadow_residual::temporal_acceleration"}:
-            order = 1 if residual_ref.endswith("temporal_velocity") else 2
+        if residual_ref in {"shadow_residual::temporal_velocity", "shadow_residual::temporal_acceleration", "shadow_residual::static_freeze"}:
+            if residual_ref == "shadow_residual::static_freeze":
+                intervals = tuple(
+                    item
+                    for item in record.get("activation_intervals", ())
+                    if isinstance(item, Mapping)
+                )
+                first_frame = frames[0]
+                for residual_index, frame in enumerate(frames[1:]):
+                    interval = next(
+                        interval
+                        for interval in intervals
+                        if int(interval["start_frame"]) <= frame <= int(interval["end_frame"])
+                    )
+                    start = int(interval["start_frame"])
+                    anchor = start - 1 if start > first_frame and start - 1 in object_states else start
+                    dependency_frames = (frame,) if anchor == frame else (anchor, frame)
+                    dependencies.append(
+                        ResidualRowDependency(
+                            factor_id,
+                            residual_index * state_width,
+                            (residual_index + 1) * state_width,
+                            dependency_frames,
+                        )
+                    )
+                continue
+            order = 1 if residual_ref in {"shadow_residual::temporal_velocity", "shadow_residual::static_freeze"} else 2
             for residual_index, frame_index in enumerate(range(order, len(frames))):
                 dependency_frames = frames[frame_index - order : frame_index + 1]
                 dependencies.append(

@@ -104,6 +104,16 @@ def build_articulated_geometry_from_asset_descriptor(
         feature_points[str(feature_id)] = points
         feature_parts[str(feature_id)] = part
 
+    for feature_id, raw_point in dict(descriptor.get("point_features", {})).items():
+        point_spec = dict(raw_point)
+        segment_id = str(point_spec["segment"])
+        endpoint = str(point_spec["endpoint"])
+        if segment_id not in segments or endpoint not in {"start", "end"}:
+            raise ValueError(f"asset point feature cannot resolve endpoint: {feature_id}")
+        part, points = segments[segment_id]
+        feature_points[str(feature_id)] = [points[0 if endpoint == "start" else 1]]
+        feature_parts[str(feature_id)] = part
+
     contact_feature_ids: set[str] = set()
     for constraint in contact_constraints:
         coordinate = constraint.object_coordinate

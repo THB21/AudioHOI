@@ -111,7 +111,7 @@ def _run_generic_object_executor(profile: CaseProfile, result_dir: Path, candida
         "--candidate-dir",
         str(candidate_dir),
         "--max-nfev",
-        "2",
+        "100",
     ]
     subprocess.run(cmd, cwd=Path(__file__).resolve().parents[5], check=True, text=True, capture_output=True)
 

@@ -77,9 +77,13 @@ class StateSpecParameterization:
         state_offset = 0
         parameter_offset = 0
         for dof in state_spec.dofs:
-            if dof.kind == DofKind.ROTATION_SO3:
+            if not dof.observable:
+                if dof.kind == DofKind.ROTATION_SO3:
+                    _quaternion_indices(dof)
+                parameter_dimension = 0
+            elif dof.kind == DofKind.ROTATION_SO3:
                 _quaternion_indices(dof)
-                parameter_dimension = 3 if dof.observable else 0
+                parameter_dimension = 3
             else:
                 parameter_dimension = dof.dimension
             layouts.append(
@@ -179,6 +183,8 @@ class StateSpecParameterization:
                     rotated = _multiply_quaternion_xyzw(delta, base)
                     for component, source_index in enumerate(indices):
                         values[source_index] = rotated[component]
+                continue
+            if layout.parameter_start == layout.parameter_stop:
                 continue
             values = parameter_matrix[:, parameter_slice]
             if dof.kind == DofKind.PERIODIC:

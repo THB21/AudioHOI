@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "status": "accepted",
+  "candidate_path": "/tmp/audiohoi-vlm-stick-fixed-UnZnhC/generic_object_pose_candidate.csv",
+  "candidate_sha256": "5857c4f209332873e7b1784b7d762dc0a07a93c38ecffdfc928993cc4a7fa785",
+  "accepted_path": "samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv",
+  "accepted_sha256": "5857c4f209332873e7b1784b7d762dc0a07a93c38ecffdfc928993cc4a7fa785",
+  "solve_attempt_id": "generic-solve-d6ab7c6281d6",
+  "hard_gate": {
+    "passed": true,
+    "gate_ids": [
+      "explicit_promotion_authorized",
+      "manual_visual_acceptance_override"
+    ],
+    "blocking_reasons": []
+  },
+  "case_dispatch_used": false,
+  "human_state_optimized": false,
+  "automatic_hard_gate": {
+    "blocking_reasons": [
+      "contact_gap_p95_m_failed",
+      "contact_gap_max_m_failed",
+      "vlm_factor_arbitration_unclear"
+    ],
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "projection_p95_px",
+      "contact_distance_normalized_rmse",
+      "contact_gap_p95_m",
+      "contact_gap_max_m",
+      "vlm_factor_arbitration_clear"
+    ],
+    "passed": false
+  },
+  "manual_acceptance": {
+    "authorized": true,
+    "authority": "user_visual_review",
+    "reason": "user reviewed final 3D/overlay render videos and explicitly accepted release",
+    "accepted_at": "2026-07-30",
+    "automatic_failures_overridden": [
+      "contact_gap_p95_m_failed",
+      "contact_gap_max_m_failed",
+      "vlm_factor_arbitration_unclear"
+    ],
+    "render_evidence_root": "samples_known_object/11_stick/results/renders/benchmark_vlm_qwen"
+  },
+  "previous_accepted_sha256": "330874e157f95608a5962c04fdb804a9086f429ec47d88eca8c27d3b31257994",
+  "persisted_attempt_dir": "samples_known_object/11_stick/results/benchmark_vlm_qwen/generic_sequence_solver_attempts/generic-solve-d6ab7c6281d6"
+}

@@ -12,6 +12,7 @@ from typing import Mapping, Sequence
 import numpy as np
 
 from ..base.config import CaseProfile
+from ..base.schema import resolve_contact_artifact
 from ..contact_constraints import ContactConstraint, ContactMode, ContactState, LineS, LocalXYZ, adapt_contact_event_rows, adapt_contact_state_rows, adapt_legacy_contact_rows
 from ..human_sites import GVHMRSiteExtractionResult, HumanSiteMeasurement, extract_gvhmr_site_measurements
 from ..factors import FactorArbitrationLedger, build_factor_arbitration_ledger, factor_arbitration_ledger_record
@@ -647,7 +648,7 @@ def prepare_capability_object_problem(
             sample_dir=profile.sample_dir,
             raw_config=raw_mask_shape,
         )
-    contact_path = result_dir / str(config.get("contact_artifact", "object_contact_points.csv"))
+    contact_path = resolve_contact_artifact(profile, result_dir)
     contact_rows = _rows(contact_path)
     contact_feature_overrides = descriptor.get("contact_feature_overrides", {})
     if contact_feature_overrides:
@@ -1028,7 +1029,15 @@ def prepare_capability_object_problem(
         human_sites=gvhmr_sites.measurements,
         contact_initialization_mode="seed",
     )
-    initializer_inputs = [result_dir / str(path) for path in config.get("initializer_artifacts", ())]
+    configured_contact_name = str(config.get("contact_artifact", "object_contact_points.csv"))
+    initializer_inputs = [
+        (
+            contact_path
+            if str(path) == configured_contact_name
+            else result_dir / str(path)
+        )
+        for path in config.get("initializer_artifacts", ())
+    ]
     return CapabilityObjectProblemPreparation(
         preparation=preparation,
         state_adaptation=adaptation,

@@ -8,6 +8,7 @@ from pathlib import Path
 
 from ..base.config import CaseProfile
 from ..base.io import repo_path, repo_relative_value
+from ..base.schema import resolve_contact_artifact
 from ..measurements import Line2DMeasurement, Mask2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
 from .types import (
     FactorEnergySummary,
@@ -185,7 +186,7 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
     loss_summary = _read_json(loss_dir / "loss_summary.json")
     stage3_metrics = _read_json(result_dir / "stage3_metrics.json")
     stage4_metrics = _read_json(result_dir / "stage4_metrics.json")
-    contact_csv = result_dir / "object_contact_points.csv"
+    contact_csv = resolve_contact_artifact(profile, result_dir)
     contact_rows = _read_csv(contact_csv)
     observation_csv = result_dir / "object_observations.csv"
     observation_rows = _read_csv(observation_csv)
@@ -603,11 +604,11 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 input_refs=_input_refs(FactorKind.CONTACT_DISTANCE),
                 residual_unit="contact_constraint",
                 weight_source="legacy_contact_confidence_or_anchor_score",
-                gate_source="contact_active in object_contact_points.csv",
+                gate_source=f"contact_active in {contact_csv.name}",
                 residual_source=_source(contact_csv, fields or ("contact_active",), "contact_constraint_shadow"),
             )
         )
-        summaries.append(FactorEnergySummary("object_contact_points:contact_active", FactorKind.CONTACT_DISTANCE, active_contact_rows, 0.0))
+        summaries.append(FactorEnergySummary(f"{contact_csv.stem}:contact_active", FactorKind.CONTACT_DISTANCE, active_contact_rows, 0.0))
 
     adapter = stage3_metrics.get("adapter", {}) if isinstance(stage3_metrics.get("adapter"), dict) else {}
     joint_dofs = tuple(dof for dof in _asset_state_dofs(profile) if dof.get("kind") in {"revolute", "prismatic"})

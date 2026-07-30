@@ -9,6 +9,7 @@ from typing import Any
 
 from ..base.config import CaseProfile
 from ..base.io import repo_path, repo_relative_value
+from ..base.schema import resolve_contact_artifact
 from ..audio_events import build_audio_event_shadow
 from ..contact_constraints.shadow import build_contact_constraint_shadow
 from ..factors.activation import FactorActivationLedger, activation_record, build_factor_activation_ledger
@@ -236,7 +237,7 @@ def build_sequence_problem_shadow(
     turn legacy solved poses into an initializer.
     """
     observation_csv = result_dir / "object_observations.csv"
-    contact_csv = result_dir / "object_contact_points.csv"
+    contact_csv = resolve_contact_artifact(profile, result_dir)
     supplemental_measurements = adapt_configured_supplemental_measurements(profile, result_dir)
     measurement_shadow = build_measurement_shadow(
         profile.case_name,

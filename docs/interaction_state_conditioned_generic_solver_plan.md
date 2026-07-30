@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | basketball / football / mug / chair / stick 五个 canonical trajectory 均由唯一 `GenericSequenceExecutor` 与 `AcceptedObjectOutputPublisher` 产生，coverage=`5/5`；所有 publication 均记录 `case_dispatch_used=false`、`human_state_optimized=false`。Stage 0 已接入固定七任务 ingestion DAG并完成 fresh-directory/cache 验证。chair / stick 的自动 gate gap 仍原样保留，不伪装为自动 zero-shot pass。 |
-| 下一步 | pending | 验证 Stage 0 artifacts 到 typed Measurement/Interaction IR 再到 solve 的 fresh 端到端调用，然后冻结 solver 与通用 gate/weight 档位，依次运行 held-out back-view basketball、suitcase、ping-pong benchmark。 |
+| `refactor/interaction-state-production` | in_progress | basketball / football / mug / chair / stick 五个 canonical trajectory 均由唯一 `GenericSequenceExecutor` 与 `AcceptedObjectOutputPublisher` 产生，coverage=`5/5`；所有 publication 均记录 `case_dispatch_used=false`、`human_state_optimized=false`。Stage 0 已接入固定八任务 ingestion DAG，且 fresh Stage 0 → typed Measurement/Contact/Interaction IR → unified solve 已实际闭环。chair / stick 的自动 gate gap 仍原样保留，不伪装为自动 zero-shot pass。 |
+| 下一步 | pending | 将已验证的 fresh typed solve接入 `run_pipeline.py` 的正式 Stage 4 单命令路径，冻结 solver与通用 gate/weight档位，再依次运行 held-out back-view basketball、suitcase、ping-pong benchmark。 |
 
 当前主线目标收束为一句话：
 
@@ -1841,7 +1841,7 @@ YYYY-MM-DD:
 - fresh evidence: 隔离目录 `/tmp/audiohoi-fresh-ingestion-stick-20260730` 起始仅含 `video.mp4` 与 `metadata.json`。实际生成 240 帧、audio、240 个 SAM2 masks、CoTracker tracks、240 帧 DA3 metric depth、GVHMR `result.pkl` 与 audio events，accepted manifest 为 `/tmp/audiohoi-fresh-ingestion-stick-20260730/results/ingestion_validation/case_ingestion_manifest.json`，frame count=`240`、FPS=`24.0`。
 - bounded DA3: 原 DA3 CLI 一次处理 240 帧，在 RTX 3080 10GB 上稳定 OOM；根因不是输入缺失。通用 adapter 改为一次加载 `depth-anything/DA3METRIC-LARGE`、按 16 帧分块推理并归一化为逐帧 `.npy`，完整 240 帧成功。分块大小与模型身份进入 cache provenance，不新增 stick 或其他 case 分支。
 - GVHMR boundary: 新 worktree 原先只有 checkpoints，没有 Git-ignored GVHMR checkout，已从原工作树只读复制完整 runtime resource。stick 的 metadata 明确要求 static camera，因此 asset/capture profile 显式声明 `preprocess.static_camera=true`，跳过不适用于固定机位且曾返回空解的 visual odometry。GVHMR 仅作为 `human_state_role=read_only_observed` 的骨架/contact evidence，不优化人体，也不增加 human refinement/handoff。
-- cache verification: 对同一 fresh 输入立即复跑，七项状态全部为 `reused`；accepted canonical manifest hash=`cc5851f791d8ba9cbc09df87c61f503be6e3f8bf389b31fd79f799473ec3af57`。DA3/GVHMR/audio-event 的 cache keys 分别为 `d0ee962f...`、`f54e9d78...`、`e206677d...`。
+- cache verification: 初版七项 DAG 对同一 fresh 输入立即复跑均为 `reused`；随后增加 dense scene depth→tracked object metric-depth prior 的正式归一化任务，当前固定 DAG 为八项且复跑全部 `reused`。DA3/GVHMR/audio-event 均保持独立 cache provenance。
 - precise failure: 将 `AUDIOHOI_DA3_ROOT` 指向 `/tmp/audiohoi-missing-da3-root` 的隔离 probe 中，前四项 hash-valid reuse，DA3 精确失败于缺失的 `/tmp/audiohoi-missing-da3-root/src/depth_anything_3/cli.py`，后续任务不运行，且不写 accepted manifest或 canonical object pose。
 - readiness: “新 case 入库先准备所有外部输入”的 blocker 已关闭到 Stage 0 artifact 层；剩余 fresh-run gap 是 Stage 0 artifacts 到正式 typed Measurement/Interaction IR 再到 solve 的端到端调用验证。canonical promotion仍为 `3/5`，下一步只处理 basketball / football fresh generic attempt、全片 render 与显式 publication。
 
@@ -1854,3 +1854,13 @@ YYYY-MM-DD:
 - acceptance: 用户检查两组完整 object overlay/camera3d 与骨架关系 overlay/camera3d 后明确回复“允许”。发布前重新执行相同 problem，并先在隔离 validation candidate 中验证 byte identity；两球 SHA 与所审阅 candidate完全一致，随后才由唯一 publisher原子写 canonical。
 - publication: basketball canonical 从 `f2fbdc992ba74d33477e55c667eb9b991107377fddb96e8f2e5689d6b55415b1` 更新为 `382968...`；football 从 `12549e743974ac7b2623a8708dd38c406bda27aa5122caa7b99a9cd0e08ec31e` 更新为 `aca836...`。两份 canonical分别为192/242行，每行只有一个对应 `generic_solve_attempt_id`，source均为 `generic_sequence_executor`；candidate/accepted SHA完全一致。
 - five-case audit: basketball、football、mug、chair、stick 五份 canonical publication的 accepted SHA均与实际 CSV一致，source均为 `generic_sequence_executor`，solve attempt id唯一，数值有限，`case_dispatch_used=false`、`human_state_optimized=false`。正式 production coverage现为 `5/5`。chair/stick 的人工 gate例外仍保留在各自 provenance中，不能据此声称 automatic zero-shot gate 已全部闭环。
+
+2026-07-30（fresh Stage 0 → typed IR → unified solve 实际闭环）:
+
+- first failure localization: 从仅含 video/metadata 的隔离 stick sample进入 Stage 1 时，首个失败是缺少旧 `results/da3/priors/object_depth_prior.csv`。Stage 0已有240帧 dense DA3 depth，但缺少 scene depth + SAM2 mask/track→object metric depth 的通用归一化，不是模型或环境缺失。
+- generic depth normalization: 新增第八个固定 ingestion task `object_depth_prior`，逐帧读取 DA3 depth index与SAM2 mask，在depth分辨率上取有效object-mask median并做七帧median smoothing，输出240行 `object_depth_prior.csv`。任务依赖 `sam2+cotracker+da3`，输出hash/cache key进入 ingestion manifest；不读取case name或旧pose。第二次完整运行八项均为`reused`。
+- Stage 1–3 fresh outputs: 同一 fresh sample直接生成 object observations 240行、line observations 240行、contact candidates/anchor state各480行、SE(3) init 240行；对应SHA分别为 `256f742a...`、`7bc8a138...`、`6074ddae...`、`3db92ecc...`、`3fc9fd8d...`。没有复制原case result-local CSV。
+- Stage-2 contract resolution: production factor/compiler原先硬编码读取Stage 4别名`object_contact_points.csv`，fresh flow因此无法在Stage 2后进入solver。现由通用artifact resolver优先显式配置、缺失时消费当前Stage 2 `contact_candidates.csv`，initializer hash ledger也绑定实际消费路径。该规则对所有geometry/case一致。
+- typed production problem: fresh preparation得到 `rigid6:line_capsule`、240帧、1200条 MeasurementIR、480条 ContactConstraintIR，并编译 line reprojection、contact distance、temporal velocity/acceleration、static freeze五类runtime factors；`baseline_pose_read=false`、`case_dispatch_used=false`、`human_state_optimized=false`。
+- solve evidence: 同一 `GenericSequenceExecutor` 生成隔离 attempt `generic-solve-ef8f4dff4b81`，200 evaluations将 squared error `117471.9814 -> 4632.3763`，optimality=`0.04237`，满足冻结stationary判据；candidate SHA=`9dcc87d89d1c77603a4aa7bc3b18fba34e74fb1b8de26eb3677f47494f90c1f5`，未写canonical。自动gate只保留已知 stick contact-gap p95/max失败，这是此前用户允许暂缓的gate arbitration问题，不再是fresh输入或solver泛化blocker。
+- remaining orchestration gap: 上述路径已用正式Stage函数和production factory/executor实际运行，但尚未由`run_pipeline.py`的Stage 4单命令直接调用；当前CLI Stage 4仍指向legacy `sequence_refine.apply()`。下一步只做这一入口收束，不改loss、阈值或case算法。

@@ -5,6 +5,23 @@ from pathlib import Path
 from .config import CaseProfile
 
 
+def resolve_contact_artifact(profile: CaseProfile, result_dir: Path | None = None) -> Path:
+    """Resolve the current Stage-2 contact artifact without requiring a Stage-4 alias."""
+
+    base = result_dir or profile.result_dir
+    generic_problem = profile.data.get("generic_object_problem", {})
+    configured = (
+        generic_problem.get("contact_artifact", "object_contact_points.csv")
+        if isinstance(generic_problem, dict)
+        else "object_contact_points.csv"
+    )
+    preferred = base / str(configured)
+    if preferred.is_file():
+        return preferred
+    stage2 = base / "contact_candidates.csv"
+    return stage2 if stage2.is_file() else preferred
+
+
 def stage_paths(profile: CaseProfile) -> dict[str, Path]:
     base = profile.result_dir
     return {

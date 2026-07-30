@@ -82,6 +82,16 @@ def _validate_audio_events(path: Path, _expected: int) -> None:
             raise ValueError("audio event contains a non-finite numeric value")
 
 
+def _validate_object_depth_prior(path: Path, expected: int) -> None:
+    rows = _csv_rows(path)
+    if len(rows) != expected or {int(row["frame"]) for row in rows} != set(range(1, expected + 1)):
+        raise ValueError(f"object depth prior has {len(rows)} rows; expected {expected}")
+    required = {"u", "v", "da3_depth_raw", "da3_depth_smooth", "object_depth_confidence"}
+    for row in rows:
+        if not all(np.isfinite(float(row[field])) for field in required):
+            raise ValueError("object depth prior contains a non-finite numeric value")
+
+
 def _runtime_command(environment: str, script: Path, *arguments: str) -> tuple[str, ...]:
     return (runtime_python(environment), str(script), *arguments)
 
@@ -127,6 +137,7 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
     sam2_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py"
     cotracker_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_cotracker_object_points.py"
     da3_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_da3_scene_depth.py"
+    depth_prior_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_object_depth_prior.py"
     audio_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_audio_event_extract.py"
     gvhmr_tool = REPO / "scripts/shared/human/gvhmr/run_gvhmr.py"
     da3_root = Path(os.environ.get("AUDIOHOI_DA3_ROOT", REPO / "third-party/Depth-Anything-3"))
@@ -172,6 +183,7 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
     points = ArtifactSpec("cotracker_points", results / "tracking/object_points.csv")
     mesh = ArtifactSpec("cotracker_mesh_tracks", results / "tracking/object_mesh_tracks_test.csv")
     depth = ArtifactSpec("da3_scene_depth", results / "da3/scene_depth", "directory")
+    depth_prior = ArtifactSpec("object_depth_prior", results / "da3/priors/object_depth_prior.csv")
     gvhmr = ArtifactSpec("gvhmr_result", results / "gvhmr/result.pkl")
     events = ArtifactSpec(
         "audio_events", results / "events/audio_events.csv", required=not audio_disabled
@@ -210,6 +222,13 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
             _runtime_command("da3", da3_tool, *da3_args),
             config={"process_res": preprocess.get("da3_process_res", 504), "chunk_size": da3_chunk_size, "da3_root": str(da3_root)},
             model={"model": da3_model}, validator=lambda count: _validate_da3(depth.path, count),
+        ),
+        _task(
+            "object_depth_prior", "audiohoi", ("sam2", "cotracker", "da3"),
+            (depth, masks, trajectory), (depth_prior,),
+            _runtime_command("audiohoi", depth_prior_tool, "--sample-dir", str(sample)),
+            config={"reducer": "sam2_mask_median", "smooth_window": 7},
+            validator=lambda count: _validate_object_depth_prior(depth_prior.path, count),
         ),
         _task(
             "gvhmr", "gvhmr", ("frame_extract",),

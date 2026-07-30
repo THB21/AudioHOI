@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "geometry_id": "articulated_support_asset",
   "geometry_kind": "articulated_urdf",
   "line_reprojection_constraint": "axis_line",
   "resource_path": "samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/model.urdf",
@@ -11,6 +12,50 @@
     "leg:front_right": "front_leg_right",
     "leg:rear_left": "rear_leg_left",
     "leg:rear_right": "rear_leg_right"
+  },
+  "state_contract": {
+    "spec_id": "articulated6:urdf",
+    "state_model": "articulated_root_se3",
+    "dofs": [
+      {
+        "dof_id": "root.translation",
+        "kind": "translation",
+        "fields": ["tx", "ty", "tz"]
+      },
+      {
+        "dof_id": "root.rotation",
+        "kind": "rotation_so3",
+        "fields": ["qw", "qx", "qy", "qz"]
+      },
+      {
+        "dof_id": "joint.front_to_rear",
+        "kind": "revolute",
+        "field": "rear_joint_angle",
+        "default": 0.0,
+        "bounds_from_urdf": "front_to_rear"
+      },
+      {
+        "dof_id": "joint.front_to_seat",
+        "kind": "revolute",
+        "field": "seat_joint_angle",
+        "default": 0.0,
+        "bounds_from_urdf": "front_to_seat"
+      }
+    ]
+  },
+  "initializer": {
+    "kind": "articulated_correspondence",
+    "line_feature_roles": [
+      "backrest:top_edge",
+      "seat:front_edge",
+      "leg:front_left",
+      "leg:front_right",
+      "leg:rear_left",
+      "leg:rear_right"
+    ],
+    "minimum_line_count": 2,
+    "joint_hypotheses": "descriptor_default_and_observed",
+    "missing_frame_policy": "interpolate_then_nearest_hold"
   },
   "articulation_rules": [
     {

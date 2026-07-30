@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import shutil
 import subprocess
 from pathlib import Path
@@ -13,9 +14,12 @@ from ..base.schema import stage_paths
 
 
 QUERY_FIELDS = [
+    "query_id",
     "case_name",
     "stage",
     "frame",
+    "start_frame",
+    "end_frame",
     "time",
     "query_type",
     "input_image_path",
@@ -27,6 +31,9 @@ QUERY_FIELDS = [
     "object_part_choices",
     "contact_relation_choices",
     "gate_policy",
+    "evidence_sha256",
+    "visual_factor_roles",
+    "contact_factor_roles",
 ]
 
 RESULT_FIELDS = [
@@ -52,7 +59,7 @@ STAGE_QUERY_TYPES = {
     "stage1": ["keypart_identity_check", "track_stability_check"],
     "stage2": ["contact_relation_check", "keypart_visibility_check"],
     "stage3": ["overlay_alignment_check"],
-    "stage4": ["anchor_update_check", "contact_relation_check", "overlay_alignment_check", "temporal_motion_check"],
+    "stage4": ["anchor_update_check", "contact_relation_check", "overlay_alignment_check", "temporal_motion_check", "constraint_reliability_check"],
     "stage5": ["post_render_sanity_check", "temporal_motion_check"],
     "stage6": ["baseline_regression_check"],
     "stage7": ["loss_diagnostic_check"],
@@ -344,6 +351,46 @@ def temporal_risk_keyframes(profile: CaseProfile, stage: str, *, limit: int = 80
     return [(fr, pose_by_frame.get(fr, "")) for fr in out]
 
 
+def constraint_risk_intervals(profile: CaseProfile, *, maximum_window_frames: int = 24) -> list[tuple[int, int, int, str]]:
+    """Find generic line-observation/contact overlap windows for VLM arbitration."""
+
+    if maximum_window_frames < 1:
+        raise ValueError("constraint reliability window must contain at least one frame")
+    line_frames = {
+        _row_frame(row, 1)
+        for row in _read_rows(profile.result_dir / "line_observations.csv")
+        if str(row.get("line_observation_trusted", "1")).strip().lower() not in {"0", "false"}
+    }
+    contact_rows = _read_rows(stage_paths(profile)["object_contact_points"])
+    contact_frames = {
+        _row_frame(row, 1)
+        for row in contact_rows
+        if str(row.get("contact_active", "1")).strip().lower() not in {"0", "false"}
+    }
+    frames = sorted(line_frames & contact_frames)
+    if not frames:
+        return [(frame, frame, frame, time) for frame, time in stage_keyframes(profile, "stage4")]
+    times = {_row_frame(row, 1): _row_time(row) for row in contact_rows}
+    contiguous: list[tuple[int, int]] = []
+    start = frames[0]
+    previous = frames[0]
+    for frame in frames[1:]:
+        if frame != previous + 1:
+            contiguous.append((start, previous))
+            start = frame
+        previous = frame
+    contiguous.append((start, previous))
+    windows: list[tuple[int, int, int, str]] = []
+    for interval_start, interval_end in contiguous:
+        window_start = interval_start
+        while window_start <= interval_end:
+            window_end = min(interval_end, window_start + maximum_window_frames - 1)
+            representative = (window_start + window_end) // 2
+            windows.append((representative, window_start, window_end, times.get(representative, "")))
+            window_start = window_end + 1
+    return windows
+
+
 def _render_video_for_stage(profile: CaseProfile, stage: str) -> Path | None:
     if stage not in {"stage3", "stage4", "stage5", "stage6"}:
         return None
@@ -468,10 +515,20 @@ def _tracking_line(profile: CaseProfile, frame: int) -> tuple[tuple[float, float
     return None
 
 
+def _visual_line_measurement(profile: CaseProfile, frame: int) -> tuple[tuple[float, float], tuple[float, float]] | None:
+    row = _rows_by_frame(profile.result_dir / "line_observations.csv").get(frame, {})
+    for prefix in ("physical", "visible"):
+        values = tuple(_float(row, f"{prefix}_{key}") for key in ("x1", "y1", "x2", "y2"))
+        if all(value is not None for value in values):
+            x1, y1, x2, y2 = values
+            return (float(x1), float(y1)), (float(x2), float(y2))  # type: ignore[arg-type]
+    return None
+
+
 def _draw_stage4_context(profile: CaseProfile, img: Any, frame: int) -> None:
-    line = _tracking_line(profile, frame)
+    line = _visual_line_measurement(profile, frame)
     if line is not None:
-        _draw_line(img, line[0], line[1], "tracked visible stick", (40, 255, 80))
+        _draw_line(img, line[0], line[1], "visual object measurement", (40, 255, 80))
     rows = [row for row in _read_rows(stage_paths(profile)["object_contact_points"]) if _row_frame(row, 1) == frame]
     for row in rows:
         u = _float(row, "palm_u")
@@ -485,8 +542,8 @@ def _draw_stage4_context(profile: CaseProfile, img: Any, frame: int) -> None:
         color = (255, 230, 0) if active else (160, 160, 160)
         label = f"{side} active" if active else f"{side} inactive"
         _draw_point(img, u, v, label, color)
-    _draw_label(img, "brown render = predicted stick, green = tracked visible stick", (24, 42), (40, 255, 80))
-    _draw_label(img, "yellow = active palm contact, gray = inactive palm", (24, 76), (255, 230, 0))
+    _draw_label(img, "dark render = predicted object; green = visual measurement", (24, 42), (40, 255, 80))
+    _draw_label(img, "yellow = active read-only human contact site; gray = inactive", (24, 76), (255, 230, 0))
 
 
 def _draw_mask(img: Any, mask_path: Path | None) -> None:
@@ -670,7 +727,7 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
         img.save(out_path)
         return str(out_path)
     video = _render_video_for_stage(profile, stage)
-    if stage in {"stage4", "stage5"} and query_type == "temporal_motion_check" and video is not None:
+    if stage in {"stage4", "stage5"} and query_type in {"temporal_motion_check", "constraint_reliability_check"} and video is not None:
         Image, ImageDraw = _pil_modules()
         if Image is not None:
             frames = []
@@ -679,9 +736,9 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
                 if panel is None:
                     panel = _read_frame(profile.sample_dir, fr)
                 if panel is not None:
-                    panel = panel.resize((426, 240))
                     _draw_stage4_context(profile, panel, fr)
                     _draw_label(panel, f"frame {fr:03d}", (18, 24), (255, 255, 255))
+                    panel = panel.resize((426, 240))
                     frames.append(panel)
             if frames:
                 canvas = Image.new("RGB", (426 * len(frames), 240), (245, 245, 245))
@@ -707,7 +764,7 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
         _draw_label(img, "highlighted contact candidate", (24, 42), (0, 255, 255))
     elif query_type == "overlay_alignment_check":
         _draw_label(img, "rendered overlay alignment check", (24, 42), (0, 255, 0))
-    elif stage == "stage4" and query_type == "anchor_update_check":
+    elif stage == "stage4" and query_type in {"anchor_update_check", "constraint_reliability_check"}:
         _draw_stage4_context(profile, img, frame)
     elif query_type == "temporal_motion_check":
         _draw_label(img, "temporal motion check: inspect neighboring context from stage rows", (24, 42), (255, 200, 0))
@@ -765,15 +822,21 @@ def question_for(profile: CaseProfile, query_type: str) -> tuple[str, list[str],
         )
     if query_type == "anchor_update_check":
         return (
-            "Using the visual guide in the image: brown render is the predicted stick, green line is the tracked visible stick, yellow circles are active palm contacts, and gray circles are inactive palms. Does the predicted stick preserve alignment with the green visible stick and the active yellow palm contacts without creating a wrong contact?",
+            "Using the visual guide in the image: the dark render is the predicted object geometry, the green overlay is the visual object measurement, yellow marks are active read-only human contact sites, and gray marks are inactive sites. Does the predicted object preserve both visible alignment and active contact without creating a wrong contact?",
             ["improvement", "no_change", "worse_overlay", "wrong_contact", "unclear"],
             "before_after_anchor_update_overlay",
         )
     if query_type == "temporal_motion_check":
         return (
-            "In the three-panel neighboring-frame view, do the brown predicted stick and green tracked stick move consistently without sudden jumps, wrong-object tracking, or physically implausible motion?",
+            "In the three-panel neighboring-frame view, do the predicted object geometry and visual object measurement move consistently without sudden jumps, wrong-object tracking, or physically implausible motion?",
             ["consistent", "jumps_unnaturally", "wrong_object_tracking", "physically_implausible", "unclear"],
             "temporal_triplet_overlay",
+        )
+    if query_type == "constraint_reliability_check":
+        return (
+            "Judge each overlay against the physical object pixels, not against the dark render. The green overlay is a visual object measurement. Yellow marks are active human contact sites from a read-only body estimate. Use this rubric: choose both_consistent when green follows the visible physical object and every yellow active site lies on that same object at a plausible hand contact; choose visual_observation_reliable when green follows the physical object but a yellow site is visibly off it; choose contact_relation_reliable when yellow sites lie on the physical object but green tracks the wrong location, extent, or angle; otherwise choose unclear. Never choose visual_observation_reliable merely because green agrees with the dark render.",
+            ["both_consistent", "visual_observation_reliable", "contact_relation_reliable", "unclear"],
+            "visual_contact_constraint_temporal_overlay",
         )
     if query_type == "post_render_sanity_check":
         return (
@@ -799,31 +862,57 @@ def question_for(profile: CaseProfile, query_type: str) -> tuple[str, list[str],
 def query_types_for_stage(profile: CaseProfile, stage: str) -> list[str]:
     obj = object_vlm_profile(profile)
     policy = obj.get("vlm_query_policy")
+    selected: list[str] = []
     if isinstance(policy, dict):
         values = policy.get(stage)
         if isinstance(values, list):
             out = [str(v) for v in values if str(v) in STAGE_QUERY_TYPES.get(stage, [])]
             if out:
-                return out
-    return STAGE_QUERY_TYPES.get(stage, [])
+                selected = out
+    if not selected:
+        selected = list(STAGE_QUERY_TYPES.get(stage, []))
+    runtime = profile.data.get("factor_runtime")
+    if stage == "stage4" and isinstance(runtime, dict):
+        kinds = {str(value) for value in runtime}
+        visual = {"point_reprojection", "line_reprojection", "mask_silhouette", "metric_depth", "depth_order"}
+        contact = {"contact_distance", "contact_relative_velocity", "local_anchor_constancy"}
+        if kinds & visual and kinds & contact and "constraint_reliability_check" not in selected:
+            selected.append("constraint_reliability_check")
+    return selected
 
 
-def build_queries(profile: CaseProfile, stage: str) -> list[dict[str, object]]:
+def build_queries(
+    profile: CaseProfile,
+    stage: str,
+    query_type_filter: str | None = None,
+) -> list[dict[str, object]]:
     queries: list[dict[str, object]] = []
     obj = object_vlm_profile(profile)
     for query_type in query_types_for_stage(profile, stage):
-        frames = temporal_risk_keyframes(profile, stage) if stage == "stage5" and query_type == "temporal_motion_check" else stage_keyframes(profile, stage)
-        for frame, time in frames:
+        if query_type_filter and query_type != query_type_filter:
+            continue
+        if query_type == "constraint_reliability_check":
+            windows = constraint_risk_intervals(profile)
+        else:
+            frames = temporal_risk_keyframes(profile, stage) if stage == "stage5" and query_type == "temporal_motion_check" else stage_keyframes(profile, stage)
+            windows = [(frame, frame, frame, time) for frame, time in frames]
+        for frame, start_frame, end_frame, time in windows:
             question, choices, highlight = question_for(profile, query_type)
             evidence_path = render_reference(profile, stage, frame, query_type)
+            input_path = evidence_path or _frame_path(profile.sample_dir, frame)
+            evidence_sha256 = hashlib.sha256(Path(input_path).read_bytes()).hexdigest() if input_path and Path(input_path).is_file() else ""
+            query_id = f"{stage}:{query_type}:{start_frame:05d}-{end_frame:05d}"
             queries.append(
                 {
+                    "query_id": query_id,
                     "case_name": profile.case_name,
                     "stage": stage,
                     "frame": frame,
+                    "start_frame": start_frame,
+                    "end_frame": end_frame,
                     "time": time,
                     "query_type": query_type,
-                    "input_image_path": evidence_path or _frame_path(profile.sample_dir, frame),
+                    "input_image_path": input_path,
                     "input_render_path": evidence_path,
                     "highlight_layer": highlight,
                     "question": question,
@@ -832,6 +921,9 @@ def build_queries(profile: CaseProfile, stage: str) -> list[dict[str, object]]:
                     "object_part_choices": "|".join(str(v) for v in obj.get("parts", [])),
                     "contact_relation_choices": "|".join(str(v) for v in obj.get("contacts", [])),
                     "gate_policy": "forced_choice_gate_only_no_continuous_pose_or_loss",
+                    "evidence_sha256": evidence_sha256,
+                    "visual_factor_roles": "point_reprojection|line_reprojection|mask_silhouette|metric_depth|depth_order",
+                    "contact_factor_roles": "contact_distance|contact_relative_velocity|local_anchor_constancy",
                 }
             )
     return queries
@@ -857,11 +949,31 @@ def dry_run_results(queries: list[dict[str, object]]) -> list[dict[str, object]]
     return rows
 
 
-def write_stage_verification(profile: CaseProfile, stage: str) -> dict[str, object]:
+def write_stage_verification(
+    profile: CaseProfile,
+    stage: str,
+    query_type_filter: str | None = None,
+) -> dict[str, object]:
     paths = stage_paths(profile)
     out_dir = paths["vlm_dir"] / stage
-    queries = build_queries(profile, stage)
-    results = dry_run_results(queries)
+    selected_queries = build_queries(profile, stage, query_type_filter)
+    selected_results = dry_run_results(selected_queries)
+    if query_type_filter:
+        existing_queries = [
+            row
+            for row in _read_rows(out_dir / "vlm_queries.csv")
+            if row.get("query_type") != query_type_filter
+        ]
+        existing_results = [
+            row
+            for row in _read_rows(out_dir / "vlm_results.csv")
+            if row.get("query_type") != query_type_filter
+        ]
+        queries = [*existing_queries, *selected_queries]
+        results = [*existing_results, *selected_results]
+    else:
+        queries = selected_queries
+        results = selected_results
     write_csv(out_dir / "vlm_queries.csv", queries, QUERY_FIELDS)
     write_csv(out_dir / "vlm_results.csv", results, RESULT_FIELDS)
     decision = fuse_stage_decision(profile.case_name, stage, results, mode="dry_run")

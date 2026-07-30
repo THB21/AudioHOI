@@ -11,27 +11,9 @@ from ...core.base.camera import backproject_uvz
 from ...core.base.io import copy_file, read_csv, write_csv, write_json
 from ...core.base.schema import stage_paths
 from ..refinement.sequence_se3_optimizer import smooth_quaternion_pose_sequence
-from ..refinement.policies import (
-    anchor_depth,
-    anchor_propagate_freeze,
-    backproject_xy,
-    line_contact_lock,
-    small_se3,
-    stable_grasp_anchor,
-    table_freeze,
-)
+from ...core.semantics.static_tail import enforce_declared_static_tail
 from ..refinement.policies import generic_line_physical_smooth
-
-
-COMPATIBILITY_SEED_BUILDERS = {
-    "anchor_depth": anchor_depth,
-    "anchor_propagate_freeze": anchor_propagate_freeze,
-    "backproject_xy": backproject_xy,
-    "line_contact_lock": line_contact_lock,
-    "small_se3": small_se3,
-    "stable_grasp_anchor": stable_grasp_anchor,
-    "table_freeze": table_freeze,
-}
+from ...core.plugins.registry import invoke_selected_plugin, resolve_pipeline_plugins
 
 
 def _has_se3(rows: list[dict[str, str]]) -> bool:
@@ -50,21 +32,43 @@ def _copy_contacts(profile: CaseProfile) -> str:
     return str(paths["object_contact_points"])
 
 
-def _run_compatibility_seed_builders(profile: CaseProfile) -> list[dict[str, object]]:
-    """Run legacy refinement policies as seed/residual builders before final SE3 smoothing."""
+def _run_seed_builders(profile: CaseProfile) -> list[dict[str, object]]:
+    """Run selected compatibility or mainline seed builders before final SE3 smoothing."""
     reports: list[dict[str, object]] = []
-    for name in profile.refinement_policies():
-        if name in {"sequence_se3_optimizer", "generic_line_physical_smooth"}:
-            continue
-        module = COMPATIBILITY_SEED_BUILDERS.get(name)
-        if module is None:
-            reports.append({"component": name, "enabled": False, "reason": "unknown_compatibility_seed_builder"})
+    resolved = resolve_pipeline_plugins(profile)
+    for spec in resolved.refinement:
+        if spec.role not in {"compatibility_adapter", "mainline_implementation"}:
+            reports.append(
+                {
+                    "component": spec.name,
+                    "role": spec.role,
+                    "enabled": False,
+                    "reason": spec.role,
+                    "capability_plugin": spec.describe(),
+                }
+            )
             continue
         try:
-            report = module.apply(profile)
-            reports.append({"component": name, "enabled": True, "report": report})
+            report, plugin = invoke_selected_plugin(profile, "refinement", spec.name)
+            reports.append(
+                {
+                    "component": spec.name,
+                    "role": spec.role,
+                    "enabled": True,
+                    "report": report,
+                    "capability_plugin": plugin,
+                }
+            )
         except Exception as exc:
-            reports.append({"component": name, "enabled": False, "reason": str(exc)})
+            reports.append(
+                {
+                    "component": spec.name,
+                    "role": spec.role,
+                    "enabled": False,
+                    "reason": str(exc),
+                    "capability_plugin": spec.describe(),
+                }
+            )
             raise
     return reports
 
@@ -1037,7 +1041,13 @@ def apply(profile: CaseProfile) -> dict[str, object]:
     copy_file(paths["object_pose_init"], paths["object_pose"])
     copy_file(paths["object_pose"], paths["object_pose_pre_smooth"])
 
-    compatibility_reports = _run_compatibility_seed_builders(profile)
+    seed_builder_reports = _run_seed_builders(profile)
+    compatibility_reports = [
+        report for report in seed_builder_reports if report.get("role") == "compatibility_adapter"
+    ]
+    mainline_reports = [
+        report for report in seed_builder_reports if report.get("role") == "mainline_implementation"
+    ]
     line_seed_report: dict[str, object] = {"enabled": False, "reason": "not_line_object"}
     if profile.data.get("line_object"):
         line_seed_report = _run_line_seed_builder(profile)
@@ -1063,7 +1073,9 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         max(t, anchor_prior_trust) if frame_constraints else t
         for t, frame_constraints in zip(trust, anchor_constraints)
     ]
-    pose_lock_reason = ""
+    pose_lock_reasons = sorted({row.get("pose_lock_reason", "") for row in rows if row.get("pose_lock_reason", "")})
+    pose_lock_reason = ",".join(pose_lock_reasons)
+    pose_lock_mask = [bool(row.get("pose_lock_reason", "")) for row in rows]
     feedback_reweight_reason = ""
     visual_prior_reason = ""
     overlay_prior_reason = ""
@@ -1108,6 +1120,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
             smooth_w=float(config.get("smooth_w", 0.95)),
             accel_w=float(config.get("accel_w", 4.2)),
             anchor_w=float(config.get("anchor_w", 1.0)),
+            pose_lock_mask=pose_lock_mask,
         )
         _annotate_anchor_residuals(cand_rows, cand_audit, anchor_constraints)
         cand_jump_audit = _audit_rows(rows, cand_rows, cand_audit, regime_rows)
@@ -1134,12 +1147,14 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         elif "vlm" in reweight_sources and "vlm" in candidate_sources and "vlm" not in best[1]:
             best = cand
     if best is None:
-        out_rows, se3_audit = smooth_quaternion_pose_sequence(rows)
+        out_rows, se3_audit = smooth_quaternion_pose_sequence(rows, pose_lock_mask=pose_lock_mask)
         selected_sources: set[str] = set()
         feedback_reweight_reason = ""
         selected_jump_audit = _audit_rows(rows, out_rows, se3_audit, regime_rows)
     else:
         _score, selected_sources, out_rows, se3_audit, trust, smooth_weight, accel_weight, feedback_reweight_reason, selected_jump_audit = best
+    out_rows, static_tail_postcondition = enforce_declared_static_tail(profile, out_rows)
+    selected_jump_audit = _audit_rows(rows, out_rows, se3_audit, regime_rows)
     rejected_sources = sorted(reweight_sources - selected_sources)
     write_csv(paths["object_pose"], out_rows)
     write_csv(paths["physical_smooth_residuals"], se3_audit)
@@ -1164,9 +1179,14 @@ def apply(profile: CaseProfile) -> dict[str, object]:
     metrics = {
         "component": "generic_sequence_se3_mainline",
         "case_name": profile.case_name,
+        "seed_builders": seed_builder_reports,
         "compatibility_adapters": compatibility_reports,
+        "mainline_implementations": mainline_reports,
         "legacy_refinement_policies_ignored": [],
-        "legacy_refinement_policies_as_seed_builders": requested_legacy_policies,
+        "legacy_refinement_policies_as_seed_builders": [
+            str(report["component"]) for report in compatibility_reports if report.get("enabled") is True
+        ],
+        "selected_refinement_seed_builders": requested_legacy_policies,
         "line_object_special_refinement": bool(profile.data.get("line_object")),
         "line_object_seed_builder": line_seed_report,
         "object_pose_pre_smooth": str(paths["object_pose_pre_smooth"]),
@@ -1195,6 +1215,7 @@ def apply(profile: CaseProfile) -> dict[str, object]:
         "anchor_residual": anchor_metrics,
         "anchor_pose_prior": anchor_prior_metrics,
         "line_overlay_depth_stabilizer": {"enabled": False, "reason": "replaced_by_generic_line_physical_smooth_seed_builder"},
+        "static_tail_postcondition": static_tail_postcondition,
         "feedback_reweight_sources": sorted(selected_sources),
         "requested_feedback_reweight_sources": sorted(reweight_sources),
         "rejected_feedback_sources": rejected_sources,

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "geometry_kind": "line_capsule",
+  "resource_path": "samples_known_object/11_stick/articraft/generated_record/rec_create-a-realistic-long-wooden-martial-arts-staf_20260629_230436_217604_25e48ada/materialized/model.urdf",
+  "semantic_parts": ["main_body"],
+  "contact_coordinate": "line_s",
+  "contact_projection": "closest_line_point",
+  "line_reprojection_constraint": "endpoints",
+  "axis_local": [1.0, 0.0, 0.0],
+  "length_m": 1.86,
+  "radius_m": 0.0
+}

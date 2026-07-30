@@ -5,6 +5,23 @@ from pathlib import Path
 from .config import CaseProfile
 
 
+def resolve_contact_artifact(profile: CaseProfile, result_dir: Path | None = None) -> Path:
+    """Resolve the current Stage-2 contact artifact without requiring a Stage-4 alias."""
+
+    base = result_dir or profile.result_dir
+    generic_problem = profile.data.get("generic_object_problem", {})
+    configured = (
+        generic_problem.get("contact_artifact", "object_contact_points.csv")
+        if isinstance(generic_problem, dict)
+        else "object_contact_points.csv"
+    )
+    preferred = base / str(configured)
+    if preferred.is_file():
+        return preferred
+    stage2 = base / "contact_candidates.csv"
+    return stage2 if stage2.is_file() else preferred
+
+
 def stage_paths(profile: CaseProfile) -> dict[str, Path]:
     base = profile.result_dir
     return {
@@ -14,6 +31,8 @@ def stage_paths(profile: CaseProfile) -> dict[str, Path]:
         "prompt_context": base / "prompt_context.json",
         "stage0_metrics": base / "stage0_metrics.json",
         "stage0_inputs_manifest": base / "stage0_inputs_manifest.json",
+        "case_ingestion_manifest": base / "case_ingestion_manifest.json",
+        "case_ingestion_attempt_manifest": base / "case_ingestion_last_attempt.json",
         "stage_audit_dir": base / "stage_audit",
         "object_observations": base / "object_observations.csv",
         "object_correspondence": base / "object_correspondence.csv",
@@ -23,8 +42,17 @@ def stage_paths(profile: CaseProfile) -> dict[str, Path]:
         "line_observations": base / "line_observations.csv",
         "object_local_points": base / "object_local_points.csv",
         "object_local_segments": base / "object_local_segments.csv",
+        "periodic_root_seed": base / "observation_seed/body_pose.csv",
+        "periodic_feature_phase": base / "observation_seed/axial_phase.csv",
+        "periodic_observation_report": base / "observation_seed/observation_seed_report.json",
         "stage1_metrics": base / "stage1_metrics.json",
         "contact_candidates": base / "contact_candidates.csv",
+        "contact_events": base / "contact_events.csv",
+        "human_sites": base / "human_sites.csv",
+        "support_geometry": base / "support_geometry.json",
+        "sphere_candidate": base / "generic_sphere_sequence_candidate/generic_sphere_sequence_candidate.csv",
+        "sphere_residuals": base / "generic_sphere_sequence_candidate/generic_sphere_sequence_residuals.csv",
+        "sphere_attempt": base / "generic_sphere_sequence_candidate/generic_sphere_sequence_attempt.json",
         "anchor_state": base / "anchor_state.csv",
         "contact_state": base / "contact_state_frames.csv",
         "stage2_metrics": base / "stage2_metrics.json",
@@ -35,6 +63,8 @@ def stage_paths(profile: CaseProfile) -> dict[str, Path]:
         "physical_smooth_residuals": base / "physical_smooth_residuals.csv",
         "pose_jump_audit": base / "pose_jump_audit.csv",
         "optimizer_decisions": base / "optimizer_decisions.csv",
+        "line_contact_lock_metrics": base / "line_contact_lock_metrics.json",
+        "line_contact_lock_blend_debug": base / "line_contact_lock_blend_debug.csv",
         "object_pose": base / "object_pose.csv",
         "object_contact_points": base / "object_contact_points.csv",
         "object_phase": base / "object_phase.csv",

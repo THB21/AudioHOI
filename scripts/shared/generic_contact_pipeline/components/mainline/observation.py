@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import importlib
 from pathlib import Path
 
 from ...core.base.config import CaseProfile
 from ...core.base.io import read_csv, write_csv, write_json
 from ...core.base.schema import stage_paths
+from ...core.plugins.registry import invoke_selected_plugin
 from ..line_object.mainline import write_line_correspondence
 
 
@@ -20,10 +20,10 @@ def _copy_or_empty(src: Path, dst: Path, fields: list[str]) -> tuple[str, int]:
 
 def _legacy_observation_adapter(profile: CaseProfile) -> dict[str, object]:
     name = profile.component("observation_model")
-    mod = importlib.import_module(f"scripts.shared.generic_contact_pipeline.components.observation.policies.{name}")
-    result = mod.build(profile)
+    result, plugin = invoke_selected_plugin(profile, "observation", name)
     result = dict(result)
     result["adapter_component"] = name
+    result["capability_plugin"] = plugin
     return result
 
 

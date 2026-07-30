@@ -5,8 +5,8 @@ import os
 from pathlib import Path
 
 from ....core.base.config import CaseProfile
-from ....core.base.io import REPO
-from ....core.base.io import read_csv, write_csv, write_json
+from ....core.base.io import REPO, repo_path
+from ....core.base.io import copy_file, read_csv, write_csv, write_json
 from ....core.base.runtime import runtime_python
 from ....core.base.schema import stage_paths
 
@@ -135,12 +135,25 @@ def build(profile: CaseProfile, *, default_part: str, source_name: str) -> dict[
     root = Path(_build_ball_contact_candidates(profile, proxy_csv))
     anchor_csv = root / "anchor_contact_candidates.csv"
     floor_csv = root / "floor_contact_candidates.csv"
+    contact_events_csv = root / "contact_candidates_labeled.csv"
+    human_sites_csv = root / "human_sites.csv"
     if not anchor_csv.exists():
         raise FileNotFoundError(f"Missing anchor contact candidates: {anchor_csv}")
     if not floor_csv.exists():
         raise FileNotFoundError(f"Missing floor contact candidates: {floor_csv}")
     if not Path(proxy_csv).exists():
         raise FileNotFoundError(f"Missing object proxy observations for contact depth offsets: {proxy_csv}")
+    if not contact_events_csv.exists():
+        raise FileNotFoundError(f"Missing contact event intervals: {contact_events_csv}")
+    if not human_sites_csv.exists():
+        raise FileNotFoundError(f"Missing typed human-site trajectory: {human_sites_csv}")
+
+    contact_events_out = copy_file(contact_events_csv, paths["contact_events"])
+    human_sites_out = copy_file(human_sites_csv, paths["human_sites"])
+    support_geometry_source = repo_path(str(profile.data.get("support_geometry_input", "")))
+    if not support_geometry_source.exists():
+        raise FileNotFoundError(f"Missing declared support geometry observation: {support_geometry_source}")
+    support_geometry_out = copy_file(support_geometry_source, paths["support_geometry"])
 
     anchor_by_frame = _by_frame(read_csv(anchor_csv))
     floor_by_frame = _by_frame(read_csv(floor_csv))
@@ -222,10 +235,13 @@ def build(profile: CaseProfile, *, default_part: str, source_name: str) -> dict[
         "rows": len(candidate_rows),
         "contact_candidates": str(candidates_out),
         "contact_state": str(state_out),
+        "contact_events": str(contact_events_out),
+        "human_sites": str(human_sites_out),
+        "support_geometry": str(support_geometry_out),
         "anchor_candidate_source": str(anchor_csv),
         "floor_candidate_source": str(floor_csv),
         "depth_offset_source": str(proxy_csv),
-        "policy": "generic fusion of generic anchor/floor candidate gates; generic ball_proxy_depth supplies GVHMR+mesh+DA3 contact-depth offsets",
+        "policy": "generic fusion of anchor/floor gates with result-owned contact intervals and typed GVHMR human-site trajectories; ball_proxy_depth supplies mesh+DA3 contact-depth offsets",
     }
     write_json(paths["stage2_metrics"], metrics)
     return metrics

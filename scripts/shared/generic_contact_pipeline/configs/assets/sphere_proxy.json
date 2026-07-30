@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "geometry_kind": "sphere",
+  "semantic_parts": ["center", "surface", "support"],
+  "contact_coordinate": "surface_closest_point",
+  "capabilities": ["project_point", "surface_query", "contact_point"]
+}

@@ -2,9 +2,51 @@ case_name: stick
 sample_dir: samples_known_object/11_stick
 object_family: rigid_staff
 geometry_model: articraft_urdf
+geometry_asset_descriptor: scripts/shared/generic_contact_pipeline/configs/assets/stick_line_capsule.json
 observation_model: mask_track_center
+supplemental_measurements:
+  - artifact: line_observations.csv
+    adapter: physical_line_endpoints_v1
+    feature_id: line:axis
+    semantic_role: physical_line_axis
+    fps: 24.0
 contact_policy: persistent_two_palm_line
 pose_model: translation3
+generic_object_problem:
+  initializer: line_s_two_site
+  initializer_artifacts:
+    - object_contact_points.csv
+    - line_observations.csv
+  contact_artifact: object_contact_points.csv
+  sequence_factors: [temporal_velocity, temporal_acceleration, static_freeze]
+factor_runtime:
+  line_reprojection:
+    weight: 1.0
+    sigma: 8.0
+    sigma_unit: px
+    source: line_observations:endpoint_track_conf+pixel_noise_scale
+    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
+  temporal_velocity:
+    weight: 1.25
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: sequence_se3_optimizer:smooth_w
+    activation_weight_tiers: {active: 1.0, downweighted: 0.08, inactive: 0.0}
+  temporal_acceleration:
+    weight: 7.2
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: generic_sequence_acceleration_continuity
+    activation_weight_tiers: {active: 1.0, downweighted: 0.08, inactive: 0.0}
+  contact_distance:
+    weight: 0.92
+    sigma: 0.035
+    sigma_unit: m
+    source: sequence_se3_optimizer:trusted_physical_contact_weight
+    activation_weight_tiers: {active: 1.0, downweighted: 0.08, inactive: 0.0}
+  static_freeze:
+    weight: 100.0
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: generic_supported_static_interval_anchor
+    activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
 refinement_policy:
   - line_contact_lock
   - backproject_xy
@@ -12,6 +54,7 @@ render_backend: urdf_solid
 render_scene: generic_urdf
 result_name: generic_pipeline_v1
 preprocess:
+  static_camera: true
   detector_model: IDEA-Research/grounding-dino-tiny
   detector_text: wooden staff.
   segmenter_model: facebook/sam2.1-hiera-tiny

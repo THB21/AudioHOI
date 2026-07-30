@@ -25,7 +25,10 @@ from scripts.shared.generic_contact_pipeline.core.evaluation.vlm_trace import ex
 from scripts.shared.generic_contact_pipeline.core.gates.stage_audit import write_stage_audit  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_provider import load_vlm_provider  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_gates import write_stage_gates  # noqa: E402
-from scripts.shared.generic_contact_pipeline.components.mainline import contact_anchor, pose_init, sequence_refine  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.provenance.attempts import StageAttempt  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.preprocess import validate_case_ingestion_current  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.plugins.registry import resolve_pipeline_plugins  # noqa: E402
+from scripts.shared.generic_contact_pipeline.components.mainline import contact_anchor, pose_init  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.analysis import stage_llm_csv_audit, stage_loss_analysis  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.gates import stage_vlm_qwen, stage_vlm_verify  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.main import (  # noqa: E402
@@ -189,12 +192,13 @@ def _generic_mainline_manifest(profile) -> dict[str, object]:
         "enabled": True,
         "contract": "fixed_preprocess_observation_contact_anchor_se3_init_sequence_optimizer",
         "object_family": profile.data.get("object_family", ""),
-        "legacy_yaml_selectors": {
+        "yaml_plugin_selectors": {
             "observation_model": profile.data.get("observation_model", ""),
             "contact_policy": profile.data.get("contact_policy", ""),
             "pose_model": profile.data.get("pose_model", ""),
             "refinement_policy": profile.data.get("refinement_policy", []),
-            "role": "stage1-3 are normalized through generic contracts; refinement_policy is ignored by Stage4 except the generic sequence optimizer marker",
+            "resolution": "explicit capability plugin registry",
+            "role": "Stage1-3 selectors invoke compatibility adapters; Stage4 refinement selectors run in declared order as compatibility seed/residual builders, except plugins explicitly marked as mainline markers or implementations",
         },
         "artifacts": {
             name: {"path": str(path), "exists": path.exists(), "rows": _csv_count(path)}
@@ -234,15 +238,7 @@ def _refresh_generic_mainline_after_vlm(profile, stage_name: str, result: dict[s
         gate_path = paths["vlm_dir"] / stage_name / "vlm_gates.csv"
         if gate_path.exists() and not any(row.get("is_effective") == "1" for row in read_csv(gate_path)):
             return refreshed
-        smooth_result = sequence_refine.apply(profile)
-        components = [
-            item
-            for item in list(refreshed.get("components", []))
-            if not (isinstance(item, dict) and item.get("component") == "generic_sequence_se3_mainline")
-        ]
-        components.append(smooth_result)
-        refreshed["components"] = components
-        write_json(paths["stage4_metrics"], refreshed)
+        refreshed = stage4_contact_refine.run(profile)
     return refreshed
 
 
@@ -255,7 +251,7 @@ def _repair_after_stage_audit(profile, stage_name: str, result: dict[str, object
     elif stage_name == "stage3":
         repaired["stage_audit_repair"] = pose_init.build(profile)
     elif stage_name == "stage4":
-        repaired["stage_audit_repair"] = sequence_refine.apply(profile)
+        repaired["stage_audit_repair"] = stage4_contact_refine.run(profile)
     else:
         repaired["stage_audit_repair"] = {
             "component": "stage_audit_repair",
@@ -265,29 +261,101 @@ def _repair_after_stage_audit(profile, stage_name: str, result: dict[str, object
     return repaired
 
 
+def _attempt_summary(
+    result: dict[str, object],
+    vlm_result: dict[str, object] | None,
+    stage_audit_result: dict[str, object],
+) -> dict[str, object]:
+    return {
+        "stage_status": result.get("status", result.get("decision", "")),
+        "vlm_decision": vlm_result.get("decision", "") if vlm_result else "not_run",
+        "stage_audit_decision": stage_audit_result.get("decision", ""),
+        "rerun_requested": bool(stage_audit_result.get("rerun_stage")),
+    }
+
+
+def _require_stage4_publication(stage_name: str, result: dict[str, object]) -> None:
+    if stage_name != "stage4" or result.get("status") == "accepted":
+        return
+    reasons = result.get("hard_gate", {}).get("blocking_reasons", [])
+    raise RuntimeError(
+        f"generic Stage 4 candidate was not published; blocking_reasons={reasons}"
+    )
+
+
 def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.Namespace) -> dict[str, object]:
-    profile = with_runtime_overrides(load_case_profile(case_name), result_name=args.result_name or None, ablation_flags=args.ablation_flag)
+    profile = with_runtime_overrides(
+        load_case_profile(case_name),
+        result_name=args.result_name or None,
+        ablation_flags=args.ablation_flag,
+    )
+    capability_plugins = resolve_pipeline_plugins(profile).describe()
     stage_results = []
     for stage_name, fn in selected_stages(from_stage, to_stage):
         print(f"[{case_name}] {stage_name}", flush=True)
-        if stage_name in {"stage-1", "stage6.5"}:
-            result = fn(profile, args.llm_mode)
-        else:
-            result = fn(profile)
-        vlm_result = _run_stage_vlm(profile, stage_name, args)
-        vlm_gate_result = None
-        if vlm_result is not None:
-            vlm_gate_result = write_stage_gates(profile, stage_name)
-            result = _refresh_generic_mainline_after_vlm(profile, stage_name, result)
-            print(
-                f"[{case_name}] {stage_name} vlm={vlm_result.get('mode')} "
-                f"decision={vlm_result.get('decision')} gates={vlm_result.get('gate_counts', {})}",
-                flush=True,
-            )
-        stage_audit_result = write_stage_audit(profile, stage_name, llm_mode=args.llm_mode)
-        result = _repair_after_stage_audit(profile, stage_name, result, stage_audit_result)
-        if stage_audit_result.get("rerun_stage"):
+        if stage_name in {"stage1", "stage2", "stage3", "stage4"}:
+            ingestion_path = stage_paths(profile)["case_ingestion_manifest"]
+            if not ingestion_path.is_file():
+                raise RuntimeError(
+                    f"case ingestion manifest is missing before {stage_name}: {ingestion_path}; run stage0"
+                )
+            validate_case_ingestion_current(profile)
+        attempt = StageAttempt(
+            profile,
+            stage_name,
+            trigger="scheduled_pipeline_stage",
+            metadata={"from_stage": from_stage, "to_stage": to_stage},
+        )
+        attempt_finished = False
+        try:
+            if stage_name in {"stage-1", "stage6.5"}:
+                result = fn(profile, args.llm_mode)
+            else:
+                result = fn(profile)
+            vlm_result = _run_stage_vlm(profile, stage_name, args)
+            vlm_gate_result = None
+            if vlm_result is not None:
+                vlm_gate_result = write_stage_gates(profile, stage_name)
+                result = _refresh_generic_mainline_after_vlm(profile, stage_name, result)
+                print(
+                    f"[{case_name}] {stage_name} vlm={vlm_result.get('mode')} "
+                    f"decision={vlm_result.get('decision')} gates={vlm_result.get('gate_counts', {})}",
+                    flush=True,
+                )
+            _require_stage4_publication(stage_name, result)
             stage_audit_result = write_stage_audit(profile, stage_name, llm_mode=args.llm_mode)
+            if stage_audit_result.get("rerun_stage"):
+                attempt.finish(
+                    status="completed_rerun_requested",
+                    result_summary=_attempt_summary(result, vlm_result, stage_audit_result),
+                )
+                attempt_finished = True
+                rerun_attempt = StageAttempt(
+                    profile,
+                    stage_name,
+                    trigger="stage_audit_rerun",
+                    parent_attempt_id=attempt.attempt_id,
+                    metadata={"audit_decision": stage_audit_result},
+                )
+                try:
+                    result = _repair_after_stage_audit(profile, stage_name, result, stage_audit_result)
+                    stage_audit_result = write_stage_audit(profile, stage_name, llm_mode=args.llm_mode)
+                    rerun_attempt.finish(
+                        result_summary=_attempt_summary(result, vlm_result, stage_audit_result)
+                    )
+                except Exception as exc:
+                    if not rerun_attempt.finalized:
+                        rerun_attempt.finish(status="failed", error=exc)
+                    raise
+            else:
+                attempt.finish(
+                    result_summary=_attempt_summary(result, vlm_result, stage_audit_result)
+                )
+                attempt_finished = True
+        except Exception as exc:
+            if not attempt_finished and not attempt.finalized:
+                attempt.finish(status="failed", error=exc)
+            raise
         if args.vlm_blocking and vlm_result and vlm_result.get("blocking"):
             stage_results.append({"stage": stage_name, "result": result, "vlm_verification": vlm_result, "vlm_gate": vlm_gate_result, "stage_audit": stage_audit_result})
             manifest = {
@@ -299,6 +367,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
                 "to_stage": to_stage,
                 "vlm_mode": args.vlm_mode,
                 "llm_mode": args.llm_mode,
+                "capability_plugins": capability_plugins,
                 "vlm_blocked_at_stage": stage_name,
                 "stage_results": stage_results,
             }
@@ -315,6 +384,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
         "vlm_mode": args.vlm_mode,
         "llm_mode": args.llm_mode,
         "vlm_blocking": args.vlm_blocking,
+        "capability_plugins": capability_plugins,
         "stage_results": stage_results,
     }
     manifest["generic_se3_mainline"] = _generic_mainline_manifest(profile)

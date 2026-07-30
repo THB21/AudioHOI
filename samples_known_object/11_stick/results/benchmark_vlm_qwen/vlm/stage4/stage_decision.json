@@ -4,14 +4,15 @@
   "mode": "qwen_vl",
   "decision": "pass_with_unclear_frames",
   "blocking": false,
-  "query_count": 480,
+  "query_count": 494,
   "gate_counts": {
-    "pass": 311,
-    "unclear": 169
+    "pass": 324,
+    "unclear": 170
   },
   "query_counts": {
     "anchor_update_check": 240,
-    "temporal_motion_check": 240
+    "temporal_motion_check": 240,
+    "constraint_reliability_check": 14
   },
   "accepted_frames": [
     1,

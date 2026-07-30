@@ -1,8 +1,8 @@
 {
   "case_name": "stick",
   "stage": "stage4",
-  "gate_rows": 480,
-  "effective_rows": 480,
+  "gate_rows": 494,
+  "effective_rows": 494,
   "blocked_frames": [],
   "unclear_frames": [
     1,
@@ -418,5 +418,5 @@
     239,
     240
   ],
-  "gate_csv": "/mnt/hdd/AudioHOI/samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm/stage4/vlm_gates.csv"
+  "gate_csv": "samples_known_object/11_stick/results/benchmark_vlm_qwen/vlm/stage4/vlm_gates.csv"
 }

@@ -11,6 +11,8 @@ from .manifest import (
     write_ingestion_manifest_atomic,
 )
 from .types import ArtifactSpec, CaseIngestionResult, PreprocessTask, TaskExecutionRecord
+from .registry import build_preprocess_tasks, validate_task_graph
+from .runner import run_case_ingestion, validate_case_ingestion_current
 
 __all__ = [
     "ArtifactSpec",
@@ -25,4 +27,8 @@ __all__ = [
     "task_cache_key",
     "validate_ingestion_manifest",
     "write_ingestion_manifest_atomic",
+    "build_preprocess_tasks",
+    "validate_task_graph",
+    "run_case_ingestion",
+    "validate_case_ingestion_current",
 ]

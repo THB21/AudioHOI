@@ -14,6 +14,8 @@ def stage_paths(profile: CaseProfile) -> dict[str, Path]:
         "prompt_context": base / "prompt_context.json",
         "stage0_metrics": base / "stage0_metrics.json",
         "stage0_inputs_manifest": base / "stage0_inputs_manifest.json",
+        "case_ingestion_manifest": base / "case_ingestion_manifest.json",
+        "case_ingestion_attempt_manifest": base / "case_ingestion_last_attempt.json",
         "stage_audit_dir": base / "stage_audit",
         "object_observations": base / "object_observations.csv",
         "object_correspondence": base / "object_correspondence.csv",

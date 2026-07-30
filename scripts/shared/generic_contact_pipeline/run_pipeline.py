@@ -27,6 +27,7 @@ from scripts.shared.generic_contact_pipeline.core.gates.stage_audit import write
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_provider import load_vlm_provider  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_gates import write_stage_gates  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.provenance.attempts import StageAttempt  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.preprocess import validate_case_ingestion_current  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.plugins.registry import resolve_pipeline_plugins  # noqa: E402
 from scripts.shared.generic_contact_pipeline.components.mainline import contact_anchor, pose_init, sequence_refine  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.analysis import stage_llm_csv_audit, stage_loss_analysis  # noqa: E402
@@ -294,6 +295,13 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
     stage_results = []
     for stage_name, fn in selected_stages(from_stage, to_stage):
         print(f"[{case_name}] {stage_name}", flush=True)
+        if stage_name in {"stage1", "stage2", "stage3", "stage4"}:
+            ingestion_path = stage_paths(profile)["case_ingestion_manifest"]
+            if not ingestion_path.is_file():
+                raise RuntimeError(
+                    f"case ingestion manifest is missing before {stage_name}: {ingestion_path}; run stage0"
+                )
+            validate_case_ingestion_current(profile)
         attempt = StageAttempt(
             profile,
             stage_name,

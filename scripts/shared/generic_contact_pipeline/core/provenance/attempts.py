@@ -16,7 +16,12 @@ from .artifact_store import store_stage_artifacts
 
 STAGE_ARTIFACT_KEYS: dict[str, tuple[str, ...]] = {
     "stage-1": ("hoi_profile", "hoi_profile_resolved", "llm_prior_trace", "prompt_context"),
-    "stage0": ("stage0_inputs_manifest", "stage0_metrics"),
+    "stage0": (
+        "stage0_inputs_manifest",
+        "stage0_metrics",
+        "case_ingestion_manifest",
+        "case_ingestion_attempt_manifest",
+    ),
     "stage1": (
         "object_observations", "object_correspondence", "object_surface_points",
         "object_semantic_points", "line_correspondence", "line_observations",

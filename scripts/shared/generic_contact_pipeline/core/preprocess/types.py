@@ -7,6 +7,7 @@ from typing import Callable, Mapping, Sequence
 
 
 CommandBuilder = Callable[[], Sequence[str]]
+OutputValidator = Callable[[int], None]
 
 
 @dataclass(frozen=True)
@@ -35,6 +36,7 @@ class PreprocessTask:
     model_identity: Mapping[str, object] = field(default_factory=dict)
     required: bool = True
     human_state_role: str | None = None
+    output_validator: OutputValidator | None = None
 
     def __post_init__(self) -> None:
         if not self.task_id or not self.runtime_env:

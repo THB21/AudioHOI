@@ -81,6 +81,11 @@ from .contact_correspondence import (
     build_typed_rigid_contact_hypotheses,
     rigid_contact_hypothesis_ledger_record,
 )
+from .capability_initializers import (
+    InitializationRequest,
+    InitializationResult,
+    initialize_from_capabilities,
+)
 from .problem import build_sequence_problem_shadow
 from .problem_factory import (
     SequenceFactorInputs,
@@ -227,6 +232,8 @@ __all__ = [
     "GenericSequenceExecutor",
     "GenericSequenceSolveResult",
     "JointLimitFactorInput",
+    "InitializationRequest",
+    "InitializationResult",
     "ISOLATED_ATTEMPT_FILENAMES",
     "IsolatedAttemptState",
     "LineReprojectionFactorInput",
@@ -299,6 +306,7 @@ __all__ = [
     "build_world_space_contact_sample_residual_inputs",
     "build_sequence_problem_shadow",
     "build_sequence_problem_contract",
+    "initialize_from_capabilities",
     "solve_sequence_optimization",
     "sequence_problem_preparation_record",
     "load_isolated_attempt_state",

@@ -28,6 +28,7 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     write_isolated_sequence_attempt,
     update_isolated_attempt_evidence,
 )
+from scripts.shared.generic_contact_pipeline.core.factors import factor_arbitration_ledger_record
 
 
 def _write_atomic(path: Path, payload: dict[str, object]) -> None:
@@ -52,6 +53,12 @@ def main() -> None:
     parser.add_argument("--candidate-dir", type=Path)
     parser.add_argument("--max-nfev", type=int, default=100)
     parser.add_argument(
+        "--vlm-arbitration",
+        choices=("off", "required"),
+        default="off",
+        help="Require evaluated discrete VLM factor gates, or explicitly disable their solver influence.",
+    )
+    parser.add_argument(
         "--allow-accepted-write",
         action="store_true",
         help="Allow a passing hard gate to atomically replace canonical object_pose.csv.",
@@ -68,6 +75,7 @@ def main() -> None:
         result_dir=profile.result_dir,
         repository_root=REPO,
         body_models_root=args.body_models_root,
+        factor_arbitration_mode=args.vlm_arbitration,
     )
     _write_atomic(args.output, capability_object_problem_preparation_record(prepared))
     if args.solve:
@@ -96,7 +104,22 @@ def main() -> None:
                 gate_ids=(*gate.gate_ids, "explicit_promotion_authorized"),
                 blocking_reasons=("promotion_not_requested",),
             )
-        update_isolated_attempt_evidence(attempt_dir, hard_metrics=hard_metrics)
+        arbitration_record = (
+            factor_arbitration_ledger_record(prepared.factor_arbitration)
+            if isinstance(prepared, CapabilityObjectProblemPreparation)
+            else None
+        )
+        if arbitration_record is not None and bool(arbitration_record.get("blocking", False)):
+            gate = ObjectPublicationGate(
+                passed=False,
+                gate_ids=(*gate.gate_ids, "vlm_factor_arbitration_clear"),
+                blocking_reasons=(*gate.blocking_reasons, "vlm_factor_arbitration_unclear"),
+            )
+        update_isolated_attempt_evidence(
+            attempt_dir,
+            hard_metrics=hard_metrics,
+            vlm_gates=arbitration_record,
+        )
         publication = AcceptedObjectOutputPublisher().publish(
             result=result,
             state_spec=prepared.state_adaptation.state_spec,

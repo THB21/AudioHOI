@@ -222,11 +222,15 @@ def result_row(query: dict[str, str], label: str, gate: str, action: str) -> dic
 def evaluate_stage(profile, stage: str, args: argparse.Namespace) -> dict[str, object]:
     paths = stage_paths(profile)
     if args.refresh_queries:
-        write_stage_verification(profile, stage)
+        write_stage_verification(profile, stage, args.query_type or None)
     qpath = paths["vlm_dir"] / stage / "vlm_queries.csv"
     if not qpath.exists():
         raise FileNotFoundError(f"Missing VLM queries: {qpath}. Run stage_vlm_verify first.")
     queries = read_csv(qpath)
+    if args.query_type:
+        queries = [row for row in queries if row.get("query_type") == args.query_type]
+        if not queries:
+            raise ValueError(f"No {args.query_type} queries were generated for {stage}")
     debug_limited = args.limit > 0
     if args.limit > 0:
         queries = queries[: args.limit]
@@ -282,6 +286,25 @@ def evaluate_stage(profile, stage: str, args: argparse.Namespace) -> dict[str, o
         write_json(out_dir / "qwen_raw_results_debug.json", raw_rows)
         write_json(out_dir / "stage_decision_qwen_debug.json", decision)
     else:
+        if args.query_type:
+            existing_results = [
+                row
+                for row in read_csv(out_dir / "vlm_results.csv")
+                if row.get("query_type") != args.query_type
+            ] if (out_dir / "vlm_results.csv").exists() else []
+            existing_raw: list[dict[str, object]] = []
+            raw_path = out_dir / "qwen_raw_results.json"
+            if raw_path.exists():
+                payload = json.loads(raw_path.read_text())
+                if isinstance(payload, list):
+                    existing_raw = [
+                        row
+                        for row in payload
+                        if isinstance(row, dict) and row.get("query_type") != args.query_type
+                    ]
+            results = [*existing_results, *results]
+            raw_rows = [*existing_raw, *raw_rows]
+            decision = fuse_stage_decision(profile.case_name, stage, results, mode="qwen_vl")
         write_csv(out_dir / "vlm_results.csv", results, RESULT_FIELDS)
         write_json(out_dir / "qwen_raw_results.json", raw_rows)
         write_json(out_dir / "stage_decision.json", decision)
@@ -317,6 +340,7 @@ def main() -> None:
     ap.add_argument("--max-new-tokens", type=int, default=provider.max_new_tokens)
     ap.add_argument("--resize-max", type=int, default=provider.resize_max, help="Resize the longest image side before inference. 0 disables resizing.")
     ap.add_argument("--limit", type=int, default=0, help="Debug limit per stage. 0 means all queries.")
+    ap.add_argument("--query-type", default="", help="Evaluate one registered query type while preserving other stage results.")
     ap.add_argument("--no-refresh-queries", dest="refresh_queries", action="store_false", help="Use existing vlm_queries.csv without regenerating evidence images.")
     ap.add_argument("--doctor", action="store_true", help="Print provider/environment status and exit.")
     ap.set_defaults(refresh_queries=True)

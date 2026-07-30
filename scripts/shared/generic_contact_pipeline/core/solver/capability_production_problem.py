@@ -14,7 +14,7 @@ import numpy as np
 from ..base.config import CaseProfile
 from ..contact_constraints import ContactConstraint, ContactMode, ContactState, LineS, LocalXYZ, adapt_contact_event_rows, adapt_contact_state_rows, adapt_legacy_contact_rows
 from ..human_sites import GVHMRSiteExtractionResult, HumanSiteMeasurement, extract_gvhmr_site_measurements
-from ..factors import FactorArbitrationLedger, factor_arbitration_ledger_record
+from ..factors import FactorArbitrationLedger, build_factor_arbitration_ledger, factor_arbitration_ledger_record
 from ..gates import load_factor_arbitration_ledger
 from ..measurements import Line2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
 from ..state import (
@@ -433,7 +433,16 @@ class CapabilityObjectProblemPreparation:
     accepted_outputs_written: bool = False
 
 
-def prepare_capability_object_problem(*, profile: CaseProfile, result_dir: Path, repository_root: Path, body_models_root: Path) -> CapabilityObjectProblemPreparation | LegacyObjectProblemPreparation:
+def prepare_capability_object_problem(
+    *,
+    profile: CaseProfile,
+    result_dir: Path,
+    repository_root: Path,
+    body_models_root: Path,
+    factor_arbitration_mode: str = "auto",
+) -> CapabilityObjectProblemPreparation | LegacyObjectProblemPreparation:
+    if factor_arbitration_mode not in {"auto", "off", "required"}:
+        raise ValueError("factor arbitration mode must be auto, off, or required")
     config = profile.data.get("generic_object_problem")
     if not isinstance(config, Mapping):
         raise ValueError("case profile is missing generic_object_problem capability configuration")
@@ -478,11 +487,17 @@ def prepare_capability_object_problem(*, profile: CaseProfile, result_dir: Path,
     gvhmr_sites = _gvhmr_sites(profile, frame_times, body_models_root)
     base_shadow = build_sequence_problem_shadow(profile, result_dir)
     base_compiled_records = base_shadow["inputs"]["compiled_factor_shadow"]["records"]
-    factor_arbitration = load_factor_arbitration_ledger(
-        sample_id=profile.case_name,
-        result_dir=result_dir,
-        factor_records=base_compiled_records,
+    factor_arbitration = (
+        load_factor_arbitration_ledger(
+            sample_id=profile.case_name,
+            result_dir=result_dir,
+            factor_records=base_compiled_records,
+        )
+        if factor_arbitration_mode != "off"
+        else build_factor_arbitration_ledger(sample_id=profile.case_name, status="not_evaluated")
     )
+    if factor_arbitration_mode == "required" and factor_arbitration.status != "evaluated":
+        raise ValueError("required VLM factor arbitration has not been evaluated")
     shadow = (
         build_sequence_problem_shadow(profile, result_dir, factor_arbitration)
         if factor_arbitration.status == "evaluated"

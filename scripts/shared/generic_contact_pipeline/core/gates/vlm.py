@@ -736,9 +736,9 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
                 if panel is None:
                     panel = _read_frame(profile.sample_dir, fr)
                 if panel is not None:
-                    panel = panel.resize((426, 240))
                     _draw_stage4_context(profile, panel, fr)
                     _draw_label(panel, f"frame {fr:03d}", (18, 24), (255, 255, 255))
+                    panel = panel.resize((426, 240))
                     frames.append(panel)
             if frames:
                 canvas = Image.new("RGB", (426 * len(frames), 240), (245, 245, 245))
@@ -834,8 +834,8 @@ def question_for(profile: CaseProfile, query_type: str) -> tuple[str, list[str],
         )
     if query_type == "constraint_reliability_check":
         return (
-            "The green overlay is a visual measurement of the physical object. Yellow marks are active human contact sites from a read-only body estimate, and the dark render is the current object hypothesis. When these constraints disagree, which evidence is visually reliable throughout this interval? Choose both_consistent only if the object can satisfy both without changing its visible extent or inventing a contact.",
-            ["visual_observation_reliable", "contact_relation_reliable", "both_consistent", "unclear"],
+            "Judge each overlay against the physical object pixels, not against the dark render. The green overlay is a visual object measurement. Yellow marks are active human contact sites from a read-only body estimate. Use this rubric: choose both_consistent when green follows the visible physical object and every yellow active site lies on that same object at a plausible hand contact; choose visual_observation_reliable when green follows the physical object but a yellow site is visibly off it; choose contact_relation_reliable when yellow sites lie on the physical object but green tracks the wrong location, extent, or angle; otherwise choose unclear. Never choose visual_observation_reliable merely because green agrees with the dark render.",
+            ["both_consistent", "visual_observation_reliable", "contact_relation_reliable", "unclear"],
             "visual_contact_constraint_temporal_overlay",
         )
     if query_type == "post_render_sanity_check":
@@ -862,19 +862,35 @@ def question_for(profile: CaseProfile, query_type: str) -> tuple[str, list[str],
 def query_types_for_stage(profile: CaseProfile, stage: str) -> list[str]:
     obj = object_vlm_profile(profile)
     policy = obj.get("vlm_query_policy")
+    selected: list[str] = []
     if isinstance(policy, dict):
         values = policy.get(stage)
         if isinstance(values, list):
             out = [str(v) for v in values if str(v) in STAGE_QUERY_TYPES.get(stage, [])]
             if out:
-                return out
-    return STAGE_QUERY_TYPES.get(stage, [])
+                selected = out
+    if not selected:
+        selected = list(STAGE_QUERY_TYPES.get(stage, []))
+    runtime = profile.data.get("factor_runtime")
+    if stage == "stage4" and isinstance(runtime, dict):
+        kinds = {str(value) for value in runtime}
+        visual = {"point_reprojection", "line_reprojection", "mask_silhouette", "metric_depth", "depth_order"}
+        contact = {"contact_distance", "contact_relative_velocity", "local_anchor_constancy"}
+        if kinds & visual and kinds & contact and "constraint_reliability_check" not in selected:
+            selected.append("constraint_reliability_check")
+    return selected
 
 
-def build_queries(profile: CaseProfile, stage: str) -> list[dict[str, object]]:
+def build_queries(
+    profile: CaseProfile,
+    stage: str,
+    query_type_filter: str | None = None,
+) -> list[dict[str, object]]:
     queries: list[dict[str, object]] = []
     obj = object_vlm_profile(profile)
     for query_type in query_types_for_stage(profile, stage):
+        if query_type_filter and query_type != query_type_filter:
+            continue
         if query_type == "constraint_reliability_check":
             windows = constraint_risk_intervals(profile)
         else:
@@ -933,11 +949,31 @@ def dry_run_results(queries: list[dict[str, object]]) -> list[dict[str, object]]
     return rows
 
 
-def write_stage_verification(profile: CaseProfile, stage: str) -> dict[str, object]:
+def write_stage_verification(
+    profile: CaseProfile,
+    stage: str,
+    query_type_filter: str | None = None,
+) -> dict[str, object]:
     paths = stage_paths(profile)
     out_dir = paths["vlm_dir"] / stage
-    queries = build_queries(profile, stage)
-    results = dry_run_results(queries)
+    selected_queries = build_queries(profile, stage, query_type_filter)
+    selected_results = dry_run_results(selected_queries)
+    if query_type_filter:
+        existing_queries = [
+            row
+            for row in _read_rows(out_dir / "vlm_queries.csv")
+            if row.get("query_type") != query_type_filter
+        ]
+        existing_results = [
+            row
+            for row in _read_rows(out_dir / "vlm_results.csv")
+            if row.get("query_type") != query_type_filter
+        ]
+        queries = [*existing_queries, *selected_queries]
+        results = [*existing_results, *selected_results]
+    else:
+        queries = selected_queries
+        results = selected_results
     write_csv(out_dir / "vlm_queries.csv", queries, QUERY_FIELDS)
     write_csv(out_dir / "vlm_results.csv", results, RESULT_FIELDS)
     decision = fuse_stage_decision(profile.case_name, stage, results, mode="dry_run")

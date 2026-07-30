@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | basketball / football 已进入唯一 generic executor；stick 与 chair 已经用户全片 3D render 人工验收并由唯一 publisher 发布。chair 使用固定多组件刚体 contract、persistent-grasp co-motion / twist gauge、通用 support / static / temporal factors；solver 内无 chair 分支，GVHMR 始终只读。自动 projection gate 的失败仍保留在 provenance 中，没有以人工放行伪装为自动 zero-shot pass。当前 canonical generic publication coverage 为 `2/5`。 |
-| 下一步 | pending | 优先完成 mug periodic rotation/phase 的 descriptor-driven observation、generic solve 与全片 render 验收；再对 basketball / football 的 unified candidate 做正式全片 render 和 canonical publication。之后补 Stage 0 fresh-directory typed IR 自动闭环，最后冻结 held-out back-view basketball、suitcase、ping-pong benchmark。 |
+| `refactor/interaction-state-production` | in_progress | mug / chair / stick 已经用户全片 3D render 人工验收并由唯一 publisher 发布，canonical generic publication coverage 为 `3/5`。Stage 0 已接入固定的七任务 ingestion DAG，可从只有 video/metadata 的目录生成 frames、audio、SAM2、CoTracker、DA3、只读 GVHMR 与 audio events，并执行 hash-valid reuse。chair / stick 的自动 gate gap 仍原样保留，不伪装为自动 zero-shot pass。 |
+| 下一步 | pending | 对 basketball / football 生成 fresh unified attempts，完成全片 object / read-only skeleton relation render 验收，再经唯一 publisher 切换 canonical。之后冻结 solver 与通用 gate/weight 档位，运行 held-out back-view basketball、suitcase、ping-pong benchmark。 |
 
 当前主线目标收束为一句话：
 
@@ -1834,3 +1834,13 @@ YYYY-MM-DD:
 - adaptive weights/gates: case profile可以声明通用 factor base weight；VLM/interaction state只允许在冻结的离散 activation tiers中降权或切 gate，不允许输出连续姿态。held-out benchmark开始前必须冻结通用 tier policy，禁止再根据单个 held-out case人工调权；否则只能算 case tuning，不算 zero-shot。
 - held-out evidence: back-view basketball、suitcase、ping-pong仍为 `0/3`。进入 held-out前的最短路径是：先完成两球 canonical publication，再接通 fresh Stage 0，随后修复 chair/stick automatic gate；之后冻结 solver与权重档位，只允许新增 asset/config/feature mapping运行三个 zero-shot scenario。
 - boundary: 以上只覆盖 object trajectory solve与普通 object/GVHMR skeleton关系 render；不把人体 refinement、body handoff或 downstream human pipeline列为本项目 blocker。
+
+2026-07-30（Stage 0 fresh-case ingestion 闭环）:
+
+- production DAG: Stage 0 固定执行 `frame_extract -> audio_extract -> sam2 -> cotracker -> da3 -> gvhmr -> audio_events`；任务由 capability/config 和运行环境注册，不读取 object/case 名称来选择算法。每项记录命令、环境、输入/输出 SHA-256、模型/脚本身份、cache key、时间与失败原因；required task 失败时不会进入 Stage 1。
+- fresh evidence: 隔离目录 `/tmp/audiohoi-fresh-ingestion-stick-20260730` 起始仅含 `video.mp4` 与 `metadata.json`。实际生成 240 帧、audio、240 个 SAM2 masks、CoTracker tracks、240 帧 DA3 metric depth、GVHMR `result.pkl` 与 audio events，accepted manifest 为 `/tmp/audiohoi-fresh-ingestion-stick-20260730/results/ingestion_validation/case_ingestion_manifest.json`，frame count=`240`、FPS=`24.0`。
+- bounded DA3: 原 DA3 CLI 一次处理 240 帧，在 RTX 3080 10GB 上稳定 OOM；根因不是输入缺失。通用 adapter 改为一次加载 `depth-anything/DA3METRIC-LARGE`、按 16 帧分块推理并归一化为逐帧 `.npy`，完整 240 帧成功。分块大小与模型身份进入 cache provenance，不新增 stick 或其他 case 分支。
+- GVHMR boundary: 新 worktree 原先只有 checkpoints，没有 Git-ignored GVHMR checkout，已从原工作树只读复制完整 runtime resource。stick 的 metadata 明确要求 static camera，因此 asset/capture profile 显式声明 `preprocess.static_camera=true`，跳过不适用于固定机位且曾返回空解的 visual odometry。GVHMR 仅作为 `human_state_role=read_only_observed` 的骨架/contact evidence，不优化人体，也不增加 human refinement/handoff。
+- cache verification: 对同一 fresh 输入立即复跑，七项状态全部为 `reused`；accepted canonical manifest hash=`cc5851f791d8ba9cbc09df87c61f503be6e3f8bf389b31fd79f799473ec3af57`。DA3/GVHMR/audio-event 的 cache keys 分别为 `d0ee962f...`、`f54e9d78...`、`e206677d...`。
+- precise failure: 将 `AUDIOHOI_DA3_ROOT` 指向 `/tmp/audiohoi-missing-da3-root` 的隔离 probe 中，前四项 hash-valid reuse，DA3 精确失败于缺失的 `/tmp/audiohoi-missing-da3-root/src/depth_anything_3/cli.py`，后续任务不运行，且不写 accepted manifest或 canonical object pose。
+- readiness: “新 case 入库先准备所有外部输入”的 blocker 已关闭到 Stage 0 artifact 层；剩余 fresh-run gap 是 Stage 0 artifacts 到正式 typed Measurement/Interaction IR 再到 solve 的端到端调用验证。canonical promotion仍为 `3/5`，下一步只处理 basketball / football fresh generic attempt、全片 render 与显式 publication。

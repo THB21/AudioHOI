@@ -104,6 +104,8 @@ def _contact_state(state: FrameInteractionState) -> str:
 
 
 def _persistent_contact_state(state: FrameInteractionState) -> str:
+    if state.motion_mode == MotionMode.SUPPORTED_STATIC:
+        return "downweighted"
     if (
         state.contact_mode == InteractionContactMode.GRASP
         and state.contact_state in {ContactStateAxis.PERSISTENT, ContactStateAxis.OCCLUDED_HOLD}

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ..base.config import CaseProfile
 from ..base.io import repo_path, repo_relative_value
-from ..measurements import Line2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
+from ..measurements import Line2DMeasurement, Mask2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
 from .types import (
     FactorEnergySummary,
     FactorGap,
@@ -230,7 +230,6 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 residual_source=_source(per_frame, (term,), "non_invasive_loss_audit"),
             )
         )
-
     for summary_path in sorted(loss_dir.glob("*_residuals_summary.json")):
         summary = _read_json(summary_path)
         stage_label = str(summary.get("stage_label") or summary_path.stem)
@@ -273,6 +272,7 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
         measurement_roles = problem_config.get("measurement_roles", {}) if isinstance(problem_config, dict) else {}
         typed_factor_specs = (
             ("point_reprojection", FactorKind.POINT_REPROJECTION, Point2DMeasurement, "pixel_point_delta"),
+            ("mask_silhouette", FactorKind.MASK_SILHOUETTE, Mask2DMeasurement, "pixel_bbox_edge_delta"),
             ("metric_depth", FactorKind.METRIC_DEPTH, MetricDepthMeasurement, "metric_depth_delta"),
         )
         for factor_name, factor_kind, measurement_type, residual_unit in typed_factor_specs:

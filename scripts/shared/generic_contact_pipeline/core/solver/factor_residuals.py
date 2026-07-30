@@ -35,6 +35,43 @@ class FactorResidualEvaluator:
             return (float(weight) * (predicted - target).reshape(-1) / float(sigma_px)).astype(float)
         return (_row_weights(weight, len(predicted))[:, None] * (predicted - target) / float(sigma_px)).reshape(-1).astype(float)
 
+    def mask_silhouette(
+        self,
+        predicted_bbox: np.ndarray,
+        target_bbox: np.ndarray,
+        *,
+        weight: float | np.ndarray,
+        sigma_px: float,
+        predicted_principal_axis: np.ndarray | None = None,
+        target_principal_axis: np.ndarray | None = None,
+        principal_axis_weight: np.ndarray | None = None,
+        principal_axis_sigma_rad: float | None = None,
+    ) -> np.ndarray:
+        """Compare projected geometry bounds with a typed mask bounding box."""
+
+        if predicted_bbox.shape != target_bbox.shape or predicted_bbox.ndim != 2 or predicted_bbox.shape[1] != 4:
+            raise ValueError("mask silhouette residuals require matching (N, 4) xyxy arrays")
+        delta = (predicted_bbox - target_bbox) / float(sigma_px)
+        bbox_weights = _row_weights(weight, len(delta))[:, None]
+        weighted_bbox = bbox_weights * delta
+        if principal_axis_sigma_rad is None:
+            return weighted_bbox.reshape(-1).astype(float)
+        predicted_axis = np.asarray(predicted_principal_axis, dtype=float)
+        target_axis = np.asarray(target_principal_axis, dtype=float)
+        axis_weights = np.asarray(principal_axis_weight, dtype=float).reshape(-1)
+        if predicted_axis.shape != (len(delta), 2) or target_axis.shape != predicted_axis.shape:
+            raise ValueError("mask principal axes must be matching (N, 2) arrays")
+        if axis_weights.shape != (len(delta),):
+            raise ValueError("mask principal-axis weights must match rows")
+        # A silhouette axis is undirected. The 2-D determinant is sin(theta),
+        # hence it is zero for both aligned and sign-reversed equivalent axes.
+        signed_sine = (
+            predicted_axis[:, 0] * target_axis[:, 1]
+            - predicted_axis[:, 1] * target_axis[:, 0]
+        )
+        axis_residual = axis_weights * signed_sine / float(principal_axis_sigma_rad)
+        return np.concatenate((weighted_bbox, axis_residual[:, None]), axis=1).reshape(-1).astype(float)
+
     def line_reprojection(
         self,
         predicted: np.ndarray,

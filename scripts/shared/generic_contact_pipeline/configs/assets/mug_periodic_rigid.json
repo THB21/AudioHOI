@@ -36,19 +36,51 @@
     "depth_role": "object_center_depth",
     "off_axis_feature_role": "handle_center",
     "axis_local": [0.0, 1.0, 0.0],
+    "preferred_axis_camera": [0.0, -1.0, 0.0],
     "body_radius_m": 0.04,
     "body_height_m": 0.096,
+    "mask_principal_axis_sigma_rad": 0.15,
     "scale_prior_sigma": 0.12,
     "phase_grid_samples": 721,
     "phase_candidate_count": 8,
-    "temporal_phase_sigma_rad_per_frame": 0.25
+    "temporal_phase_sigma_rad_per_frame": 0.25,
+    "occluded_feature_depth_order": "behind_body_center",
+    "occluded_phase_candidate_count": 72,
+    "occlusion_depth_sigma_m": 0.01
   },
   "feature_points": {
     "object:center": [[0.0, 0.0, 0.0]],
-    "object:handle": [[-0.068282, -0.007, 0.0]]
+    "object:handle": [[-0.068282, -0.007, 0.0]],
+    "object:support": [
+      [0.04, -0.048, 0.0],
+      [0.028284, -0.048, 0.028284],
+      [0.0, -0.048, 0.04],
+      [-0.028284, -0.048, 0.028284],
+      [-0.04, -0.048, 0.0],
+      [-0.028284, -0.048, -0.028284],
+      [0.0, -0.048, -0.04],
+      [0.028284, -0.048, -0.028284]
+    ]
+  },
+  "support_features": ["object:support"],
+  "silhouette_proxies": {
+    "object:body": {
+      "kind": "cylinder",
+      "axis_local": [0.0, 1.0, 0.0],
+      "radius_m": 0.04,
+      "height_m": 0.096,
+      "radial_samples": 72,
+      "axis_samples": 7
+    }
   },
   "contact_visibility_features": {
     "handle_loop": "object:handle",
     "body_shell_or_occluded_handle_region": "object:handle"
+  },
+  "contact_feature_overrides": {
+    "handle_loop": "object:handle",
+    "body_shell": "object:handle",
+    "body_shell_or_occluded_handle_region": "object:handle",
+    "rim_ring": "object:handle"
   }
 }

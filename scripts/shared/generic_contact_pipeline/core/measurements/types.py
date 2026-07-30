@@ -103,6 +103,8 @@ class Mask2DMeasurement:
     bbox_xyxy: tuple[float, float, float, float]
     area_px: float | None = None
     mask_artifact: str | None = None
+    principal_axis_uv: tuple[float, float] | None = None
+    principal_variances_px2: tuple[float, float] | None = None
     kind: str = "mask2d"
 
     def __post_init__(self) -> None:
@@ -112,6 +114,15 @@ class Mask2DMeasurement:
             raise ValueError("invalid mask bounds/area")
         if self.meta.coordinate_frame != CoordinateFrame.IMAGE_PIXELS or self.meta.unit != Unit.PIXEL:
             raise ValueError("Mask2D requires image_pixels/pixel metadata")
+        if self.principal_axis_uv is not None:
+            _finite(*self.principal_axis_uv)
+            if abs(sum(value * value for value in self.principal_axis_uv) - 1.0) > 1e-6:
+                raise ValueError("Mask2D principal axis must be unit length")
+        if self.principal_variances_px2 is not None:
+            _finite(*self.principal_variances_px2)
+            minor, major = self.principal_variances_px2
+            if minor < 0.0 or major < minor:
+                raise ValueError("Mask2D principal variances must be ordered and non-negative")
 
 
 @dataclass(frozen=True)

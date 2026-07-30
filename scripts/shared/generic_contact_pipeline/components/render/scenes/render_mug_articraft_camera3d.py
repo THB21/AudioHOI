@@ -69,7 +69,10 @@ def read_pose_sequence(path: Path) -> dict[int, np.ndarray]:
         fr = int(float(row["frame"]))
         if any(row.get(k, "") != "" for k in ("tx", "ty", "tz", "qw", "qx", "qy", "qz")):
             quat = [ff(row, "qx", 0.0), ff(row, "qy", 0.0), ff(row, "qz", 0.0), ff(row, "qw", 1.0)]
-            yaw, pitch, roll = Rotation.from_quat(quat).as_euler("zyx")
+            # ``base.object_R`` composes Ry(yaw) @ Rx(pitch) @ Rz(roll).
+            # SciPy's intrinsic YXZ convention is the exact inverse mapping;
+            # the former zyx conversion silently changed a typed quaternion.
+            yaw, pitch, roll = Rotation.from_quat(quat).as_euler("YXZ")
             out[fr] = np.asarray(
                 [
                     ff(row, "tx", ff(row, "x", 0.0)),

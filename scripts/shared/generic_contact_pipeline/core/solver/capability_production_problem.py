@@ -5,7 +5,7 @@ import csv
 import hashlib
 import json
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Mapping, Sequence
 
@@ -16,7 +16,7 @@ from ..contact_constraints import ContactConstraint, ContactMode, ContactState, 
 from ..human_sites import GVHMRSiteExtractionResult, HumanSiteMeasurement, extract_gvhmr_site_measurements
 from ..factors import FactorArbitrationLedger, build_factor_arbitration_ledger, factor_arbitration_ledger_record
 from ..gates import load_factor_arbitration_ledger
-from ..measurements import Line2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, VisibilityMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
+from ..measurements import Line2DMeasurement, Mask2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, VisibilityMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
 from ..state import (
     Bound,
     CapsuleGeometryProvider,
@@ -47,7 +47,7 @@ from .legacy_production_problem import (
 from .capability_initializers import InitializationRequest, initialize_from_capabilities
 from .problem import build_sequence_problem_shadow
 from .problem_factory import SequenceFactorInputs, SequenceProblemFactory, SequenceProblemPreparation
-from .residual_inputs import ContactFactorInput, LineReprojectionFactorInput, MetricDepthFactorInput, PeriodicPhaseFactorInput, PointReprojectionFactorInput, SupportPlaneFactorInput, WorldSpaceContactSample
+from .residual_inputs import ContactFactorInput, LineReprojectionFactorInput, MaskSilhouetteFactorInput, MetricDepthFactorInput, PeriodicPhaseFactorInput, PointReprojectionFactorInput, SupportPlaneFactorInput, WorldSpaceContactSample
 
 
 def _sha256(path: Path) -> str:
@@ -58,6 +58,115 @@ def _canonical_hash(value: object) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
+def _gate_feature_points_by_human_site(
+    measurements: Sequence[object],
+    human_sites: Sequence[HumanSiteMeasurement],
+    cameras: Mapping[int, PinholeCamera],
+    raw_gates: Mapping[str, object],
+) -> tuple[list[object], dict[str, object]]:
+    """Reject part detections inconsistent with a read-only interacting site."""
+
+    masks_by_role_frame = {
+        (measurement.meta.feature.semantic_role, measurement.meta.frame): measurement
+        for measurement in measurements
+        if isinstance(measurement, Mask2DMeasurement)
+    }
+    sites_by_frame: dict[int, list[HumanSiteMeasurement]] = {}
+    for site in human_sites:
+        sites_by_frame.setdefault(site.frame, []).append(site)
+    kept: list[object] = []
+    rejected_ids: list[str] = []
+    for measurement in measurements:
+        if not isinstance(measurement, Point2DMeasurement):
+            kept.append(measurement)
+            continue
+        raw_gate = raw_gates.get(measurement.meta.feature.semantic_role)
+        if not isinstance(raw_gate, Mapping):
+            kept.append(measurement)
+            continue
+        frame = measurement.meta.frame
+        mask = masks_by_role_frame.get((str(raw_gate["body_mask_role"]), frame))
+        camera = cameras.get(frame)
+        candidates = [
+            site for site in sites_by_frame.get(frame, ())
+            if site.site.body_part == str(raw_gate["human_body_part"])
+        ]
+        if mask is None or camera is None or not candidates:
+            kept.append(measurement)
+            continue
+        projected_sites = camera.project([site.xyz_m for site in candidates])
+        distance_px = float(np.min(np.linalg.norm(projected_sites - np.asarray((measurement.u, measurement.v)), axis=1)))
+        x1, y1, x2, y2 = mask.bbox_xyxy
+        extent_px = min(float(x2 - x1), float(y2 - y1))
+        limit_px = float(raw_gate["max_distance_min_bbox_extent_ratio"]) * extent_px
+        if extent_px > 0.0 and distance_px > limit_px:
+            rejected_ids.append(measurement.meta.measurement_id)
+            continue
+        kept.append(measurement)
+    return kept, {
+        "gate": "human_site_proximity_to_feature_measurement",
+        "input_point_count": sum(isinstance(item, Point2DMeasurement) for item in measurements),
+        "rejected_point_count": len(rejected_ids),
+        "rejected_measurement_ids": rejected_ids,
+        "human_state_optimized": False,
+        "case_dispatch_used": False,
+    }
+
+
+def _enrich_mask_shape_measurements(
+    measurements: Sequence[object],
+    *,
+    sample_dir: Path,
+    raw_config: Mapping[str, object],
+) -> tuple[list[object], dict[str, object]]:
+    """Attach orientation statistics derived from the declared binary mask artifact."""
+
+    try:
+        import cv2
+    except ImportError as exc:  # pragma: no cover - production runtime dependency
+        raise RuntimeError("mask shape measurements require OpenCV in the solver runtime") from exc
+    semantic_role = str(raw_config["semantic_role"])
+    artifact_pattern = str(raw_config["artifact_pattern"])
+    minimum_pixels = int(raw_config.get("minimum_pixels", 16))
+    enriched: list[object] = []
+    artifacts: list[str] = []
+    for item in measurements:
+        if not isinstance(item, Mask2DMeasurement) or item.meta.feature.semantic_role != semantic_role:
+            enriched.append(item)
+            continue
+        relative = Path(artifact_pattern.format(frame=item.meta.frame))
+        path = relative if relative.is_absolute() else sample_dir / relative
+        image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
+        if image is None:
+            raise FileNotFoundError(f"missing configured mask shape artifact: {path}")
+        rows, cols = np.where(image > 0)
+        if len(rows) < minimum_pixels:
+            raise ValueError(f"mask shape artifact has too few foreground pixels: {path}")
+        centered = np.column_stack((cols - np.mean(cols), rows - np.mean(rows))).astype(float)
+        covariance = centered.T @ centered / len(centered)
+        eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+        order = np.argsort(eigenvalues)
+        axis = eigenvectors[:, int(order[-1])]
+        axis /= np.linalg.norm(axis)
+        enriched.append(
+            replace(
+                item,
+                mask_artifact=str(path),
+                principal_axis_uv=(float(axis[0]), float(axis[1])),
+                principal_variances_px2=(
+                    float(eigenvalues[int(order[0])]),
+                    float(eigenvalues[int(order[-1])]),
+                ),
+            )
+        )
+        artifacts.append(str(path))
+    return enriched, {
+        "adapter": "binary_mask_principal_axis",
+        "semantic_role": semantic_role,
+        "enriched_measurement_count": len(artifacts),
+        "artifact_pattern": artifact_pattern,
+        "case_dispatch_used": False,
+    }
 def _support_plane_from_human_foot_sites(
     measurements: Sequence[HumanSiteMeasurement],
     *,
@@ -82,6 +191,42 @@ def _support_plane_from_human_foot_sites(
     # surface offset, hence they have positive signed distance.
     offset = -float(normal @ center) + float(surface_offset_m)
     return PlaneSurface(tuple(float(value) for value in normal), offset)
+
+
+def _gravity_plane_through_initial_support(
+    geometry_provider: object,
+    object_states: Mapping[int, Sequence[float]],
+    support_feature_ids: Sequence[str],
+    active_frames: Sequence[int],
+    normal: Sequence[float],
+) -> PlaneSurface:
+    """Anchor a gravity-aligned plane at the first observed support contact.
+
+    The plane normal is scene calibration, while its offset comes from the
+    observed support transition and asset-declared support geometry.  Using a
+    ring/patch instead of one point also constrains a resting rigid object's
+    support face to be parallel to the plane.
+    """
+
+    if not active_frames:
+        raise ValueError("gravity support-plane fitting requires active support frames")
+    frame = int(active_frames[0])
+    state = object_states.get(frame)
+    if state is None:
+        raise ValueError("gravity support-plane fitting is missing the first active object state")
+    normal_array = np.asarray(normal, dtype=float)
+    if normal_array.shape != (3,) or not np.isfinite(normal_array).all() or np.linalg.norm(normal_array) <= 1e-12:
+        raise ValueError("gravity support-plane normal must be a finite nonzero three-vector")
+    normal_array /= np.linalg.norm(normal_array)
+    points = np.concatenate(
+        [geometry_provider.feature_points_world(state, feature_id) for feature_id in support_feature_ids],
+        axis=0,
+    )
+    center = np.mean(points, axis=0)
+    return PlaneSurface(
+        tuple(float(value) for value in normal_array),
+        -float(normal_array @ center),
+    )
 
 
 def _quaternion_from_matrix(matrix: np.ndarray) -> tuple[float, float, float, float]:
@@ -492,8 +637,44 @@ def prepare_capability_object_problem(
     observation_path = result_dir / "object_observations.csv"
     measurements = list(adapt_legacy_observation_rows(profile.case_name, _rows(observation_path), str(observation_path)).measurements)
     measurements.extend(adapt_configured_supplemental_measurements(profile, result_dir).measurements)
+    mask_shape_ledger: dict[str, object] | None = None
+    raw_mask_shape = config.get("mask_shape_observations", {})
+    if raw_mask_shape:
+        if not isinstance(raw_mask_shape, Mapping):
+            raise ValueError("mask_shape_observations must be a mapping")
+        measurements, mask_shape_ledger = _enrich_mask_shape_measurements(
+            measurements,
+            sample_dir=profile.sample_dir,
+            raw_config=raw_mask_shape,
+        )
     contact_path = result_dir / str(config.get("contact_artifact", "object_contact_points.csv"))
     contact_rows = _rows(contact_path)
+    contact_feature_overrides = descriptor.get("contact_feature_overrides", {})
+    if contact_feature_overrides:
+        if not isinstance(contact_feature_overrides, Mapping):
+            raise ValueError("asset contact_feature_overrides must be a mapping")
+        descriptor_points = descriptor.get("feature_points", {})
+        overridden_rows: list[dict[str, str]] = []
+        for source_row in contact_rows:
+            row = dict(source_row)
+            raw_override = contact_feature_overrides.get(row.get("object_part", ""))
+            if raw_override is not None:
+                override = ({"geometry_feature_id": raw_override, "coordinate_feature_id": raw_override} if isinstance(raw_override, str) else dict(raw_override))
+                feature_id = str(override["geometry_feature_id"])
+                coordinate_feature_id = str(override["coordinate_feature_id"])
+                points = np.asarray(dict(descriptor_points).get(coordinate_feature_id, ()), dtype=float)
+                if points.shape != (1, 3):
+                    raise ValueError("contact feature override must resolve to one descriptor-declared fixed point")
+                row["geometry_feature_id"] = feature_id
+                row["stable_local_x"], row["stable_local_y"], row["stable_local_z"] = (
+                    f"{float(value):.9f}" for value in points[0]
+                )
+                row["source"] = (
+                    row.get("source", "")
+                    + f"+asset_contact_feature_override:{feature_id}"
+                ).lstrip("+")
+            overridden_rows.append(row)
+        contact_rows = overridden_rows
     visibility_by_feature_frame = {
         (measurement.meta.feature.geometry_feature_id, measurement.meta.frame): measurement.state
         for measurement in measurements
@@ -556,6 +737,17 @@ def prepare_capability_object_problem(
             )
         )
         cameras = {frame: PinholeCamera(**profile.camera) for frame in sorted(frame_times)}
+        measurement_gate_ledger: dict[str, object] | None = None
+        raw_measurement_gates = config.get("measurement_human_site_gates", {})
+        if raw_measurement_gates:
+            if not isinstance(raw_measurement_gates, Mapping):
+                raise ValueError("measurement_human_site_gates must be a mapping")
+            measurements, measurement_gate_ledger = _gate_feature_points_by_human_site(
+                measurements,
+                gvhmr_sites.measurements,
+                cameras,
+                raw_measurement_gates,
+            )
         initialized = initialize_from_capabilities(
             InitializationRequest(
                 state_spec=contract.state_spec,
@@ -578,7 +770,11 @@ def prepare_capability_object_problem(
         initial_states = dict(initialized.states_by_frame)
         templates = [dict(row) for row in initialized.template_rows]
         provider = geometry_build.provider
-        initializer_ledger = initialized.hypothesis_ledger
+        initializer_ledger = dict(initialized.hypothesis_ledger)
+        if mask_shape_ledger is not None:
+            initializer_ledger["mask_shape_observations"] = mask_shape_ledger
+        if measurement_gate_ledger is not None:
+            initializer_ledger["measurement_human_site_gate"] = measurement_gate_ledger
     elif initializer == "observation_periodic_rigid":
         adaptation, initial_states, templates, frame_times = _periodic_seed(result_dir)
         feature_points: dict[str, list[list[float]]] = {"object:body": [[0.0, 0.0, 0.0]]}
@@ -668,12 +864,14 @@ def prepare_capability_object_problem(
     phase_factors: dict[str, PeriodicPhaseFactorInput] = {}
     line_factors: dict[str, LineReprojectionFactorInput] = {}
     point_factors: dict[str, PointReprojectionFactorInput] = {}
+    mask_factors: dict[str, MaskSilhouetteFactorInput] = {}
     depth_factors: dict[str, MetricDepthFactorInput] = {}
     support_factors: dict[str, SupportPlaneFactorInput] = {}
     cameras = {frame: PinholeCamera(**profile.camera) for frame in initial_states}
     line_measurements = tuple(item for item in measurements if isinstance(item, Line2DMeasurement))
     measurement_roles = config.get("measurement_roles", {})
     point_roles = set(measurement_roles.get("point_reprojection", ())) if isinstance(measurement_roles, Mapping) else set()
+    mask_roles = set(measurement_roles.get("mask_silhouette", ())) if isinstance(measurement_roles, Mapping) else set()
     depth_roles = set(measurement_roles.get("metric_depth", ())) if isinstance(measurement_roles, Mapping) else set()
     for record in records:
         factor_id = str(record["factor_id"])
@@ -716,6 +914,24 @@ def prepare_capability_object_problem(
                 ),
                 cameras,
             )
+        elif residual_ref == "shadow_residual::mask_silhouette":
+            mask_shape_config = config.get("mask_shape_observations", {})
+            mask_factors[factor_id] = MaskSilhouetteFactorInput(
+                provider,
+                tuple(
+                    item
+                    for item in measurements
+                    if isinstance(item, Mask2DMeasurement)
+                    and (not mask_roles or item.meta.feature.semantic_role in mask_roles)
+                ),
+                cameras,
+                (
+                    float(mask_shape_config["principal_axis_sigma_rad"])
+                    if isinstance(mask_shape_config, Mapping)
+                    and mask_shape_config.get("principal_axis_sigma_rad") is not None
+                    else None
+                ),
+            )
         elif residual_ref == "shadow_residual::metric_depth":
             depth_factors[factor_id] = MetricDepthFactorInput(
                 tuple(
@@ -728,7 +944,10 @@ def prepare_capability_object_problem(
             )
         elif residual_ref == "shadow_residual::support_and_penetration":
             support_config = config.get("support_plane", {})
-            if not isinstance(support_config, Mapping) or support_config.get("source") != "gvhmr_foot_sites":
+            if not isinstance(support_config, Mapping) or support_config.get("source") not in {
+                "gvhmr_foot_sites",
+                "gravity_plane_through_initial_support",
+            }:
                 raise ValueError("support factor requires a configured generic support-plane source")
             support_feature_ids = tuple(str(value) for value in descriptor.get("support_features", ()))
             if not support_feature_ids:
@@ -742,15 +961,6 @@ def prepare_capability_object_problem(
             )
             if not isinstance(raw_tiers, Mapping):
                 raise ValueError("support factor activation tiers must be a mapping")
-            plane = _support_plane_from_human_foot_sites(
-                gvhmr_sites.measurements,
-                surface_offset_m=float(support_config.get("human_site_surface_offset_m", 0.0)),
-            )
-            proximity_gate_m = (
-                None
-                if support_config.get("proximity_gate_m") is None
-                else float(support_config["proximity_gate_m"])
-            )
             status_by_frame: dict[int, str] = {}
             weight_by_frame: dict[int, float] = {}
             for interval in record.get("activation_intervals", ()):
@@ -762,6 +972,25 @@ def prepare_capability_object_problem(
                     status_by_frame[frame] = status
                     weight_by_frame[frame] = tier_weight
             active_frames = tuple(frame for frame in sorted(status_by_frame) if weight_by_frame[frame] > 0.0)
+            plane = (
+                _support_plane_from_human_foot_sites(
+                    gvhmr_sites.measurements,
+                    surface_offset_m=float(support_config.get("human_site_surface_offset_m", 0.0)),
+                )
+                if support_config.get("source") == "gvhmr_foot_sites"
+                else _gravity_plane_through_initial_support(
+                    provider,
+                    initial_states,
+                    support_feature_ids,
+                    tuple(frame for frame in active_frames if status_by_frame.get(frame) == "active"),
+                    tuple(float(value) for value in support_config.get("normal_camera", (0.0, -1.0, 0.0))),
+                )
+            )
+            proximity_gate_m = (
+                None
+                if support_config.get("proximity_gate_m") is None
+                else float(support_config["proximity_gate_m"])
+            )
             support_factors[factor_id] = SupportPlaneFactorInput(
                 provider,
                 support_feature_ids,
@@ -784,6 +1013,7 @@ def prepare_capability_object_problem(
         periodic_phase_factors=phase_factors,
         line_reprojection_factors=line_factors,
         point_reprojection_factors=point_factors,
+        mask_silhouette_factors=mask_factors,
         metric_depth_factors=depth_factors,
         support_plane_factors=support_factors,
     )

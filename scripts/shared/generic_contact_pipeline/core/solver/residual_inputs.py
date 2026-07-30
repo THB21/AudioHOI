@@ -8,7 +8,7 @@ import numpy as np
 
 from ..audio_events import AudioEvent
 from ..interaction import ContactStateAxis, InteractionContactMode, InteractionTimeline
-from ..measurements import Line2DMeasurement, MetricDepthMeasurement, Point2DMeasurement
+from ..measurements import Line2DMeasurement, Mask2DMeasurement, MetricDepthMeasurement, Point2DMeasurement
 from ..state.geometry_provider import FeaturePointGeometryProvider, GeometryProvider, PinholeCamera, PlaneSurface
 from .sparsity import ResidualRowDependency
 
@@ -165,6 +165,20 @@ class PointReprojectionFactorInput:
     cameras_by_frame: Mapping[int, PinholeCamera]
     weight: float = 1.0
     sigma_px: float = 1.0
+
+
+@dataclass(frozen=True)
+class MaskSilhouetteFactorInput:
+    geometry_provider: FeaturePointGeometryProvider
+    measurements: tuple[Mask2DMeasurement, ...]
+    cameras_by_frame: Mapping[int, PinholeCamera]
+    principal_axis_sigma_rad: float | None = None
+    weight: float = 1.0
+    sigma_px: float = 1.0
+
+    def __post_init__(self) -> None:
+        if self.principal_axis_sigma_rad is not None and self.principal_axis_sigma_rad <= 0.0:
+            raise ValueError("mask principal-axis sigma must be positive")
 
 
 @dataclass(frozen=True)
@@ -484,6 +498,63 @@ def build_point_reprojection_residual_inputs(
     if not predicted:
         return {}
     return {factor_id: {"predicted": predicted, "target": target, "weight": _scalar_or_row_weights(row_weights, weight), "sigma_px": float(sigma_px)}}
+
+
+def build_mask_silhouette_residual_inputs(
+    *, factor_id: str, geometry_provider: FeaturePointGeometryProvider,
+    object_states: Mapping[int, Sequence[float]], measurements: Sequence[Mask2DMeasurement],
+    cameras_by_frame: Mapping[int, PinholeCamera], weight: float, sigma_px: float,
+    principal_axis_sigma_rad: float | None = None,
+    weight_by_frame: Mapping[int, float] | None = None,
+) -> dict[str, dict[str, Any]]:
+    predicted: list[list[float]] = []
+    target: list[list[float]] = []
+    predicted_axes: list[list[float]] = []
+    target_axes: list[list[float]] = []
+    axis_weights: list[float] = []
+    row_weights: list[float] = []
+    for measurement in measurements:
+        frame = measurement.meta.frame
+        state = object_states.get(frame)
+        camera = cameras_by_frame.get(frame)
+        if state is None or camera is None:
+            continue
+        points = geometry_provider.feature_points_world(state, measurement.meta.feature.geometry_feature_id)
+        if points.shape[0] < 4:
+            raise ValueError("mask silhouette geometry features must resolve to a nondegenerate point cloud")
+        projected = _optimization_safe_project(camera, points)
+        predicted.append([
+            float(np.min(projected[:, 0])), float(np.min(projected[:, 1])),
+            float(np.max(projected[:, 0])), float(np.max(projected[:, 1])),
+        ])
+        target.append([float(value) for value in measurement.bbox_xyxy])
+        frame_weight = float((weight_by_frame or {}).get(frame, weight))
+        confidence = measurement.meta.confidence if measurement.meta.confidence is not None else 1.0
+        row_weights.append(frame_weight * confidence)
+        if principal_axis_sigma_rad is not None:
+            if measurement.principal_axis_uv is None or measurement.principal_variances_px2 is None:
+                raise ValueError("mask principal-axis factor requires enriched typed mask measurements")
+            centered = projected - np.mean(projected, axis=0, keepdims=True)
+            covariance = centered.T @ centered / max(1, len(projected))
+            eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+            predicted_axis = eigenvectors[:, int(np.argmax(eigenvalues))]
+            predicted_axes.append(predicted_axis.astype(float).tolist())
+            target_axes.append([float(value) for value in measurement.principal_axis_uv])
+            minor, major = measurement.principal_variances_px2
+            anisotropy = max(0.0, (major - minor) / max(major + minor, 1e-9))
+            axis_weights.append(frame_weight * confidence * anisotropy)
+    if not predicted:
+        return {}
+    return {factor_id: {
+        "predicted_bbox": predicted,
+        "target_bbox": target,
+        "weight": _scalar_or_row_weights(row_weights, weight),
+        "sigma_px": float(sigma_px),
+        "predicted_principal_axis": predicted_axes if principal_axis_sigma_rad is not None else None,
+        "target_principal_axis": target_axes if principal_axis_sigma_rad is not None else None,
+        "principal_axis_weight": axis_weights if principal_axis_sigma_rad is not None else None,
+        "principal_axis_sigma_rad": principal_axis_sigma_rad,
+    }}
 
 
 def build_metric_depth_measurement_residual_inputs(
@@ -1106,6 +1177,7 @@ def build_geometry_sequence_residual_input_bundle(
     audio_alignment_factors: Mapping[str, AudioAlignmentFactorInput] | None = None,
     line_reprojection_factors: Mapping[str, LineReprojectionFactorInput] | None = None,
     point_reprojection_factors: Mapping[str, PointReprojectionFactorInput] | None = None,
+    mask_silhouette_factors: Mapping[str, MaskSilhouetteFactorInput] | None = None,
     metric_depth_factors: Mapping[str, MetricDepthFactorInput] | None = None,
     support_plane_factors: Mapping[str, SupportPlaneFactorInput] | None = None,
 ) -> dict[str, dict[str, Any]]:
@@ -1347,6 +1419,24 @@ def build_geometry_sequence_residual_input_bundle(
         )
         return payload.get(request.factor_id)
 
+    def mask_silhouette(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (mask_silhouette_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        base_weight = _runtime_weight(request, factor.weight)
+        payload = build_mask_silhouette_residual_inputs(
+            factor_id=request.factor_id,
+            geometry_provider=factor.geometry_provider,
+            object_states=object_states,
+            measurements=factor.measurements,
+            cameras_by_frame=factor.cameras_by_frame,
+            weight=base_weight,
+            sigma_px=_runtime_sigma(request, factor.sigma_px, "px"),
+            principal_axis_sigma_rad=factor.principal_axis_sigma_rad,
+            weight_by_frame=_runtime_weights_by_frame(request, (m.meta.frame for m in factor.measurements), base_weight),
+        )
+        return payload.get(request.factor_id)
+
     def support_plane(request: ResidualInputRequest) -> dict[str, Any] | None:
         factor = (support_plane_factors or {}).get(request.factor_id)
         if factor is None:
@@ -1386,6 +1476,7 @@ def build_geometry_sequence_residual_input_bundle(
             "shadow_residual::audio_event_prior": audio_alignment,
             "shadow_residual::line_reprojection": line_reprojection,
             "shadow_residual::point_reprojection": point_reprojection,
+            "shadow_residual::mask_silhouette": mask_silhouette,
             "shadow_residual::metric_depth": metric_depth,
             "shadow_residual::support_and_penetration": support_plane,
         },
@@ -1404,6 +1495,7 @@ def build_geometry_sequence_residual_dependencies(
     periodic_phase_factors: Mapping[str, PeriodicPhaseFactorInput] | None = None,
     line_reprojection_factors: Mapping[str, LineReprojectionFactorInput] | None = None,
     point_reprojection_factors: Mapping[str, PointReprojectionFactorInput] | None = None,
+    mask_silhouette_factors: Mapping[str, MaskSilhouetteFactorInput] | None = None,
     metric_depth_factors: Mapping[str, MetricDepthFactorInput] | None = None,
     support_plane_factors: Mapping[str, SupportPlaneFactorInput] | None = None,
 ) -> tuple[ResidualRowDependency, ...]:
@@ -1582,6 +1674,18 @@ def build_geometry_sequence_residual_dependencies(
                 frame = int(measurement.meta.frame)
                 if frame in object_states and frame in factor.cameras_by_frame:
                     dependencies.append(ResidualRowDependency(factor_id, 2 * residual_index, 2 * (residual_index + 1), (frame,)))
+                    residual_index += 1
+            continue
+        if residual_ref == "shadow_residual::mask_silhouette":
+            factor = (mask_silhouette_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            residual_index = 0
+            row_width = 5 if factor.principal_axis_sigma_rad is not None else 4
+            for measurement in factor.measurements:
+                frame = int(measurement.meta.frame)
+                if frame in object_states and frame in factor.cameras_by_frame:
+                    dependencies.append(ResidualRowDependency(factor_id, row_width * residual_index, row_width * (residual_index + 1), (frame,)))
                     residual_index += 1
             continue
         if residual_ref == "shadow_residual::metric_depth":

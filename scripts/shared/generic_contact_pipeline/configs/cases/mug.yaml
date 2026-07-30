@@ -13,12 +13,29 @@ generic_object_problem:
     - object_proxy_observations_internal/object_proxy_observations.csv
     - object_contact_points.csv
   contact_artifact: object_contact_points.csv
-  measurement_factors: [point_reprojection, metric_depth]
+  interaction_state_artifact: ../contact_candidates_object_proxy/contact_state_frames.csv
+  measurement_factors: [point_reprojection, mask_silhouette, metric_depth]
   measurement_roles:
     point_reprojection: [object_center, handle_center]
+    mask_silhouette: [object_body_mask]
     metric_depth: [object_center_depth]
+  measurement_human_site_gates:
+    handle_center:
+      body_mask_role: object_body_mask
+      human_body_part: hand
+      max_distance_min_bbox_extent_ratio: 1.0
+  mask_shape_observations:
+    semantic_role: object_body_mask
+    artifact_pattern: results/segmentation/masks/{frame:05d}_mask.png
+    minimum_pixels: 64
+    principal_axis_sigma_rad: 0.15
   sequence_factors: [temporal_velocity, temporal_acceleration, static_freeze]
   interaction_factors: [contact_relative_velocity]
+  environment_factors: [support_and_penetration]
+  support_plane:
+    source: gravity_plane_through_initial_support
+    normal_camera: [0.0, -1.0, 0.0]
+    penetration_weight: 2.0
 supplemental_measurements:
   - adapter: legacy_observation_v1
     artifact: object_proxy_observations_internal/object_proxy_observations.csv
@@ -29,6 +46,12 @@ factor_runtime:
     sigma: 5.0
     sigma_unit: px
     source: typed_body_center_and_fixed_off_axis_feature
+    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
+  mask_silhouette:
+    weight: 1.0
+    sigma: 5.0
+    sigma_unit: px
+    source: typed_object_body_mask_and_descriptor_geometry_proxy
     activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
   metric_depth:
     weight: 0.245
@@ -46,12 +69,6 @@ factor_runtime:
     state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     source: generic_sequence_acceleration_continuity
     activation_weight_tiers: {active: 1.0, downweighted: 0.12, inactive: 0.0}
-  contact_distance:
-    weight: 1.0
-    sigma: 0.035
-    sigma_unit: m
-    source: stable_grasp_anchor:contact_distance_scale
-    activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
   contact_relative_velocity:
     weight: 1.0
     sigma: 0.008
@@ -62,6 +79,12 @@ factor_runtime:
     weight: 100.0
     state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     source: generic_supported_static_interval_anchor
+    activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
+  support_and_penetration:
+    weight: 1.0
+    sigma: 0.01
+    sigma_unit: m
+    source: typed_support_contact_and_asset_support_patch
     activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
 refinement_policy:
   - stable_grasp_anchor

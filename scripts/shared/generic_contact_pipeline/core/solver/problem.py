@@ -249,7 +249,21 @@ def build_sequence_problem_shadow(
     audio_event_shadow = build_audio_event_shadow(profile.case_name, result_dir)
     contact_shadow = build_contact_constraint_shadow(profile.case_name, contact_csv, _read_csv(contact_csv))
     contact_shadow["source"]["path"] = str(repo_relative_value(contact_csv))
-    timeline = build_interaction_timeline(profile.case_name, result_dir)
+    generic_problem = profile.data.get("generic_object_problem", {})
+    configured_interaction_artifact = (
+        generic_problem.get("interaction_state_artifact")
+        if isinstance(generic_problem, dict)
+        else None
+    )
+    timeline = build_interaction_timeline(
+        profile.case_name,
+        result_dir,
+        (
+            None
+            if not configured_interaction_artifact
+            else result_dir / str(configured_interaction_artifact)
+        ),
+    )
     interaction_shadow = _interaction_state_shadow(profile, result_dir, timeline)
     factor_adapted = adapt_factor_rows(profile, result_dir)
     factor_activation_ledger = build_factor_activation_ledger(profile.case_name, factor_adapted.factors, timeline)

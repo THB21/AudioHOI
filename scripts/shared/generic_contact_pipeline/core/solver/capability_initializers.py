@@ -10,7 +10,7 @@ import numpy as np
 
 from ..contact_constraints import ContactConstraint
 from ..human_sites import HumanSiteMeasurement
-from ..measurements import Line2DMeasurement, Mask2DMeasurement, Measurement, MetricDepthMeasurement, Point2DMeasurement
+from ..measurements import Line2DMeasurement, Mask2DMeasurement, Measurement, MetricDepthMeasurement, Point2DMeasurement, VisibilityMeasurement
 from ..state import DofKind, PinholeCamera, StateSpec
 
 
@@ -298,6 +298,35 @@ def _axis_rotation(axis: Sequence[float], angle: float) -> np.ndarray:
     return np.eye(3) + math.sin(angle) * skew + (1.0 - math.cos(angle)) * (skew @ skew)
 
 
+def _align_direction(source: Sequence[float], target: Sequence[float]) -> np.ndarray:
+    """Return the shortest proper rotation mapping one directed axis to another."""
+
+    source_vector = np.asarray(source, dtype=float)
+    target_vector = np.asarray(target, dtype=float)
+    if (
+        source_vector.shape != (3,)
+        or target_vector.shape != (3,)
+        or not np.isfinite(source_vector).all()
+        or not np.isfinite(target_vector).all()
+        or np.linalg.norm(source_vector) <= 1e-12
+        or np.linalg.norm(target_vector) <= 1e-12
+    ):
+        raise ValueError("directed axial alignment requires two finite nonzero vectors")
+    source_vector /= np.linalg.norm(source_vector)
+    target_vector /= np.linalg.norm(target_vector)
+    cosine = float(np.clip(source_vector @ target_vector, -1.0, 1.0))
+    cross = np.cross(source_vector, target_vector)
+    sine = float(np.linalg.norm(cross))
+    if sine > 1e-10:
+        return _axis_rotation(cross / sine, math.atan2(sine, cosine))
+    if cosine > 0.0:
+        return np.eye(3)
+    helper = np.asarray((1.0, 0.0, 0.0) if abs(source_vector[0]) < 0.8 else (0.0, 0.0, 1.0))
+    perpendicular = np.cross(source_vector, helper)
+    perpendicular /= np.linalg.norm(perpendicular)
+    return _axis_rotation(perpendicular, math.pi)
+
+
 def _axial_body_points(axis: Sequence[float], radius_m: float, height_m: float, samples: int = 72) -> np.ndarray:
     axis_vector = np.asarray(axis, dtype=float)
     axis_vector /= np.linalg.norm(axis_vector)
@@ -347,11 +376,20 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
     depth_role = str(initializer["depth_role"])
     feature_role = str(initializer["off_axis_feature_role"])
     axis = np.asarray(initializer["axis_local"], dtype=float)
+    preferred_axis_camera = initializer.get("preferred_axis_camera")
+    base_orientation = (
+        np.eye(3)
+        if preferred_axis_camera is None
+        else _align_direction(axis, preferred_axis_camera)
+    )
     radius_m = float(initializer["body_radius_m"])
     height_m = float(initializer["body_height_m"])
     if radius_m <= 0.0 or height_m <= 0.0:
         raise ValueError("axial rigid body proxy dimensions must be positive")
     body_points = _axial_body_points(axis, radius_m, height_m)
+    mask_axis_sigma = float(initializer.get("mask_principal_axis_sigma_rad", 0.15))
+    if mask_axis_sigma <= 0.0:
+        raise ValueError("axial rigid mask principal-axis sigma must be positive")
     centers = {
         item.meta.frame: item
         for item in request.measurements
@@ -382,6 +420,13 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
     local_feature = np.asarray(provider_points.get(feature_id), dtype=float)
     if local_feature.shape != (1, 3):
         raise ValueError("axial rigid off-axis feature must resolve to one fixed local point")
+
+    feature_visibility = {
+        item.meta.frame: item
+        for item in request.measurements
+        if isinstance(item, VisibilityMeasurement)
+        and item.meta.feature.geometry_feature_id == feature_id
+    }
 
     scale_dof = next((dof for dof in request.state_spec.dofs if dof.dof_id == "scale"), None)
     if (
@@ -438,7 +483,11 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
 
         def body_residual(values: np.ndarray) -> np.ndarray:
             translation = values[:3]
-            tilt = _axis_rotation((1.0, 0.0, 0.0), float(values[3])) @ _axis_rotation((0.0, 0.0, 1.0), float(values[4]))
+            tilt = (
+                _axis_rotation((1.0, 0.0, 0.0), float(values[3]))
+                @ _axis_rotation((0.0, 0.0, 1.0), float(values[4]))
+                @ base_orientation
+            )
             projected = _project_rigid_points(camera, body_points, translation, tilt, float(values[5]))
             center_uv = _project_rigid_points(camera, np.zeros((1, 3)), translation, tilt, float(values[5]))[0]
             predicted_bbox = (
@@ -449,6 +498,19 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
             )
             residuals = ((center_uv - np.asarray((center.u, center.v))) / 7.0).tolist()
             residuals.extend((np.asarray(predicted_bbox) - np.asarray(mask.bbox_xyxy)) / 10.0)
+            if mask.principal_axis_uv is not None and mask.principal_variances_px2 is not None:
+                centered = projected - np.mean(projected, axis=0, keepdims=True)
+                covariance = centered.T @ centered / max(1, len(projected))
+                eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+                predicted_axis = eigenvectors[:, int(np.argmax(eigenvalues))]
+                target_axis = np.asarray(mask.principal_axis_uv, dtype=float)
+                signed_sine = (
+                    predicted_axis[0] * target_axis[1]
+                    - predicted_axis[1] * target_axis[0]
+                )
+                minor, major = mask.principal_variances_px2
+                anisotropy = max(0.0, (major - minor) / max(major + minor, 1e-9))
+                residuals.append(anisotropy * signed_sine / mask_axis_sigma)
             residuals.append((float(translation[2]) - z0) / float(depth.sigma_m or 0.55))
             residuals.append((float(values[5]) - sequence_scale) / scale_prior_sigma)
             return np.asarray(residuals, dtype=float)
@@ -464,7 +526,11 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
             f_scale=1.0,
             max_nfev=int(initializer.get("body_max_function_evaluations", 80)),
         )
-        tilt = _axis_rotation((1.0, 0.0, 0.0), float(fit.x[3])) @ _axis_rotation((0.0, 0.0, 1.0), float(fit.x[4]))
+        tilt = (
+            _axis_rotation((1.0, 0.0, 0.0), float(fit.x[3]))
+            @ _axis_rotation((0.0, 0.0, 1.0), float(fit.x[4]))
+            @ base_orientation
+        )
         body_fits[frame] = (fit.x[:3].copy(), tilt, float(fit.x[5]))
         values = body_residual(fit.x)
         body_errors[frame] = float(np.sqrt(np.mean(values * values)))
@@ -472,11 +538,33 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
     grid = np.linspace(-math.pi, math.pi, int(initializer.get("phase_grid_samples", 721)))
     candidate_count = int(initializer.get("phase_candidate_count", 8))
     sigma_px = float(initializer.get("off_axis_feature_sigma_px", 5.0))
-    visible: list[tuple[int, list[tuple[float, float]], float]] = []
-    for frame, measurement in sorted(feature_measurements.items()):
+    occluded_depth_order = str(initializer.get("occluded_feature_depth_order", "none"))
+    if occluded_depth_order not in {"none", "behind_body_center"}:
+        raise ValueError("unsupported axial rigid occluded feature depth order")
+    occlusion_depth_sigma = float(initializer.get("occlusion_depth_sigma_m", 0.01))
+    if occlusion_depth_sigma <= 0.0:
+        raise ValueError("axial rigid occlusion depth sigma must be positive")
+    hidden_grid = np.linspace(
+        -math.pi,
+        math.pi,
+        int(initializer.get("occluded_phase_candidate_count", 72)),
+        endpoint=False,
+    )
+    evidence: list[tuple[int, list[tuple[float, float, float]], float]] = []
+    visible_evidence_count = 0
+    occluded_evidence_count = 0
+    for frame in frames:
         if frame not in body_fits:
             continue
+        measurement = feature_measurements.get(frame)
+        visibility = feature_visibility.get(frame)
+        visibility_state = visibility.state if visibility is not None else "unknown"
         translation, tilt, scale = body_fits[frame]
+        if measurement is None and not (
+            visibility_state == "occluded" and occluded_depth_order == "behind_body_center"
+        ):
+            continue
+        phase_grid = grid if measurement is not None else hidden_grid
         predictions = np.asarray(
             [
                 _project_rigid_points(
@@ -486,38 +574,76 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
                     tilt @ _axis_rotation(axis, float(angle)),
                     scale,
                 )[0]
-                for angle in grid
+                for angle in phase_grid
             ]
         )
-        target = np.asarray((measurement.u, measurement.v), dtype=float)
-        distances = np.linalg.norm(predictions - target[None, :], axis=1)
-        minima = [index for index in range(1, len(grid) - 1) if distances[index] <= distances[index - 1] and distances[index] <= distances[index + 1]]
-        minima.extend((0, len(grid) - 1, int(np.argmin(distances))))
-        selected = sorted(set(minima), key=lambda index: (float(distances[index]), index))[:candidate_count]
-        candidates = [(float(grid[index]), float(distances[index])) for index in selected]
-        confidence = float(measurement.meta.confidence if measurement.meta.confidence is not None else 1.0)
-        visible.append((frame, candidates, max(0.05, confidence)))
-    if not visible:
+        if measurement is not None:
+            target = np.asarray((measurement.u, measurement.v), dtype=float)
+            distances = np.linalg.norm(predictions - target[None, :], axis=1)
+            minima = [
+                index
+                for index in range(1, len(phase_grid) - 1)
+                if distances[index] <= distances[index - 1]
+                and distances[index] <= distances[index + 1]
+            ]
+            minima.extend((0, len(phase_grid) - 1, int(np.argmin(distances))))
+            selected = sorted(
+                set(minima), key=lambda index: (float(distances[index]), index)
+            )[:candidate_count]
+            candidates = [
+                (float(phase_grid[index]), float(distances[index]), 0.0)
+                for index in selected
+            ]
+            confidence = float(
+                measurement.meta.confidence
+                if measurement.meta.confidence is not None
+                else 1.0
+            )
+            visible_evidence_count += 1
+        else:
+            candidates = []
+            for angle in phase_grid:
+                world_feature = (
+                    np.asarray(local_feature[0], dtype=float)
+                    @ (tilt @ _axis_rotation(axis, float(angle))).T
+                    * scale
+                    + translation
+                )
+                depth_violation = max(float(translation[2] - world_feature[2]), 0.0)
+                candidates.append(
+                    (
+                        float(angle),
+                        0.0,
+                        (depth_violation / occlusion_depth_sigma) ** 2,
+                    )
+                )
+            confidence = 1.0
+            occluded_evidence_count += 1
+        evidence.append((frame, candidates, max(0.05, confidence)))
+    if not evidence:
         raise ValueError("axial rigid orientation is unobservable without an off-axis feature measurement")
 
     costs: list[np.ndarray] = []
     parents: list[np.ndarray] = []
     transition_rate = float(initializer.get("temporal_phase_sigma_rad_per_frame", 0.25))
-    for item_index, (frame, candidates, confidence) in enumerate(visible):
-        emission = np.asarray([confidence * (distance / sigma_px) ** 2 for _angle, distance in candidates])
+    for item_index, (frame, candidates, confidence) in enumerate(evidence):
+        emission = np.asarray([
+            confidence * (distance / sigma_px) ** 2 + semantic_cost
+            for _angle, distance, semantic_cost in candidates
+        ])
         if item_index == 0:
             costs.append(emission)
             parents.append(np.full(len(candidates), -1, dtype=int))
             continue
-        previous_frame, previous_candidates, _previous_confidence = visible[item_index - 1]
+        previous_frame, previous_candidates, _previous_confidence = evidence[item_index - 1]
         transition_sigma = transition_rate * max(1, frame - previous_frame)
         current_cost = np.full(len(candidates), np.inf)
         current_parent = np.full(len(candidates), -1, dtype=int)
-        for current_index, (angle, _distance) in enumerate(candidates):
+        for current_index, (angle, _distance, _semantic_cost) in enumerate(candidates):
             transitions = np.asarray(
                 [
                     costs[-1][previous_index] + (_wrap_pi(angle - previous_angle) / transition_sigma) ** 2
-                    for previous_index, (previous_angle, _previous_distance) in enumerate(previous_candidates)
+                    for previous_index, (previous_angle, _previous_distance, _previous_semantic_cost) in enumerate(previous_candidates)
                 ]
             )
             parent = int(np.argmin(transitions))
@@ -525,13 +651,13 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
             current_parent[current_index] = parent
         costs.append(current_cost)
         parents.append(current_parent)
-    selected_indices = [0] * len(visible)
+    selected_indices = [0] * len(evidence)
     selected_indices[-1] = int(np.argmin(costs[-1]))
-    for index in range(len(visible) - 1, 0, -1):
+    for index in range(len(evidence) - 1, 0, -1):
         selected_indices[index - 1] = int(parents[index][selected_indices[index]])
-    visible_frames = np.asarray([frame for frame, _candidates, _confidence in visible], dtype=float)
+    visible_frames = np.asarray([frame for frame, _candidates, _confidence in evidence], dtype=float)
     visible_angles = np.unwrap(
-        np.asarray([visible[index][1][selected_indices[index]][0] for index in range(len(visible))])
+        np.asarray([evidence[index][1][selected_indices[index]][0] for index in range(len(evidence))])
     )
     interpolated = np.interp(np.asarray(frames, dtype=float), visible_frames, visible_angles)
     angles = gaussian_filter1d(
@@ -568,16 +694,31 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
         }
         row.update({field: float(value) for field, value in zip(fields, state)})
         templates.append(row)
-    feature_errors = [visible[index][1][selected_indices[index]][1] for index in range(len(visible))]
+    feature_errors = [
+        evidence[index][1][selected_indices[index]][1]
+        for index in range(len(evidence))
+        if evidence[index][1][selected_indices[index]][1] > 0.0
+    ]
+    semantic_costs = [
+        evidence[index][1][selected_indices[index]][2]
+        for index in range(len(evidence))
+        if evidence[index][1][selected_indices[index]][2] > 0.0
+    ]
     return InitializationResult(
         states_by_frame=states,
         template_rows=tuple(templates),
         hypothesis_ledger={
             "initializer_kind": "axial_rigid_feature_correspondence",
             "frame_count": len(frames),
-            "visible_feature_frame_count": len(visible),
-            "hidden_feature_frame_count": len(frames) - len(visible),
+            "visible_feature_frame_count": visible_evidence_count,
+            "hidden_feature_frame_count": len(frames) - visible_evidence_count,
+            "occluded_depth_order_frame_count": occluded_evidence_count,
             "fabricated_feature_measurement_count": 0,
+            "directed_axis_reference_camera": (
+                None
+                if preferred_axis_camera is None
+                else [float(value) for value in preferred_axis_camera]
+            ),
             "body_residual_rms_median": float(np.median(tuple(body_errors.values()))),
             "body_residual_rms_p90": float(np.quantile(tuple(body_errors.values()), 0.90)),
             "asset_scale_bounds": [scale_lower, scale_upper],
@@ -586,6 +727,9 @@ def _axial_rigid_feature_correspondence(request: InitializationRequest) -> Initi
             "scale_optimized_by_sequence_solver": scale_dof.observable,
             "feature_reprojection_median_px": float(np.median(feature_errors)),
             "feature_reprojection_p90_px": float(np.quantile(feature_errors, 0.90)),
+            "selected_occluded_depth_order_cost_median": (
+                float(np.median(semantic_costs)) if semantic_costs else 0.0
+            ),
             "baseline_pose_read": False,
             "historical_phase_read": False,
             "case_dispatch_used": False,

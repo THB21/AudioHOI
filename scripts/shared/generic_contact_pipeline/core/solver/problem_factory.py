@@ -22,6 +22,7 @@ from .residual_inputs import (
     GaugeFactorInput,
     JointLimitFactorInput,
     LineReprojectionFactorInput,
+    MaskSilhouetteFactorInput,
     MetricDepthFactorInput,
     PointReprojectionFactorInput,
     PeriodicPhaseFactorInput,
@@ -156,6 +157,7 @@ class SequenceFactorInputs:
     audio_alignment_factors: Mapping[str, AudioAlignmentFactorInput] = field(default_factory=dict)
     line_reprojection_factors: Mapping[str, LineReprojectionFactorInput] = field(default_factory=dict)
     point_reprojection_factors: Mapping[str, PointReprojectionFactorInput] = field(default_factory=dict)
+    mask_silhouette_factors: Mapping[str, MaskSilhouetteFactorInput] = field(default_factory=dict)
     metric_depth_factors: Mapping[str, MetricDepthFactorInput] = field(default_factory=dict)
     support_plane_factors: Mapping[str, SupportPlaneFactorInput] = field(default_factory=dict)
 
@@ -261,6 +263,7 @@ class SequenceProblemFactory:
                 audio_alignment_factors=factor_inputs.audio_alignment_factors,
                 line_reprojection_factors=factor_inputs.line_reprojection_factors,
                 point_reprojection_factors=factor_inputs.point_reprojection_factors,
+                mask_silhouette_factors=factor_inputs.mask_silhouette_factors,
                 metric_depth_factors=factor_inputs.metric_depth_factors,
                 support_plane_factors=factor_inputs.support_plane_factors,
             )
@@ -289,6 +292,7 @@ class SequenceProblemFactory:
             periodic_phase_factors=factor_inputs.periodic_phase_factors,
             line_reprojection_factors=factor_inputs.line_reprojection_factors,
             point_reprojection_factors=factor_inputs.point_reprojection_factors,
+            mask_silhouette_factors=factor_inputs.mask_silhouette_factors,
             metric_depth_factors=factor_inputs.metric_depth_factors,
             support_plane_factors=factor_inputs.support_plane_factors,
         )

@@ -61,11 +61,19 @@ def _primary_rows(result_dir: Path) -> list[dict[str, str]]:
     return _read_csv(result_dir / "contact_state_frames.csv")
 
 
-def _contact_rows_by_frame(result_dir: Path) -> tuple[dict[int, list[dict[str, str]]], str]:
-    candidates = (
+def _contact_rows_by_frame(
+    result_dir: Path,
+    contact_state_artifact: Path | None = None,
+) -> tuple[dict[int, list[dict[str, str]]], str]:
+    candidates = tuple(
+        path
+        for path in (
+        contact_state_artifact,
         result_dir / "contact_state_frames.csv",
         result_dir / "object_contact_points.csv",
         result_dir / "stage4_generic_refine/object_contact_points_vlm_gated.csv",
+        )
+        if path is not None
     )
     rows: list[dict[str, str]] = []
     source = ""
@@ -143,14 +151,19 @@ def _frame_state(
         support_contact_ids = (f"{sample_id}:{frame}:static_support:motion_regime",)
     any_contact = bool(active_contact_ids or support_contact_ids)
     visibility = _visibility(primary)
-    if active_contact_ids:
+    # A grasp and an environment support can coexist.  Environment support
+    # determines the object's motion mode (resting), while the hand contact is
+    # retained as an active interaction edge.  Treating every multi-contact
+    # frame as merely ``attached`` prevents both the support and static factors
+    # from activating after an object is placed down.
+    if support_contact_ids:
+        contact_state = ContactStateAxis.PERSISTENT if previous_contact_active else ContactStateAxis.ACTIVE
+        contact_mode = InteractionContactMode.GRASP if active_contact_ids else InteractionContactMode.SUPPORT
+        motion_mode = MotionMode.SUPPORTED_STATIC
+    elif active_contact_ids:
         contact_state = ContactStateAxis.PERSISTENT if previous_contact_active else ContactStateAxis.ACTIVE
         contact_mode = InteractionContactMode.IMPACT if audio_event_ids and not previous_contact_active else InteractionContactMode.GRASP
         motion_mode = MotionMode.ATTACHED
-    elif support_contact_ids:
-        contact_state = ContactStateAxis.ACTIVE
-        contact_mode = InteractionContactMode.SUPPORT
-        motion_mode = MotionMode.SUPPORTED_STATIC
     elif previous_contact_active:
         contact_state = ContactStateAxis.RELEASE
         contact_mode = InteractionContactMode.RELEASE
@@ -182,9 +195,13 @@ def _frame_state(
     )
 
 
-def build_interaction_timeline(sample_id: str, result_dir: Path) -> InteractionTimeline:
+def build_interaction_timeline(
+    sample_id: str,
+    result_dir: Path,
+    contact_state_artifact: Path | None = None,
+) -> InteractionTimeline:
     primary_rows = _primary_rows(result_dir)
-    contacts_by_frame, contact_source = _contact_rows_by_frame(result_dir)
+    contacts_by_frame, contact_source = _contact_rows_by_frame(result_dir, contact_state_artifact)
     motion_by_frame, motion_source = _motion_rows_by_frame(result_dir)
     audio_by_frame, audio_source = _audio_events_by_frame(sample_id, result_dir)
     frames: list[FrameInteractionState] = []

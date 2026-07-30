@@ -89,6 +89,29 @@ def build_rigid_geometry_from_asset_descriptor(
             raise ValueError(f"invalid fixed rigid feature points: {feature_id}")
         feature_points[str(feature_id)] = points.tolist()
 
+    for feature_id, raw_proxy in dict(descriptor.get("silhouette_proxies", {})).items():
+        proxy = dict(raw_proxy)
+        if proxy.get("kind") != "cylinder":
+            raise ValueError(f"unsupported rigid silhouette proxy: {feature_id}")
+        axis = np.asarray(proxy.get("axis_local", (0.0, 1.0, 0.0)), dtype=float)
+        radius = float(proxy["radius_m"])
+        height = float(proxy["height_m"])
+        if axis.shape != (3,) or not np.isfinite(axis).all() or np.linalg.norm(axis) <= 1e-12 or radius <= 0.0 or height <= 0.0:
+            raise ValueError(f"invalid rigid cylinder silhouette proxy: {feature_id}")
+        axis /= np.linalg.norm(axis)
+        helper = np.asarray((1.0, 0.0, 0.0) if abs(axis[0]) < 0.9 else (0.0, 1.0, 0.0))
+        radial_a = np.cross(axis, helper)
+        radial_a /= np.linalg.norm(radial_a)
+        radial_b = np.cross(axis, radial_a)
+        angles = np.linspace(0.0, 2.0 * np.pi, int(proxy.get("radial_samples", 72)), endpoint=False)
+        levels = np.linspace(-0.5 * height, 0.5 * height, int(proxy.get("axis_samples", 7)))
+        points = np.asarray([
+            level * axis + radius * (np.cos(angle) * radial_a + np.sin(angle) * radial_b)
+            for level in levels
+            for angle in angles
+        ])
+        feature_points[str(feature_id)] = points.tolist()
+
     contact_feature_ids: set[str] = set()
     for constraint in contact_constraints:
         coordinate = constraint.object_coordinate

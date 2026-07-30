@@ -1,0 +1,57 @@
+{
+  "accepted_path": "/mnt/hdd/AudioHOI-interaction-state-production/samples_known_object/01_basketball/results/benchmark_vlm_qwen/object_pose.csv",
+  "accepted_sha256": "38296872638f3e653db304ab53f9804274ffb1fb747c005dce8d4962ac4831ec",
+  "attempt_dir": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/generic_sequence_solver_attempts/generic-solve-da26b58dac56",
+  "automatic_hard_gate": {
+    "blocking_reasons": [],
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px",
+      "contact_distance_normalized_rmse",
+      "contact_gap_p95_m",
+      "contact_gap_max_m"
+    ],
+    "passed": true
+  },
+  "candidate_path": "/tmp/audiohoi-unified-ball-promotion-20260730/basketball/generic_object_pose_candidate.csv",
+  "candidate_sha256": "38296872638f3e653db304ab53f9804274ffb1fb747c005dce8d4962ac4831ec",
+  "case_dispatch_used": false,
+  "hard_gate": {
+    "blocking_reasons": [],
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px",
+      "contact_distance_normalized_rmse",
+      "contact_gap_p95_m",
+      "contact_gap_max_m",
+      "manual_full_video_object_render_acceptance",
+      "explicit_promotion_authorized"
+    ],
+    "passed": true
+  },
+  "human_state_optimized": false,
+  "manual_acceptance": {
+    "accepted_at": "2026-07-30",
+    "authority": "user_visual_review",
+    "authorization_text": "允许",
+    "authorized": true,
+    "automatic_failures_overridden": [],
+    "render_evidence_root": "/tmp/audiohoi-unified-ball-promotion-20260730/renders/basketball",
+    "render_sha256": {
+      "ball/camera3d.mp4": "2a10a85463099f9d32f39c8296fe22f485864ef13a4a74a0f3cc5d11f5e8b6e6",
+      "ball/overlay.mp4": "994d02fa59afe04a7ebf521ce162a7925db7f7b05e0a2a26b991fe5bad0f6b9a",
+      "with_human/camera3d.mp4": "234af3f73f34abd1d978cd378e56e539b76a5c7e2c7845db9257e451fb37914a",
+      "with_human/overlay.mp4": "7d6daba25b523c3b00d0a563855c1ca7a04ef4b657b8128fa28411fed4391412"
+    },
+    "scope": "full_video_object_3d_and_overlay_acceptance"
+  },
+  "persisted_attempt_dir": "samples_known_object/01_basketball/results/benchmark_vlm_qwen/generic_sequence_solver_attempts/generic-solve-da26b58dac56",
+  "previous_accepted_sha256": "f2fbdc992ba74d33477e55c667eb9b991107377fddb96e8f2e5689d6b55415b1",
+  "schema_version": 1,
+  "solve_attempt_id": "generic-solve-da26b58dac56",
+  "status": "accepted"
+}

@@ -1,0 +1,16 @@
+{
+  "continuous_pose_override": false,
+  "gates": {
+    "blocking": false,
+    "canonical_sha256": "50eea9341634b33069b7052a0f1f838a544d22dcc2f0f02650fd1e0e8fb8525d",
+    "continuous_pose_override": false,
+    "decisions": [],
+    "model": "",
+    "provider": "",
+    "sample_id": "football",
+    "schema_version": 1,
+    "status": "not_evaluated"
+  },
+  "schema_version": 1,
+  "status": "evaluated"
+}

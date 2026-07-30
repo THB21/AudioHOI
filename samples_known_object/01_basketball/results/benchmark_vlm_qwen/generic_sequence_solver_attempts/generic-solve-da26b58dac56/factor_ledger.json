@@ -1,0 +1,42 @@
+{
+  "factor_count": 5,
+  "factors": [
+    {
+      "factor_id": "point_reprojection:measurement_ir",
+      "residual_count": 384,
+      "residual_sha256": "82a7dda7cef537c121df31ee039b4302a6c5291cb1fae7af4c5964ecf22de92a",
+      "squared_error": 0.06731818673220144
+    },
+    {
+      "factor_id": "metric_depth:measurement_ir",
+      "residual_count": 192,
+      "residual_sha256": "52ce5f55043050183c8cb3ff1e316ff1e38b880ce91b75edc891568044e8f615",
+      "squared_error": 0.002253157137902463
+    },
+    {
+      "factor_id": "temporal_acceleration:state_sequence",
+      "residual_count": 570,
+      "residual_sha256": "a1f84c870331bb570d7293e587e44eef93e94b438f62ee5e8eba0a8b91eb3815",
+      "squared_error": 1.523717821670867
+    },
+    {
+      "factor_id": "static_freeze:state_sequence",
+      "residual_count": 573,
+      "residual_sha256": "b6865c5d599466d9195e422746d3597815508ad1f59aab4516440cbb99be0d41",
+      "squared_error": 0.0005998726846686067
+    },
+    {
+      "factor_id": "contact_distance:interaction_state",
+      "residual_count": 45,
+      "residual_sha256": "0fba84e8b6131e3eebac7bd7f7216798648727606cb22a3ed4fc37d06245fe2b",
+      "squared_error": 7.702467143539098e-05
+    }
+  ],
+  "jacobian_density": 0.009832057823129252,
+  "jacobian_nonzero_count": 9990,
+  "jacobian_sparsity_used": true,
+  "residual_count": 1764,
+  "schema_version": 1,
+  "sequence_contract_sha256": "01a00068aeec477cdb730c858224b6e05e28dc67d87c6c7e1cc2d2a6e40c3ebe",
+  "solve_attempt_id": "generic-solve-da26b58dac56"
+}

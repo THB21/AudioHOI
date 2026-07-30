@@ -1,0 +1,57 @@
+{
+  "accepted_path": "/mnt/hdd/AudioHOI-interaction-state-production/samples_known_object/10_football/results/benchmark_vlm_qwen/object_pose.csv",
+  "accepted_sha256": "aca836531dbab4548a56cf42b2688982e1484c8c67c7970d279fcf74c75971df",
+  "attempt_dir": "samples_known_object/10_football/results/benchmark_vlm_qwen/generic_sequence_solver_attempts/generic-solve-3f9aed1c7cc2",
+  "automatic_hard_gate": {
+    "blocking_reasons": [],
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px",
+      "contact_distance_normalized_rmse",
+      "contact_gap_p95_m",
+      "contact_gap_max_m"
+    ],
+    "passed": true
+  },
+  "candidate_path": "/tmp/audiohoi-unified-ball-promotion-20260730/football/generic_object_pose_candidate.csv",
+  "candidate_sha256": "aca836531dbab4548a56cf42b2688982e1484c8c67c7970d279fcf74c75971df",
+  "case_dispatch_used": false,
+  "hard_gate": {
+    "blocking_reasons": [],
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px",
+      "contact_distance_normalized_rmse",
+      "contact_gap_p95_m",
+      "contact_gap_max_m",
+      "manual_full_video_object_render_acceptance",
+      "explicit_promotion_authorized"
+    ],
+    "passed": true
+  },
+  "human_state_optimized": false,
+  "manual_acceptance": {
+    "accepted_at": "2026-07-30",
+    "authority": "user_visual_review",
+    "authorization_text": "允许",
+    "authorized": true,
+    "automatic_failures_overridden": [],
+    "render_evidence_root": "/tmp/audiohoi-unified-ball-promotion-20260730/renders/football",
+    "render_sha256": {
+      "ball/camera3d.mp4": "a2d90a4d371dd7281a5b90bbc1bb74f81d97bcc4869948c16830cdb8ec57b4b1",
+      "ball/overlay.mp4": "83c6d711400d1daf206d280e59d74aee8fc97b549ec65390a4c0d23ffbd43447",
+      "with_human/camera3d.mp4": "027b91b8787ad3a182bcba96e4512447d28c4d2885ae51c90f5252b77ad25ef4",
+      "with_human/overlay.mp4": "8c7610d4ad6c4cc6ea0c0cd0f63bbbe8f171bdbf357c906b2fbdd178e5842a30"
+    },
+    "scope": "full_video_object_3d_and_overlay_acceptance"
+  },
+  "persisted_attempt_dir": "samples_known_object/10_football/results/benchmark_vlm_qwen/generic_sequence_solver_attempts/generic-solve-3f9aed1c7cc2",
+  "previous_accepted_sha256": "12549e743974ac7b2623a8708dd38c406bda27aa5122caa7b99a9cd0e08ec31e",
+  "schema_version": 1,
+  "solve_attempt_id": "generic-solve-3f9aed1c7cc2",
+  "status": "accepted"
+}

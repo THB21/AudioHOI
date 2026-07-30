@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
-| `refactor/interaction-state-production` | in_progress | mug / chair / stick 已经用户全片 3D render 人工验收并由唯一 publisher 发布，canonical generic publication coverage 为 `3/5`。Stage 0 已接入固定的七任务 ingestion DAG，可从只有 video/metadata 的目录生成 frames、audio、SAM2、CoTracker、DA3、只读 GVHMR 与 audio events，并执行 hash-valid reuse。chair / stick 的自动 gate gap 仍原样保留，不伪装为自动 zero-shot pass。 |
-| 下一步 | pending | 对 basketball / football 生成 fresh unified attempts，完成全片 object / read-only skeleton relation render 验收，再经唯一 publisher 切换 canonical。之后冻结 solver 与通用 gate/weight 档位，运行 held-out back-view basketball、suitcase、ping-pong benchmark。 |
+| `refactor/interaction-state-production` | in_progress | basketball / football / mug / chair / stick 五个 canonical trajectory 均由唯一 `GenericSequenceExecutor` 与 `AcceptedObjectOutputPublisher` 产生，coverage=`5/5`；所有 publication 均记录 `case_dispatch_used=false`、`human_state_optimized=false`。Stage 0 已接入固定七任务 ingestion DAG并完成 fresh-directory/cache 验证。chair / stick 的自动 gate gap 仍原样保留，不伪装为自动 zero-shot pass。 |
+| 下一步 | pending | 验证 Stage 0 artifacts 到 typed Measurement/Interaction IR 再到 solve 的 fresh 端到端调用，然后冻结 solver 与通用 gate/weight 档位，依次运行 held-out back-view basketball、suitcase、ping-pong benchmark。 |
 
 当前主线目标收束为一句话：
 
@@ -1844,3 +1844,13 @@ YYYY-MM-DD:
 - cache verification: 对同一 fresh 输入立即复跑，七项状态全部为 `reused`；accepted canonical manifest hash=`cc5851f791d8ba9cbc09df87c61f503be6e3f8bf389b31fd79f799473ec3af57`。DA3/GVHMR/audio-event 的 cache keys 分别为 `d0ee962f...`、`f54e9d78...`、`e206677d...`。
 - precise failure: 将 `AUDIOHOI_DA3_ROOT` 指向 `/tmp/audiohoi-missing-da3-root` 的隔离 probe 中，前四项 hash-valid reuse，DA3 精确失败于缺失的 `/tmp/audiohoi-missing-da3-root/src/depth_anything_3/cli.py`，后续任务不运行，且不写 accepted manifest或 canonical object pose。
 - readiness: “新 case 入库先准备所有外部输入”的 blocker 已关闭到 Stage 0 artifact 层；剩余 fresh-run gap 是 Stage 0 artifacts 到正式 typed Measurement/Interaction IR 再到 solve 的端到端调用验证。canonical promotion仍为 `3/5`，下一步只处理 basketball / football fresh generic attempt、全片 render 与显式 publication。
+
+2026-07-30（basketball / football unified publication，五 case 5/5）:
+
+- identical capability path: 两球均使用 `translation3:sphere` StateSpec、同一个 sphere geometry provider、同一个 `GenericSequenceExecutor` 和五类 factors：point reprojection、metric depth、temporal acceleration、static freeze、contact distance。两次 preparation/solve 均记录 `case_dispatch_used=false`、`human_state_optimized=false`，没有 ball/football 专用 residual或 publisher。
+- basketball solve: fresh attempt `generic-solve-da26b58dac56`，192帧；107 evaluations 由 `ftol` 正常终止，squared error `96.5928173 -> 1.5939661`，point projection p95=`0.68495px`，contact gap p95/max=`0.266/0.309mm`。candidate SHA-256=`38296872638f3e653db304ab53f9804274ffb1fb747c005dce8d4962ac4831ec`。
+- football solve: fresh attempt `generic-solve-3f9aed1c7cc2`，242帧；200 evaluations 到预算上限，但 optimality=`0.088835 < 0.1`，由冻结的 case-independent stationary gate接受；squared error `21.4846396 -> 3.2137196`，point projection p95=`2.22775px`，contact gap p95/max=`1.079/0.603mm`。candidate SHA-256=`aca836531dbab4548a56cf42b2688982e1484c8c67c7970d279fcf74c75971df`。
+- render verification: 每个 case均生成 object-only 与 read-only GVHMR skeleton relation 的 overlay/camera3d/side-yz 六路完整视频；basketball 192帧、football 242帧，全部 H.264、24fps并通过 ffmpeg full decode。render root 为 `/tmp/audiohoi-unified-ball-promotion-20260730/renders/{basketball,football}`；人体只用于 HOI 关系显示，没有人体优化或 downstream handoff。
+- acceptance: 用户检查两组完整 object overlay/camera3d 与骨架关系 overlay/camera3d 后明确回复“允许”。发布前重新执行相同 problem，并先在隔离 validation candidate 中验证 byte identity；两球 SHA 与所审阅 candidate完全一致，随后才由唯一 publisher原子写 canonical。
+- publication: basketball canonical 从 `f2fbdc992ba74d33477e55c667eb9b991107377fddb96e8f2e5689d6b55415b1` 更新为 `382968...`；football 从 `12549e743974ac7b2623a8708dd38c406bda27aa5122caa7b99a9cd0e08ec31e` 更新为 `aca836...`。两份 canonical分别为192/242行，每行只有一个对应 `generic_solve_attempt_id`，source均为 `generic_sequence_executor`；candidate/accepted SHA完全一致。
+- five-case audit: basketball、football、mug、chair、stick 五份 canonical publication的 accepted SHA均与实际 CSV一致，source均为 `generic_sequence_executor`，solve attempt id唯一，数值有限，`case_dispatch_used=false`、`human_state_optimized=false`。正式 production coverage现为 `5/5`。chair/stick 的人工 gate例外仍保留在各自 provenance中，不能据此声称 automatic zero-shot gate 已全部闭环。

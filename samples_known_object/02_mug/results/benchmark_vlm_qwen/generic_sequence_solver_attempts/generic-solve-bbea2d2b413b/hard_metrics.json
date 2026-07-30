@@ -1,0 +1,24 @@
+{
+  "accepted_outputs_written": false,
+  "metrics": {
+    "active_bound_count": 0,
+    "final_squared_error": 19.798956527956367,
+    "initial_squared_error": 14381.656525671215,
+    "objective_nonincrease": true,
+    "optimality": 0.5487799263305904,
+    "point_projection_all_rows_p95_px": 8.434593051279203,
+    "point_projection_max_px": 30.629905758137443,
+    "point_projection_p95_px": 8.434593051279203,
+    "point_projection_p95_px_limit": 24.0,
+    "projection_normalized_rmse": 0.0756873219208455,
+    "projection_normalized_rmse_limit": 2.0,
+    "solver_stationary": false,
+    "solver_success": true,
+    "solver_termination_accepted": true,
+    "stationarity_limit": 0.1,
+    "termination_status": 3
+  },
+  "schema_version": 1,
+  "scope": "object_only",
+  "status": "evaluated"
+}

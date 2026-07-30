@@ -1,0 +1,50 @@
+{
+  "accepted_path": "/mnt/hdd/AudioHOI-interaction-state-production/samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv",
+  "accepted_sha256": "cc08c100629e37f8e7209ba64eb621e0539da180c86bde2804dee5be8bd0dcd6",
+  "attempt_dir": "samples_known_object/02_mug/results/benchmark_vlm_qwen/generic_sequence_solver_attempts/generic-solve-bbea2d2b413b",
+  "automatic_hard_gate": {
+    "blocking_reasons": [],
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px"
+    ],
+    "passed": true
+  },
+  "candidate_path": "/tmp/audiohoi-mug-so3-accel8/generic_object_pose_candidate.csv",
+  "candidate_sha256": "cc08c100629e37f8e7209ba64eb621e0539da180c86bde2804dee5be8bd0dcd6",
+  "case_dispatch_used": false,
+  "hard_gate": {
+    "blocking_reasons": [],
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px",
+      "manual_full_video_object_render_acceptance",
+      "explicit_promotion_authorized"
+    ],
+    "passed": true
+  },
+  "human_state_optimized": false,
+  "manual_acceptance": {
+    "accepted_at": "2026-07-30",
+    "authority": "user_visual_review",
+    "authorization_text": "允许通过",
+    "authorized": true,
+    "automatic_failures_overridden": [],
+    "render_evidence_root": "/tmp/audiohoi-mug-so3-accel8/render",
+    "render_sha256": {
+      "object_only/camera3d.mp4": "4c6670dc2fe6f73608bea3c6d3526116b66f979a79373e62237a1cfb795ad1dc",
+      "object_only/overlay.mp4": "a5f072fbce50cf41da17e95f4cbdee32802015f9c748cb7e9c069acbc900f209",
+      "with_human/camera3d.mp4": "24bdf5b646cdea52b70b026990c97acef0d7ae69fb6d3dfc1bde139f23978c56",
+      "with_human/overlay.mp4": "471e22f82e69f3d4b5bd468c1b65929ace84c052eda3db986e51810779495b31"
+    },
+    "scope": "full_video_object_3d_and_overlay_acceptance"
+  },
+  "previous_accepted_sha256": "7f5f09452f67e9651fd18a8b1f96716dd5a2601c17436a6e29f76efaf31a25ca",
+  "schema_version": 1,
+  "solve_attempt_id": "generic-solve-bbea2d2b413b",
+  "status": "accepted"
+}

@@ -66,7 +66,7 @@ def _contact_rows_by_frame(
     contact_state_artifact: Path | None = None,
 ) -> tuple[dict[int, list[dict[str, str]]], str]:
     candidates = tuple(
-        path
+        path.resolve()
         for path in (
         contact_state_artifact,
         result_dir / "contact_state_frames.csv",
@@ -75,17 +75,25 @@ def _contact_rows_by_frame(
         )
         if path is not None
     )
-    rows: list[dict[str, str]] = []
-    source = ""
-    for path in candidates:
-        rows = _read_csv(path)
-        if rows:
-            source = str(path)
-            break
+    # Contact is multi-edge state: human/object grasp evidence and
+    # object/environment support evidence may be produced by different
+    # adapters.  Selecting the first non-empty artifact silently drops the
+    # other edge (notably during visual occlusion), so merge distinct sources
+    # frame-wise.  Exact duplicate paths are still read only once.
     by_frame: dict[int, list[dict[str, str]]] = {}
-    for row in rows:
-        by_frame.setdefault(int(float(row["frame"])), []).append(row)
-    return by_frame, source
+    sources: list[str] = []
+    seen: set[Path] = set()
+    for path in candidates:
+        if path in seen:
+            continue
+        seen.add(path)
+        rows = _read_csv(path)
+        if not rows:
+            continue
+        sources.append(str(path))
+        for row in rows:
+            by_frame.setdefault(int(float(row["frame"])), []).append(row)
+    return by_frame, ";".join(sources)
 
 
 def _motion_rows_by_frame(result_dir: Path) -> tuple[dict[int, dict[str, str]], str]:
@@ -157,11 +165,19 @@ def _frame_state(
     # frame as merely ``attached`` prevents both the support and static factors
     # from activating after an object is placed down.
     if support_contact_ids:
-        contact_state = ContactStateAxis.PERSISTENT if previous_contact_active else ContactStateAxis.ACTIVE
+        contact_state = (
+            ContactStateAxis.OCCLUDED_HOLD
+            if active_contact_ids and visibility == VisibilityState.OCCLUDED
+            else ContactStateAxis.PERSISTENT if previous_contact_active else ContactStateAxis.ACTIVE
+        )
         contact_mode = InteractionContactMode.GRASP if active_contact_ids else InteractionContactMode.SUPPORT
         motion_mode = MotionMode.SUPPORTED_STATIC
     elif active_contact_ids:
-        contact_state = ContactStateAxis.PERSISTENT if previous_contact_active else ContactStateAxis.ACTIVE
+        contact_state = (
+            ContactStateAxis.OCCLUDED_HOLD
+            if visibility == VisibilityState.OCCLUDED
+            else ContactStateAxis.PERSISTENT if previous_contact_active else ContactStateAxis.ACTIVE
+        )
         contact_mode = InteractionContactMode.IMPACT if audio_event_ids and not previous_contact_active else InteractionContactMode.GRASP
         motion_mode = MotionMode.ATTACHED
     elif previous_contact_active:
@@ -230,7 +246,12 @@ def build_interaction_timeline(
         frames=tuple(frames),
         metrics={
             "frame_count": len(frames),
-            "active_contact_frames": sum(1 for state in frames if state.contact_state in {ContactStateAxis.ACTIVE, ContactStateAxis.PERSISTENT}),
+            "active_contact_frames": sum(
+                1
+                for state in frames
+                if state.contact_state
+                in {ContactStateAxis.ACTIVE, ContactStateAxis.PERSISTENT, ContactStateAxis.OCCLUDED_HOLD}
+            ),
             "support_contact_frames": sum(1 for state in frames if state.support_contact_ids),
             "audio_event_frames": sum(1 for state in frames if state.audio_event_ids),
             "final_pose_read": False,

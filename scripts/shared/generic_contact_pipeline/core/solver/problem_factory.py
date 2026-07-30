@@ -6,6 +6,8 @@ import json
 from dataclasses import asdict, dataclass, field, replace
 from typing import Mapping, Sequence
 
+import numpy as np
+
 from ..contact_constraints import ContactConstraint
 from ..human_sites import HumanSiteMeasurement
 from ..state import StateSpec
@@ -102,6 +104,68 @@ def _project_static_interval_initial_states(
             if predecessor not in frame_set and successor in frame_set:
                 projected[successor] = anchor
     return projected
+
+
+def _project_occluded_rotation_initial_states(
+    states: Mapping[int, Sequence[float]],
+    residual_execution_plan: dict[str, object] | object,
+    rotation_quaternion_indices: Sequence[tuple[int, int, int, int]],
+) -> dict[int, tuple[float, ...]]:
+    """Interpolate rotation across intervals where visual updates are gated.
+
+    A frame-wise visual initializer is not trustworthy during occlusion.  For
+    each inactive visual interval bounded by observable frames, initialize the
+    rigid rotation by shortest-path quaternion SLERP. The production factors
+    still optimize every frame; this only removes an arbitrary occluded seed
+    branch before solving.
+    """
+
+    projected = {int(frame): list(float(value) for value in state) for frame, state in states.items()}
+    frame_set = set(projected)
+    gated_intervals: set[tuple[int, int]] = set()
+    visual_refs = {
+        "shadow_residual::point_reprojection",
+        "shadow_residual::line_reprojection",
+        "shadow_residual::mask_silhouette",
+        "shadow_residual::metric_depth",
+    }
+    for record in _plan_records(residual_execution_plan):
+        if record.get("residual_fn_ref") not in visual_refs:
+            continue
+        for interval in record.get("activation_intervals", ()):
+            if isinstance(interval, Mapping) and interval.get("status") in {"inactive", "downweighted"}:
+                gated_intervals.add((int(interval["start_frame"]), int(interval["end_frame"])))
+    for start, end in sorted(gated_intervals):
+        left, right = start - 1, end + 1
+        if left not in frame_set or right not in frame_set:
+            continue
+        span = float(right - left)
+        for qw, qx, qy, qz in rotation_quaternion_indices:
+            indices = [qw, qx, qy, qz]
+            q0 = np.asarray([projected[left][index] for index in indices], dtype=float)
+            q1 = np.asarray([projected[right][index] for index in indices], dtype=float)
+            q0 /= np.linalg.norm(q0)
+            q1 /= np.linalg.norm(q1)
+            dot = float(np.clip(q0 @ q1, -1.0, 1.0))
+            if dot < 0.0:
+                q1 *= -1.0
+                dot = -dot
+            angle = float(np.arccos(np.clip(dot, -1.0, 1.0)))
+            for frame in range(start, end + 1):
+                if frame not in frame_set:
+                    continue
+                alpha = (frame - left) / span
+                if angle <= 1e-8:
+                    quaternion = (1.0 - alpha) * q0 + alpha * q1
+                else:
+                    quaternion = (
+                        np.sin((1.0 - alpha) * angle) * q0
+                        + np.sin(alpha * angle) * q1
+                    ) / np.sin(angle)
+                quaternion /= np.linalg.norm(quaternion)
+                for index, value in zip(indices, quaternion):
+                    projected[frame][index] = float(value)
+    return {frame: tuple(values) for frame, values in projected.items()}
 
 
 def _freeze_support_proximity_gates(
@@ -214,6 +278,15 @@ class SequenceProblemFactory:
         if tuple(states) != frames:
             states = {frame: states[frame] for frame in frames}
         parameterization = StateSpecParameterization.from_state_spec(state_spec)
+        rotation_quaternion_indices: list[tuple[int, int, int, int]] = []
+        state_offset = 0
+        for dof in state_spec.dofs:
+            if dof.kind.value == "rotation_so3":
+                names = tuple(field.rsplit(".", 1)[-1] for field in dof.source_fields)
+                rotation_quaternion_indices.append(
+                    tuple(state_offset + names.index(name) for name in ("qw", "qx", "qy", "qz"))
+                )
+            state_offset += dof.dimension
         if len(factor_inputs.state_scales) != parameterization.state_width:
             raise ValueError("factor state scales must match StateSpec width")
         if any(len(state) != parameterization.state_width for state in states.values()):
@@ -223,6 +296,11 @@ class SequenceProblemFactory:
             raise ValueError("contact initialization mode must be residual_only or seed")
         # Resolve unobservable contact gauge against a state-continuous visual
         # initializer, not against independent per-frame PnP outliers.
+        states = _project_occluded_rotation_initial_states(
+            states,
+            residual_execution_plan,
+            rotation_quaternion_indices,
+        )
         states = _project_static_interval_initial_states(states, residual_execution_plan)
         initialization_ledger: RigidContactHypothesisLedger | None = None
         if contact_constraints or human_sites:
@@ -241,6 +319,11 @@ class SequenceProblemFactory:
             if contact_initialization_mode == "seed":
                 states = apply_rigid_contact_hypotheses(states, initialization_ledger)
 
+        states = _project_occluded_rotation_initial_states(
+            states,
+            residual_execution_plan,
+            rotation_quaternion_indices,
+        )
         states = _project_static_interval_initial_states(states, residual_execution_plan)
 
         factor_inputs = _freeze_support_proximity_gates(factor_inputs, states)
@@ -266,6 +349,7 @@ class SequenceProblemFactory:
                 mask_silhouette_factors=factor_inputs.mask_silhouette_factors,
                 metric_depth_factors=factor_inputs.metric_depth_factors,
                 support_plane_factors=factor_inputs.support_plane_factors,
+                rotation_quaternion_indices=tuple(rotation_quaternion_indices),
             )
 
         initial_bundle = residual_input_builder(states)

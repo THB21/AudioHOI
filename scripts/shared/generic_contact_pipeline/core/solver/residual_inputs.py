@@ -652,8 +652,16 @@ def build_sequence_temporal_residual_inputs(
     scales: tuple[float, ...],
     weight: float,
     weight_by_frame: Mapping[int, float] | None = None,
+    rotation_quaternion_indices: tuple[tuple[int, int, int, int], ...] = (),
 ) -> dict[str, dict[str, Any]]:
-    """Build full-trajectory first- or second-order temporal pairs."""
+    """Build full-trajectory temporal residuals in the state manifold.
+
+    Euclidean components use ordinary finite differences. Quaternion blocks
+    use the SO(3) logarithm of the relative rotation, embedded back into the
+    four state slots as ``[0, rx, ry, rz]`` in ``(qw, qx, qy, qz)`` order.
+    This avoids sign/hemisphere artifacts and does not smooth unit quaternion
+    coefficients as if they were independent scalars.
+    """
 
     if order not in {1, 2}:
         raise ValueError("temporal residual order must be 1 or 2")
@@ -663,17 +671,45 @@ def build_sequence_temporal_residual_inputs(
         raise ValueError("temporal states and scales must have the same width")
     if len(states) <= order:
         return {}
+    deltas = [
+        np.asarray(states[index], dtype=float) - np.asarray(states[index - 1], dtype=float)
+        for index in range(1, len(states))
+    ]
+    for index, (previous_state, current_state) in enumerate(zip(states[:-1], states[1:])):
+        for qw, qx, qy, qz in rotation_quaternion_indices:
+            previous = np.asarray([previous_state[qw], previous_state[qx], previous_state[qy], previous_state[qz]], dtype=float)
+            current = np.asarray([current_state[qw], current_state[qx], current_state[qy], current_state[qz]], dtype=float)
+            previous /= np.linalg.norm(previous)
+            current /= np.linalg.norm(current)
+            previous_inverse = previous * np.asarray((1.0, -1.0, -1.0, -1.0), dtype=float)
+            aw, ax, ay, az = current
+            bw, bx, by, bz = previous_inverse
+            relative = np.asarray(
+                (
+                    aw * bw - ax * bx - ay * by - az * bz,
+                    aw * bx + ax * bw + ay * bz - az * by,
+                    aw * by - ax * bz + ay * bw + az * bx,
+                    aw * bz + ax * by - ay * bx + az * bw,
+                ),
+                dtype=float,
+            )
+            relative /= np.linalg.norm(relative)
+            if relative[0] < 0.0:
+                relative *= -1.0
+            vector_norm = float(np.linalg.norm(relative[1:]))
+            rotvec = (
+                np.zeros(3, dtype=float)
+                if vector_norm <= 1e-12
+                else 2.0 * atan2(vector_norm, float(relative[0])) * relative[1:] / vector_norm
+            )
+            deltas[index][[qw, qx, qy, qz]] = (0.0, *rotvec)
     if order == 1:
-        current = states[1:]
-        previous = states[:-1]
+        current = [delta.tolist() for delta in deltas]
+        previous = [[0.0] * len(scales) for _delta in deltas]
         residual_frames = frames[1:]
     else:
-        deltas = [
-            [current_value - previous_value for current_value, previous_value in zip(states[index], states[index - 1])]
-            for index in range(1, len(states))
-        ]
-        current = deltas[1:]
-        previous = deltas[:-1]
+        current = [delta.tolist() for delta in deltas[1:]]
+        previous = [delta.tolist() for delta in deltas[:-1]]
         residual_frames = frames[2:]
     return {
         factor_id: {
@@ -1180,6 +1216,7 @@ def build_geometry_sequence_residual_input_bundle(
     mask_silhouette_factors: Mapping[str, MaskSilhouetteFactorInput] | None = None,
     metric_depth_factors: Mapping[str, MetricDepthFactorInput] | None = None,
     support_plane_factors: Mapping[str, SupportPlaneFactorInput] | None = None,
+    rotation_quaternion_indices: tuple[tuple[int, int, int, int], ...] = (),
 ) -> dict[str, dict[str, Any]]:
     """Build common sequence residuals from explicit state and factor inputs.
 
@@ -1203,7 +1240,11 @@ def build_geometry_sequence_residual_input_bundle(
                 activation_intervals=request.activation_intervals,
             )
         else:
-            payload = build_sequence_temporal_residual_inputs(**common, order=order)
+            payload = build_sequence_temporal_residual_inputs(
+                **common,
+                order=order,
+                rotation_quaternion_indices=rotation_quaternion_indices,
+            )
         return payload.get(request.factor_id)
 
     def regularization(request: ResidualInputRequest) -> dict[str, Any] | None:

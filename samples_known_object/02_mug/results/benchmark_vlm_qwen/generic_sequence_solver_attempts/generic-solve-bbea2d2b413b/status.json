@@ -1,0 +1,43 @@
+{
+  "accepted_outputs_written": false,
+  "active_bound_count": 0,
+  "artifacts": {
+    "factor_ledger.json": "3d31010218253695ec4209a37ef2205294dcf822fa76133f64cf0c84a09c1f35",
+    "hard_metrics.json": "baf394fe3f07e9183d27cc0df7a6037e983c71b81159d585e1ae63d8dfdc3e25",
+    "residuals.csv": "f4f310fdce898d9ba2bfee708c92c9f31c0e4962e1a8a88529604f2b32e9e59c",
+    "state.csv": "aaa08f84751c6dfbfa590f095964126c799c140388c86e9417824e53f89ee2ba",
+    "vlm_gates.json": "654f5451eb8ad9a93de2ef787e4de2ab46cc0e28191a49f8b047348daeeedd61"
+  },
+  "case_dispatch_used": false,
+  "contract_attempt_id": "generic-attempt-320f8a1ac006",
+  "factor_ids": [
+    "point_reprojection:measurement_ir",
+    "mask_silhouette:measurement_ir",
+    "metric_depth:measurement_ir",
+    "temporal_velocity:state_sequence",
+    "temporal_acceleration:state_sequence",
+    "static_freeze:state_sequence",
+    "support_and_penetration:interaction_state",
+    "contact_relative_velocity:interaction_state"
+  ],
+  "final_squared_error": 19.798956527956367,
+  "frame_count": 240,
+  "function_evaluations": 85,
+  "hard_metrics_status": "evaluated",
+  "initial_squared_error": 14381.656525671215,
+  "message": "`xtol` termination condition is satisfied.",
+  "optimality": 0.5487799263305904,
+  "parent_solve_attempt_id": null,
+  "residual_program_sha256": "d64305731af3104c71afe665793913521d1bc06ef8c18d68590691988e4c490a",
+  "result_sha256": "baa55e0db029eeb4ac09276dbac9c432d4bcbc0b222a504d062a9fa0c1469c8c",
+  "schema_version": 1,
+  "sequence_contract_sha256": "df97e907046c27a0eb5c048ce643006bbf4599cc73689c913adc83f9d79b7ce7",
+  "solve_attempt_id": "generic-solve-bbea2d2b413b",
+  "state_spec_id": "rigid7_scale:fixed_axial_asset",
+  "state_width": 8,
+  "success": true,
+  "termination_status": 3,
+  "vlm_factor_arbitration_blocking": false,
+  "vlm_factor_arbitration_sha256": "13e250179fa6832b34f3f32ea0477317d7dcb1ccfd6e9e165ead3162b5fd6a1c",
+  "vlm_gates_status": "evaluated"
+}

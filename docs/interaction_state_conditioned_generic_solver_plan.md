@@ -1809,9 +1809,19 @@ YYYY-MM-DD:
 
 2026-07-30（mug 有向杯轴与桌面 support 修复）:
 
-- correction: 上一 candidate 的圆柱 silhouette 主轴是无方向量，只能确定轴线，不能区分杯口与杯底。旧 initializer 固定从 identity branch 开始且倾角 bounds 小于 90°，因此资产局部 `+Y` 杯口轴实际朝 camera `+Y`（重力向下）；overlay 的近似对称圆柱掩盖了 180° 倒置。这也是中段出现杯口/杯底翻转的根因。
-- generic directed-axis initialization: axial-rigid descriptor 现在可声明 `preferred_axis_camera`。通用 initializer 用最短 proper rotation 将资产有向轴映射到该场景方向，再在这一正确半球内拟合 mask bbox / principal axis、center、depth 与 off-axis feature；不读取 mug 名称或旧 pose。mug 声明局部杯口轴 `[0,1,0]` 对齐 camera 重力上方向 `[0,-1,0]`。第 1 / 20 帧 solve 后 up-dot=`0.9999/0.9953`，全片不再跨越错误轴向半球。
+- rejected correction: 该 candidate 对资产轴的解释错误，已由用户在完整视频中拒绝。真实 Articraft mesh 的 `rim_ring` 位于 local `Y=-0.051m`，`bottom_disk` 位于 local `Y=+0.0445m`；因此 local `+Y` 是杯底方向，不是杯口方向。将 local `+Y` 对齐 camera up 会产生“杯底持续朝上”。下述 `generic-solve-da119faf9f98` 及其 render 只保留为失败证据，不得 promotion。
+- corrected directed-axis initialization: axial-rigid descriptor 的 local `+Y` 现对齐 camera `+Y`（重力向下），使 local `-Y` rim/杯口朝上。通用 initializer 仍通过 descriptor capability 选择正确半球，不读取 mug 名称或旧 pose。
 - interaction/support correction: benchmark 使用显式 tracked `contact_state_frames.csv` 作为 InteractionState provenance。estimator 不再让 hand grasp 覆盖同时存在的 environment support；167–240 帧保留 grasp edge，同时进入 `MotionMode.SUPPORTED_STATIC`。support factor只在真实 support 帧激活，拿起与饮用段权重为零；supported-static 时 hand relative-velocity降为预定义 downweighted tier，避免手部骨架噪声与桌面静止冲突。
-- generic support geometry: fixed-rigid asset 声明八点杯底 support patch。场景重力法向与首次 support transition 确定平面；patch 全点到平面的残差同时实现杯底共面、禁止 penetration 与 upright placement，随后通用 `static_freeze` 固定整个刚体尾段。没有 table/mug 专用 post-filter。
+- generic support geometry: 旧 patch 错误位于 rim 的 local `Y=-0.048m`，现已移动到真实 bottom disk 的 local `Y=+0.0445m`。场景重力法向与首次 support transition 确定平面；patch 全点到平面的残差同时实现杯底共面、禁止 penetration 与 upright placement，随后通用 `static_freeze` 固定整个刚体尾段。没有 table/mug 专用 post-filter。
 - solve evidence: isolated attempt `generic-solve-da119faf9f98` 在 71 evaluations 由 `xtol` 正常收敛，objective `8238.68818 -> 13.43387`、optimality=`0.38239`。support/static squared error=`0.00291/0.00685`；frame167–240 杯口轴 up-dot=`1.0000`，尾段不漂移。canonical 未写。
-- render evidence: `/tmp/audiohoi-mug-directed-support/render` 含 object-only 与 read-only GVHMR skeleton relation 的六路 240-frame、24fps 视频。人工逐帧抽查 1/20/60/70/80/87/98/114/150/167/192/240：初始杯口朝上，饮用段连续倾斜，返回阶段恢复竖直，放桌后杯底贴合且保持冻结。完整 object overlay 为 `/tmp/audiohoi-mug-directed-support/render/object_only/overlay.mp4`；仍等待用户对完整视频最终 promotion 授权。
+- rejected render evidence: `/tmp/audiohoi-mug-directed-support/render` 的第 75 帧 3D 飞离人体、70–90 帧旋转抖动且杯底方向反转。该目录不得作为通过证据。
+
+2026-07-30（mug 多来源接触、真实资产轴与 SO(3) 时序修复）:
+
+- root cause: InteractionState 过去在 `contact_state_frames.csv` 与 `object_contact_points.csv` 中只选择第一个非空文件。切到桌面 support provenance 后，65–85 帧的 hand/handle persistent grasp 被错误覆盖为 `release + inactive/free`，恰好对应第 75 帧 3D 飞出。现按 frame 合并 human-object grasp 与 object-environment support 两类正交 interaction edge；遮挡且抓握持续时正式输出 `occluded_hold + attached`，support 仍只在 167–240 帧激活。
+- rigid asset correction: mesh 实测 rim/bottom local Y 分别约 `-0.051/+0.0445m`。descriptor 将 local bottom `+Y` 对齐 camera gravity-down，并把八点 support patch 放到真实 bottom disk；不在 renderer 中做 180° 后处理。
+- generic occlusion initializer: visual observation downweighted interval不再沿用逐帧 mask tilt seed，而用两端可信姿态的 shortest-path quaternion SLERP 初始化；低权重 body silhouette仍进入 solve，以恢复喝水时真实倾斜。该投影按 factor activation interval 与 StateSpec rotation DOF工作，不读取 object/case名称。
+- generic SO(3) temporal residual: rotation velocity/acceleration不再对 `qw/qx/qy/qz` 四个系数做欧氏差分，而使用相邻 quaternion 的 relative rotation log-map；translation、scale等欧氏 DOF保持普通有限差分。残差宽度与 dependency ledger保持不变。
+- profile weight: mug 的通用 SO(3) acceleration weight由 `1.0` 调到 `8.0`；visual/contact/velocity权重与 hard gate不变。70–90 帧最大 rotation step 从被拒 candidate 的 `13.495°` 降到 `9.187°`，与旧 accepted 的 `9.160°` 对齐；轨迹保留饮用倾斜并连续回正。该调整位于 factor runtime profile，不新增 mug solver或帧硬编码。
+- solve/render evidence: isolated attempt `generic-solve-bbea2d2b413b` 在 110 budget内由 `xtol` 正常终止；point projection p95=`8.435px`。四路主视频位于 `/tmp/audiohoi-mug-so3-accel8/render/{object_only,with_human}/{overlay,camera3d}.mp4`，均为 H.264、1280×720、24fps、240帧并完成 full decode。
+- acceptance/publication: 用户检查完整 object 3D 与 overlay 视频后明确回复“允许通过”。唯一 `AcceptedObjectOutputPublisher` 将 candidate SHA-256 `cc08c100629e37f8e7209ba64eb621e0539da180c86bde2804dee5be8bd0dcd6` 原子发布为 `samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv`；240 行均为 `source=generic_sequence_executor` 且绑定 `generic-solve-bbea2d2b413b`。数值 hard gate 本身全部通过，先前唯一阻断项是发布授权 `promotion_not_requested`，没有覆盖算法失败；publication 记录同时保存人工完整视频验收、旧 accepted SHA-256、`case_dispatch_used=false` 与 `human_state_optimized=false`。当前 generic canonical coverage 为 mug + chair + stick，即 `3/5`。

@@ -1,0 +1,60 @@
+{
+  "factor_count": 8,
+  "factors": [
+    {
+      "factor_id": "point_reprojection:measurement_ir",
+      "residual_count": 710,
+      "residual_sha256": "8ae237ac7ba5f2c241fd816128ca2bc6063424824cab412a1d0559a8dfa21785",
+      "squared_error": 4.067285196680286
+    },
+    {
+      "factor_id": "mask_silhouette:measurement_ir",
+      "residual_count": 1200,
+      "residual_sha256": "31ecd42c08d0239089c07bf5a2db4ae81ac8ca9677044ae8e99544d21183ff2f",
+      "squared_error": 9.625641898780067
+    },
+    {
+      "factor_id": "metric_depth:measurement_ir",
+      "residual_count": 240,
+      "residual_sha256": "bfe4d4e3865befb964eff7f3df26e38ac74cb44105716d0d3331afc09203ddcf",
+      "squared_error": 0.5724044342073861
+    },
+    {
+      "factor_id": "temporal_velocity:state_sequence",
+      "residual_count": 1912,
+      "residual_sha256": "83393555013bc8f2e4934ee9b1e7a44987714f0a8acfb5ea44601dca415cf24b",
+      "squared_error": 0.35837000969592514
+    },
+    {
+      "factor_id": "temporal_acceleration:state_sequence",
+      "residual_count": 1904,
+      "residual_sha256": "60be16b9a2d8102ec5f01a0e40bde7fe7f59db35d920535a7747957e77459ad4",
+      "squared_error": 1.4690082769711417
+    },
+    {
+      "factor_id": "static_freeze:state_sequence",
+      "residual_count": 1912,
+      "residual_sha256": "aa049e011646d3406d3aff45582d647c1f54a0f21f81c3a452b6c82efde5ad8e",
+      "squared_error": 0.007194300851862383
+    },
+    {
+      "factor_id": "support_and_penetration:interaction_state",
+      "residual_count": 1184,
+      "residual_sha256": "6338e1d282901a29dd80f526521b794a527a0ddf55bd4f3bf4c14be9a1349785",
+      "squared_error": 0.010397718828614032
+    },
+    {
+      "factor_id": "contact_relative_velocity:interaction_state",
+      "residual_count": 717,
+      "residual_sha256": "8768459d8b00c6ccc3f6968ceb9d75eb721cc8aae7bc71ac35f1394a504d90f1",
+      "squared_error": 3.688654691941086
+    }
+  ],
+  "jacobian_density": 0.007720625830862051,
+  "jacobian_nonzero_count": 108720,
+  "jacobian_sparsity_used": true,
+  "residual_count": 9779,
+  "schema_version": 1,
+  "sequence_contract_sha256": "df97e907046c27a0eb5c048ce643006bbf4599cc73689c913adc83f9d79b7ce7",
+  "solve_attempt_id": "generic-solve-bbea2d2b413b"
+}

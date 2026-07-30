@@ -1,0 +1,16 @@
+{
+  "continuous_pose_override": false,
+  "gates": {
+    "blocking": false,
+    "canonical_sha256": "13e250179fa6832b34f3f32ea0477317d7dcb1ccfd6e9e165ead3162b5fd6a1c",
+    "continuous_pose_override": false,
+    "decisions": [],
+    "model": "",
+    "provider": "",
+    "sample_id": "mug",
+    "schema_version": 1,
+    "status": "not_evaluated"
+  },
+  "schema_version": 1,
+  "status": "evaluated"
+}

@@ -65,9 +65,9 @@ factor_runtime:
     source: generic_fixed_rigid_sequence_continuity
     activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
   temporal_acceleration:
-    weight: 1.0
+    weight: 8.0
     state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-    source: generic_sequence_acceleration_continuity
+    source: generic_so3_sequence_acceleration_continuity
     activation_weight_tiers: {active: 1.0, downweighted: 0.12, inactive: 0.0}
   contact_relative_velocity:
     weight: 1.0

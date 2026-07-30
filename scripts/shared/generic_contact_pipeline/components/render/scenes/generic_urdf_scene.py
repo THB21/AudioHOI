@@ -175,9 +175,71 @@ def primitive_mesh(geom_el: ET.Element, root: Path) -> tuple[np.ndarray, np.ndar
     raise RuntimeError(f"Unsupported visual geometry: {ET.tostring(geom_el, encoding='unicode')}")
 
 
-def load_articraft_visuals(urdf_path: Path) -> list[dict[str, object]]:
+def _fixed_joint_values(descriptor_path: Path | None) -> dict[str, float]:
+    if descriptor_path is None:
+        return {}
+    descriptor = json.loads(descriptor_path.read_text())
+    values = {
+        str(name): float(value)
+        for name, value in descriptor.get("fixed_assembly_joints", {}).items()
+    }
+    for dof in descriptor.get("state_contract", {}).get("dofs", ()):
+        joint_name = dof.get("bounds_from_urdf")
+        default = dof.get("default")
+        if joint_name is not None and default is not None:
+            values[str(joint_name)] = float(default)
+    return values
+
+
+def _root_from_link_transforms(
+    robot: ET.Element,
+    fixed_joint_values: dict[str, float],
+) -> dict[str, np.ndarray]:
+    by_child: dict[str, tuple[str, np.ndarray]] = {}
+    for joint in robot.findall("joint"):
+        parent = joint.find("parent")
+        child = joint.find("child")
+        if parent is None or child is None:
+            continue
+        parent_link = str(parent.get("link", ""))
+        child_link = str(child.get("link", ""))
+        transform = origin_matrix(joint.find("origin"))
+        angle = float(fixed_joint_values.get(str(joint.get("name", "")), 0.0))
+        axis_node = joint.find("axis")
+        axis = parse_vec(axis_node.get("xyz") if axis_node is not None else None, (1.0, 0.0, 0.0))
+        norm = float(np.linalg.norm(axis))
+        if norm <= 1e-12:
+            raise ValueError(f"URDF joint {joint.get('name', '')} has a zero axis")
+        rotation = np.eye(4, dtype=float)
+        rotation[:3, :3] = Rotation.from_rotvec(axis / norm * angle).as_matrix()
+        by_child[child_link] = (parent_link, transform @ rotation)
+
+    cache: dict[str, np.ndarray] = {}
+
+    def resolve(link: str) -> np.ndarray:
+        if link in cache:
+            return cache[link]
+        parent_record = by_child.get(link)
+        if parent_record is None:
+            result = np.eye(4, dtype=float)
+        else:
+            parent_link, parent_from_child = parent_record
+            result = resolve(parent_link) @ parent_from_child
+        cache[link] = result
+        return result
+
+    for link in robot.findall("link"):
+        resolve(str(link.get("name", "")))
+    return cache
+
+
+def load_articraft_visuals(
+    urdf_path: Path,
+    descriptor_path: Path | None = None,
+) -> list[dict[str, object]]:
     root_dir = urdf_path.parent
     robot = ET.parse(urdf_path).getroot()
+    root_from_link = _root_from_link_transforms(robot, _fixed_joint_values(descriptor_path))
     visuals: list[dict[str, object]] = []
     for link in robot.findall("link"):
         link_name = link.get("name", "")
@@ -186,7 +248,10 @@ def load_articraft_visuals(urdf_path: Path) -> list[dict[str, object]]:
             if geom is None:
                 continue
             verts, faces = primitive_mesh(geom, root_dir)
-            verts = transform_vertices(verts, origin_matrix(visual.find("origin")))
+            verts = transform_vertices(
+                verts,
+                root_from_link[link_name] @ origin_matrix(visual.find("origin")),
+            )
             visuals.append(
                 {
                     "link": link_name,
@@ -661,6 +726,7 @@ def main() -> None:
     ap.add_argument("--pose-csv", type=Path, required=True)
     ap.add_argument("--contacts-csv", type=Path)
     ap.add_argument("--urdf", type=Path, required=True)
+    ap.add_argument("--geometry-descriptor", type=Path)
     ap.add_argument("--out-root", type=Path, required=True)
     ap.add_argument("--fps", type=float, default=24.0)
     ap.add_argument("--alpha", type=float, default=0.78)
@@ -672,7 +738,7 @@ def main() -> None:
     args = ap.parse_args()
 
     rows = read_rows(args.pose_csv)
-    visuals = load_articraft_visuals(args.urdf)
+    visuals = load_articraft_visuals(args.urdf, args.geometry_descriptor)
     body = build_body_geometry(args.body_model_root, read_human_result(args.sample_dir / "results/gvhmr/result.pkl"))
     visible_tracks = read_visible_line_tracks(args.sample_dir)
     K = np.array([[args.fx, 0.0, args.cx], [0.0, args.fy, args.cy], [0.0, 0.0, 1.0]], dtype=float)

@@ -86,6 +86,8 @@ def _canonical_hash(value: object) -> str:
 
 
 def _visual_state(state: FrameInteractionState) -> str:
+    if state.motion_mode == MotionMode.SUPPORTED_STATIC:
+        return "downweighted"
     if state.visibility_state in {VisibilityState.VISIBLE, VisibilityState.PARTIALLY_VISIBLE}:
         return "active"
     if state.visibility_state in {VisibilityState.OCCLUDED, VisibilityState.ABSENT}:

@@ -13,13 +13,18 @@ generic_object_problem:
     - observation_seed/axial_phase.csv
     - object_contact_points.csv
   contact_artifact: object_contact_points.csv
-  sequence_factors: [temporal_velocity, static_freeze]
+  sequence_factors: [temporal_velocity, temporal_acceleration, static_freeze]
 factor_runtime:
   temporal_velocity:
     weight: 0.70
     state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     source: projected_periodic_sequence:temporal_body+phase_continuity
     activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
+  temporal_acceleration:
+    weight: 1.0
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: generic_sequence_acceleration_continuity
+    activation_weight_tiers: {active: 1.0, downweighted: 0.12, inactive: 0.0}
   contact_distance:
     weight: 1.0
     sigma: 0.035

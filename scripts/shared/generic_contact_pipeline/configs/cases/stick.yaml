@@ -18,7 +18,7 @@ generic_object_problem:
     - object_contact_points.csv
     - line_observations.csv
   contact_artifact: object_contact_points.csv
-  sequence_factors: [temporal_velocity, static_freeze]
+  sequence_factors: [temporal_velocity, temporal_acceleration, static_freeze]
 factor_runtime:
   line_reprojection:
     weight: 1.0
@@ -30,6 +30,11 @@ factor_runtime:
     weight: 1.25
     state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     source: sequence_se3_optimizer:smooth_w
+    activation_weight_tiers: {active: 1.0, downweighted: 0.08, inactive: 0.0}
+  temporal_acceleration:
+    weight: 7.2
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: generic_sequence_acceleration_continuity
     activation_weight_tiers: {active: 1.0, downweighted: 0.08, inactive: 0.0}
   contact_distance:
     weight: 0.92

@@ -356,10 +356,11 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
             )
 
     sequence_factors = set(generic_problem.get("sequence_factors", ())) if isinstance(generic_problem, dict) else set()
-    # Static intervals are a property of InteractionState, not an object/case
-    # capability.  Every sequence problem compiles the same freeze factor; its
-    # active mask decides whether it contributes any residuals.
-    sequence_factors.add("static_freeze")
+    # Acceleration continuity and static intervals are sequence properties,
+    # not object/case capabilities.  Every sequence problem compiles both;
+    # interaction-state activation preserves impact/high-speed motion and only
+    # freezes explicitly supported-static intervals.
+    sequence_factors.update(("temporal_acceleration", "static_freeze"))
     for factor_name, factor_kind, order in (
         ("temporal_velocity", FactorKind.TEMPORAL_VELOCITY, 1),
         ("temporal_acceleration", FactorKind.TEMPORAL_ACCELERATION, 2),
@@ -628,7 +629,7 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
     generic_problem = profile.data.get("generic_object_problem", {})
     articulated_initializer_promoted = (
         isinstance(generic_problem, dict)
-        and generic_problem.get("initializer") == "articulated_correspondence"
+        and generic_problem.get("initializer") in {"articulated_correspondence", "fixed_assembly_correspondence"}
     )
     if (adapter.get("component") == "semantic_graph_6d" or adapter.get("solver")) and not articulated_initializer_promoted:
         gaps.append(

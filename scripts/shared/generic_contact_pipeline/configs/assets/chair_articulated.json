@@ -30,8 +30,8 @@
     "rear_leg_right_bottom"
   ],
   "state_contract": {
-    "spec_id": "articulated6:urdf",
-    "state_model": "articulated_root_se3",
+    "spec_id": "rigid6:fixed_urdf_assembly",
+    "state_model": "rigid_root_se3",
     "dofs": [
       {
         "dof_id": "root.translation",
@@ -42,27 +42,15 @@
         "dof_id": "root.rotation",
         "kind": "rotation_so3",
         "fields": ["qw", "qx", "qy", "qz"]
-      },
-      {
-        "dof_id": "joint.front_to_rear",
-        "kind": "revolute",
-        "field": "rear_joint_angle",
-        "default": -0.169615616,
-        "observable": false,
-        "bounds_from_urdf": "front_to_rear"
-      },
-      {
-        "dof_id": "joint.front_to_seat",
-        "kind": "revolute",
-        "field": "seat_joint_angle",
-        "default": 0.105957362,
-        "observable": false,
-        "bounds_from_urdf": "front_to_seat"
       }
     ]
   },
+  "fixed_assembly_joints": {
+    "front_to_rear": -0.169615616,
+    "front_to_seat": 0.105957362
+  },
   "initializer": {
-    "kind": "articulated_correspondence",
+    "kind": "fixed_assembly_correspondence",
     "line_feature_roles": [
       "backrest:top_edge",
       "seat:front_edge",

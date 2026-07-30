@@ -50,6 +50,8 @@ def render(profile: CaseProfile) -> dict[str, object]:
     if profile.data.get("render_scene") == "generic_urdf":
         cmd.extend(
             [
+                "--geometry-descriptor",
+                str(repo_path(str(profile.data["geometry_asset_descriptor"]))),
                 "--fx",
                 str(profile.camera["fx"]),
                 "--fy",

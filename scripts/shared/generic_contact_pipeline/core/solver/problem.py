@@ -40,7 +40,12 @@ def _profile_state_contract(profile: CaseProfile) -> dict[str, object]:
     pose_model = str(profile.data.get("pose_model", ""))
     geometry_model = str(profile.data.get("geometry_model", ""))
     object_family = str(profile.data.get("object_family", ""))
-    if pose_model == "semantic_graph_6d":
+    if pose_model == "fixed_assembly_root_se3" or object_family == "fixed_rigid_assembly":
+        state_model = "rigid_root_se3"
+        spec_id = "rigid6:fixed_urdf_assembly"
+        geometry_kind = "articulated_urdf"
+        required_dofs = ("root.translation", "root.rotation")
+    elif pose_model == "semantic_graph_6d":
         state_model = "semantic_graph_6d"
         spec_id = "semantic_graph_6d:articulated"
         geometry_kind = "articulated_urdf"

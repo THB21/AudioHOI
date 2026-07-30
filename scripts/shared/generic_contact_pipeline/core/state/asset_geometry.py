@@ -13,7 +13,7 @@ import numpy as np
 
 from ..contact_constraints import ContactConstraint, LocalXYZ
 from .articulated import ArticulatedKinematicProvider, SegmentJointRule
-from .geometry_provider import ArticulatedFeatureGeometryProvider
+from .geometry_provider import ArticulatedFeatureGeometryProvider, GeometryProvider, RigidFeatureGeometryProvider
 from .types import StateSpec
 
 
@@ -45,7 +45,7 @@ def _state_indices(state_spec: StateSpec) -> dict[str, int]:
 
 @dataclass(frozen=True)
 class AssetGeometryBuildResult:
-    provider: ArticulatedFeatureGeometryProvider
+    provider: GeometryProvider
     descriptor_path: str
     descriptor_sha256: str
     resource_path: str
@@ -131,19 +131,24 @@ def build_articulated_geometry_from_asset_descriptor(
     root = ET.parse(resource_path).getroot()
     urdf_joints = {str(node.attrib.get("name", "")): node for node in root.findall("joint")}
     state_indices = _state_indices(state_spec)
+    fixed_joint_values = {
+        str(name): float(value)
+        for name, value in dict(descriptor.get("fixed_assembly_joints", {})).items()
+    }
     joint_state_indices: dict[str, int] = {}
     rules: list[SegmentJointRule] = []
     for raw_rule in descriptor["articulation_rules"]:
         urdf_joint = str(raw_rule["urdf_joint"])
         state_dof_id = str(raw_rule["state_dof_id"])
         node = urdf_joints.get(urdf_joint)
-        if node is None or state_dof_id not in state_indices:
+        if node is None or (state_dof_id not in state_indices and urdf_joint not in fixed_joint_values):
             raise ValueError(f"asset articulation rule cannot resolve joint: {urdf_joint}/{state_dof_id}")
         origin_node = node.find("origin")
         axis_node = node.find("axis")
         origin = _vector(origin_node.attrib.get("xyz") if origin_node is not None else None, "joint origin")
         axis = _vector(axis_node.attrib.get("xyz") if axis_node is not None else None, "joint axis")
-        joint_state_indices[state_dof_id] = state_indices[state_dof_id]
+        if state_dof_id in state_indices:
+            joint_state_indices[state_dof_id] = state_indices[state_dof_id]
         rules.append(
             SegmentJointRule(
                 rule_id=str(raw_rule["rule_id"]),
@@ -156,12 +161,29 @@ def build_articulated_geometry_from_asset_descriptor(
             )
         )
 
-    provider = ArticulatedFeatureGeometryProvider(
-        feature_points_local=feature_points,
-        feature_parts=feature_parts,
-        kinematic_provider=ArticulatedKinematicProvider(tuple(rules)),
-        joint_state_indices=joint_state_indices,
-    )
+    kinematics = ArticulatedKinematicProvider(tuple(rules))
+    if joint_state_indices:
+        provider: GeometryProvider = ArticulatedFeatureGeometryProvider(
+            feature_points_local=feature_points,
+            feature_parts=feature_parts,
+            kinematic_provider=kinematics,
+            joint_state_indices=joint_state_indices,
+        )
+    else:
+        fixed_by_state_dof = {
+            str(raw_rule["state_dof_id"]): fixed_joint_values[str(raw_rule["urdf_joint"])]
+            for raw_rule in descriptor["articulation_rules"]
+        }
+        baked_points = {
+            feature_id: kinematics.articulate_segment(
+                feature_id,
+                feature_parts[feature_id],
+                np.asarray(points, dtype=float),
+                fixed_by_state_dof,
+            )
+            for feature_id, points in feature_points.items()
+        }
+        provider = RigidFeatureGeometryProvider(baked_points)
     payload = {
         "descriptor_sha256": _sha256(descriptor_path),
         "resource_sha256": _sha256(resource_path),

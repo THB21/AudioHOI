@@ -289,6 +289,7 @@ def _interpolate_states(
 
 
 def _articulated_correspondence(request: InitializationRequest) -> InitializationResult:
+    initializer_kind = str(request.initializer.get("kind", "articulated_correspondence"))
     allowed = {str(value) for value in request.initializer.get("line_feature_roles", ())}
     minimum = int(request.initializer.get("minimum_line_count", 2))
     by_frame: dict[int, list[Line2DMeasurement]] = {}
@@ -380,7 +381,7 @@ def _articulated_correspondence(request: InitializationRequest) -> Initializatio
         row: dict[str, object] = {
             "frame": frame,
             "time": times.get(frame, (frame - 1) / 24.0),
-            "source": "articulated_correspondence_initializer",
+            "source": f"{initializer_kind}_initializer",
         }
         row.update({field: float(value) for field, value in zip(fields, state)})
         templates.append(row)
@@ -388,7 +389,7 @@ def _articulated_correspondence(request: InitializationRequest) -> Initializatio
         states_by_frame={frame: tuple(float(value) for value in states[frame]) for frame in frames},
         template_rows=tuple(templates),
         hypothesis_ledger={
-            "initializer_kind": "articulated_correspondence",
+            "initializer_kind": initializer_kind,
             "frame_count": len(frames),
             "directly_solved_frame_count": len(solved),
             "joint_hypothesis_count": len(hypotheses),
@@ -406,6 +407,6 @@ def _articulated_correspondence(request: InitializationRequest) -> Initializatio
 
 def initialize_from_capabilities(request: InitializationRequest) -> InitializationResult:
     kind = str(request.initializer.get("kind", ""))
-    if kind == "articulated_correspondence":
+    if kind in {"articulated_correspondence", "fixed_assembly_correspondence"}:
         return _articulated_correspondence(request)
     raise ValueError(f"unsupported capability initializer: {kind}")

@@ -488,7 +488,7 @@ def prepare_capability_object_problem(
         "baseline_pose_read": False,
         "human_state_optimized": False,
     }
-    if initializer == "articulated_correspondence":
+    if initializer in {"articulated_correspondence", "fixed_assembly_correspondence"}:
         contract = build_asset_state_contract(descriptor_path, repository_root)
         if str(contract.initializer["kind"]) != initializer:
             raise ValueError("case initializer and asset initializer capability disagree")

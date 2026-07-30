@@ -1,20 +1,20 @@
 case_name: chair
 sample_dir: samples_known_object/05_chair
-object_family: articulated_support_object
+object_family: fixed_rigid_assembly
 geometry_model: articraft_chair_urdf
 geometry_asset_descriptor: scripts/shared/generic_contact_pipeline/configs/assets/chair_articulated.json
 observation_model: semantic_graph_tracks
 contact_policy: two_hand_toprail_endpoint
-pose_model: semantic_graph_6d
+pose_model: fixed_assembly_root_se3
 generic_object_problem:
-  initializer: articulated_correspondence
+  initializer: fixed_assembly_correspondence
   initializer_artifacts: [object_local_segments.csv, object_contact_points.csv, object_observations.csv]
   contact_artifact: object_contact_points.csv
   measurement_factors: [point_reprojection]
   measurement_roles:
     point_reprojection: [contact_anchor_keypoint]
-  sequence_factors: [temporal_velocity, static_freeze]
-  environment_factors: [support_and_penetration]
+  sequence_factors: [temporal_velocity, temporal_acceleration, static_freeze]
+  environment_factors: []
   support_plane:
     source: gvhmr_foot_sites
     human_site_surface_offset_m: 0.05
@@ -33,14 +33,14 @@ factor_runtime:
     weight: 0.35
     sigma: 7.5
     sigma_unit: px
-    source: legacy_chair_pairprop_cli:w_2d_sigma_px
-    activation_weight_tiers: {active: 1.0, downweighted: 1.0, inactive: 0.0}
+    source: typed_contact_anchor_keypoint_default_tier
+    activation_weight_tiers: {active: 1.0, downweighted: 0.1, inactive: 0.0}
   line_reprojection:
     weight: 0.35
     sigma: 7.5
     sigma_unit: px
     source: legacy_chair_pairprop_cli:w_2d_sigma_px
-    activation_weight_tiers: {active: 1.0, downweighted: 1.0, inactive: 0.0}
+    activation_weight_tiers: {active: 1.0, downweighted: 0.1, inactive: 0.0}
   contact_distance:
     weight: 2.0
     sigma: 0.035
@@ -49,19 +49,24 @@ factor_runtime:
     activation_weight_tiers: {active: 1.0, downweighted: 1.0, inactive: 0.0}
   temporal_velocity:
     weight: 0.35
-    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     source: legacy_chair_pairprop_cli:w_temporal+generic_state_contract:unit_scales
     activation_weight_tiers: {active: 1.0, downweighted: 1.0, inactive: 0.0}
+  temporal_acceleration:
+    weight: 4.2
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: generic_sequence_acceleration_continuity
+    activation_weight_tiers: {active: 1.0, downweighted: 0.12, inactive: 0.0}
   static_freeze:
     weight: 100.0
-    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     source: generic_supported_static_interval_anchor
     activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
   support_and_penetration:
     weight: 1.0
     sigma: 0.035
     sigma_unit: m
-    source: typed_support_plane_from_read_only_human_foot_sites
+    source: asset_declared_reliable_support_sites_plus_unilateral_penetration
     activation_weight_tiers: {active: 1.0, downweighted: 0.5, inactive: 0.0}
 render_backend: urdf_solid_mesh
 result_name: generic_pipeline_v1

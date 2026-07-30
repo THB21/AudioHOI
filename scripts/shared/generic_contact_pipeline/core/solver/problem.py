@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from ..base.config import CaseProfile
-from ..base.io import repo_relative_value
+from ..base.io import repo_path, repo_relative_value
 from ..audio_events import build_audio_event_shadow
 from ..contact_constraints.shadow import build_contact_constraint_shadow
 from ..factors.activation import FactorActivationLedger, activation_record, build_factor_activation_ledger
@@ -37,6 +37,29 @@ def _read_csv(path: Path) -> list[dict[str, str]]:
 
 
 def _profile_state_contract(profile: CaseProfile) -> dict[str, object]:
+    descriptor_ref = profile.data.get("geometry_asset_descriptor")
+    if descriptor_ref:
+        descriptor_path = repo_path(str(descriptor_ref))
+        if descriptor_path.is_file():
+            descriptor = json.loads(descriptor_path.read_text())
+            state_contract = descriptor.get("state_contract")
+            if isinstance(state_contract, dict) and isinstance(state_contract.get("dofs"), list):
+                required_dofs = [
+                    str(dof["dof_id"])
+                    for dof in state_contract["dofs"]
+                    if isinstance(dof, dict) and dof.get("dof_id")
+                ]
+                if required_dofs:
+                    return {
+                        "source": "asset_descriptor_state_contract",
+                        "source_fields": ["geometry_asset_descriptor"],
+                        "baseline_pose_read": False,
+                        "state_model": str(state_contract.get("state_model", state_contract["spec_id"])),
+                        "spec_id": str(state_contract["spec_id"]),
+                        "geometry_model": str(profile.data.get("geometry_model", "")),
+                        "geometry_kind": str(descriptor["geometry_kind"]),
+                        "required_dofs": required_dofs,
+                    }
     pose_model = str(profile.data.get("pose_model", ""))
     geometry_model = str(profile.data.get("geometry_model", ""))
     object_family = str(profile.data.get("object_family", ""))

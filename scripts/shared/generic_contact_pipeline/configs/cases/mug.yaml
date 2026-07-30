@@ -1,28 +1,49 @@
 case_name: mug
 sample_dir: samples_known_object/02_mug
-object_family: graspable_articraft
+object_family: fixed_rigid_axial_asset
 geometry_model: articraft_mug_mesh
 geometry_asset_descriptor: scripts/shared/generic_contact_pipeline/configs/assets/mug_periodic_rigid.json
 observation_model: rigid_body_plus_parts
 contact_policy: palm_handle_rim_body
-pose_model: rigid6_plus_phase
+pose_model: fixed_rigid_se3_scale
 generic_object_problem:
-  initializer: observation_periodic_rigid
+  initializer: axial_rigid_feature_correspondence
   initializer_artifacts:
-    - observation_seed/body_pose.csv
-    - observation_seed/axial_phase.csv
+    - object_observations.csv
+    - object_proxy_observations_internal/object_proxy_observations.csv
     - object_contact_points.csv
   contact_artifact: object_contact_points.csv
+  measurement_factors: [point_reprojection, metric_depth]
+  measurement_roles:
+    point_reprojection: [object_center, handle_center]
+    metric_depth: [object_center_depth]
   sequence_factors: [temporal_velocity, temporal_acceleration, static_freeze]
+  interaction_factors: [contact_relative_velocity]
+supplemental_measurements:
+  - adapter: legacy_observation_v1
+    artifact: object_proxy_observations_internal/object_proxy_observations.csv
+    include_roles: [object_center_depth]
 factor_runtime:
+  point_reprojection:
+    weight: 1.0
+    sigma: 5.0
+    sigma_unit: px
+    source: typed_body_center_and_fixed_off_axis_feature
+    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
+  metric_depth:
+    weight: 0.245
+    sigma: 0.55
+    sigma_unit: m
+    source: typed_monocular_metric_depth_weak_prior
+    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
   temporal_velocity:
     weight: 0.70
-    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-    source: projected_periodic_sequence:temporal_body+phase_continuity
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: generic_fixed_rigid_sequence_continuity
     activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
   temporal_acceleration:
     weight: 1.0
-    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     source: generic_sequence_acceleration_continuity
     activation_weight_tiers: {active: 1.0, downweighted: 0.12, inactive: 0.0}
   contact_distance:
@@ -31,15 +52,15 @@ factor_runtime:
     sigma_unit: m
     source: stable_grasp_anchor:contact_distance_scale
     activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
-  periodic_phase_prior:
+  contact_relative_velocity:
     weight: 1.0
-    sigma: 0.20
-    sigma_unit: rad
-    source: observation_seed_axial_phase:measurement_prior
+    sigma: 0.008
+    sigma_unit: m/frame
+    source: generic_persistent_grasp_contact_comotion
     activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
   static_freeze:
     weight: 100.0
-    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     source: generic_supported_static_interval_anchor
     activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
 refinement_policy:

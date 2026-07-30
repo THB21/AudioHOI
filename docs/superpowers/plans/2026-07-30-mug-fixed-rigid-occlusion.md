@@ -23,7 +23,7 @@
 
 ### Task 1: Convert the asset to a fixed-rigid contract
 
-- [ ] **Step 1: Record the current production contradiction**
+- [x] **Step 1: Record the current production contradiction**
 
 Run:
 
@@ -35,7 +35,7 @@ rg -n 'observation_periodic_rigid|periodic_phase_prior|profile.case_name == "mug
 
 Expected: production reads `observation_seed/body_pose.csv`, `observation_seed/axial_phase.csv`, and constructs a periodic prior.
 
-- [ ] **Step 2: Declare the eight-dimensional state and fixed features**
+- [x] **Step 2: Declare the eight-dimensional state and fixed features**
 
 Update the asset descriptor with this contract shape:
 
@@ -63,7 +63,7 @@ Update the asset descriptor with this contract shape:
 
 Also declare the body radius/height proxy, local symmetry axis, and fixed local points for `object:center`, `object:handle`, and all contact feature IDs used by `object_contact_points.csv`.
 
-- [ ] **Step 3: Make periodic-factor selection capability-driven**
+- [x] **Step 3: Make periodic-factor selection capability-driven**
 
 In `core/factors/adapters.py`, replace the object-name condition with a state-contract query equivalent to:
 
@@ -79,7 +79,7 @@ periodic_phase_prior_enabled = bool(periodic_dofs) and (
 
 Guard the existing periodic-factor construction block with `periodic_phase_prior_enabled`. For the fixed-rigid mug descriptor this produces no periodic production factor.
 
-- [ ] **Step 4: Verify the contract boundary**
+- [x] **Step 4: Verify the contract boundary**
 
 Run the asset-contract builder and assert from its printed record:
 
@@ -89,7 +89,7 @@ periodic DOF count = 0
 initializer = axial_rigid_feature_correspondence
 ```
 
-- [ ] **Step 5: Commit the contract slice**
+- [x] **Step 5: Commit the contract slice**
 
 ```bash
 git add scripts/shared/generic_contact_pipeline/configs/assets/mug_periodic_rigid.json \
@@ -101,11 +101,11 @@ git commit -m "refactor: model axial assets as fixed rigid states"
 
 ### Task 2: Implement the generic axial-rigid initializer
 
-- [ ] **Step 1: Add descriptor-backed initialization inputs**
+- [x] **Step 1: Add descriptor-backed initialization inputs**
 
 Extend `InitializationRequest` usage so `axial_rigid_feature_correspondence` receives typed center, mask, depth, visibility, and fixed off-axis feature measurements plus the descriptor-built `RigidFeatureGeometryProvider`.
 
-- [ ] **Step 2: Generate finite physical pose hypotheses**
+- [x] **Step 2: Generate finite physical pose hypotheses**
 
 Implement:
 
@@ -127,7 +127,7 @@ root rotation              -> R_tilt @ R_axis(angle), stored once as quaternion
 
 Use a fixed descriptor-declared angle grid and retain a finite number of lowest-reprojection hypotheses. Select a temporally consistent sequence with wrapped angular transition cost. Do not call an object-named solver and do not read seed pose/phase files.
 
-- [ ] **Step 3: Handle hidden feature intervals without fake observations**
+- [x] **Step 3: Handle hidden feature intervals without fake observations**
 
 If no visible feature measurement exists for a frame, do not create a pixel target. Initialize the state by quaternion interpolation or nearest valid hold, then allow contact/temporal factors to determine the final hidden-frame state.
 
@@ -146,11 +146,11 @@ The hypothesis ledger must record:
 }
 ```
 
-- [ ] **Step 4: Route production preparation by capability**
+- [x] **Step 4: Route production preparation by capability**
 
 In `prepare_capability_object_problem()`, include `axial_rigid_feature_correspondence` in the descriptor-contract path. Build `RigidFeatureGeometryProvider` from descriptor semantic points with `scale_state_index=7`; do not install `PeriodicFeatureRule`.
 
-- [ ] **Step 5: Run preparation-only verification**
+- [x] **Step 5: Run preparation-only verification**
 
 ```bash
 /home/yang/miniconda3/envs/audiohoi/bin/python \
@@ -161,7 +161,7 @@ In `prepare_capability_object_problem()`, include `axial_rigid_feature_correspon
 
 Expected: 240 states, width 8, no periodic factor, no solved-pose/phase read, and no case dispatch.
 
-- [ ] **Step 6: Commit the initializer slice**
+- [x] **Step 6: Commit the initializer slice**
 
 ```bash
 git add scripts/shared/generic_contact_pipeline/core/solver/capability_initializers.py \
@@ -172,7 +172,7 @@ git commit -m "feat: initialize fixed axial assets from typed features"
 
 ### Task 3: Compile visible and occluded-hold factors
 
-- [ ] **Step 1: Enable typed measurement factors**
+- [x] **Step 1: Enable typed measurement factors**
 
 Configure:
 
@@ -190,11 +190,11 @@ sequence_factors:
 
 Keep `contact_distance` from the existing typed contact constraints.
 
-- [ ] **Step 2: Preserve per-measurement visibility**
+- [x] **Step 2: Preserve per-measurement visibility**
 
 The point factor input contains exactly the available typed rows. Center observations remain active according to object visibility. Handle rows exist only for visible measurements; the 81 hidden frames contribute zero handle reprojection rows, not zero-valued targets.
 
-- [ ] **Step 3: Activate persistent grasp mechanics**
+- [x] **Step 3: Activate persistent grasp mechanics**
 
 Compile contact distance and relative velocity from the same fixed handle/contact feature and exact-frame read-only hand-site track. For hidden persistent-grasp frames:
 
@@ -205,11 +205,11 @@ contact relative velocity: active/downweighted from interaction provenance
 temporal factors: active according to motion mode
 ```
 
-- [ ] **Step 4: Inspect initial residual provenance**
+- [x] **Step 4: Inspect initial residual provenance**
 
 Verify selected factor IDs, row counts, input measurement IDs, visibility gates, and absence of `periodic_phase_prior:observation_seed_axial_phase`.
 
-- [ ] **Step 5: Commit the factor slice**
+- [x] **Step 5: Commit the factor slice**
 
 ```bash
 git add scripts/shared/generic_contact_pipeline/configs/cases/mug.yaml \

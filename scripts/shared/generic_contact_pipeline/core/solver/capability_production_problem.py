@@ -35,6 +35,7 @@ from ..state import (
     StaticParameter,
     build_articulated_geometry_from_asset_descriptor,
     build_asset_state_contract,
+    build_rigid_geometry_from_asset_descriptor,
 )
 from .legacy_production_problem import (
     LegacyObjectProblemPreparation,
@@ -501,7 +502,7 @@ def prepare_capability_object_problem(
         "baseline_pose_read": False,
         "human_state_optimized": False,
     }
-    if initializer in {"articulated_correspondence", "fixed_assembly_correspondence"}:
+    if initializer in {"articulated_correspondence", "fixed_assembly_correspondence", "axial_rigid_feature_correspondence"}:
         contract = build_asset_state_contract(descriptor_path, repository_root)
         if str(contract.initializer["kind"]) != initializer:
             raise ValueError("case initializer and asset initializer capability disagree")
@@ -512,12 +513,21 @@ def prepare_capability_object_problem(
         if not frame_times:
             raise ValueError("articulated initializer requires typed frame measurements")
         gvhmr_sites = _gvhmr_sites(profile, frame_times, body_models_root)
-        geometry_build = build_articulated_geometry_from_asset_descriptor(
-            descriptor_path=descriptor_path,
-            repository_root=repository_root,
-            result_dir=result_dir,
-            state_spec=contract.state_spec,
-            contact_constraints=constraints,
+        geometry_build = (
+            build_rigid_geometry_from_asset_descriptor(
+                descriptor_path=descriptor_path,
+                repository_root=repository_root,
+                state_spec=contract.state_spec,
+                contact_constraints=constraints,
+            )
+            if initializer == "axial_rigid_feature_correspondence"
+            else build_articulated_geometry_from_asset_descriptor(
+                descriptor_path=descriptor_path,
+                repository_root=repository_root,
+                result_dir=result_dir,
+                state_spec=contract.state_spec,
+                contact_constraints=constraints,
+            )
         )
         cameras = {frame: PinholeCamera(**profile.camera) for frame in sorted(frame_times)}
         initialized = initialize_from_capabilities(
@@ -533,7 +543,7 @@ def prepare_capability_object_problem(
             )
         )
         adaptation = StateAdaptationResult(
-            schema="articulated_correspondence_v1",
+            schema=f"{initializer}_v1",
             state_spec=contract.state_spec,
             geometry=contract.geometry,
             mapped_fields=tuple(field for dof in contract.state_spec.dofs for field in dof.source_fields),

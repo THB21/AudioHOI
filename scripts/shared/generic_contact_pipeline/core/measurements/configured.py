@@ -8,6 +8,7 @@ from typing import Mapping
 
 from ..base.config import CaseProfile
 from ..base.io import repo_relative_value
+from .adapters import adapt_legacy_observation_rows
 from .types import CoordinateFrame, FeatureRef, Line2DMeasurement, Measurement, MeasurementMeta, SourceRef, Unit
 
 
@@ -30,9 +31,24 @@ def adapt_configured_supplemental_measurements(
         if not isinstance(spec, Mapping):
             raise ValueError("supplemental measurement entries must be mappings")
         adapter = str(spec.get("adapter", ""))
+        path = result_dir / str(spec["artifact"])
+        if adapter == "legacy_observation_v1":
+            with path.open(newline="") as handle:
+                rows = list(csv.DictReader(handle))
+            if not rows:
+                raise ValueError(f"supplemental measurement artifact is empty: {path}")
+            source_path = str(repo_relative_value(path))
+            allowed_roles = {str(value) for value in spec.get("include_roles", ())}
+            adapted = adapt_legacy_observation_rows(profile.case_name, rows, source_path)
+            measurements.extend(
+                measurement
+                for measurement in adapted.measurements
+                if not allowed_roles or measurement.meta.feature.semantic_role in allowed_roles
+            )
+            sources.append(source_path)
+            continue
         if adapter != "physical_line_endpoints_v1":
             raise ValueError(f"unsupported supplemental measurement adapter: {adapter}")
-        path = result_dir / str(spec["artifact"])
         with path.open(newline="") as handle:
             rows = list(csv.DictReader(handle))
         if not rows:

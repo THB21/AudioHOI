@@ -74,6 +74,7 @@ def adapt_legacy_contact_rows(sample_id: str, rows: list[dict[str, str]], artifa
     schema = detect_legacy_contact_schema(set(rows[0]))
     mapped = {"frame", "time", "contact_active", "human_part", "human_side", "object_part", "object_local_id", "source"}
     constraints: list[ContactConstraint] = []
+    persistent_coordinates: dict[tuple[str, str], tuple[str, str, LocalXYZ | LineS]] = {}
     for ordinal, row in enumerate(rows):
         frame = int(row["frame"])
         coordinate: LocalXYZ | LineS | None = None
@@ -101,9 +102,17 @@ def adapt_legacy_contact_rows(sample_id: str, rows: list[dict[str, str]], artifa
         if confidence is not None:
             confidence = min(1.0, max(0.0, confidence))
             mapped.add(confidence_field)
-        source_fields = tuple(field for field in ("contact_active", "human_part", "human_side", "object_part", "object_local_id", *coordinate_fields, confidence_field, "source") if field in row)
+        source_fields = tuple(field for field in ("contact_active", "human_part", "human_side", "object_part", "object_local_id", *coordinate_fields, "visibility", "anchor_update", "keep_previous", confidence_field, "source") if field in row)
         object_part = row.get("object_part", "") or "none"
         local_id = row.get("object_local_id", "") or "none"
+        stream_id = (row.get("human_part", "") or "none", row.get("human_side", "") or "unknown")
+        keep_previous = row.get("keep_previous", "0") == "1"
+        if keep_previous and stream_id in persistent_coordinates:
+            object_part, local_id, coordinate = persistent_coordinates[stream_id]
+            mapped.add("keep_previous")
+        elif coordinate is not None and row.get("contact_active") == "1":
+            persistent_coordinates[stream_id] = (object_part, local_id, coordinate)
+        mapped.update(field for field in ("visibility", "anchor_update", "keep_previous") if field in row)
         constraints.append(
             ContactConstraint(
                 constraint_id=f"{sample_id}:{frame}:contact:{ordinal}",

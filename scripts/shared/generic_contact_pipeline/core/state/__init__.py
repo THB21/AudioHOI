@@ -1,5 +1,5 @@
 from .adapters import StateAdaptationResult, adapt_legacy_state_rows, detect_legacy_state_schema
-from .asset_geometry import AssetGeometryBuildResult, build_articulated_geometry_from_asset_descriptor
+from .asset_geometry import AssetGeometryBuildResult, build_articulated_geometry_from_asset_descriptor, build_rigid_geometry_from_asset_descriptor
 from .asset_state_contract import AssetStateContract, build_asset_state_contract
 from .articulated import ArticulatedKinematicProvider, SegmentJointRule
 from .golden import build_canonical_state_shadow_summary, verify_state_shadow_summary
@@ -60,6 +60,7 @@ __all__ = [
     "build_canonical_state_parity_reports",
     "build_state_parity_report",
     "build_articulated_geometry_from_asset_descriptor",
+    "build_rigid_geometry_from_asset_descriptor",
     "build_asset_state_contract",
     "detect_legacy_state_schema",
     "geometry_record",

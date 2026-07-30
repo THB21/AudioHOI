@@ -64,6 +64,71 @@ class AssetGeometryBuildResult:
             raise ValueError("asset geometry construction requires semantic features")
 
 
+def build_rigid_geometry_from_asset_descriptor(
+    *,
+    descriptor_path: Path,
+    repository_root: Path,
+    state_spec: StateSpec,
+    contact_constraints: Sequence[ContactConstraint] = (),
+) -> AssetGeometryBuildResult:
+    """Build fixed rigid semantic geometry without interpreting object identity."""
+
+    descriptor = json.loads(descriptor_path.read_text())
+    if descriptor.get("schema_version") != 1 or descriptor.get("geometry_kind") != "rigid_mesh":
+        raise ValueError("unsupported fixed rigid asset geometry descriptor")
+    resource_path = repository_root / str(descriptor["resource_path"])
+    if not resource_path.is_file():
+        raise FileNotFoundError("fixed rigid asset resource is missing")
+    raw_features = descriptor.get("feature_points", {})
+    if not isinstance(raw_features, Mapping) or not raw_features:
+        raise ValueError("fixed rigid asset requires descriptor-declared feature points")
+    feature_points: dict[str, list[list[float]]] = {}
+    for feature_id, raw_points in raw_features.items():
+        points = np.asarray(raw_points, dtype=float)
+        if points.ndim != 2 or points.shape[1] != 3 or not len(points) or not np.isfinite(points).all():
+            raise ValueError(f"invalid fixed rigid feature points: {feature_id}")
+        feature_points[str(feature_id)] = points.tolist()
+
+    contact_feature_ids: set[str] = set()
+    for constraint in contact_constraints:
+        coordinate = constraint.object_coordinate
+        if not isinstance(coordinate, LocalXYZ):
+            continue
+        feature_id = constraint.object_feature.geometry_feature_id
+        point = [coordinate.x_m, coordinate.y_m, coordinate.z_m]
+        values = feature_points.setdefault(feature_id, [])
+        if not any(np.allclose(existing, point, atol=1e-9) for existing in values):
+            values.append(point)
+        contact_feature_ids.add(feature_id)
+
+    scale_state_index = _state_indices(state_spec).get("scale")
+    provider = RigidFeatureGeometryProvider(
+        feature_points_local=feature_points,
+        scale_state_index=scale_state_index,
+    )
+    payload = {
+        "descriptor_sha256": _sha256(descriptor_path),
+        "resource_sha256": _sha256(resource_path),
+        "state_spec_id": state_spec.spec_id,
+        "feature_ids": sorted(feature_points),
+        "contact_feature_ids": sorted(contact_feature_ids),
+        "case_dispatch_used": False,
+    }
+    return AssetGeometryBuildResult(
+        provider=provider,
+        descriptor_path=str(descriptor_path),
+        descriptor_sha256=payload["descriptor_sha256"],
+        resource_path=str(resource_path),
+        resource_sha256=payload["resource_sha256"],
+        semantic_segments_path=str(descriptor_path),
+        semantic_segments_sha256=payload["descriptor_sha256"],
+        feature_ids=tuple(sorted(feature_points)),
+        contact_feature_ids=tuple(sorted(contact_feature_ids)),
+        case_dispatch_used=False,
+        canonical_sha256=_canonical_hash(payload),
+    )
+
+
 def build_articulated_geometry_from_asset_descriptor(
     *,
     descriptor_path: Path,

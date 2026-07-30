@@ -156,7 +156,7 @@ def _asset_state_dofs(profile: CaseProfile) -> tuple[dict[str, object], ...]:
     return tuple(dict(value) for value in raw_dofs if isinstance(value, dict))
 
 
-def _mug_periodic_phase_prior_is_resolved(result_dir: Path) -> tuple[bool, int, dict[str, object]]:
+def _periodic_phase_prior_is_resolved(result_dir: Path) -> tuple[bool, int, dict[str, object]]:
     seed_dir = result_dir / "observation_seed"
     phase_csv = seed_dir / "axial_phase.csv"
     report_json = seed_dir / "observation_seed_report.json"
@@ -635,15 +635,16 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 )
             )
             summaries.append(FactorEnergySummary(f"state_spec_bound:{joint_id}", FactorKind.JOINT_LIMIT, len(per_frame_rows), 0.0))
-    mug_phase_prior_resolved = False
-    if profile.case_name == "mug":
-        mug_phase_prior_resolved, mug_phase_rows, _mug_phase_report = _mug_periodic_phase_prior_is_resolved(result_dir)
-        if mug_phase_prior_resolved:
+    periodic_phase_prior_resolved = False
+    periodic_dofs = tuple(dof for dof in _asset_state_dofs(profile) if dof.get("kind") == "periodic")
+    if periodic_dofs and "periodic_phase_prior" in sequence_factors:
+        periodic_phase_prior_resolved, periodic_phase_rows, _periodic_phase_report = _periodic_phase_prior_is_resolved(result_dir)
+        if periodic_phase_prior_resolved:
             factors.append(
                 FactorSpec(
                     factor_id="periodic_phase_prior:observation_seed_axial_phase",
                     kind=FactorKind.PERIODIC_PHASE_PRIOR,
-                    frame_count=mug_phase_rows,
+                    frame_count=periodic_phase_rows,
                     input_refs=_input_refs(FactorKind.PERIODIC_PHASE_PRIOR),
                     residual_unit="radian_phase_prior",
                     weight_source="observation_derived_body_pose_and_axial_phase",
@@ -659,7 +660,7 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 FactorEnergySummary(
                     "observation_seed:periodic_phase_prior",
                     FactorKind.PERIODIC_PHASE_PRIOR,
-                    mug_phase_rows,
+                    periodic_phase_rows,
                     0.0,
                 )
             )
@@ -678,7 +679,7 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
 
     gaps: list[FactorGap] = []
     phase = adapter.get("phase_reconstruction", {}) if isinstance(adapter.get("phase_reconstruction"), dict) else {}
-    if phase.get("snapshot_fallback_used") and not (profile.case_name == "mug" and mug_phase_prior_resolved):
+    if phase.get("snapshot_fallback_used") and not periodic_phase_prior_resolved:
         gaps.append(
             FactorGap(
                 "phase_snapshot_fallback",

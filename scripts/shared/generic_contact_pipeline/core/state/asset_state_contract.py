@@ -147,6 +147,8 @@ def build_asset_state_contract(
     )
     feature_ids = tuple(str(value) for value in dict(descriptor.get("feature_segments", {})))
     if not feature_ids:
+        feature_ids = tuple(str(value) for value in dict(descriptor.get("feature_points", {})))
+    if not feature_ids:
         feature_ids = tuple(str(value) for value in descriptor.get("semantic_parts", ()))
     if not feature_ids:
         raise ValueError("asset state contract requires declared geometry features")
@@ -154,7 +156,9 @@ def build_asset_state_contract(
     if geometry_kind == GeometryKind.ARTICULATED_URDF:
         capabilities.extend(("project_line", "joint_transform"))
     else:
-        capabilities.extend(("project_point", "periodic_feature"))
+        capabilities.append("project_point")
+        if any(dof.kind == DofKind.PERIODIC for dof in spec.dofs):
+            capabilities.append("periodic_feature")
     geometry = GeometryDescriptor(
         geometry_id=str(descriptor.get("geometry_id", f"asset:{geometry_kind.value}")),
         kind=geometry_kind,

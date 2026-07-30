@@ -1,10 +1,48 @@
 {
   "schema_version": 1,
+  "geometry_id": "asset:fixed_axial_rigid",
   "geometry_kind": "rigid_mesh",
   "resource_path": "samples_known_object/02_mug/articraft/materialized_mug_mesh/model.urdf",
-  "semantic_parts": ["body", "handle_loop", "rim", "bottom"],
+  "semantic_parts": ["object:center", "object:handle", "body", "handle_loop", "rim", "bottom"],
   "contact_coordinate": "local_xyz",
-  "periodic_feature_role": "handle_loop",
-  "periodic_axis_local": [0.0, 1.0, 0.0],
-  "periodic_origin_local": [0.0, 0.0, 0.0]
+  "state_contract": {
+    "spec_id": "rigid7_scale:fixed_axial_asset",
+    "state_model": "rigid_se3_scale",
+    "dofs": [
+      {
+        "dof_id": "root.translation",
+        "kind": "translation",
+        "fields": ["tx", "ty", "tz"]
+      },
+      {
+        "dof_id": "root.rotation",
+        "kind": "rotation_so3",
+        "fields": ["qw", "qx", "qy", "qz"]
+      },
+      {
+        "dof_id": "scale",
+        "kind": "scalar",
+        "field": "scale",
+        "bounds": [0.25, 3.5],
+        "default": 1.0
+      }
+    ]
+  },
+  "initializer": {
+    "kind": "axial_rigid_feature_correspondence",
+    "body_center_role": "object_center",
+    "body_mask_role": "object_body_mask",
+    "depth_role": "object_center_depth",
+    "off_axis_feature_role": "handle_center",
+    "axis_local": [0.0, 1.0, 0.0],
+    "body_radius_m": 0.04,
+    "body_height_m": 0.096,
+    "phase_grid_samples": 721,
+    "phase_candidate_count": 8,
+    "temporal_phase_sigma_rad_per_frame": 0.25
+  },
+  "feature_points": {
+    "object:center": [[0.0, 0.0, 0.0]],
+    "object:handle": [[-0.068282, -0.007, 0.0]]
+  }
 }

@@ -11,7 +11,7 @@
 | 项目范围 | object_only | 只负责 object reconstruction。GVHMR skeleton 是只读人体观测；不修改另一位同学维护的人体代码，不建模或优化人体，不编排 downstream human pipeline。 |
 | `refactor/migrate-chair-case` | frozen | 作为 chair extraction / candidate evidence 保留，不继续堆新功能。 |
 | `refactor/interaction-state-production` | in_progress | basketball / football / mug / chair / stick 五个 canonical trajectory 均由唯一 `GenericSequenceExecutor` 与 `AcceptedObjectOutputPublisher` 产生，coverage=`5/5`；所有 publication 均记录 `case_dispatch_used=false`、`human_state_optimized=false`。Stage 0 已接入固定八任务 ingestion DAG，且 fresh Stage 0 → typed Measurement/Contact/Interaction IR → unified solve 已实际闭环。chair / stick 的自动 gate gap 仍原样保留，不伪装为自动 zero-shot pass。 |
-| 下一步 | pending | 将已验证的 fresh typed solve接入 `run_pipeline.py` 的正式 Stage 4 单命令路径，冻结 solver与通用 gate/weight档位，再依次运行 held-out back-view basketball、suitcase、ping-pong benchmark。 |
+| 下一步 | pending | 冻结 solver与通用 gate/weight档位，建立 held-out sample/asset配置后依次运行 back-view basketball、suitcase、ping-pong benchmark；chair/stick自动gate按此前决定暂缓。 |
 
 当前主线目标收束为一句话：
 
@@ -1864,3 +1864,11 @@ YYYY-MM-DD:
 - typed production problem: fresh preparation得到 `rigid6:line_capsule`、240帧、1200条 MeasurementIR、480条 ContactConstraintIR，并编译 line reprojection、contact distance、temporal velocity/acceleration、static freeze五类runtime factors；`baseline_pose_read=false`、`case_dispatch_used=false`、`human_state_optimized=false`。
 - solve evidence: 同一 `GenericSequenceExecutor` 生成隔离 attempt `generic-solve-ef8f4dff4b81`，200 evaluations将 squared error `117471.9814 -> 4632.3763`，optimality=`0.04237`，满足冻结stationary判据；candidate SHA=`9dcc87d89d1c77603a4aa7bc3b18fba34e74fb1b8de26eb3677f47494f90c1f5`，未写canonical。自动gate只保留已知 stick contact-gap p95/max失败，这是此前用户允许暂缓的gate arbitration问题，不再是fresh输入或solver泛化blocker。
 - remaining orchestration gap: 上述路径已用正式Stage函数和production factory/executor实际运行，但尚未由`run_pipeline.py`的Stage 4单命令直接调用；当前CLI Stage 4仍指向legacy `sequence_refine.apply()`。下一步只做这一入口收束，不改loss、阈值或case算法。
+
+2026-07-30（正式 Stage 4 入口收束）:
+
+- production entry: `stage4_contact_refine.run()` 不再调用legacy `sequence_refine.apply()`，而是固定执行 `prepare_capability_object_problem -> GenericSequenceExecutor.solve -> isolated attempt -> hard metrics -> AcceptedObjectOutputPublisher`。Stage 4只接收StateSpec/geometry/typed measurements/contact/interactions/compiled factors，不读取case名称来选择solver。
+- publication safety: candidate固定写入与accepted result不同的`generic_stage4_candidate/`，attempt写入`generic_sequence_solver_attempts/<attempt-id>/`；只有case-independent numeric gate和VLM factor arbitration均通过时唯一publisher才写`object_pose.csv`。失败时保留完整candidate/attempt/provenance，并在`run_pipeline.py`中阻止Stage 5继续读取旧canonical。
+- VLM rerun: Stage 4第一次solve后若正式VLM产生有效离散factor gates，`run_pipeline.py`通过同一个Stage 4入口重新prepare/compile/solve；不再回退legacy smoother。若无有效gate则不重复solve。VLM仍不能写连续pose。
+- fresh smoke: 对fresh stick profile用1-evaluation预算调用正式Stage 4，得到`generic-solve-920caefeb3a3`和`candidate_blocked`；记录`case_dispatch_used=false`、`baseline_pose_read=false`、`human_state_optimized=false`、`accepted_outputs_written=false`，且没有生成canonical。此前200-evaluation完整fresh solve证据仍为`generic-solve-ef8f4dff4b81`。
+- scope: 本次只收束object Stage 4入口和失败边界，不修改loss、阈值、factor权重、求解算法或人体代码。五case已发布canonical不因本次smoke而改变。

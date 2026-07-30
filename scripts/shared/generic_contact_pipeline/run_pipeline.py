@@ -29,7 +29,7 @@ from scripts.shared.generic_contact_pipeline.core.gates.vlm_gates import write_s
 from scripts.shared.generic_contact_pipeline.core.provenance.attempts import StageAttempt  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.preprocess import validate_case_ingestion_current  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.plugins.registry import resolve_pipeline_plugins  # noqa: E402
-from scripts.shared.generic_contact_pipeline.components.mainline import contact_anchor, pose_init, sequence_refine  # noqa: E402
+from scripts.shared.generic_contact_pipeline.components.mainline import contact_anchor, pose_init  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.analysis import stage_llm_csv_audit, stage_loss_analysis  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.gates import stage_vlm_qwen, stage_vlm_verify  # noqa: E402
 from scripts.shared.generic_contact_pipeline.stages.main import (  # noqa: E402
@@ -239,15 +239,7 @@ def _refresh_generic_mainline_after_vlm(profile, stage_name: str, result: dict[s
         gate_path = paths["vlm_dir"] / stage_name / "vlm_gates.csv"
         if gate_path.exists() and not any(row.get("is_effective") == "1" for row in read_csv(gate_path)):
             return refreshed
-        smooth_result = sequence_refine.apply(profile)
-        components = [
-            item
-            for item in list(refreshed.get("components", []))
-            if not (isinstance(item, dict) and item.get("component") == "generic_sequence_se3_mainline")
-        ]
-        components.append(smooth_result)
-        refreshed["components"] = components
-        write_json(paths["stage4_metrics"], refreshed)
+        refreshed = stage4_contact_refine.run(profile)
     return refreshed
 
 
@@ -260,7 +252,7 @@ def _repair_after_stage_audit(profile, stage_name: str, result: dict[str, object
     elif stage_name == "stage3":
         repaired["stage_audit_repair"] = pose_init.build(profile)
     elif stage_name == "stage4":
-        repaired["stage_audit_repair"] = sequence_refine.apply(profile)
+        repaired["stage_audit_repair"] = stage4_contact_refine.run(profile)
     else:
         repaired["stage_audit_repair"] = {
             "component": "stage_audit_repair",
@@ -281,6 +273,15 @@ def _attempt_summary(
         "stage_audit_decision": stage_audit_result.get("decision", ""),
         "rerun_requested": bool(stage_audit_result.get("rerun_stage")),
     }
+
+
+def _require_stage4_publication(stage_name: str, result: dict[str, object]) -> None:
+    if stage_name != "stage4" or result.get("status") == "accepted":
+        return
+    reasons = result.get("hard_gate", {}).get("blocking_reasons", [])
+    raise RuntimeError(
+        f"generic Stage 4 candidate was not published; blocking_reasons={reasons}"
+    )
 
 
 def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.Namespace) -> dict[str, object]:
@@ -324,6 +325,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
                     f"decision={vlm_result.get('decision')} gates={vlm_result.get('gate_counts', {})}",
                     flush=True,
                 )
+            _require_stage4_publication(stage_name, result)
             stage_audit_result = write_stage_audit(profile, stage_name, llm_mode=args.llm_mode)
             if stage_audit_result.get("rerun_stage"):
                 attempt.finish(

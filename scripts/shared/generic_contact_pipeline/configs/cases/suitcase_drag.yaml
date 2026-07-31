@@ -31,6 +31,7 @@ persistent_feature_grasp:
   hold_when_occluded: true
 generic_object_problem:
   initializer: rigid_cuboid_feature_correspondence
+  interaction_state_artifact: contact_candidates.csv
   initializer_artifacts: [object_observations.csv, object_contact_points.csv]
   contact_artifact: object_contact_points.csv
   measurement_factors: [point_reprojection, mask_silhouette, metric_depth]

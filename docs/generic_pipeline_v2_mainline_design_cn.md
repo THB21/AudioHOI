@@ -542,12 +542,12 @@ docs/generic_pipeline_v2_mainline_audit_zh.md
 - Stage 0 已从 sample video 生成完整 240 帧 frames、SAM2、CoTracker、DA3 和 GVHMR；纯 solver 运行明确禁用 audio extract/events，禁用项不是 missing。
 - Stage 1–3 已由 `rigid_mask_track -> persistent_feature_grasp -> rigid_mask_seed` 闭环；持续 grasp 首次可靠接触后锁定 human side，禁止逐帧左右手切换。
 - 通用 `rigid_cuboid_feature_correspondence` 已进入 capability initializer：mask/body bbox 决定轮廓，DA3 决定 metric depth，descriptor feature 决定 heading hypothesis；没有读取 baseline/final pose。
-- 纯 solver attempt `generic-solve-712364a40185` 数值优化成功，目标从 `883400.2172` 降到 `21148.4194`；原始 candidate 固化为 `pure_solver_no_audio_no_vlm/pose.csv`（SHA-256 `ad9b13dc2af20714b054739b4c637e875ad9ba55424d22b6457be488600ca413`），未渲染、未冒充 accepted `object_pose.csv`。
-- 当前 hard gate 阻塞是 `projection_normalized_rmse=4.0921 > 2.0`、`point_projection_p95=69.71 px > 24 px`，以及 contact compiled activation 尚未获得 active rows。此结果正作为 no-audio/no-VLM 基线保留，不使用 semantic repair。
+- 纯 solver attempt `generic-solve-712364a40185` 数值优化成功，目标从 `883400.2172` 降到 `21148.4194`；原始 candidate SHA-256 为 `ad9b13dc2af20714b054739b4c637e875ad9ba55424d22b6457be488600ca413`，规范化换行后固化为 `pure_solver_no_audio_no_vlm/pose.csv`（SHA-256 `2dbdca495cb552f49b28b7a39f125e3c2619615a05176e42fd7fbcd062f52d3d`），未渲染、未冒充 accepted `object_pose.csv`。
+- 原始纯基线仍固定不变。随后仅补通用 InteractionState 接线复跑诊断 attempt `generic-solve-1d0ce68fa35e`：contact distance / relative velocity 已分别产生 603 / 594 个 residual，`contact_distance_has_no_active_rows` 已消失。该诊断仍被 projection 与 contact-gap hard gate 拒绝，不覆盖纯基线 `pose.csv`，也不发布 `object_pose.csv`。
 
 ### Suitcase 下一步（完整版）
 
-1. 将 persistent feature grasp 的 active/occluded-hold identity 正式写入 InteractionState，使 contact distance 与 relative velocity factor 获得真实 active rows。
+1. 已完成：persistent feature grasp 的 active/occluded-hold identity 通过 `interaction_state_artifact` 进入正式 InteractionState，contact distance 与 relative velocity factor 获得真实 active rows。
 2. 用 profile-driven Qwen query 判断 handle 可见/被人体遮挡、错误 mask/track、hand-handle relation；只改变预定义 measurement reliability 和 factor gate，不输出 pose。
 3. 接入 sustained rolling audio envelope：移动声区间降低 freeze，静音 stop 区间激活 static freeze；floor-seam click 只标记短时事件，不直接提供 3D 坐标。
 4. 重跑同一个 GenericSequenceExecutor；只有 hard geometry gate 通过后才发布 `object_pose.csv` 并生成 object + read-only skeleton 诊断 render。

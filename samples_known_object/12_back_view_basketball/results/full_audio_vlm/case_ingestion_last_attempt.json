@@ -1,0 +1,313 @@
+{
+  "canonical_sha256": "c08aff3880e06e7f8a7d593a87c36d915f0c6bc90662eb27d6b5d4a921670006",
+  "case_name": "back_view_basketball",
+  "fps": 24.0,
+  "frame_count": 240,
+  "result_dir": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm",
+  "sample_dir": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball",
+  "schema_version": 1,
+  "status": "accepted",
+  "tasks": [
+    {
+      "cache_key": "81e705d1481d94876e181e6b37bec8b5d25d5275a1e04e1b2f5a0a368a0bc415",
+      "command": [
+        "/home/yang/miniconda3/envs/audiohoi/bin/python",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/scripts/shared/generic_contact_pipeline/tools/run_media_extract.py",
+        "--sample-dir",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball",
+        "--kind",
+        "frames"
+      ],
+      "completed_at": "2026-07-31T00:41:02.730995+00:00",
+      "error": "",
+      "human_state_role": null,
+      "input_hashes": {
+        "video": "c045bc02e3d5a7337b70993eec2364831a7561ce0bda859936e0a4236913eae3"
+      },
+      "output_hashes": {
+        "frames": "ac617c1161ea0e38f12a2100f3f2f88c20e3afab5efb67497c1087815f4ed20d"
+      },
+      "output_kinds": {
+        "frames": "directory"
+      },
+      "output_paths": {
+        "frames": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/frames"
+      },
+      "required": true,
+      "return_code": 0,
+      "runtime_env": "audiohoi",
+      "started_at": "2026-07-31T00:41:02.617445+00:00",
+      "status": "reused",
+      "stderr_tail": "",
+      "stdout_tail": "validated existing artifact bootstrap",
+      "task_id": "frame_extract"
+    },
+    {
+      "cache_key": "f1bf85b0482c78f57078bb45f810cdd3fbaf964dc1dc5bd1f1f044553d080fa7",
+      "command": [
+        "/home/yang/miniconda3/envs/audiohoi/bin/python",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/scripts/shared/generic_contact_pipeline/tools/run_media_extract.py",
+        "--sample-dir",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball",
+        "--kind",
+        "audio"
+      ],
+      "completed_at": "2026-07-31T00:41:02.805145+00:00",
+      "error": "",
+      "human_state_role": null,
+      "input_hashes": {
+        "video": "c045bc02e3d5a7337b70993eec2364831a7561ce0bda859936e0a4236913eae3"
+      },
+      "output_hashes": {
+        "audio": "e346de5d68a802a8d8ef687d5359cd3982633691cb1e6ac2abafe248d9e43606"
+      },
+      "output_kinds": {
+        "audio": "file"
+      },
+      "output_paths": {
+        "audio": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/audio.wav"
+      },
+      "required": true,
+      "return_code": 0,
+      "runtime_env": "audiohoi",
+      "started_at": "2026-07-31T00:41:02.731027+00:00",
+      "status": "generated",
+      "stderr_tail": "",
+      "stdout_tail": "{\"kind\": \"audio\", \"output\": \"/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/audio.wav\", \"sample_rate\": 16000, \"schema_version\": 1, \"status\": \"generated\"}\n",
+      "task_id": "audio_extract"
+    },
+    {
+      "cache_key": "0bbacac198e9f7211f6e1915697578570314cb24be14fec1432f286fce8e16d6",
+      "command": [
+        "/home/yang/miniconda3/envs/audiohoi/bin/python",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py",
+        "--case-config",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/scripts/shared/generic_contact_pipeline/configs/cases/back_view_basketball.yaml",
+        "--sample-dir",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball",
+        "--fps",
+        "24.0"
+      ],
+      "completed_at": "2026-07-31T00:41:02.920451+00:00",
+      "error": "",
+      "human_state_role": null,
+      "input_hashes": {
+        "case_config": "6825fbc46a3b7b3ae0ef0bcca4441127cb414e3b6177124eb7b7ce5c08b2fe6a",
+        "frames": "ac617c1161ea0e38f12a2100f3f2f88c20e3afab5efb67497c1087815f4ed20d"
+      },
+      "output_hashes": {
+        "sam2_masks": "7be05e9593e91ab80d13b1d969b9851743754fd1fb42eb97ad2b2c170be6d37f",
+        "sam2_trajectory": "5f79864bbad9f3ce0cf4bc8320b3757d9d35ba86cedb211d9820d06a70af6250"
+      },
+      "output_kinds": {
+        "sam2_masks": "directory",
+        "sam2_trajectory": "file"
+      },
+      "output_paths": {
+        "sam2_masks": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/segmentation/masks",
+        "sam2_trajectory": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/tracking/object_trajectory.csv"
+      },
+      "required": true,
+      "return_code": 0,
+      "runtime_env": "audiohoi",
+      "started_at": "2026-07-31T00:41:02.805179+00:00",
+      "status": "reused",
+      "stderr_tail": "",
+      "stdout_tail": "validated existing artifact bootstrap",
+      "task_id": "sam2"
+    },
+    {
+      "cache_key": "95dae22c21a833fb7814e8ffe2d3b961ed0ddc6fb8b1353093b34e19c524afb4",
+      "command": [
+        "/home/yang/miniconda3/envs/audiohoi/bin/python",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/scripts/shared/generic_contact_pipeline/tools/run_cotracker_object_points.py",
+        "--case-config",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/scripts/shared/generic_contact_pipeline/configs/cases/back_view_basketball.yaml",
+        "--sample-dir",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball",
+        "--object-family",
+        "dynamic_ball",
+        "--fps",
+        "24.0"
+      ],
+      "completed_at": "2026-07-31T00:41:03.042049+00:00",
+      "error": "",
+      "human_state_role": null,
+      "input_hashes": {
+        "frames": "ac617c1161ea0e38f12a2100f3f2f88c20e3afab5efb67497c1087815f4ed20d",
+        "sam2_masks": "7be05e9593e91ab80d13b1d969b9851743754fd1fb42eb97ad2b2c170be6d37f"
+      },
+      "output_hashes": {
+        "cotracker_center": "4db805f4eb9445462b3a46ba87c30b1a3e4582f51764ccc9afb140239545fe3f",
+        "cotracker_mesh_tracks": "667d748298a836e7fbb9996b09bf94db15b936317df2164000256b540ab96d77",
+        "cotracker_points": "4046d9b901b4c4f6eb02013ab5b58d3a022566f149e510faeefb109b0165b9ed"
+      },
+      "output_kinds": {
+        "cotracker_center": "file",
+        "cotracker_mesh_tracks": "file",
+        "cotracker_points": "file"
+      },
+      "output_paths": {
+        "cotracker_center": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/tracking/object_center_trajectory.csv",
+        "cotracker_mesh_tracks": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/tracking/object_mesh_tracks_test.csv",
+        "cotracker_points": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/tracking/object_points.csv"
+      },
+      "required": true,
+      "return_code": 0,
+      "runtime_env": "audiohoi",
+      "started_at": "2026-07-31T00:41:02.920477+00:00",
+      "status": "reused",
+      "stderr_tail": "",
+      "stdout_tail": "validated existing artifact bootstrap",
+      "task_id": "cotracker"
+    },
+    {
+      "cache_key": "40ab9d89d1358965103db76455cf1d9c9617b70ba6a3b8c6d7040770a134f65d",
+      "command": [
+        "/home/yang/miniconda3/envs/da3/bin/python",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/scripts/shared/generic_contact_pipeline/tools/run_da3_scene_depth.py",
+        "--sample-dir",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball",
+        "--da3-root",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/third-party/Depth-Anything-3",
+        "--model-dir",
+        "depth-anything/DA3METRIC-LARGE",
+        "--chunk-size",
+        "16",
+        "--process-res",
+        "504"
+      ],
+      "completed_at": "2026-07-31T00:41:03.297738+00:00",
+      "error": "",
+      "human_state_role": null,
+      "input_hashes": {
+        "da3_cli": "6f04384aa03bac1e60d44ac2b74e5c43dd0c1db1c5b43a2888a4c4ba724e536a",
+        "frames": "ac617c1161ea0e38f12a2100f3f2f88c20e3afab5efb67497c1087815f4ed20d"
+      },
+      "output_hashes": {
+        "da3_scene_depth": "42572203a7256b24af57ba669f46e54bd4ba6b65d5c2a94e2e19acb7ea9794c2"
+      },
+      "output_kinds": {
+        "da3_scene_depth": "directory"
+      },
+      "output_paths": {
+        "da3_scene_depth": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/da3/scene_depth"
+      },
+      "required": true,
+      "return_code": 0,
+      "runtime_env": "da3",
+      "started_at": "2026-07-31T00:41:03.042081+00:00",
+      "status": "reused",
+      "stderr_tail": "",
+      "stdout_tail": "validated existing artifact bootstrap",
+      "task_id": "da3"
+    },
+    {
+      "cache_key": "b7e1abad07f4296b46525d5dbfff29a7a05c81bcc454e1de179b2a2b72b255ac",
+      "command": [
+        "/home/yang/miniconda3/envs/audiohoi/bin/python",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/scripts/shared/generic_contact_pipeline/tools/run_object_depth_prior.py",
+        "--sample-dir",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball"
+      ],
+      "completed_at": "2026-07-31T00:41:03.414638+00:00",
+      "error": "",
+      "human_state_role": null,
+      "input_hashes": {
+        "cotracker_center": "4db805f4eb9445462b3a46ba87c30b1a3e4582f51764ccc9afb140239545fe3f",
+        "da3_scene_depth": "42572203a7256b24af57ba669f46e54bd4ba6b65d5c2a94e2e19acb7ea9794c2",
+        "sam2_masks": "7be05e9593e91ab80d13b1d969b9851743754fd1fb42eb97ad2b2c170be6d37f",
+        "sam2_trajectory": "5f79864bbad9f3ce0cf4bc8320b3757d9d35ba86cedb211d9820d06a70af6250"
+      },
+      "output_hashes": {
+        "object_depth_prior": "df23cbdcdac32b88a0688c3105881b5aaa167b98a6206c6fb0a06bac2343d2a0"
+      },
+      "output_kinds": {
+        "object_depth_prior": "file"
+      },
+      "output_paths": {
+        "object_depth_prior": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/da3/priors/object_depth_prior.csv"
+      },
+      "required": true,
+      "return_code": 0,
+      "runtime_env": "audiohoi",
+      "started_at": "2026-07-31T00:41:03.297769+00:00",
+      "status": "reused",
+      "stderr_tail": "",
+      "stdout_tail": "validated existing artifact bootstrap",
+      "task_id": "object_depth_prior"
+    },
+    {
+      "cache_key": "b0e145f6f1a59414c2d08dfe54e680deda840807e202d6ac852f4a70d6f08620",
+      "command": [
+        "/home/yang/miniconda3/envs/gvhmr/bin/python",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/scripts/shared/human/gvhmr/run_gvhmr.py",
+        "--sample-dir",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball",
+        "--fps",
+        "24",
+        "--static-cam"
+      ],
+      "completed_at": "2026-07-31T00:41:03.647957+00:00",
+      "error": "",
+      "human_state_role": "read_only_observed",
+      "input_hashes": {
+        "frames": "ac617c1161ea0e38f12a2100f3f2f88c20e3afab5efb67497c1087815f4ed20d",
+        "gvhmr_checkpoint": "4fae7da2de388d5da3514cb27a2d003f364dacb280e9cf88972b710e589c6b91",
+        "video": "c045bc02e3d5a7337b70993eec2364831a7561ce0bda859936e0a4236913eae3"
+      },
+      "output_hashes": {
+        "gvhmr_result": "791f1d563a81c92be0f5853e1ac6c7d9cd46680d398929ea6bfb6b5231b18fb9"
+      },
+      "output_kinds": {
+        "gvhmr_result": "file"
+      },
+      "output_paths": {
+        "gvhmr_result": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/gvhmr/result.pkl"
+      },
+      "required": true,
+      "return_code": 0,
+      "runtime_env": "gvhmr",
+      "started_at": "2026-07-31T00:41:03.414665+00:00",
+      "status": "reused",
+      "stderr_tail": "",
+      "stdout_tail": "validated existing artifact bootstrap",
+      "task_id": "gvhmr"
+    },
+    {
+      "cache_key": "c5ffc29d55fc26c78e50dfa711134380eaa1cf7cb68b9c90405917b976468960",
+      "command": [
+        "/home/yang/miniconda3/envs/audiohoi/bin/python",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/scripts/shared/generic_contact_pipeline/tools/run_audio_event_extract.py",
+        "--sample-dir",
+        "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball"
+      ],
+      "completed_at": "2026-07-31T00:41:07.750576+00:00",
+      "error": "",
+      "human_state_role": null,
+      "input_hashes": {
+        "audio": "e346de5d68a802a8d8ef687d5359cd3982633691cb1e6ac2abafe248d9e43606",
+        "cotracker_center": "4db805f4eb9445462b3a46ba87c30b1a3e4582f51764ccc9afb140239545fe3f",
+        "frames": "ac617c1161ea0e38f12a2100f3f2f88c20e3afab5efb67497c1087815f4ed20d",
+        "gvhmr_result": "791f1d563a81c92be0f5853e1ac6c7d9cd46680d398929ea6bfb6b5231b18fb9"
+      },
+      "output_hashes": {
+        "audio_events": "0fc40217b3d0609d1f3298729b5355c754a6d7748133047495c4d1eac68338ee"
+      },
+      "output_kinds": {
+        "audio_events": "file"
+      },
+      "output_paths": {
+        "audio_events": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/events/audio_events.csv"
+      },
+      "required": true,
+      "return_code": 0,
+      "runtime_env": "audiohoi",
+      "started_at": "2026-07-31T00:41:03.647984+00:00",
+      "status": "generated",
+      "stderr_tail": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/src/audio/visual_context.py:73: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.\n  v = torch.load(str(p), map_location=\"cpu\")\n/home/yang/miniconda3/envs/audiohoi/lib/python3.10/site-packages/librosa/core/spectrum.py:266: UserWarning: n_fft=2048 is too large for input signal of length=800\n  warnings.warn(\n/mnt/hdd/AudioHOI-object-stage0-solver-integration/src/audio/visual_context.py:73: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.\n  v = torch.load(str(p), map_location=\"cpu\")\n",
+      "stdout_tail": "{\"classifier\": \"rule\", \"detector\": \"combined\", \"empty_event_stream_valid\": false, \"event_count\": 11, \"fps\": 24.0, \"output\": \"/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/events/audio_events.csv\", \"sample_dir\": \"/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball\", \"schema_version\": 1, \"status\": \"generated\"}\n",
+      "task_id": "audio_events"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "case_name": "back_view_basketball",
+  "stage": "stage4",
+  "gate_rows": 12,
+  "effective_rows": 8,
+  "blocked_frames": [],
+  "unclear_frames": [
+    23,
+    42,
+    58,
+    73,
+    78,
+    96,
+    161
+  ],
+  "accepted_contact_frames": [],
+  "accepted_anchor_frames": [],
+  "gate_csv": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/vlm_gates.csv"
+}

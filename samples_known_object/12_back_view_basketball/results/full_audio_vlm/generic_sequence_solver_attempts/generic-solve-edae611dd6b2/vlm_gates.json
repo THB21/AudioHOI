@@ -1,0 +1,16 @@
+{
+  "continuous_pose_override": false,
+  "gates": {
+    "blocking": false,
+    "canonical_sha256": "b692f4b28cd21d1f26bb0dcc31c575d04d3f60801caa05f9e31e17b2550fda10",
+    "continuous_pose_override": false,
+    "decisions": [],
+    "model": "",
+    "provider": "",
+    "sample_id": "back_view_basketball",
+    "schema_version": 1,
+    "status": "not_evaluated"
+  },
+  "schema_version": 1,
+  "status": "evaluated"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "stage": "stage1",
+  "attempt_id": "000001",
+  "status": "completed",
+  "record": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/provenance/stages/stage1/attempts/000001.json",
+  "finished_at": "2026-07-31T00:54:25.614321+00:00"
+}

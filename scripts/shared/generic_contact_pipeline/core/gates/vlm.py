@@ -273,7 +273,13 @@ def stage_keyframes(profile: CaseProfile, stage: str) -> list[tuple[int, str]]:
             "stage6": paths["object_pose"],
             "stage7": paths["loss_residuals"],
         }
-        rows_all = _read_rows(source_by_stage_all.get(stage, paths["object_pose"]))
+        source = source_by_stage_all.get(stage, paths["object_pose"])
+        rows_all = _read_rows(source)
+        if stage == "stage4" and not rows_all:
+            for fallback in (paths["contact_state"], paths["contact_candidates"], paths["object_pose"]):
+                rows_all = _read_rows(fallback)
+                if rows_all:
+                    break
         out: list[tuple[int, str]] = []
         seen: set[int] = set()
         for row in rows_all:
@@ -352,7 +358,7 @@ def temporal_risk_keyframes(profile: CaseProfile, stage: str, *, limit: int = 80
 
 
 def constraint_risk_intervals(profile: CaseProfile, *, maximum_window_frames: int = 24) -> list[tuple[int, int, int, str]]:
-    """Find generic line-observation/contact overlap windows for VLM arbitration."""
+    """Find generic visual/contact conflict windows for VLM arbitration."""
 
     if maximum_window_frames < 1:
         raise ValueError("constraint reliability window must contain at least one frame")
@@ -361,13 +367,21 @@ def constraint_risk_intervals(profile: CaseProfile, *, maximum_window_frames: in
         for row in _read_rows(profile.result_dir / "line_observations.csv")
         if str(row.get("line_observation_trusted", "1")).strip().lower() not in {"0", "false"}
     }
-    contact_rows = _read_rows(stage_paths(profile)["object_contact_points"])
+    paths = stage_paths(profile)
+    contact_rows: list[dict[str, str]] = []
+    for path in (paths["object_contact_points"], paths["contact_state"], paths["contact_candidates"]):
+        contact_rows = _read_rows(path)
+        if contact_rows:
+            break
     contact_frames = {
         _row_frame(row, 1)
         for row in contact_rows
-        if str(row.get("contact_active", "1")).strip().lower() not in {"0", "false"}
+        if any(
+            str(row.get(field, "")).strip().lower() in {"1", "1.0", "true", "active"}
+            for field in ("contact_active", "human_contact_state", "anchor_contact_state", "floor_contact_state")
+        )
     }
-    frames = sorted(line_frames & contact_frames)
+    frames = sorted((line_frames & contact_frames) if line_frames else contact_frames)
     if not frames:
         return [(frame, frame, frame, time) for frame, time in stage_keyframes(profile, "stage4")]
     times = {_row_frame(row, 1): _row_time(row) for row in contact_rows}
@@ -483,6 +497,29 @@ def _draw_point(img: Any, u: float | None, v: float | None, label: str, color: t
     _draw_label(img, label, (x + 12, max(18, y - 18)), color)
 
 
+def _draw_circle(
+    img: Any,
+    u: float | None,
+    v: float | None,
+    radius: float | None,
+    label: str,
+    color: tuple[int, int, int],
+) -> None:
+    if u is None or v is None:
+        return
+    if radius is None or radius <= 1.0:
+        _draw_point(img, u, v, label, color)
+        return
+    _Image, ImageDraw = _pil_modules()
+    if ImageDraw is None:
+        return
+    draw = ImageDraw.Draw(img)
+    x, y, r = int(round(u)), int(round(v)), int(round(radius))
+    draw.ellipse((x - r, y - r, x + r, y + r), outline=(20, 20, 20), width=9)
+    draw.ellipse((x - r, y - r, x + r, y + r), outline=color, width=5)
+    _draw_label(img, label, (x + r + 10, max(18, y - r)), color)
+
+
 def _draw_line(img: Any, a: tuple[float, float] | None, b: tuple[float, float] | None, label: str, color: tuple[int, int, int]) -> None:
     if a is None or b is None:
         return
@@ -529,7 +566,20 @@ def _draw_stage4_context(profile: CaseProfile, img: Any, frame: int) -> None:
     line = _visual_line_measurement(profile, frame)
     if line is not None:
         _draw_line(img, line[0], line[1], "visual object measurement", (40, 255, 80))
-    rows = [row for row in _read_rows(stage_paths(profile)["object_contact_points"]) if _row_frame(row, 1) == frame]
+    paths = stage_paths(profile)
+    observation = _rows_by_frame(paths["object_observations"]).get(frame, {})
+    if line is None:
+        _draw_circle(
+            img,
+            _float(observation, "ref_u"),
+            _float(observation, "ref_v"),
+            _float(observation, "radius_px"),
+            "visual object measurement",
+            (40, 255, 80),
+        )
+    rows = [row for row in _read_rows(paths["object_contact_points"]) if _row_frame(row, 1) == frame]
+    if not rows:
+        rows = [row for row in _read_rows(paths["contact_state"]) if _row_frame(row, 1) == frame]
     for row in rows:
         u = _float(row, "palm_u")
         v = _float(row, "palm_v")
@@ -537,13 +587,40 @@ def _draw_stage4_context(profile: CaseProfile, img: Any, frame: int) -> None:
             u = _float(row, "state_active_part_u")
         if v is None:
             v = _float(row, "state_active_part_v")
-        side = row.get("human_side") or row.get("contact_side") or "palm"
-        active = str(row.get("contact_active", "1")).strip() not in {"0", "false", "False"}
+        side = row.get("human_side") or row.get("contact_side") or row.get("contact_label") or "palm"
+        human_active = any(
+            str(row.get(field, "")).strip().lower() in {"1", "1.0", "true", "active"}
+            for field in ("contact_active", "human_contact_state", "anchor_contact_state")
+        )
+        floor_active = str(row.get("floor_contact_state", "")).strip().lower() in {"1", "1.0", "true", "active"}
+        if floor_active and not human_active:
+            u = _float(observation, "support_u") or _float(observation, "ref_u")
+            v = _float(observation, "support_v") or _float(observation, "ref_v")
+            side = "floor"
+        active = human_active or floor_active
         color = (255, 230, 0) if active else (160, 160, 160)
         label = f"{side} active" if active else f"{side} inactive"
         _draw_point(img, u, v, label, color)
     _draw_label(img, "dark render = predicted object; green = visual measurement", (24, 42), (40, 255, 80))
     _draw_label(img, "yellow = active read-only human contact site; gray = inactive", (24, 76), (255, 230, 0))
+
+
+def _crop_stage4_evidence(profile: CaseProfile, img: Any, frame: int) -> Any:
+    """Crop a generic point/line interaction region without object identity rules."""
+
+    row = _rows_by_frame(stage_paths(profile)["object_observations"]).get(frame, {})
+    u = _float(row, "ref_u")
+    v = _float(row, "ref_v")
+    if u is None or v is None:
+        return img
+    width, height = img.size
+    crop_w = min(width, 720)
+    crop_h = min(height, 405)
+    left = int(round(u - crop_w / 2))
+    top = int(round(v - crop_h / 2))
+    left = max(0, min(left, width - crop_w))
+    top = max(0, min(top, height - crop_h))
+    return img.crop((left, top, left + crop_w, top + crop_h))
 
 
 def _draw_mask(img: Any, mask_path: Path | None) -> None:
@@ -738,6 +815,7 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
                 if panel is not None:
                     _draw_stage4_context(profile, panel, fr)
                     _draw_label(panel, f"frame {fr:03d}", (18, 24), (255, 255, 255))
+                    panel = _crop_stage4_evidence(profile, panel, fr)
                     panel = panel.resize((426, 240))
                     frames.append(panel)
             if frames:

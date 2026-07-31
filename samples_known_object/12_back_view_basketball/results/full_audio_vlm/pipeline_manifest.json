@@ -1,0 +1,541 @@
+{
+  "case_name": "back_view_basketball",
+  "profile": {
+    "case_name": "back_view_basketball",
+    "sample_dir": "samples_known_object/12_back_view_basketball",
+    "object_family": "dynamic_ball",
+    "geometry_model": "sphere_proxy",
+    "geometry_asset_descriptor": "scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json",
+    "sphere": {
+      "radius_m": 0.12
+    },
+    "observation_model": "mask_track_center",
+    "contact_policy": "hand_floor",
+    "pose_model": "translation3",
+    "generic_object_problem": {
+      "initializer": "point_depth",
+      "initializer_artifacts": [
+        "object_observations.csv",
+        "contact_state_frames.csv",
+        "contact_candidates_internal/contact_candidates_labeled.csv"
+      ],
+      "contact_artifact": "object_contact_points.csv",
+      "contact_state_artifact": "contact_state_frames.csv",
+      "contact_source": "event_directional",
+      "contact_event_artifact": "contact_candidates_internal/contact_candidates_labeled.csv",
+      "contact_target_feature": "object:center",
+      "contact_residual_axes": [
+        2
+      ],
+      "maximum_contact_offset_m": 1.0,
+      "depth_reference": "directional_contact_interpolation",
+      "measurement_factors": [
+        "point_reprojection",
+        "metric_depth"
+      ],
+      "measurement_roles": {
+        "point_reprojection": [
+          "object_center"
+        ],
+        "metric_depth": [
+          "object_center_depth"
+        ]
+      },
+      "sequence_factors": [
+        "temporal_acceleration",
+        "static_freeze"
+      ]
+    },
+    "factor_runtime": {
+      "point_reprojection": {
+        "weight": 1.0,
+        "sigma": 5.0,
+        "sigma_unit": "px",
+        "source": "measurement_ir:center_and_support_pixel_uncertainty",
+        "activation_weight_tiers": {
+          "active": 1.0,
+          "downweighted": 0.25,
+          "inactive": 0.0
+        }
+      },
+      "metric_depth": {
+        "weight": 0.245,
+        "sigma": 0.35,
+        "sigma_unit": "m",
+        "source": "measurement_ir:monocular_metric_depth_weak_prior",
+        "activation_weight_tiers": {
+          "active": 1.0,
+          "downweighted": 0.25,
+          "inactive": 0.0
+        }
+      },
+      "contact_distance": {
+        "weight": 1.0,
+        "sigma": 0.035,
+        "sigma_unit": "m",
+        "source": "interaction_state:fixed_human_site_to_object_surface",
+        "activation_weight_tiers": {
+          "active": 1.0,
+          "downweighted": 0.25,
+          "inactive": 0.0
+        }
+      },
+      "temporal_acceleration": {
+        "weight": 1.0,
+        "state_scales": [
+          0.8,
+          0.67,
+          0.2
+        ],
+        "source": "sequence_translation_optimizer:second_difference_continuity",
+        "activation_weight_tiers": {
+          "active": 1.0,
+          "downweighted": 0.12,
+          "inactive": 0.0
+        }
+      },
+      "static_freeze": {
+        "weight": 100.0,
+        "state_scales": [
+          0.8,
+          0.67,
+          0.2
+        ],
+        "source": "generic_supported_static_interval_anchor",
+        "activation_weight_tiers": {
+          "active": 1.0,
+          "downweighted": 0.0,
+          "inactive": 0.0
+        }
+      }
+    },
+    "refinement_policy": [
+      "generic_sphere_sequence",
+      "backproject_xy"
+    ],
+    "render_backend": "proxy_sphere",
+    "result_name": "full_audio_vlm",
+    "preprocess": {
+      "fps": 24.0,
+      "static_camera": true,
+      "detector_model": "IDEA-Research/grounding-dino-tiny",
+      "detector_text": "basketball.",
+      "segmenter_model": "facebook/sam2.1-hiera-tiny",
+      "tracker": "cotracker3_offline",
+      "tracker_query_source": "sam2_mask_center",
+      "da3_chunk_size": 16,
+      "da3_process_res": 504
+    },
+    "vlm": {
+      "target": "basketball",
+      "parts": [
+        "ball_center",
+        "ball_boundary",
+        "ball_bottom",
+        "background",
+        "unclear"
+      ],
+      "contacts": [
+        "left_hand",
+        "right_hand",
+        "floor",
+        "body",
+        "nothing_nearby",
+        "unclear"
+      ],
+      "stable_refs": [
+        "center",
+        "bottom_support",
+        "boundary_point",
+        "unclear"
+      ],
+      "frame_policy": {
+        "stage1": "all",
+        "stage2": "all",
+        "stage4": "all"
+      }
+    },
+    "camera": {
+      "fx": 1468.604736328125,
+      "fy": 1468.604736328125,
+      "cx": 640.0,
+      "cy": 360.0
+    }
+  },
+  "result_dir": "samples_known_object/12_back_view_basketball/results/full_audio_vlm",
+  "render_dir": "samples_known_object/12_back_view_basketball/results/renders/full_audio_vlm",
+  "from_stage": "stage1",
+  "to_stage": "stage2",
+  "vlm_mode": "none",
+  "llm_mode": "none",
+  "vlm_blocking": false,
+  "capability_plugins": {
+    "observation": {
+      "kind": "observation",
+      "name": "mask_track_center",
+      "module": "scripts.shared.generic_contact_pipeline.components.observation.policies.mask_track_center",
+      "entrypoint": "build",
+      "requires": [],
+      "provides": [
+        "observation.point_reference"
+      ],
+      "role": "compatibility_adapter",
+      "plugin_id": "observation:mask_track_center"
+    },
+    "contact": {
+      "kind": "contact",
+      "name": "hand_floor",
+      "module": "scripts.shared.generic_contact_pipeline.components.contact.policies.hand_floor",
+      "entrypoint": "build",
+      "requires": [
+        "observation.point_reference"
+      ],
+      "provides": [
+        "contact.candidates",
+        "anchor.support"
+      ],
+      "role": "compatibility_adapter",
+      "plugin_id": "contact:hand_floor"
+    },
+    "pose": {
+      "kind": "pose",
+      "name": "translation3",
+      "module": "scripts.shared.generic_contact_pipeline.components.pose.models.translation3",
+      "entrypoint": "build",
+      "requires": [
+        "observation.point_reference",
+        "contact.candidates"
+      ],
+      "provides": [
+        "pose.se3"
+      ],
+      "role": "compatibility_adapter",
+      "plugin_id": "pose:translation3"
+    },
+    "refinement": [
+      {
+        "kind": "refinement",
+        "name": "generic_sphere_sequence",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.policies.generic_sphere_sequence",
+        "entrypoint": "apply",
+        "requires": [
+          "pose.se3",
+          "contact.candidates"
+        ],
+        "provides": [
+          "pose.seed_refined"
+        ],
+        "role": "mainline_implementation",
+        "plugin_id": "refinement:generic_sphere_sequence"
+      },
+      {
+        "kind": "refinement",
+        "name": "backproject_xy",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.policies.backproject_xy",
+        "entrypoint": "apply",
+        "requires": [
+          "pose.se3"
+        ],
+        "provides": [
+          "pose.seed_refined"
+        ],
+        "role": "compatibility_adapter",
+        "plugin_id": "refinement:backproject_xy"
+      }
+    ],
+    "implicit_mainline": [
+      {
+        "kind": "refinement",
+        "name": "sequence_se3_optimizer",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.sequence_se3_optimizer",
+        "entrypoint": "smooth_quaternion_pose_sequence",
+        "requires": [
+          "pose.se3"
+        ],
+        "provides": [
+          "pose.sequence_refined"
+        ],
+        "role": "mainline_marker_and_implementation",
+        "plugin_id": "refinement:sequence_se3_optimizer"
+      }
+    ],
+    "intrinsic_capabilities": [
+      "input.audio",
+      "input.video"
+    ],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ]
+  },
+  "stage_results": [
+    {
+      "stage": "stage1",
+      "result": {
+        "component": "generic_observation_mainline",
+        "case_name": "back_view_basketball",
+        "adapter": {
+          "component": "mask_track_center",
+          "source": "samples_known_object/12_back_view_basketball/results/tracking/object_trajectory.csv",
+          "center_source": "samples_known_object/12_back_view_basketball/results/tracking/object_center_trajectory.csv",
+          "points_source": "samples_known_object/12_back_view_basketball/results/tracking/object_points.csv",
+          "depth_source": "samples_known_object/12_back_view_basketball/results/da3/priors/object_depth_prior.csv",
+          "object_observations": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_observations.csv",
+          "local_points": "none_for_center_proxy",
+          "rows": 240,
+          "policy": "generic mask/object center/radius + optional CoTracker/object bottom + DA3 depth only; contact fields are owned by Stage2",
+          "adapter_component": "mask_track_center",
+          "capability_plugin": {
+            "kind": "observation",
+            "name": "mask_track_center",
+            "module": "scripts.shared.generic_contact_pipeline.components.observation.policies.mask_track_center",
+            "entrypoint": "build",
+            "requires": [],
+            "provides": [
+              "observation.point_reference"
+            ],
+            "role": "compatibility_adapter",
+            "plugin_id": "observation:mask_track_center"
+          }
+        },
+        "object_observations": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_observations.csv",
+        "object_correspondence": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_correspondence.csv",
+        "object_surface_points": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_surface_points.csv",
+        "object_semantic_points": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_semantic_points.csv",
+        "rows": 240,
+        "correspondence_rows": 240,
+        "surface_rows": 0,
+        "semantic_rows": 0,
+        "policy": "fixed generic observation contract; case-specific observation code is compatibility adapter only"
+      },
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "back_view_basketball",
+        "stage": "stage1",
+        "decision": "pass",
+        "llm_mode": "none",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 3,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [
+          "no_effective_vlm_gate"
+        ],
+        "audit_csv": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit/stage1/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit/stage1/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit/stage1/llm_audit_results.csv"
+      }
+    },
+    {
+      "stage": "stage2",
+      "result": {
+        "component": "generic_contact_anchor_mainline",
+        "case_name": "back_view_basketball",
+        "adapter": {
+          "component": "hand_floor_from_anchor_floor_candidates",
+          "rows": 147,
+          "contact_candidates": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_candidates.csv",
+          "contact_state": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_state_frames.csv",
+          "contact_events": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_events.csv",
+          "human_sites": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/human_sites.csv",
+          "support_geometry": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/support_geometry.json",
+          "anchor_candidate_source": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_candidates_internal/anchor_contact_candidates.csv",
+          "floor_candidate_source": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_candidates_internal/floor_contact_candidates.csv",
+          "depth_offset_source": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/ball_proxy_depth.csv",
+          "policy": "generic fusion of anchor/floor gates with result-owned contact intervals and typed GVHMR human-site trajectories; ball_proxy_depth supplies mesh+DA3 contact-depth offsets",
+          "adapter_component": "hand_floor",
+          "capability_plugin": {
+            "kind": "contact",
+            "name": "hand_floor",
+            "module": "scripts.shared.generic_contact_pipeline.components.contact.policies.hand_floor",
+            "entrypoint": "build",
+            "requires": [
+              "observation.point_reference"
+            ],
+            "provides": [
+              "contact.candidates",
+              "anchor.support"
+            ],
+            "role": "compatibility_adapter",
+            "plugin_id": "contact:hand_floor"
+          }
+        },
+        "contact_candidates": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_candidates.csv",
+        "anchor_state": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/anchor_state.csv",
+        "anchor_rows": 147,
+        "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only"
+      },
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "back_view_basketball",
+        "stage": "stage2",
+        "decision": "pass",
+        "llm_mode": "none",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 3,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [
+          "no_effective_vlm_gate"
+        ],
+        "audit_csv": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit/stage2/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit/stage2/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit/stage2/llm_audit_results.csv"
+      }
+    }
+  ],
+  "generic_se3_mainline": {
+    "enabled": true,
+    "contract": "fixed_preprocess_observation_contact_anchor_se3_init_sequence_optimizer",
+    "object_family": "dynamic_ball",
+    "yaml_plugin_selectors": {
+      "observation_model": "mask_track_center",
+      "contact_policy": "hand_floor",
+      "pose_model": "translation3",
+      "refinement_policy": [
+        "generic_sphere_sequence",
+        "backproject_xy"
+      ],
+      "resolution": "explicit capability plugin registry",
+      "role": "Stage1-3 selectors invoke compatibility adapters; Stage4 refinement selectors run in declared order as compatibility seed/residual builders, except plugins explicitly marked as mainline markers or implementations"
+    },
+    "artifacts": {
+      "stage0_inputs_manifest": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage0_inputs_manifest.json",
+        "exists": true,
+        "rows": 121
+      },
+      "object_observations": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_observations.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_correspondence": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_correspondence.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_surface_points": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_surface_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "object_semantic_points": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_semantic_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "line_correspondence": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/line_correspondence.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "line_observations": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/line_observations.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "contact_candidates": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_candidates.csv",
+        "exists": true,
+        "rows": 147
+      },
+      "anchor_state": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/anchor_state.csv",
+        "exists": true,
+        "rows": 147
+      },
+      "object_pose_init": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_pose_init.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_pose_pre_smooth": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_pose_pre_smooth.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "motion_regime": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/motion_regime.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "physical_smooth_residuals": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/physical_smooth_residuals.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "pose_jump_audit": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/pose_jump_audit.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "optimizer_decisions": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/optimizer_decisions.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "object_pose": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_pose.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_contact_points": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_contact_points.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "stage_audit_gates": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit/stage_audit_gates.csv",
+        "exists": true,
+        "rows": 6
+      },
+      "stage_audit_latest": {
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit/stage_audit_latest.json",
+        "exists": true,
+        "rows": 16
+      }
+    },
+    "actual_vlm_artifacts": {
+      "exists": false,
+      "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm",
+      "stage_count": 0,
+      "file_count": 0,
+      "csv_row_count": 0,
+      "stages": {}
+    },
+    "actual_stage_audit_artifacts": {
+      "exists": true,
+      "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit",
+      "stage_count": 2,
+      "file_count": 10,
+      "csv_row_count": 6,
+      "stages": {
+        "stage1": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 0,
+            "stage_audit_gates.csv": 3
+          }
+        },
+        "stage2": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 0,
+            "stage_audit_gates.csv": 3
+          }
+        }
+      }
+    }
+  }
+}

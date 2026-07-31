@@ -1,0 +1,38 @@
+{
+  "id": 14,
+  "name": "pingpong_wall",
+  "image": "video_sample/14_pingpong_wall.jpg",
+  "video": "video_sample/14_pingpong_wall_video.mp4",
+  "sample_video": "samples_known_object/14_pingpong_wall/video.mp4",
+  "frame_prompt": "Create a photorealistic 16:9 first frame of a solo table-tennis wall practice. Show one adult player from head to knees at a locked rear-side camera angle, facing a flat light-gray practice wall about two meters away. The player holds one red-and-black table-tennis paddle in the right hand. One white ping-pong ball is clearly visible in midair about twenty centimeters in front of the paddle, ready for the first forehand hit. Keep the hand, paddle face, ball, forearm, and the ball-to-wall flight corridor inside the frame. Use a plain uncluttered room, realistic anatomy and lighting, and moderate visual contrast between the white ball and wall. The first frame itself must be sharp. No table, no ball machine, no other balls, no other people, no text, no logos, and no watermark.",
+  "video_prompt": "Generate an 8-second photorealistic video from the supplied first frame. Use one completely static camera with no cuts, zooms, pans, camera shake, or slow motion. The player performs a continuous solo rally using the same single white ping-pong ball, making exactly five fast forehand paddle contacts. After each paddle contact, the ball travels quickly to the flat wall, contacts the wall once, and returns to the paddle for the next hit. Preserve the strict alternating event order: paddle hit, wall rebound, paddle hit, wall rebound. During the fastest middle portion of each flight, render natural high-speed motion blur so the ball becomes a short faint streak and may be visually unresolvable as a distinct sphere for two to four consecutive video frames. At two paddle contacts, allow the ball to be completely hidden behind the paddle or forearm for one to two frames. The ball must become clearly visible again near each wall rebound and immediately before or after each paddle contact, so its identity and approximate trajectory remain recoverable. Add exactly one light hollow click at every paddle-ball contact and one slightly sharper tick at every ball-wall contact, each precisely synchronized to the physical contact frame. Add no sound during free flight and no extra impacts, music, or speech. The ball must not teleport, duplicate, merge, deform, change size, switch identity, or reverse direction without paddle or wall contact.",
+  "prompt": "Generate an 8-second photorealistic video from the supplied first frame. Use one completely static camera with no cuts, zooms, pans, camera shake, or slow motion. The player performs a continuous solo rally using the same single white ping-pong ball, making exactly five fast forehand paddle contacts. After each paddle contact, the ball travels quickly to the flat wall, contacts the wall once, and returns to the paddle for the next hit. Preserve the strict alternating event order: paddle hit, wall rebound, paddle hit, wall rebound. During the fastest middle portion of each flight, render natural high-speed motion blur so the ball becomes a short faint streak and may be visually unresolvable as a distinct sphere for two to four consecutive video frames. At two paddle contacts, allow the ball to be completely hidden behind the paddle or forearm for one to two frames. The ball must become clearly visible again near each wall rebound and immediately before or after each paddle contact, so its identity and approximate trajectory remain recoverable. Add exactly one light hollow click at every paddle-ball contact and one slightly sharper tick at every ball-wall contact, each precisely synchronized to the physical contact frame. Add no sound during free flight and no extra impacts, music, or speech. The ball must not teleport, duplicate, merge, deform, change size, switch identity, or reverse direction without paddle or wall contact.",
+  "detection_text": "white ping-pong ball. table-tennis ball. ping pong ball.",
+  "tool_detection_text": "red and black table-tennis paddle. ping-pong paddle.",
+  "environment_detection_text": "flat light-gray wall. practice wall.",
+  "media": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24.0,
+    "frame_count": 240,
+    "duration_seconds": 10.005,
+    "has_audio": true,
+    "requested_duration_seconds": 8.0
+  },
+  "provenance_warnings": [
+    "source_filename_tennisball_mp4_but_content_is_pingpong_wall_practice",
+    "frame_prompt_was_supplied_twice_with_identical_text_and_was_normalized_to_one_copy",
+    "requested_duration_8_seconds_but_materialized_video_duration_is_10.005_seconds"
+  ],
+  "heldout_role": "high_speed_pingpong",
+  "scope": "object_only",
+  "optimized_entity": "pingpong_ball",
+  "observed_entities": [
+    "table_tennis_paddle",
+    "human_skeleton"
+  ],
+  "static_entities": [
+    "practice_wall"
+  ],
+  "human_evidence": "gvhmr_read_only"
+}

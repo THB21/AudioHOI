@@ -1,0 +1,281 @@
+{
+  "continuous_pose_override": false,
+  "gates": {
+    "blocking": false,
+    "canonical_sha256": "025dc78effb903478f53b2a3bea51695b575c4d420467b8fbf578ba49852b8f4",
+    "continuous_pose_override": false,
+    "decisions": [
+      {
+        "decision_id": "vlm-factor-0001",
+        "end_frame": 3,
+        "evidence_ids": [
+          "sha256:b4e80361ea4f9576a179543627bfc072472b88f99b32ed66aecf5e902b75f4fc"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "both_consistent",
+        "prompt_sha256": "dd9f9d5f9763e88afa3edb1cf77088798f8863c59aab7b038b658b1ea4a57eba",
+        "provenance": [
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/vlm_queries.csv",
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00001-00003",
+        "response_sha256": "e87c2bcb35e51a91b48e3c0124f541fe49749e3ebca39cb0348ea6b091e46fe7",
+        "start_frame": 1,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0002",
+        "end_frame": 23,
+        "evidence_ids": [
+          "sha256:c6aaf2ca5e50b5c326f7c5b01e11e6233b199aa64c57afab0336ad4ed7bacac9"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "unclear",
+        "prompt_sha256": "3bb18790a44e67e36ea2f09e88393727bd144453146f210730b67eac809bd264",
+        "provenance": [
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/vlm_queries.csv",
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00023-00023",
+        "response_sha256": "a9fb56bb7fee6f45d1b306a4fa2586cd35fa6518ef56cd49490ad3ce0578159c",
+        "start_frame": 23,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "downweighted"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0003",
+        "end_frame": 42,
+        "evidence_ids": [
+          "sha256:7614bf05fcbd0e06700f2cbf9fa69e278ca34ee71e04aa41c557eccaf85b8210"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "unclear",
+        "prompt_sha256": "221f9ddfb40e7dc90e72b9bff1d79dfcace2fd2c6d6e30bbeecc1301d54fb0fd",
+        "provenance": [
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/vlm_queries.csv",
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00042-00042",
+        "response_sha256": "6517a0f68d886da57c7f02b53083ee8f4d8be82b062980df3700cfb0093339f5",
+        "start_frame": 42,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "downweighted"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0004",
+        "end_frame": 58,
+        "evidence_ids": [
+          "sha256:878dc579f19eab5e31e76b2d7ffd47ca46574ffe47afab8808dc37a3d0446ce6"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "unclear",
+        "prompt_sha256": "63913979e01548e5e82784a71c90e272b8e82e5825239dcc2f405b5a265b88a9",
+        "provenance": [
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/vlm_queries.csv",
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00058-00058",
+        "response_sha256": "6ef55fa4fa19dc7d941074a05d69b18bd8df1bfa1556ad9d7e44e0e10a5682be",
+        "start_frame": 58,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "downweighted"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0005",
+        "end_frame": 73,
+        "evidence_ids": [
+          "sha256:70607f67249bb3e94a17e737370be67939dc2a631149435b825b0a2b318f60ce"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "unclear",
+        "prompt_sha256": "495af3391215378a362097530b74d4aefa33017b3bf3d1bb285a7eef4974be98",
+        "provenance": [
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/vlm_queries.csv",
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00073-00073",
+        "response_sha256": "ff9f2a03c4a5b49336b4903caca07b9cc2a2141d5c19d155825ca0d668004075",
+        "start_frame": 73,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "downweighted"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0006",
+        "end_frame": 78,
+        "evidence_ids": [
+          "sha256:203deeb2f497cb1589089641aca1c61ed28ac6914c8102d69ce7017b41490ce4"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "unclear",
+        "prompt_sha256": "ed9217e095833b24196c9cee17fe77aa03de837dc37fe284bb9e8476567d7aba",
+        "provenance": [
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/vlm_queries.csv",
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00078-00078",
+        "response_sha256": "fd0aaef99b001f804ad854a091bab39ae467e1d5af5528776a85f112b1ed2858",
+        "start_frame": 78,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "downweighted"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0007",
+        "end_frame": 96,
+        "evidence_ids": [
+          "sha256:801dcc2a4b79ec36fd211c3c4b3da84ef2863ced149964161407e7f5fc4bce58"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "unclear",
+        "prompt_sha256": "630a3edb846d547353b06c913f917e6f8b0fe334e95a871937b73bee60b12cbe",
+        "provenance": [
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/vlm_queries.csv",
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00096-00096",
+        "response_sha256": "58ff8c401b1cdd1c43d461ecb9c158d8f0d6222bc2d851333491a9ea33f04885",
+        "start_frame": 96,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "downweighted"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0008",
+        "end_frame": 162,
+        "evidence_ids": [
+          "sha256:9489d2095a9e8c66a771da902e7615c37f5a5b6db57f2655e7f8aefc1a14e044"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "unclear",
+        "prompt_sha256": "18e27aaaa7f9ebbeba59c531487c92c71dd0f7034410b51fdeffe8bbd2aff1e9",
+        "provenance": [
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/vlm_queries.csv",
+          "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/12_back_view_basketball/results/full_audio_vlm/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00161-00162",
+        "response_sha256": "d03bb829e6d882e6d04e965f1ab638cc711873d5c69204562a2ba03bc91919d8",
+        "start_frame": 161,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "downweighted"
+          }
+        ]
+      }
+    ],
+    "model": "Qwen/Qwen3-VL-8B-Instruct",
+    "provider": "qwen_vl_local",
+    "sample_id": "back_view_basketball",
+    "schema_version": 1,
+    "status": "evaluated"
+  },
+  "schema_version": 1,
+  "status": "evaluated"
+}

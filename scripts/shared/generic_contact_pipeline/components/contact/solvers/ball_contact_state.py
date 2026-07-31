@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import subprocess
 import os
+import math
+import statistics
 from pathlib import Path
 
 from ....core.base.config import CaseProfile
@@ -63,6 +65,62 @@ def _is_on(row: dict[str, str], key: str) -> bool:
         return int(float(row.get(key, "0") or 0)) == 1
     except Exception:
         return False
+
+
+def _finite_number(row: dict[str, str], *keys: str) -> float | None:
+    for key in keys:
+        try:
+            value = float(row.get(key, ""))
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(value):
+            return value
+    return None
+
+
+def _materialize_support_geometry(
+    profile: CaseProfile,
+    paths: dict[str, Path],
+    floor_rows: list[dict[str, str]],
+) -> Path:
+    """Resolve declared support geometry or derive it from generic floor observations."""
+
+    declared = str(profile.data.get("support_geometry_input", "") or "").strip()
+    if declared:
+        source = repo_path(declared)
+        if not source.is_file():
+            raise FileNotFoundError(f"Missing declared support geometry observation: {source}")
+        return copy_file(source, paths["support_geometry"])
+
+    support_values = [
+        value
+        for row in floor_rows
+        if (value := _finite_number(row, "support_v", "support_v_raw")) is not None
+    ]
+    if not support_values:
+        raise ValueError("generic floor candidates contain no finite support-v observations")
+    confidence_values = [
+        value
+        for row in floor_rows
+        if (value := _finite_number(row, "support_conf", "floor_score")) is not None
+    ]
+    support_types = [
+        str(row.get("support_surface_type", "")).strip()
+        for row in floor_rows
+        if str(row.get("support_surface_type", "")).strip()
+    ]
+    support_type = max(set(support_types), key=support_types.count) if support_types else "floor"
+    return write_json(
+        paths["support_geometry"],
+        {
+            "support_type": support_type,
+            "floor_v": float(statistics.median(support_values)),
+            "source": "generic_floor_candidates_from_read_only_human_sites",
+            "confidence": float(statistics.median(confidence_values)) if confidence_values else 0.0,
+            "case_dispatch_used": False,
+            "human_state_optimized": False,
+        },
+    )
 
 
 def _label(default_part: str, side: str, human_on: bool, floor_on: bool) -> tuple[str, str, str]:
@@ -150,13 +208,11 @@ def build(profile: CaseProfile, *, default_part: str, source_name: str) -> dict[
 
     contact_events_out = copy_file(contact_events_csv, paths["contact_events"])
     human_sites_out = copy_file(human_sites_csv, paths["human_sites"])
-    support_geometry_source = repo_path(str(profile.data.get("support_geometry_input", "")))
-    if not support_geometry_source.exists():
-        raise FileNotFoundError(f"Missing declared support geometry observation: {support_geometry_source}")
-    support_geometry_out = copy_file(support_geometry_source, paths["support_geometry"])
+    floor_rows = read_csv(floor_csv)
+    support_geometry_out = _materialize_support_geometry(profile, paths, floor_rows)
 
     anchor_by_frame = _by_frame(read_csv(anchor_csv))
-    floor_by_frame = _by_frame(read_csv(floor_csv))
+    floor_by_frame = _by_frame(floor_rows)
     proxy_by_frame = _by_frame(read_csv(proxy_csv))
     frames = sorted(set(anchor_by_frame) | set(floor_by_frame) | set(proxy_by_frame))
 
@@ -199,8 +255,8 @@ def build(profile: CaseProfile, *, default_part: str, source_name: str) -> dict[
             "active_part_distance_px": _s(anchor, "active_part_distance_px"),
             "contact_depth_offset_m": offset,
             "object_acceleration": "",
-            "support_surface_type": "floor" if profile.case_name == "basketball" else "unknown_plane",
-            "support_source": "generic_floor_candidates",
+            "support_surface_type": _s(floor, "support_surface_type", "floor"),
+            "support_source": _s(floor, "support_source", "generic_floor_candidates"),
             "signed_support_gap_px": _s(floor, "signed_gap"),
             "support_conf": floor_score,
             "active_object_point_id": _s(anchor, "active_object_point_id") or _s(proxy, "contact_proxy_name"),

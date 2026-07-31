@@ -110,8 +110,10 @@ def load_factor_arbitration_ledger(
             provider = provider or "missing_provider"
             model = model or "missing_model"
             blocking = True
-        if label == "unclear":
-            blocking = True
+        # A valid forced-choice ``unclear`` response is conservative evidence:
+        # both competing factor groups are downweighted by _status_by_factor.
+        # It must not also reject publication. Missing/tampered evidence remains
+        # blocking through the not-evaluated branch above.
         providers.add(provider)
         models.add(model)
         prompt_payload = {

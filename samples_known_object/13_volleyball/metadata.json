@@ -1,0 +1,25 @@
+{
+  "id": 13,
+  "name": "volleyball",
+  "image": "video_sample/13_volleyball.jpg",
+  "video": "video_sample/13_volleyball_video.mp4",
+  "sample_video": "samples_known_object/13_volleyball/video.mp4",
+  "frame_prompt": "Create a photorealistic 16:9 first frame in a simple indoor volleyball court. Show one adult athlete at full-body scale from a locked side-rear camera. The athlete stands beneath one volleyball with both hands raised in a ready setting pose. Keep the hands, ball, face, torso, and floor visible. No net is required. No other balls, players, text, logos, or watermark.",
+  "video_prompt": "Use the picture I gave as first frame strictly to start the video. Generate an 8-second photorealistic video with a completely static camera and no cuts, zooms, or slow motion. The athlete performs five rapid controlled overhead volleyball sets, contacting the ball briefly with both hands each time and allowing a clear short flight between contacts. Add one soft but distinct hand-ball impact sound at each set, precisely synchronized, with no sound during flight. Preserve a continuous ballistic trajectory between contacts. The ball must not float, teleport, duplicate, deform, or change direction without hand contact.",
+  "prompt": "Use the picture I gave as first frame strictly to start the video. Generate an 8-second photorealistic video with a completely static camera and no cuts, zooms, or slow motion. The athlete performs five rapid controlled overhead volleyball sets, contacting the ball briefly with both hands each time and allowing a clear short flight between contacts. Add one soft but distinct hand-ball impact sound at each set, precisely synchronized, with no sound during flight. Preserve a continuous ballistic trajectory between contacts. The ball must not float, teleport, duplicate, deform, or change direction without hand contact.",
+  "detection_text": "volleyball. yellow and blue volleyball. ball.",
+  "media": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24.0,
+    "frame_count": 240,
+    "duration_seconds": 10.005,
+    "has_audio": true,
+    "requested_duration_seconds": 8.0
+  },
+  "provenance_warnings": [
+    "requested_duration_8_seconds_but_materialized_video_duration_is_10.005_seconds"
+  ],
+  "scope": "object_only",
+  "human_evidence": "gvhmr_read_only"
+}

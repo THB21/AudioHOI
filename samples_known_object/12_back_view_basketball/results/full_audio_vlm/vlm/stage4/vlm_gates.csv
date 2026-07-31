@@ -1,0 +1,13 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,allow_factor_arbitration,report_only,is_effective
+back_view_basketball,stage4,1,anchor_update_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0,0
+back_view_basketball,stage4,1,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0,0
+back_view_basketball,stage4,1,overlay_alignment_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0,0
+back_view_basketball,stage4,1,temporal_motion_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0,0
+back_view_basketball,stage4,2,constraint_reliability_check,both_consistent,pass,accept_candidate,0,0,1,1,0,1
+back_view_basketball,stage4,23,constraint_reliability_check,unclear,unclear,unclear_no_update,0,0,0,1,0,1
+back_view_basketball,stage4,42,constraint_reliability_check,unclear,unclear,unclear_no_update,0,0,0,1,0,1
+back_view_basketball,stage4,58,constraint_reliability_check,unclear,unclear,unclear_no_update,0,0,0,1,0,1
+back_view_basketball,stage4,73,constraint_reliability_check,unclear,unclear,unclear_no_update,0,0,0,1,0,1
+back_view_basketball,stage4,78,constraint_reliability_check,unclear,unclear,unclear_no_update,0,0,0,1,0,1
+back_view_basketball,stage4,96,constraint_reliability_check,unclear,unclear,unclear_no_update,0,0,0,1,0,1
+back_view_basketball,stage4,161,constraint_reliability_check,unclear,unclear,unclear_no_update,0,0,0,1,0,1

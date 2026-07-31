@@ -225,9 +225,9 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
         ),
         _task(
             "object_depth_prior", "audiohoi", ("sam2", "cotracker", "da3"),
-            (depth, masks, trajectory), (depth_prior,),
+            (depth, masks, trajectory, center), (depth_prior,),
             _runtime_command("audiohoi", depth_prior_tool, "--sample-dir", str(sample)),
-            config={"reducer": "sam2_mask_median", "smooth_window": 7},
+            config={"reducer": "sam2_mask_median_with_missing_mask_interpolation", "smooth_window": 7},
             validator=lambda count: _validate_object_depth_prior(depth_prior.path, count),
         ),
         _task(

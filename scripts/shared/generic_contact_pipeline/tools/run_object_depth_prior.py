@@ -48,18 +48,25 @@ def build_object_depth_prior(sample_dir: Path, *, smooth_window: int = 7) -> dic
     depth_index = depth_dir / "index.csv"
     masks_dir = results / "segmentation/masks"
     trajectory = results / "tracking/object_trajectory.csv"
-    for required in (depth_index, masks_dir, trajectory):
+    center_trajectory = results / "tracking/object_center_trajectory.csv"
+    for required in (depth_index, masks_dir, trajectory, center_trajectory):
         if not required.exists():
             raise FileNotFoundError(f"object depth prior input is missing: {required}")
 
     depth_rows = _by_frame(depth_index)
     track_rows = _by_frame(trajectory)
+    center_rows = _by_frame(center_trajectory)
     frames = tuple(sorted(depth_rows))
-    if frames != tuple(range(1, len(frames) + 1)) or set(track_rows) != set(frames):
-        raise ValueError("depth index and object trajectory must cover the same contiguous frames")
+    if (
+        frames != tuple(range(1, len(frames) + 1))
+        or set(track_rows) != set(frames)
+        or set(center_rows) != set(frames)
+    ):
+        raise ValueError("depth index and object trajectories must cover the same contiguous frames")
 
-    raw_depth: list[float] = []
+    observed_depth: list[float] = []
     confidence: list[float] = []
+    observation_state: list[str] = []
     for frame in frames:
         depth_path = depth_dir / depth_rows[frame]["file"]
         mask_path = masks_dir / f"{frame:05d}_mask.png"
@@ -73,9 +80,20 @@ def build_object_depth_prior(sample_dir: Path, *, smooth_window: int = 7) -> dic
         values = np.asarray(depth[selected], dtype=float)
         values = values[np.isfinite(values) & (values > 0.0)]
         if not len(values):
-            raise ValueError(f"object mask selects no valid metric depth for frame {frame}")
-        raw_depth.append(float(np.median(values)))
+            observed_depth.append(float("nan"))
+            confidence.append(0.0)
+            observation_state.append("missing_mask_interpolated")
+            continue
+        observed_depth.append(float(np.median(values)))
         confidence.append(float(min(1.0, len(values) / 64.0)))
+        observation_state.append("observed_mask_median")
+
+    observed_array = np.asarray(observed_depth, dtype=float)
+    valid = np.isfinite(observed_array)
+    if not np.any(valid):
+        raise ValueError("object masks select no valid metric depth in any frame")
+    indices = np.arange(len(observed_array), dtype=float)
+    raw_depth = np.interp(indices, indices[valid], observed_array[valid]).tolist()
 
     half = smooth_window // 2
     smooth_depth = [
@@ -85,17 +103,25 @@ def build_object_depth_prior(sample_dir: Path, *, smooth_window: int = 7) -> dic
     output_rows: list[dict[str, object]] = []
     for index, frame in enumerate(frames):
         track = track_rows[frame]
+        center = center_rows[frame]
+        u = track.get("ball_center_x") or track.get("center_x") or center.get("ball_center_x") or center.get("center_x", "")
+        v = track.get("ball_center_y") or track.get("center_y") or center.get("ball_center_y") or center.get("center_y", "")
         output_rows.append(
             {
                 "frame": frame,
                 "time": track.get("time", ""),
-                "u": track.get("ball_center_x", track.get("center_x", "")),
-                "v": track.get("ball_center_y", track.get("center_y", "")),
+                "u": u,
+                "v": v,
                 "radius_px": track.get("radius", ""),
                 "da3_depth_raw": f"{raw_depth[index]:.6f}",
                 "da3_depth_smooth": f"{smooth_depth[index]:.6f}",
                 "object_depth_confidence": f"{confidence[index]:.6f}",
-                "source": "da3_metric_sam2_mask_median",
+                "depth_observation_state": observation_state[index],
+                "source": (
+                    "da3_metric_sam2_mask_median"
+                    if observation_state[index] == "observed_mask_median"
+                    else "da3_metric_temporal_interpolation_for_missing_mask"
+                ),
             }
         )
 
@@ -116,6 +142,11 @@ def build_object_depth_prior(sample_dir: Path, *, smooth_window: int = 7) -> dic
         "scene_depth_dir": str(depth_dir),
         "mask_dir": str(masks_dir),
         "object_prior_source": "da3_metric_sam2_mask_median",
+        "missing_mask_interpolated_frames": [
+            frame
+            for frame, state in zip(frames, observation_state)
+            if state == "missing_mask_interpolated"
+        ],
     }
     (staged / "meta.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
     target = results / "da3/priors"

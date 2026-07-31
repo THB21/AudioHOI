@@ -245,6 +245,70 @@ def select_active_body_proxy_from_mesh(
     return best_label, best_uv, best_z, conf
 
 
+def select_active_body_proxy_from_sphere(
+    center_uv: np.ndarray,
+    radius_px: float,
+    part_centers: dict[str, np.ndarray],
+    idx: int,
+    k_mats: np.ndarray,
+) -> tuple[str, np.ndarray | None, float, float]:
+    """Select a read-only human site when the sphere mask is occluded.
+
+    The fallback uses only the tracked sphere center/radius and projected GVHMR
+    sites.  It does not synthesize a human pose or require visible mesh points.
+    """
+
+    best_label = ""
+    best_uv = None
+    best_z = math.nan
+    best_surface_gap = math.inf
+    for label, centers in part_centers.items():
+        point = centers[idx : idx + 1]
+        uv, valid = project_points(point, k_mats[idx : idx + 1])
+        if not bool(valid[0]):
+            continue
+        cand_uv = np.asarray(uv[0], dtype=np.float64)
+        if not np.all(np.isfinite(cand_uv)):
+            continue
+        center_distance = float(np.linalg.norm(cand_uv - center_uv))
+        surface_gap = max(0.0, center_distance - max(float(radius_px), 0.0))
+        if surface_gap < best_surface_gap:
+            best_surface_gap = surface_gap
+            best_label = label
+            best_uv = cand_uv
+            best_z = float(point[0, 2])
+    if best_uv is None:
+        return "", None, math.nan, 0.0
+    conf = float(np.clip(np.exp(-best_surface_gap / 40.0), 0.0, 1.0))
+    return best_label, best_uv, best_z, conf
+
+
+def sphere_proxy_points(
+    center_uv: np.ndarray,
+    radius_px: float,
+    human_uv: np.ndarray | None,
+) -> tuple[tuple[float, float, float, str], tuple[float, float, float, str, str]]:
+    """Return support/contact image proxies for an occluded sphere."""
+
+    radius = max(float(radius_px), 0.0)
+    support = (float(center_uv[0]), float(center_uv[1] + radius), 0.0, "sphere_proxy_bottom")
+    if human_uv is None or not np.all(np.isfinite(human_uv)):
+        return support, (math.nan, math.nan, 0.0, "missing_human_proxy", "")
+    direction = np.asarray(human_uv, dtype=np.float64) - center_uv
+    distance = float(np.linalg.norm(direction))
+    unit = np.asarray((0.0, -1.0), dtype=np.float64) if distance <= 1e-8 else direction / distance
+    contact_uv = center_uv + radius * unit
+    surface_gap = max(0.0, distance - radius)
+    confidence = float(np.clip(np.exp(-surface_gap / 40.0), 0.0, 1.0))
+    return support, (
+        float(contact_uv[0]),
+        float(contact_uv[1]),
+        confidence,
+        "human_nearest_sphere_proxy",
+        "sphere:surface",
+    )
+
+
 def select_contact_proxy_from_human_point(
     mesh: dict[str, np.ndarray],
     human_uv: np.ndarray | None,
@@ -421,15 +485,40 @@ def build_proxy_depth(
     part_centers = build_contact_part_centers(joints)
 
     rows: list[dict[str, object]] = []
+    raw_radii = np.asarray([parse_scalar(row.get("radius_px", ""), math.nan) for row in object_rows], dtype=np.float64)
+    valid_radius = np.isfinite(raw_radii) & (raw_radii > 0.0)
+    if np.any(valid_radius):
+        radius_indices = np.arange(len(raw_radii), dtype=np.float64)
+        radii = np.interp(radius_indices, radius_indices[valid_radius], raw_radii[valid_radius])
+    else:
+        radii = np.zeros(len(raw_radii), dtype=np.float64)
     for idx, row in enumerate(object_rows):
         frame = int(float(row["frame"]))
         mesh = mesh_tracks.get(frame)
-        if mesh is None:
-            continue
-        label, active_uv, active_z, active_conf = select_active_body_proxy_from_mesh(mesh, part_centers, idx, k_mats)
         ref_u, ref_v, ref_conf, ref_source = select_stable_ref_proxy(row)
-        support_u, support_v_raw, support_conf_raw, support_source = select_support_proxy_bottom_percentile(mesh)
-        contact_u, contact_v, contact_conf, contact_source, contact_name = select_contact_proxy_from_human_point(mesh, active_uv)
+        if not np.isfinite(ref_u) or not np.isfinite(ref_v):
+            continue
+        center_uv = np.asarray((ref_u, ref_v), dtype=np.float64)
+        mesh_points = (
+            np.empty((0, 2), dtype=np.float64)
+            if mesh is None
+            else visible_mesh_points(mesh, boundary_preferred=False)[0]
+        )
+        if len(mesh_points) > 0:
+            label, active_uv, active_z, active_conf = select_active_body_proxy_from_mesh(mesh, part_centers, idx, k_mats)
+            support_u, support_v_raw, support_conf_raw, support_source = select_support_proxy_bottom_percentile(mesh)
+            contact_u, contact_v, contact_conf, contact_source, contact_name = select_contact_proxy_from_human_point(mesh, active_uv)
+        else:
+            label, active_uv, active_z, active_conf = select_active_body_proxy_from_sphere(
+                center_uv,
+                float(radii[idx]),
+                part_centers,
+                idx,
+                k_mats,
+            )
+            support, contact = sphere_proxy_points(center_uv, float(radii[idx]), active_uv)
+            support_u, support_v_raw, support_conf_raw, support_source = support
+            contact_u, contact_v, contact_conf, contact_source, contact_name = contact
         if not all(np.isfinite(v) for v in [ref_u, ref_v, support_u, support_v_raw, contact_u, contact_v]):
             continue
         depth_map = load_depth(frame_to_depth[frame])

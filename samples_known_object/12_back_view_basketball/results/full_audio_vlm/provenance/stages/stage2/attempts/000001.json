@@ -1,0 +1,335 @@
+{
+  "schema_version": 4,
+  "case_name": "back_view_basketball",
+  "result_name": "full_audio_vlm",
+  "stage": "stage2",
+  "attempt_id": "000001",
+  "status": "completed",
+  "trigger": "scheduled_pipeline_stage",
+  "parent_attempt_id": null,
+  "started_at": "2026-07-31T00:54:26.578299+00:00",
+  "finished_at": "2026-07-31T00:54:30.302959+00:00",
+  "metadata": {
+    "from_stage": "stage1",
+    "to_stage": "stage2"
+  },
+  "artifacts_before": {
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_candidates.csv": {
+      "sha256": "12dce2001229237db93a10ab710b51a2e57cabf3a44c5be3624eaad49cf96bcb",
+      "size_bytes": 17820
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_events.csv": {
+      "sha256": "daf1dc4efc3646178116c3c584198c4e4ded642099feb4fd755ab4541d755381",
+      "size_bytes": 1038
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/human_sites.csv": {
+      "sha256": "6a772ac708d3cdf7a3d0b821350c2dcb9ab115692c3a86a84cb7f3b56b95e4cc",
+      "size_bytes": 74415
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/support_geometry.json": {
+      "sha256": "126f5746605ef667aea0492f65b4405ffc6aed3b51dbc8d1d86d1ed4297f1639",
+      "size_bytes": 205
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/anchor_state.csv": {
+      "sha256": "6b9ea3d7065a1bd97e6fc57dc4e8cfab8d6d837b28f567d74bd90bc8d4109ffe",
+      "size_bytes": 17738
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_state_frames.csv": {
+      "sha256": "8930ac00babfcfd50641b4e4eacf11bb2029635f2991ff8e3751898ad90eb262",
+      "size_bytes": 30110
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage2_metrics.json": {
+      "sha256": "56f8fe1d4eb2f2cb014ae124985de63899e9ef7461a03d410fe863f7517ebe6b",
+      "size_bytes": 2226
+    }
+  },
+  "artifacts_after": {
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_candidates.csv": {
+      "sha256": "12dce2001229237db93a10ab710b51a2e57cabf3a44c5be3624eaad49cf96bcb",
+      "size_bytes": 17820
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_events.csv": {
+      "sha256": "daf1dc4efc3646178116c3c584198c4e4ded642099feb4fd755ab4541d755381",
+      "size_bytes": 1038
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/human_sites.csv": {
+      "sha256": "6a772ac708d3cdf7a3d0b821350c2dcb9ab115692c3a86a84cb7f3b56b95e4cc",
+      "size_bytes": 74415
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/support_geometry.json": {
+      "sha256": "126f5746605ef667aea0492f65b4405ffc6aed3b51dbc8d1d86d1ed4297f1639",
+      "size_bytes": 205
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/anchor_state.csv": {
+      "sha256": "6b9ea3d7065a1bd97e6fc57dc4e8cfab8d6d837b28f567d74bd90bc8d4109ffe",
+      "size_bytes": 17738
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_state_frames.csv": {
+      "sha256": "8930ac00babfcfd50641b4e4eacf11bb2029635f2991ff8e3751898ad90eb262",
+      "size_bytes": 30110
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage2_metrics.json": {
+      "sha256": "56f8fe1d4eb2f2cb014ae124985de63899e9ef7461a03d410fe863f7517ebe6b",
+      "size_bytes": 2226
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit/stage2/stage_audit_gates.csv": {
+      "sha256": "c6e92fd7d113dde7fceeb62c68e8d4efb3fe80241bf66233d2911c4df61f2118",
+      "size_bytes": 413
+    }
+  },
+  "stored_artifacts": {
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/anchor_state.csv": {
+      "algorithm": "sha256",
+      "sha256": "6b9ea3d7065a1bd97e6fc57dc4e8cfab8d6d837b28f567d74bd90bc8d4109ffe",
+      "size_bytes": 17738,
+      "canonical_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/anchor_state.csv",
+      "blob_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/provenance/artifact_store/sha256/6b/6b9ea3d7065a1bd97e6fc57dc4e8cfab8d6d837b28f567d74bd90bc8d4109ffe"
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_candidates.csv": {
+      "algorithm": "sha256",
+      "sha256": "12dce2001229237db93a10ab710b51a2e57cabf3a44c5be3624eaad49cf96bcb",
+      "size_bytes": 17820,
+      "canonical_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_candidates.csv",
+      "blob_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/provenance/artifact_store/sha256/12/12dce2001229237db93a10ab710b51a2e57cabf3a44c5be3624eaad49cf96bcb"
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_events.csv": {
+      "algorithm": "sha256",
+      "sha256": "daf1dc4efc3646178116c3c584198c4e4ded642099feb4fd755ab4541d755381",
+      "size_bytes": 1038,
+      "canonical_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_events.csv",
+      "blob_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/provenance/artifact_store/sha256/da/daf1dc4efc3646178116c3c584198c4e4ded642099feb4fd755ab4541d755381"
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_state_frames.csv": {
+      "algorithm": "sha256",
+      "sha256": "8930ac00babfcfd50641b4e4eacf11bb2029635f2991ff8e3751898ad90eb262",
+      "size_bytes": 30110,
+      "canonical_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_state_frames.csv",
+      "blob_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/provenance/artifact_store/sha256/89/8930ac00babfcfd50641b4e4eacf11bb2029635f2991ff8e3751898ad90eb262"
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/human_sites.csv": {
+      "algorithm": "sha256",
+      "sha256": "6a772ac708d3cdf7a3d0b821350c2dcb9ab115692c3a86a84cb7f3b56b95e4cc",
+      "size_bytes": 74415,
+      "canonical_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/human_sites.csv",
+      "blob_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/provenance/artifact_store/sha256/6a/6a772ac708d3cdf7a3d0b821350c2dcb9ab115692c3a86a84cb7f3b56b95e4cc"
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage2_metrics.json": {
+      "algorithm": "sha256",
+      "sha256": "56f8fe1d4eb2f2cb014ae124985de63899e9ef7461a03d410fe863f7517ebe6b",
+      "size_bytes": 2226,
+      "canonical_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage2_metrics.json",
+      "blob_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/provenance/artifact_store/sha256/56/56f8fe1d4eb2f2cb014ae124985de63899e9ef7461a03d410fe863f7517ebe6b"
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit/stage2/stage_audit_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "c6e92fd7d113dde7fceeb62c68e8d4efb3fe80241bf66233d2911c4df61f2118",
+      "size_bytes": 413,
+      "canonical_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit/stage2/stage_audit_gates.csv",
+      "blob_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/provenance/artifact_store/sha256/c6/c6e92fd7d113dde7fceeb62c68e8d4efb3fe80241bf66233d2911c4df61f2118"
+    },
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/support_geometry.json": {
+      "algorithm": "sha256",
+      "sha256": "126f5746605ef667aea0492f65b4405ffc6aed3b51dbc8d1d86d1ed4297f1639",
+      "size_bytes": 205,
+      "canonical_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/support_geometry.json",
+      "blob_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/provenance/artifact_store/sha256/12/126f5746605ef667aea0492f65b4405ffc6aed3b51dbc8d1d86d1ed4297f1639"
+    }
+  },
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "back_view_basketball",
+    "result_name": "full_audio_vlm",
+    "stage": "stage2",
+    "status": "pass",
+    "artifacts": [
+      {
+        "artifact_key": "contact_candidates",
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_candidates.csv",
+        "adapter": "contact_candidate_v1",
+        "required": true,
+        "columns": [
+          "frame",
+          "time",
+          "contact_active",
+          "human_part",
+          "human_side",
+          "object_part",
+          "object_local_id",
+          "contact_u",
+          "contact_v",
+          "contact_depth_offset_m",
+          "contact_conf",
+          "anchor_score",
+          "source"
+        ],
+        "required_columns": [
+          "frame",
+          "time",
+          "contact_active",
+          "human_part",
+          "human_side",
+          "object_part",
+          "object_local_id",
+          "contact_u",
+          "contact_v",
+          "contact_depth_offset_m",
+          "anchor_score",
+          "source"
+        ],
+        "extension_columns": [
+          "contact_conf"
+        ],
+        "row_count": 147,
+        "adapted_examples": [
+          {
+            "frame": 1,
+            "time": 0.0,
+            "contact_active": true,
+            "human_part": "hand",
+            "human_side": "right",
+            "object_part": "ball_boundary",
+            "local_coordinate": null
+          },
+          {
+            "frame": 2,
+            "time": 0.041667,
+            "contact_active": true,
+            "human_part": "hand",
+            "human_side": "right",
+            "object_part": "ball_boundary",
+            "local_coordinate": null
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      },
+      {
+        "artifact_key": "anchor_state",
+        "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/anchor_state.csv",
+        "adapter": "point_anchor_state_v1",
+        "required": true,
+        "columns": [
+          "frame",
+          "time",
+          "contact_id",
+          "human_part",
+          "human_side",
+          "object_part",
+          "contact_observed",
+          "contact_persistent",
+          "anchor_update_allowed",
+          "pose_anchor_allowed",
+          "stable_local_x",
+          "stable_local_y",
+          "stable_local_z",
+          "stable_local_s",
+          "observed_local_x",
+          "observed_local_y",
+          "observed_local_z",
+          "observed_local_s",
+          "contact_confidence",
+          "anchor_action",
+          "source"
+        ],
+        "required_columns": [
+          "frame",
+          "time",
+          "contact_id",
+          "human_part",
+          "human_side",
+          "object_part",
+          "contact_observed",
+          "contact_persistent",
+          "anchor_update_allowed",
+          "pose_anchor_allowed",
+          "stable_local_x",
+          "stable_local_y",
+          "stable_local_z",
+          "anchor_action",
+          "source"
+        ],
+        "extension_columns": [
+          "stable_local_s",
+          "observed_local_x",
+          "observed_local_y",
+          "observed_local_z",
+          "observed_local_s",
+          "contact_confidence"
+        ],
+        "row_count": 147,
+        "adapted_examples": [
+          {
+            "frame": 1,
+            "time": 0.0,
+            "contact_id": "right_hand_ball_boundary",
+            "human_part": "hand",
+            "human_side": "right",
+            "object_part": "ball_boundary",
+            "stable_local": {
+              "x": null,
+              "y": null,
+              "z": null
+            }
+          },
+          {
+            "frame": 2,
+            "time": 0.041667,
+            "contact_id": "right_hand_ball_boundary",
+            "human_part": "hand",
+            "human_side": "right",
+            "object_part": "ball_boundary",
+            "stable_local": {
+              "x": null,
+              "y": null,
+              "z": null
+            }
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      }
+    ],
+    "errors": []
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage2",
+    "plugins": [
+      {
+        "kind": "contact",
+        "name": "hand_floor",
+        "module": "scripts.shared.generic_contact_pipeline.components.contact.policies.hand_floor",
+        "entrypoint": "build",
+        "requires": [
+          "observation.point_reference"
+        ],
+        "provides": [
+          "contact.candidates",
+          "anchor.support"
+        ],
+        "role": "compatibility_adapter",
+        "plugin_id": "contact:hand_floor"
+      }
+    ],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [
+    "samples_known_object/12_back_view_basketball/results/full_audio_vlm/stage_audit/stage2/stage_audit_gates.csv"
+  ],
+  "result_summary": {
+    "stage_status": "",
+    "vlm_decision": "not_run",
+    "stage_audit_decision": "pass",
+    "rerun_requested": false
+  }
+}

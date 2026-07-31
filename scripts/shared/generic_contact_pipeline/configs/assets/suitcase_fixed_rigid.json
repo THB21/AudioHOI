@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "geometry_id": "asset:articraft_fixed_rigid_with_support",
+  "geometry_kind": "rigid_mesh",
+  "resource_path": "samples_known_object/15_suitcase_drag/articraft/materialized_suitcase/model.urdf",
+  "resource_sha256": "20451d2218075319d0aa503b211e1598a102948617d8bb50ad9fdb4048092432",
+  "articraft_record_id": "rec_create-a-realistic-black-hard-shell-carry-on-rol_20260731_015156_616489_a9b2bd71",
+  "articraft_record_manifest": "samples_known_object/15_suitcase_drag/articraft/records_manifest.jsonl",
+  "fixed_resource_joint_state": {
+    "handle_extension": 0.28
+  },
+  "semantic_parts": ["body", "telescoping_handle", "wheel_support"],
+  "contact_coordinate": "local_xyz",
+  "state_contract": {
+    "spec_id": "rigid6:fixed_supported_asset",
+    "state_model": "rigid_root_se3",
+    "dofs": [
+      {
+        "dof_id": "root.translation",
+        "kind": "translation",
+        "fields": ["tx", "ty", "tz"]
+      },
+      {
+        "dof_id": "root.rotation",
+        "kind": "rotation_so3",
+        "fields": ["qw", "qx", "qy", "qz"]
+      }
+    ]
+  },
+  "initializer": {
+    "kind": "rigid_cuboid_feature_correspondence",
+    "body_center_role": "object_center",
+    "body_mask_role": "object_body_mask",
+    "depth_role": "object_center_depth",
+    "body_feature_id": "object:body",
+    "orientation_feature_role": "handle_center",
+    "upright_axis_local": [0.0, 0.0, 1.0],
+    "preferred_upright_camera": [0.0, -1.0, 0.0],
+    "heading_axis_local": [1.0, 0.0, 0.0],
+    "heading_grid_samples": 181,
+    "heading_candidate_count": 6,
+    "temporal_heading_sigma_rad_per_frame": 0.12,
+    "mask_bbox_sigma_px": 8.0,
+    "depth_sigma_m": 0.55
+  },
+  "feature_points": {
+    "object:center": [[0.0, 0.0, 0.30]],
+    "object:body": [
+      [-0.19, -0.115, 0.07], [-0.19, 0.115, 0.07],
+      [0.19, -0.115, 0.07], [0.19, 0.115, 0.07],
+      [-0.19, -0.115, 0.53], [-0.19, 0.115, 0.53],
+      [0.19, -0.115, 0.53], [0.19, 0.115, 0.53]
+    ],
+    "object:handle": [[0.0, 0.125, 0.891]],
+    "object:support": [
+      [-0.145, -0.085, 0.0], [0.145, -0.085, 0.0],
+      [-0.145, 0.085, 0.0], [0.145, 0.085, 0.0]
+    ]
+  },
+  "support_features": ["object:support"],
+  "contact_visibility_features": {
+    "handle": "object:handle"
+  },
+  "contact_feature_overrides": {
+    "handle": "object:handle",
+    "telescoping_handle": "object:handle"
+  }
+}

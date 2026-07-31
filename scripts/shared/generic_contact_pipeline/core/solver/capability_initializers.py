@@ -362,6 +362,130 @@ def _wrap_pi(value: float) -> float:
     return (float(value) + math.pi) % (2.0 * math.pi) - math.pi
 
 
+def _rigid_cuboid_feature_correspondence(request: InitializationRequest) -> InitializationResult:
+    """Initialize any upright fixed rigid asset from mask, depth, and declared features."""
+    try:
+        from scipy.spatial.transform import Rotation
+    except ImportError as exc:  # pragma: no cover
+        raise RuntimeError("rigid cuboid initialization requires SciPy") from exc
+
+    initializer = request.initializer
+    center_role = str(initializer["body_center_role"])
+    mask_role = str(initializer["body_mask_role"])
+    depth_role = str(initializer["depth_role"])
+    body_feature_id = str(initializer["body_feature_id"])
+    orientation_role = str(initializer.get("orientation_feature_role", ""))
+    centers = {item.meta.frame: item for item in request.measurements if isinstance(item, Point2DMeasurement) and item.meta.feature.semantic_role == center_role}
+    masks = {item.meta.frame: item for item in request.measurements if isinstance(item, Mask2DMeasurement) and item.meta.feature.semantic_role == mask_role}
+    depths = {item.meta.frame: item for item in request.measurements if isinstance(item, MetricDepthMeasurement) and item.meta.feature.semantic_role == depth_role}
+    orientation_points = {item.meta.frame: item for item in request.measurements if isinstance(item, Point2DMeasurement) and item.meta.feature.semantic_role == orientation_role}
+    frames = tuple(sorted(request.cameras))
+    if not frames or any(frame not in centers or frame not in masks or frame not in depths for frame in frames):
+        raise ValueError("rigid cuboid initializer requires frame-complete center, body mask, and depth evidence")
+    provider_points = getattr(request.geometry_provider, "feature_points_local", None)
+    if not isinstance(provider_points, Mapping):
+        raise ValueError("rigid cuboid initializer requires descriptor-backed feature points")
+    body_points = np.asarray(provider_points.get(body_feature_id), dtype=float)
+    center_points = np.asarray(provider_points.get("object:center"), dtype=float)
+    if body_points.ndim != 2 or body_points.shape[1] != 3 or len(body_points) < 4 or center_points.shape != (1, 3):
+        raise ValueError("rigid cuboid descriptor requires body vertices and one object center")
+    orientation_feature_id = next(iter(orientation_points.values())).meta.feature.geometry_feature_id if orientation_points else ""
+    orientation_local = np.asarray(provider_points.get(orientation_feature_id), dtype=float)
+    if orientation_points and orientation_local.shape != (1, 3):
+        raise ValueError("rigid cuboid orientation feature must resolve to one local point")
+
+    upright_local = np.asarray(initializer["upright_axis_local"], dtype=float)
+    upright_camera = np.asarray(initializer["preferred_upright_camera"], dtype=float)
+    base_orientation = _align_direction(upright_local, upright_camera)
+    heading_grid = np.linspace(-math.pi, math.pi, int(initializer.get("heading_grid_samples", 181)), endpoint=False)
+    candidate_count = int(initializer.get("heading_candidate_count", 6))
+    bbox_sigma = float(initializer.get("mask_bbox_sigma_px", 8.0))
+    feature_sigma = float(initializer.get("orientation_feature_sigma_px", 12.0))
+    transition_rate = float(initializer.get("temporal_heading_sigma_rad_per_frame", 0.12))
+    if bbox_sigma <= 0.0 or feature_sigma <= 0.0 or transition_rate <= 0.0:
+        raise ValueError("rigid cuboid initializer sigmas must be positive")
+
+    evidence: list[tuple[int, list[tuple[float, float, np.ndarray, np.ndarray]]]] = []
+    artifacts: set[str] = set()
+    times: dict[int, float] = {}
+    for measurement in request.measurements:
+        if measurement.meta.frame in request.cameras:
+            artifacts.add(measurement.meta.source.artifact)
+            times.setdefault(measurement.meta.frame, measurement.meta.time)
+    for frame in frames:
+        camera = request.cameras[frame]
+        center, depth, mask = centers[frame], depths[frame], masks[frame]
+        target_center_camera = np.asarray(((center.u - camera.cx) * depth.depth_m / camera.fx, (center.v - camera.cy) * depth.depth_m / camera.fy, depth.depth_m))
+        candidates: list[tuple[float, float, np.ndarray, np.ndarray]] = []
+        for angle in heading_grid:
+            rotation = base_orientation @ _axis_rotation(upright_local, float(angle))
+            translation = target_center_camera - center_points[0] @ rotation.T
+            projected = _project_rigid_points(camera, body_points, translation, rotation, 1.0)
+            predicted_bbox = np.asarray((np.min(projected[:, 0]), np.min(projected[:, 1]), np.max(projected[:, 0]), np.max(projected[:, 1])))
+            residual = (predicted_bbox - np.asarray(mask.bbox_xyxy)) / bbox_sigma
+            score = float(np.sum(residual * residual))
+            feature = orientation_points.get(frame)
+            if feature is not None:
+                predicted_feature = _project_rigid_points(camera, orientation_local, translation, rotation, 1.0)[0]
+                delta = (predicted_feature - np.asarray((feature.u, feature.v))) / feature_sigma
+                score += float(np.sum(delta * delta))
+            candidates.append((float(angle), score, translation, rotation))
+        candidates.sort(key=lambda item: (item[1], item[0]))
+        evidence.append((frame, candidates[:candidate_count]))
+
+    costs: list[np.ndarray] = []
+    parents: list[np.ndarray] = []
+    for index, (frame, candidates) in enumerate(evidence):
+        emission = np.asarray([candidate[1] for candidate in candidates])
+        if index == 0:
+            costs.append(emission)
+            parents.append(np.full(len(candidates), -1, dtype=int))
+            continue
+        previous_frame, previous_candidates = evidence[index - 1]
+        sigma = transition_rate * max(1, frame - previous_frame)
+        current_cost = np.full(len(candidates), np.inf)
+        current_parent = np.full(len(candidates), -1, dtype=int)
+        for current_index, current in enumerate(candidates):
+            transitions = np.asarray([costs[-1][previous_index] + (_wrap_pi(current[0] - previous[0]) / sigma) ** 2 for previous_index, previous in enumerate(previous_candidates)])
+            parent = int(np.argmin(transitions))
+            current_cost[current_index] = emission[current_index] + transitions[parent]
+            current_parent[current_index] = parent
+        costs.append(current_cost)
+        parents.append(current_parent)
+    selected = [0] * len(evidence)
+    selected[-1] = int(np.argmin(costs[-1]))
+    for index in range(len(evidence) - 1, 0, -1):
+        selected[index - 1] = int(parents[index][selected[index]])
+
+    layout = _layout(request.state_spec)
+    fields = tuple(field for dof in request.state_spec.dofs for field in dof.source_fields)
+    states: dict[int, tuple[float, ...]] = {}
+    templates: list[dict[str, object]] = []
+    previous_quaternion: np.ndarray | None = None
+    selected_scores: list[float] = []
+    for evidence_index, (frame, candidates) in enumerate(evidence):
+        angle, score, translation, rotation = candidates[selected[evidence_index]]
+        qx, qy, qz, qw = Rotation.from_matrix(rotation).as_quat()
+        quaternion = np.asarray((qw, qx, qy, qz), dtype=float)
+        if previous_quaternion is not None and float(previous_quaternion @ quaternion) < 0.0:
+            quaternion *= -1.0
+        previous_quaternion = quaternion
+        state = _base_state(request)
+        state[layout["root.translation"]] = translation
+        state[layout["root.rotation"]] = quaternion
+        states[frame] = tuple(float(value) for value in state)
+        row: dict[str, object] = {"frame": frame, "time": times.get(frame, (frame - 1) / 24.0), "source": "rigid_cuboid_feature_correspondence_initializer", "initializer_heading_rad": angle}
+        row.update({field: float(value) for field, value in zip(fields, state)})
+        templates.append(row)
+        selected_scores.append(score)
+    return InitializationResult(
+        states_by_frame=states,
+        template_rows=tuple(templates),
+        hypothesis_ledger={"initializer_kind": "rigid_cuboid_feature_correspondence", "frame_count": len(frames), "heading_hypotheses_per_frame": candidate_count, "orientation_feature_frame_count": len(orientation_points), "selected_emission_median": float(np.median(selected_scores)), "baseline_pose_read": False, "case_dispatch_used": False, "human_state_optimized": False},
+        input_artifact_ids=tuple(sorted(artifacts)),
+    )
+
+
 def _axial_rigid_feature_correspondence(request: InitializationRequest) -> InitializationResult:
     try:
         from scipy.ndimage import gaussian_filter1d
@@ -862,4 +986,6 @@ def initialize_from_capabilities(request: InitializationRequest) -> Initializati
         return _articulated_correspondence(request)
     if kind == "axial_rigid_feature_correspondence":
         return _axial_rigid_feature_correspondence(request)
+    if kind == "rigid_cuboid_feature_correspondence":
+        return _rigid_cuboid_feature_correspondence(request)
     raise ValueError(f"unsupported capability initializer: {kind}")

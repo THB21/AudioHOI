@@ -1,0 +1,51 @@
+{
+  "schema_version": 3,
+  "record_id": "rec_create-a-realistic-black-hard-shell-carry-on-rol_20260731_015156_616489_a9b2bd71",
+  "created_at": "2026-07-31T01:51:56Z",
+  "updated_at": "2026-07-31T02:09:35Z",
+  "rating": null,
+  "secondary_rating": null,
+  "author": "Yixin Yang",
+  "rated_by": null,
+  "secondary_rated_by": null,
+  "kind": "generated_model",
+  "prompt_kind": "single_prompt",
+  "category_slug": null,
+  "source": {
+    "run_id": "run_20260731_015156_616489_a9b2bd71",
+    "prompt_index": null
+  },
+  "sdk_package": "sdk",
+  "provider": "codex-cli",
+  "model_id": "gpt-5.5",
+  "label": "audiohoi_suitcase_rigid_reference",
+  "tags": [
+    "audiohoi",
+    "suitcase"
+  ],
+  "category_title": null,
+  "display": {
+    "title": "audiohoi_suitcase_rigid_reference",
+    "prompt_preview": "Create a realistic black hard-shell carry-on rolling suitcase matching the supplied front, side, and top reference sheet. Use real-world dimensions close to..."
+  },
+  "artifacts": {
+    "prompt_txt": "revisions/rev_000001/prompt.txt",
+    "prompt_series_json": null,
+    "model_py": "revisions/rev_000001/model.py",
+    "provenance_json": "revisions/rev_000001/provenance.json",
+    "cost_json": null,
+    "inputs_dir": "revisions/rev_000001/inputs",
+    "traces_dir": "revisions/rev_000001/traces"
+  },
+  "hashes": {
+    "prompt_sha256": "4947349adb81d9541d81cd94127e1053cb3e65274711084018c7847d9c3706ad",
+    "model_py_sha256": "587028c04bf9aca932393770abf28a8a7fbef3bccc3006d76b3a325d88083a43"
+  },
+  "active_revision_id": "rev_000001",
+  "lineage": {
+    "origin_record_id": "rec_create-a-realistic-black-hard-shell-carry-on-rol_20260731_015156_616489_a9b2bd71",
+    "parent_record_id": null,
+    "parent_revision_id": null,
+    "edit_mode": "root"
+  }
+}

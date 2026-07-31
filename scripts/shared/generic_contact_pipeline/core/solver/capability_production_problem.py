@@ -710,7 +710,7 @@ def prepare_capability_object_problem(
         "baseline_pose_read": False,
         "human_state_optimized": False,
     }
-    if initializer in {"articulated_correspondence", "fixed_assembly_correspondence", "axial_rigid_feature_correspondence"}:
+    if initializer in {"articulated_correspondence", "fixed_assembly_correspondence", "axial_rigid_feature_correspondence", "rigid_cuboid_feature_correspondence"}:
         contract = build_asset_state_contract(descriptor_path, repository_root)
         if str(contract.initializer["kind"]) != initializer:
             raise ValueError("case initializer and asset initializer capability disagree")
@@ -728,7 +728,7 @@ def prepare_capability_object_problem(
                 state_spec=contract.state_spec,
                 contact_constraints=constraints,
             )
-            if initializer == "axial_rigid_feature_correspondence"
+            if initializer in {"axial_rigid_feature_correspondence", "rigid_cuboid_feature_correspondence"}
             else build_articulated_geometry_from_asset_descriptor(
                 descriptor_path=descriptor_path,
                 repository_root=repository_root,
@@ -972,6 +972,10 @@ def prepare_capability_object_problem(
                 for frame in range(int(interval["start_frame"]), int(interval["end_frame"]) + 1):
                     status_by_frame[frame] = status
                     weight_by_frame[frame] = tier_weight
+            if support_config.get("activation") == "all_frames":
+                for frame in sorted(initial_states):
+                    status_by_frame[frame] = "active"
+                    weight_by_frame[frame] = float(raw_tiers["active"])
             active_frames = tuple(frame for frame in sorted(status_by_frame) if weight_by_frame[frame] > 0.0)
             plane = (
                 _support_plane_from_human_foot_sites(

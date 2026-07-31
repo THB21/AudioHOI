@@ -27,10 +27,10 @@ class AdaptationResult:
 
 
 def detect_legacy_observation_schema(fields: set[str]) -> str:
-    if {"ref_u", "ref_v", "object_ref_depth_m"} <= fields:
-        return "proxy_center_depth_v1"
     if {"center_x", "center_y", "handle_visible", "body_bbox_x1"} <= fields:
         return "rigid_body_parts_v1"
+    if {"ref_u", "ref_v", "object_ref_depth_m"} <= fields:
+        return "proxy_center_depth_v1"
     if {"top_rail_left_u", "top_rail_right_u", "front_leg_left_top_u"} <= fields:
         return "semantic_graph_v1"
     raise ValueError(f"unsupported legacy observation schema with fields: {sorted(fields)}")
@@ -161,6 +161,10 @@ def adapt_legacy_observation_rows(sample_id: str, rows: list[dict[str, str]], ar
                 visibility_fields = ("handle_visible",)
             mapped.add("handle_visible")
             out.append(VisibilityMeasurement(_meta(sample_id, row, "visibility", "handle_visibility", "object:handle", artifact, visibility_fields, _confidence(row, "handle_conf"), CoordinateFrame.IMAGE_PIXELS, Unit.UNITLESS), state))
+            depth = _number(row, "object_ref_depth_m")
+            if depth is not None:
+                mapped.add("object_ref_depth_m")
+                out.append(MetricDepthMeasurement(_meta(sample_id, row, "metric_depth", "object_center_depth", "object:center", artifact, ("object_ref_depth_m",), _confidence(row, "depth_conf"), CoordinateFrame.CAMERA_METERS, Unit.METER), depth))
         else:
             conf = _confidence(row, "semantic_conf")
             _mask(out, mapped, sample_id, row, artifact, "object_mask_bbox", "object:body", ("mask_bbox_x1", "mask_bbox_y1", "mask_bbox_x2", "mask_bbox_y2"), conf)

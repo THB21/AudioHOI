@@ -1,0 +1,118 @@
+case_name: suitcase_drag
+sample_dir: samples_known_object/15_suitcase_drag
+object_family: fixed_rigid_supported_asset
+geometry_model: articraft_fixed_rigid
+geometry_asset_descriptor: scripts/shared/generic_contact_pipeline/configs/assets/suitcase_fixed_rigid.json
+observation_model: rigid_mask_track
+contact_policy: persistent_feature_grasp
+pose_model: rigid_mask_seed
+refinement_policy: []
+render_backend: generic_urdf
+render_scene: generic_urdf
+result_name: pure_solver_no_audio_no_vlm
+preprocess:
+  fps: 24.0
+  static_camera: true
+  detector_model: IDEA-Research/grounding-dino-tiny
+  detector_text: small black hard-shell rolling suitcase.
+  first_frame_box: 445,365,585,635
+  segmenter_model: facebook/sam2.1-hiera-tiny
+  tracker: cotracker3_offline
+  tracker_query_source: sam2_mask_center
+  da3_chunk_size: 16
+  da3_process_res: 504
+rigid_mask_observation:
+  mask_pattern: results/segmentation/masks/{frame:05d}_mask.png
+  body_row_width_ratio: 0.45
+persistent_feature_grasp:
+  geometry_feature_id: object:handle
+  object_part: handle
+  activation_distance_min_bbox_ratio: 1.0
+  hold_when_occluded: true
+generic_object_problem:
+  initializer: rigid_cuboid_feature_correspondence
+  initializer_artifacts: [object_observations.csv, object_contact_points.csv]
+  contact_artifact: object_contact_points.csv
+  measurement_factors: [point_reprojection, mask_silhouette, metric_depth]
+  measurement_roles:
+    point_reprojection: [object_center, handle_center]
+    mask_silhouette: [object_body_mask]
+    metric_depth: [object_center_depth]
+  mask_shape_observations:
+    semantic_role: object_body_mask
+    artifact_pattern: results/segmentation/masks/{frame:05d}_mask.png
+    minimum_pixels: 64
+  sequence_factors: [temporal_velocity, temporal_acceleration, static_freeze]
+  interaction_factors: [contact_distance, contact_relative_velocity]
+  environment_factors: [support_and_penetration]
+  support_plane:
+    source: gvhmr_foot_sites
+    activation: all_frames
+    human_site_surface_offset_m: 0.05
+    penetration_weight: 2.0
+factor_runtime:
+  point_reprojection:
+    weight: 1.0
+    sigma: 6.0
+    sigma_unit: px
+    source: typed_rigid_center_and_descriptor_feature
+    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
+  mask_silhouette:
+    weight: 1.0
+    sigma: 8.0
+    sigma_unit: px
+    source: typed_object_mask_and_descriptor_cuboid
+    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
+  metric_depth:
+    weight: 0.245
+    sigma: 0.55
+    sigma_unit: m
+    source: typed_monocular_metric_depth_weak_prior
+    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
+  contact_distance:
+    weight: 1.0
+    sigma: 0.035
+    sigma_unit: m
+    source: descriptor_handle_to_read_only_gvhmr_hand
+    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
+  contact_relative_velocity:
+    weight: 1.0
+    sigma: 0.008
+    sigma_unit: m/frame
+    source: generic_persistent_grasp_comotion
+    activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
+  temporal_velocity:
+    weight: 0.7
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: generic_rigid_sequence_continuity
+    activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
+  temporal_acceleration:
+    weight: 4.0
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: generic_rigid_sequence_acceleration
+    activation_weight_tiers: {active: 1.0, downweighted: 0.12, inactive: 0.0}
+  static_freeze:
+    weight: 100.0
+    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    source: generic_supported_static_interval_anchor
+    activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
+  support_and_penetration:
+    weight: 1.0
+    sigma: 0.02
+    sigma_unit: m
+    source: descriptor_wheel_support_sites_and_gvhmr_floor
+    activation_weight_tiers: {active: 1.0, downweighted: 1.0, inactive: 0.0}
+vlm:
+  target: rigid rolling suitcase
+  parts: [handle, body, wheels, background, unclear]
+  contacts: [left_hand_handle, right_hand_handle, wheels_floor, no_contact, unclear]
+  stable_refs: [handle_top, body_top_edge, outer_wheel, lower_corner, unclear]
+  frame_policy:
+    stage1: all
+    stage2: all
+    stage4: all
+camera:
+  fx: 1468.604736328125
+  fy: 1468.604736328125
+  cx: 640.0
+  cy: 360.0

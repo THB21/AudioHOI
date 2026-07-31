@@ -522,3 +522,34 @@ python scripts/shared/generic_contact_pipeline/stages/stage_ablation.py \
 ```text
 docs/generic_pipeline_v2_mainline_audit_zh.md
 ```
+
+## 8. 2026-07-31 zero-shot 执行状态（持续维护）
+
+边界保持为 object-only：GVHMR 只发布只读手/脚骨架站点，连续优化变量只有 object state；不接入 human refinement、human-side contact optimization 或 downstream human pipeline。带骨架的诊断 render 仍允许用于检查 HOI 关系。
+
+### 背身篮球
+
+- `pure_solver_no_audio_no_vlm` 保留原始统一求解器 pose，不运行 VLM/audio 修复，也不要求渲染。
+- `full_audio_vlm` 已由 audio event timing 和 Qwen forced-choice gate 完成遮挡/接触修复并通过人工视频检查。
+- core solver 没有新增 `back_view_basketball` 分支。
+
+### Suitcase：资产与纯 solver 基线
+
+- Articraft record：`rec_create-a-realistic-black-hard-shell-carry-on-rol_20260731_015156_616489_a9b2bd71`。
+- 三视图输入已固化在 record revision 的 `inputs/`，参考图 SHA-256 为 `01bdf7c8ca598d3c942dd20b72260fcd21243e1a91f7677e2123d8ba1c377cea`。
+- strict geometry QC：通过；一个 `suitcase_body` root、一个 `telescoping_handle` prismatic joint、四个固定且共面的 wheel links。
+- AudioHOI descriptor 将 `handle_extension=0.28 m` 固定在最大伸出位置，生产 state 仅保留 root SE(3)。
+- Stage 0 已从 sample video 生成完整 240 帧 frames、SAM2、CoTracker、DA3 和 GVHMR；纯 solver 运行明确禁用 audio extract/events，禁用项不是 missing。
+- Stage 1–3 已由 `rigid_mask_track -> persistent_feature_grasp -> rigid_mask_seed` 闭环；持续 grasp 首次可靠接触后锁定 human side，禁止逐帧左右手切换。
+- 通用 `rigid_cuboid_feature_correspondence` 已进入 capability initializer：mask/body bbox 决定轮廓，DA3 决定 metric depth，descriptor feature 决定 heading hypothesis；没有读取 baseline/final pose。
+- 纯 solver attempt `generic-solve-712364a40185` 数值优化成功，目标从 `883400.2172` 降到 `21148.4194`；原始 candidate 固化为 `pure_solver_no_audio_no_vlm/pose.csv`（SHA-256 `ad9b13dc2af20714b054739b4c637e875ad9ba55424d22b6457be488600ca413`），未渲染、未冒充 accepted `object_pose.csv`。
+- 当前 hard gate 阻塞是 `projection_normalized_rmse=4.0921 > 2.0`、`point_projection_p95=69.71 px > 24 px`，以及 contact compiled activation 尚未获得 active rows。此结果正作为 no-audio/no-VLM 基线保留，不使用 semantic repair。
+
+### Suitcase 下一步（完整版）
+
+1. 将 persistent feature grasp 的 active/occluded-hold identity 正式写入 InteractionState，使 contact distance 与 relative velocity factor 获得真实 active rows。
+2. 用 profile-driven Qwen query 判断 handle 可见/被人体遮挡、错误 mask/track、hand-handle relation；只改变预定义 measurement reliability 和 factor gate，不输出 pose。
+3. 接入 sustained rolling audio envelope：移动声区间降低 freeze，静音 stop 区间激活 static freeze；floor-seam click 只标记短时事件，不直接提供 3D 坐标。
+4. 重跑同一个 GenericSequenceExecutor；只有 hard geometry gate 通过后才发布 `object_pose.csv` 并生成 object + read-only skeleton 诊断 render。
+
+禁止项保持不变：不新增 `suitcase_solver.py`，不在 core solver 中判断 `case_name`，不修改 human state，不用旧 final pose，不为通过 gate 而降低 hard metric 阈值。

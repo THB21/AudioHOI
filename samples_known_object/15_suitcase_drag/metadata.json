@@ -23,13 +23,16 @@
     "requested_duration_seconds": 8.0
   },
   "provenance_warnings": [
-    "requested_duration_8_seconds_but_materialized_video_duration_is_10.005_seconds",
-    "raw_video_is_available_but_required_suitcase_geometry_asset_is_not_yet_supplied"
+    "requested_duration_8_seconds_but_materialized_video_duration_is_10.005_seconds"
   ],
   "heldout_role": "suitcase_drag",
   "scope": "object_only",
   "state_family": "rigid_mesh",
-  "geometry_asset_status": "missing",
+  "geometry_asset_status": "articraft_validated",
+  "geometry_asset_descriptor": "scripts/shared/generic_contact_pipeline/configs/assets/suitcase_fixed_rigid.json",
+  "geometry_asset_record_id": "rec_create-a-realistic-black-hard-shell-carry-on-rol_20260731_015156_616489_a9b2bd71",
+  "geometry_reference_sha256": "01bdf7c8ca598d3c942dd20b72260fcd21243e1a91f7677e2123d8ba1c377cea",
+  "geometry_resource_sha256": "20451d2218075319d0aa503b211e1598a102948617d8bb50ad9fdb4048092432",
   "optimized_entity": "suitcase",
   "observed_entities": [
     "human_skeleton"

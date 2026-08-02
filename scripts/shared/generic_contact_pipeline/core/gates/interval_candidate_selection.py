@@ -190,12 +190,22 @@ def compose_interval_selected_result(
     quaternion_indices = {index for group in quaternion_groups for index in group}
     frame_sources = {frame: "stable" for frame in frames}
     selected_intervals: list[dict[str, object]] = []
+    decisions_by_interval: dict[tuple[int, int], list[IntervalCandidateDecision]] = {}
     for decision in ledger.decisions:
-        if decision.normalized_label != "use_occlusion_challenger":
+        decisions_by_interval.setdefault(
+            (decision.start_frame, decision.end_frame), []
+        ).append(decision)
+    for (interval_start, interval_end), interval_decisions in decisions_by_interval.items():
+        challenger_votes = sum(
+            decision.normalized_label == "use_occlusion_challenger"
+            for decision in interval_decisions
+        )
+        # A strict majority is required. ``unclear`` and ties preserve stable.
+        if challenger_votes <= len(interval_decisions) // 2:
             continue
         selected = [
             frame for frame in frames
-            if decision.start_frame <= frame <= decision.end_frame
+            if interval_start <= frame <= interval_end
         ]
         if not selected:
             continue
@@ -228,12 +238,18 @@ def compose_interval_selected_result(
             frame_sources[frame] = source
         selected_intervals.append(
             {
-                "query_id": decision.query_id,
+                "query_ids": [decision.query_id for decision in interval_decisions],
                 "start_frame": selected[0],
                 "end_frame": selected[-1],
                 "transition_frames": edge,
-                "evidence_sha256": decision.evidence_sha256,
-                "response_sha256": decision.response_sha256,
+                "evidence_sha256": [
+                    decision.evidence_sha256 for decision in interval_decisions
+                ],
+                "response_sha256": [
+                    decision.response_sha256 for decision in interval_decisions
+                ],
+                "challenger_votes": challenger_votes,
+                "decision_count": len(interval_decisions),
             }
         )
     changed = np.max(np.abs(composed - stable_states), axis=1) > 1e-12
@@ -278,4 +294,3 @@ def compose_interval_selected_result(
     result_payload.pop("canonical_sha256")
     result = replace(result, canonical_sha256=_canonical_hash(result_payload))
     return IntervalCompositionOutcome(result=result, provenance=provenance)
-

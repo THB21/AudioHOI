@@ -61,8 +61,13 @@ def _status_by_factor(
     )
     if not visual_ids or not contact_ids:
         raise ValueError("factor reliability query requires compiled visual and contact factors")
-    visual_status = "downweighted" if label in {"contact_relation_reliable", "unclear"} else "active"
-    contact_status = "downweighted" if label in {"visual_observation_reliable", "unclear"} else "active"
+    # ``unclear`` is explicitly mapped to ``unclear_no_update`` by the VLM
+    # gate.  Keep the compiled factors unchanged in that case; reducing both
+    # groups silently changes the trajectory even though the model declined
+    # to arbitrate.  Only a positive forced-choice judgment may downweight the
+    # competing evidence source.
+    visual_status = "downweighted" if label == "contact_relation_reliable" else "active"
+    contact_status = "downweighted" if label == "visual_observation_reliable" else "active"
     return tuple(
         [(factor_id, visual_status) for factor_id in visual_ids]
         + [(factor_id, contact_status) for factor_id in contact_ids]
@@ -110,10 +115,9 @@ def load_factor_arbitration_ledger(
             provider = provider or "missing_provider"
             model = model or "missing_model"
             blocking = True
-        # A valid forced-choice ``unclear`` response is conservative evidence:
-        # both competing factor groups are downweighted by _status_by_factor.
-        # It must not also reject publication. Missing/tampered evidence remains
-        # blocking through the not-evaluated branch above.
+        # A valid forced-choice ``unclear`` response means no factor update. It
+        # must not reject publication or silently perturb the trajectory.
+        # Missing/tampered evidence remains blocking through the branch above.
         providers.add(provider)
         models.add(model)
         prompt_payload = {

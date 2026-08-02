@@ -51,6 +51,10 @@ query_types:
     stage_scope: [stage4]
     question_template: "When the visual object measurement and the read-only human contact observation disagree, which evidence is visually reliable in this interval?"
     choices: [both_consistent, visual_observation_reliable, contact_relation_reliable, unclear]
+  interval_candidate_selection_check:
+    stage_scope: [stage4]
+    question_template: "Which current solver candidate is more reliable inside this bounded occlusion interval?"
+    choices: [keep_stable, use_occlusion_challenger, reject_both, unclear]
   post_render_sanity_check:
     stage_scope: [stage5]
     question_template: "Which failure label best describes the final rendered result?"

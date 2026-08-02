@@ -20,6 +20,7 @@ from scripts.shared.generic_contact_pipeline.core.base.schema import stage_paths
 from scripts.shared.generic_contact_pipeline.core.gates.vlm import RESULT_FIELDS, STAGE_QUERY_TYPES, fuse_stage_decision, write_aggregate, write_stage_verification  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_provider import load_vlm_provider  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_gates import GATE_FIELDS, gate_row_from_result, write_stage_gates  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.gates.amodal_mask_completion import QUERY_TYPE as AMODAL_MASK_QUERY_TYPE, materialize_selected_masks  # noqa: E402
 
 
 PROMPT_TEMPLATE = """You are a conservative visual verifier for an AudioHOI pipeline.
@@ -29,6 +30,27 @@ Rules:
 - Choose "unclear" if the image is insufficient, ambiguous, or the requested highlight is not visible.
 - Do not propose pose corrections, loss weights, or 3D coordinates.
 - Ignore debug text unless it directly names the highlighted point/part.
+
+Question:
+{question}
+
+Allowed labels:
+{choices}
+
+Return ONLY compact JSON:
+{{"label":"one_allowed_label","confidence":0.0,"short_reason":"brief visual reason"}}
+"""
+
+AMODAL_PROMPT_TEMPLATE = """You are completing an amodal binary object mask from visual evidence.
+
+Rules:
+- The left CURRENT panel is the target coordinate system.
+- Preserve all pixels already present in the CURRENT partial mask.
+- Infer only the same rigid object behind the human; never include the person.
+- Use the two reference panels to preserve rigid body size, orientation, handle attachment, and floor support.
+- Approve completion only when the partial pieces and references support one rigid suitcase behind the person.
+- Pixel filling is deterministic and limited to the existing body-region hull; you do not draw pixels or coordinates.
+- Do not output pose, depth, quaternion, or loss weights.
 
 Question:
 {question}
@@ -54,6 +76,13 @@ PASS_LABELS = {
         "visual_observation_reliable",
         "contact_relation_reliable",
         "both_consistent",
+    },
+    "interval_candidate_selection_check": {
+        "keep_stable",
+        "use_occlusion_challenger",
+    },
+    AMODAL_MASK_QUERY_TYPE: {
+        "completed_from_partial_and_references",
     },
     "post_render_sanity_check": {"pass"},
     "baseline_regression_check": {"no_regression"},
@@ -111,16 +140,25 @@ def extract_json(text: str, choices: list[str]) -> dict[str, Any]:
         conf = float(data.get("confidence", 0.0))
     except Exception:
         conf = 0.0
+    polygon = data.get("amodal_polygon_norm")
+    if not (
+        isinstance(polygon, list)
+        and len(polygon) == 4
+        and all(isinstance(point, list) and len(point) == 2 for point in polygon)
+    ):
+        polygon = []
     return {
         "label": label,
         "confidence": max(0.0, min(1.0, conf)),
         "short_reason": str(data.get("short_reason", ""))[:240],
         "raw_text": raw,
+        "amodal_polygon_norm": polygon,
     }
 
 
-def ask_qwen(model, processor, image: Any, question: str, choices: list[str], max_new_tokens: int) -> str:
-    prompt = PROMPT_TEMPLATE.format(question=question, choices=" / ".join(choices))
+def ask_qwen(model, processor, image: Any, question: str, choices: list[str], max_new_tokens: int, *, query_type: str = "") -> str:
+    template = AMODAL_PROMPT_TEMPLATE if query_type == AMODAL_MASK_QUERY_TYPE else PROMPT_TEMPLATE
+    prompt = template.format(question=question, choices=" / ".join(choices))
     messages = [{"role": "user", "content": [{"type": "image", "image": image}, {"type": "text", "text": prompt}]}]
     text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     try:
@@ -174,11 +212,21 @@ def pass_gate(query_type: str, label: str) -> str:
 
 
 def repair_action(query_type: str, gate: str, label: str) -> str:
+    if query_type == AMODAL_MASK_QUERY_TYPE:
+        return "use_mask_fallback" if gate == "pass" else "unclear_no_update"
     if query_type == "constraint_reliability_check":
         if label == "both_consistent":
             return "accept_candidate"
         if label in {"visual_observation_reliable", "contact_relation_reliable"}:
             return "downweight_correspondence"
+        return "unclear_no_update"
+    if query_type == "interval_candidate_selection_check":
+        if label == "use_occlusion_challenger":
+            return "select_occlusion_challenger"
+        if label == "keep_stable":
+            return "keep_stable_candidate"
+        if label == "reject_both":
+            return "reject_candidate_pair"
         return "unclear_no_update"
     if gate == "pass":
         return "accept_candidate"
@@ -248,7 +296,15 @@ def evaluate_stage(profile, stage: str, args: argparse.Namespace) -> dict[str, o
         else:
             print(f"[qwen-generic] {profile.case_name} {stage} {idx}/{len(queries)} frame={query.get('frame')} type={query.get('query_type')}", file=sys.stderr, flush=True)
             image = load_query_image(image_path, args.resize_max)
-            text = ask_qwen(model, processor, image, query["question"], choices, args.max_new_tokens)
+            text = ask_qwen(
+                model,
+                processor,
+                image,
+                query["question"],
+                choices,
+                max(args.max_new_tokens, 220) if query.get("query_type") == AMODAL_MASK_QUERY_TYPE else args.max_new_tokens,
+                query_type=query.get("query_type", ""),
+            )
             raw = extract_json(text, choices)
             label = str(raw["label"])
             gate = pass_gate(query.get("query_type", ""), label)
@@ -307,6 +363,8 @@ def evaluate_stage(profile, stage: str, args: argparse.Namespace) -> dict[str, o
             decision = fuse_stage_decision(profile.case_name, stage, results, mode="qwen_vl")
         write_csv(out_dir / "vlm_results.csv", results, RESULT_FIELDS)
         write_json(out_dir / "qwen_raw_results.json", raw_rows)
+        if stage == "stage4":
+            materialize_selected_masks(profile, raw_rows)
         write_json(out_dir / "stage_decision.json", decision)
         write_aggregate(profile)
         write_stage_gates(profile, stage)

@@ -11,6 +11,13 @@ from ..base.config import CaseProfile
 from ..semantics.hoi_profile import profile_choices_for_vlm
 from ..base.io import read_csv, write_csv, write_json
 from ..base.schema import stage_paths
+from .amodal_mask_completion import (
+    CHOICES as AMODAL_MASK_CHOICES,
+    QUERY_TYPE as AMODAL_MASK_QUERY_TYPE,
+    completion_intervals,
+    materialize_candidate_evidence,
+)
+from .interval_candidate_selection import QUERY_TYPE as INTERVAL_SELECTION_QUERY_TYPE
 
 
 QUERY_FIELDS = [
@@ -59,7 +66,7 @@ STAGE_QUERY_TYPES = {
     "stage1": ["keypart_identity_check", "track_stability_check"],
     "stage2": ["contact_relation_check", "keypart_visibility_check"],
     "stage3": ["overlay_alignment_check"],
-    "stage4": ["anchor_update_check", "contact_relation_check", "overlay_alignment_check", "temporal_motion_check", "constraint_reliability_check"],
+    "stage4": ["anchor_update_check", "contact_relation_check", "overlay_alignment_check", "temporal_motion_check", "constraint_reliability_check", AMODAL_MASK_QUERY_TYPE, INTERVAL_SELECTION_QUERY_TYPE],
     "stage5": ["post_render_sanity_check", "temporal_motion_check"],
     "stage6": ["baseline_regression_check"],
     "stage7": ["loss_diagnostic_check"],
@@ -77,6 +84,9 @@ COMMON_REPAIR_ACTIONS = [
     "freeze_before_after_contact",
     "mark_for_report_only",
     "unclear_no_update",
+    "keep_stable_candidate",
+    "select_occlusion_challenger",
+    "reject_candidate_pair",
 ]
 
 
@@ -408,6 +418,16 @@ def constraint_risk_intervals(profile: CaseProfile, *, maximum_window_frames: in
 def _render_video_for_stage(profile: CaseProfile, stage: str) -> Path | None:
     if stage not in {"stage3", "stage4", "stage5", "stage6"}:
         return None
+    if stage == "stage4":
+        candidate = (
+            profile.result_dir
+            / "generic_stage4_candidate"
+            / "vlm_evidence"
+            / "object_only"
+            / "overlay.mp4"
+        )
+        if candidate.exists():
+            return candidate
     names = [
         "with_human/overlay.mp4",
         "with_human/contact_overlay_solid.mp4",
@@ -857,6 +877,55 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
     return str(out_path)
 
 
+def _materialize_interval_candidate_evidence(
+    profile: CaseProfile,
+    *,
+    frame: int,
+    start: int,
+    end: int,
+) -> str:
+    Image, ImageDraw = _pil_modules()
+    if Image is None:
+        return ""
+    candidate_root = profile.result_dir / "generic_stage4_candidate"
+    videos = (
+        ("A STABLE", candidate_root / "stable" / "object_only" / "overlay.mp4"),
+        (
+            "B OCCLUSION CHALLENGER",
+            candidate_root / "occlusion_challenger" / "object_only" / "overlay.mp4",
+        ),
+    )
+    if any(not path.is_file() for _label, path in videos):
+        return ""
+    out_dir = stage_paths(profile)["vlm_dir"] / "stage4" / "evidence"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / f"frame{frame:05d}_{INTERVAL_SELECTION_QUERY_TYPE}.png"
+    columns = [max(start, frame - 1), frame, min(end, frame + 1)]
+    tile_width, tile_height, label_height = 426, 240, 32
+    canvas = Image.new(
+        "RGB",
+        (tile_width * len(columns), (tile_height + label_height) * len(videos)),
+        (245, 245, 245),
+    )
+    draw = ImageDraw.Draw(canvas)
+    for row_index, (label, video) in enumerate(videos):
+        y = row_index * (tile_height + label_height)
+        draw.rectangle((0, y, canvas.width, y + label_height), fill=(20, 20, 20))
+        draw.text((12, y + 8), f"{label}  interval {start}-{end}", fill=(255, 255, 255))
+        for column_index, selected_frame in enumerate(columns):
+            panel = _extract_video_frame(video, selected_frame)
+            if panel is None:
+                return ""
+            _draw_stage4_context(profile, panel, selected_frame)
+            panel = _crop_stage4_evidence(profile, panel, selected_frame).resize(
+                (tile_width, tile_height)
+            )
+            _draw_label(panel, f"frame {selected_frame:03d}", (16, 20), (255, 255, 255))
+            canvas.paste(panel, (column_index * tile_width, y + label_height))
+    canvas.save(out_path)
+    return str(out_path)
+
+
 def render_reference(profile: CaseProfile, stage: str, frame: int, query_type: str) -> str:
     evidence = materialize_evidence(profile, stage, frame, query_type)
     if evidence:
@@ -916,6 +985,18 @@ def question_for(profile: CaseProfile, query_type: str) -> tuple[str, list[str],
             ["both_consistent", "visual_observation_reliable", "contact_relation_reliable", "unclear"],
             "visual_contact_constraint_temporal_overlay",
         )
+    if query_type == INTERVAL_SELECTION_QUERY_TYPE:
+        return (
+            "Compare A STABLE and B OCCLUSION CHALLENGER against the same real object pixels and neighboring frames. Judge rigid body and rail geometry, continuous hand-handle relation, floor support, and temporal motion. Choose use_occlusion_challenger only when B is visibly better inside this bounded interval without introducing a jump. Choose keep_stable when A is at least as reliable. Choose reject_both for a clear physical or alignment failure in both. Choose unclear when the occlusion prevents a reliable comparison. Do not estimate pose coordinates or loss weights.",
+            ["keep_stable", "use_occlusion_challenger", "reject_both", "unclear"],
+            "stable_vs_occlusion_challenger_temporal_overlay",
+        )
+    if query_type == AMODAL_MASK_QUERY_TYPE:
+        return (
+            "The left CURRENT panel shows the original incomplete object mask in white/cyan over the RGB frame. The middle and right panels show the last and next frames where both rigid parallel rails are visible. Decide whether the missing region inside the CURRENT suitcase body outline is caused by human occlusion and should be completed as one rigid body. The completion will preserve every original mask pixel and fill only the body-region gap; it will not invent handle or person pixels.",
+            list(AMODAL_MASK_CHOICES),
+            "amodal_rigid_mask_candidates",
+        )
     if query_type == "post_render_sanity_check":
         return (
             "Inspect the dark rendered object over the video. Does it accurately cover the real visible object without floating away, using the wrong angle/scale, or incorrectly covering the human? Choose pass only if alignment is visually good.",
@@ -971,15 +1052,41 @@ def build_queries(
             continue
         if query_type == "constraint_reliability_check":
             windows = constraint_risk_intervals(profile)
+        elif query_type in {AMODAL_MASK_QUERY_TYPE, INTERVAL_SELECTION_QUERY_TYPE}:
+            windows = completion_intervals(profile)
         else:
             frames = temporal_risk_keyframes(profile, stage) if stage == "stage5" and query_type == "temporal_motion_check" else stage_keyframes(profile, stage)
             windows = [(frame, frame, frame, time) for frame, time in frames]
         for frame, start_frame, end_frame, time in windows:
             question, choices, highlight = question_for(profile, query_type)
-            evidence_path = render_reference(profile, stage, frame, query_type)
+            if query_type == AMODAL_MASK_QUERY_TYPE:
+                evidence_path = materialize_candidate_evidence(
+                    profile,
+                    frame=frame,
+                    start=start_frame,
+                    end=end_frame,
+                    out_path=stage_paths(profile)["vlm_dir"] / stage / "evidence" / f"frame{frame:05d}_{query_type}.png",
+                )
+            elif query_type == INTERVAL_SELECTION_QUERY_TYPE:
+                evidence_path = _materialize_interval_candidate_evidence(
+                    profile,
+                    frame=frame,
+                    start=start_frame,
+                    end=end_frame,
+                )
+            else:
+                evidence_path = render_reference(profile, stage, frame, query_type)
+            if query_type == INTERVAL_SELECTION_QUERY_TYPE and not evidence_path:
+                # Pairwise arbitration must never degrade to a raw single frame;
+                # both current-attempt renders are required evidence.
+                continue
             input_path = evidence_path or _frame_path(profile.sample_dir, frame)
             evidence_sha256 = hashlib.sha256(Path(input_path).read_bytes()).hexdigest() if input_path and Path(input_path).is_file() else ""
-            query_id = f"{stage}:{query_type}:{start_frame:05d}-{end_frame:05d}"
+            query_id = (
+                f"{stage}:{query_type}:{frame:05d}:{start_frame:05d}-{end_frame:05d}"
+                if query_type in {AMODAL_MASK_QUERY_TYPE, INTERVAL_SELECTION_QUERY_TYPE}
+                else f"{stage}:{query_type}:{start_frame:05d}-{end_frame:05d}"
+            )
             queries.append(
                 {
                     "query_id": query_id,

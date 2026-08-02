@@ -78,8 +78,8 @@ PASS_LABELS = {
         "both_consistent",
     },
     "interval_candidate_selection_check": {
-        "keep_stable",
-        "use_occlusion_challenger",
+        "candidate_a",
+        "candidate_b",
     },
     AMODAL_MASK_QUERY_TYPE: {
         "completed_from_partial_and_references",
@@ -221,9 +221,9 @@ def repair_action(query_type: str, gate: str, label: str) -> str:
             return "downweight_correspondence"
         return "unclear_no_update"
     if query_type == "interval_candidate_selection_check":
-        if label == "use_occlusion_challenger":
+        if label == "candidate_b":
             return "select_occlusion_challenger"
-        if label == "keep_stable":
+        if label == "candidate_a":
             return "keep_stable_candidate"
         if label == "reject_both":
             return "reject_candidate_pair"

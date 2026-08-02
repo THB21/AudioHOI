@@ -168,7 +168,8 @@ def run(profile: CaseProfile) -> dict[str, object]:
             repository_root=REPO,
             body_models_root=REPO / "third-party/GVHMR/inputs/checkpoints/body_models",
             factor_arbitration_mode="auto",
-            mask_artifact_bbox_policy_override="completed_only",
+            mask_artifact_bbox_policy_override=True,
+            line_constraint_mode_override="endpoints",
         )
         challenger_result = _solve_prepared(challenger_prepared, config, max_evaluations)
         _, _, challenger_evidence, challenger_attempt_dir = _write_role_candidate(

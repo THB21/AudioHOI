@@ -769,6 +769,7 @@ def prepare_capability_object_problem(
     body_models_root: Path,
     factor_arbitration_mode: str = "auto",
     mask_artifact_bbox_policy_override: bool | str | None = None,
+    line_constraint_mode_override: str | None = None,
 ) -> CapabilityObjectProblemPreparation | LegacyObjectProblemPreparation:
     if factor_arbitration_mode not in {"auto", "off", "required"}:
         raise ValueError("factor arbitration mode must be auto, off, or required")
@@ -791,6 +792,10 @@ def prepare_capability_object_problem(
 
     descriptor_path = repository_root / str(profile.data["geometry_asset_descriptor"])
     descriptor = json.loads(descriptor_path.read_text())
+    if line_constraint_mode_override is not None:
+        if line_constraint_mode_override not in {"axis_line", "endpoints"}:
+            raise ValueError("line constraint override must be axis_line or endpoints")
+        descriptor["line_reprojection_constraint"] = line_constraint_mode_override
     observation_path = result_dir / "object_observations.csv"
     measurements = list(adapt_legacy_observation_rows(profile.case_name, _rows(observation_path), str(observation_path)).measurements)
     measurements.extend(adapt_configured_supplemental_measurements(profile, result_dir).measurements)

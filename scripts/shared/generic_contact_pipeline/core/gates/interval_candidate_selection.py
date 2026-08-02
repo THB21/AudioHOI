@@ -95,7 +95,11 @@ def load_interval_candidate_selection(
             and bool(expected_hash)
             and _sha256_bytes(evidence_path.read_bytes()) == expected_hash
         )
-        label = str((raw or {}).get("label", "reject_both"))
+        raw_label = str((raw or {}).get("label", "reject_both"))
+        label = {
+            "candidate_a": "keep_stable",
+            "candidate_b": "use_occlusion_challenger",
+        }.get(raw_label, raw_label)
         provider = str((raw or {}).get("provider", "missing_provider"))
         model = str((raw or {}).get("model", "missing_model"))
         evaluated = (

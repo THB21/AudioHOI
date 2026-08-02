@@ -54,7 +54,7 @@ query_types:
   interval_candidate_selection_check:
     stage_scope: [stage4]
     question_template: "Which current solver candidate is more reliable inside this bounded occlusion interval?"
-    choices: [keep_stable, use_occlusion_challenger, reject_both, unclear]
+    choices: [candidate_a, candidate_b, reject_both, unclear]
   post_render_sanity_check:
     stage_scope: [stage5]
     question_template: "Which failure label best describes the final rendered result?"

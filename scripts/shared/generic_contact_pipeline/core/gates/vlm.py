@@ -889,9 +889,9 @@ def _materialize_interval_candidate_evidence(
         return ""
     candidate_root = profile.result_dir / "generic_stage4_candidate"
     videos = (
-        ("A STABLE", candidate_root / "stable" / "object_only" / "overlay.mp4"),
+        ("CANDIDATE A", candidate_root / "stable" / "object_only" / "overlay.mp4"),
         (
-            "B OCCLUSION CHALLENGER",
+            "CANDIDATE B",
             candidate_root / "occlusion_challenger" / "object_only" / "overlay.mp4",
         ),
     )
@@ -987,8 +987,8 @@ def question_for(profile: CaseProfile, query_type: str) -> tuple[str, list[str],
         )
     if query_type == INTERVAL_SELECTION_QUERY_TYPE:
         return (
-            "Compare A STABLE and B OCCLUSION CHALLENGER against the same real object pixels and neighboring frames. Judge rigid body and rail geometry, continuous hand-handle relation, floor support, and temporal motion. Choose use_occlusion_challenger only when B is visibly better inside this bounded interval without introducing a jump. Choose keep_stable when A is at least as reliable. Choose reject_both for a clear physical or alignment failure in both. Choose unclear when the occlusion prevents a reliable comparison. Do not estimate pose coordinates or loss weights.",
-            ["keep_stable", "use_occlusion_challenger", "reject_both", "unclear"],
+            "Compare Candidate A and Candidate B against the same real object pixels and neighboring frames. Judge rigid body and rail geometry, continuous hand-handle relation, floor support, and temporal motion. Choose candidate_a or candidate_b only when that row is visibly more reliable inside the bounded interval without introducing a jump. Choose reject_both for a clear physical or alignment failure in both. Choose unclear when the occlusion prevents a reliable comparison. The row names carry no quality meaning. Do not estimate pose coordinates or loss weights.",
+            ["candidate_a", "candidate_b", "reject_both", "unclear"],
             "stable_vs_occlusion_challenger_temporal_overlay",
         )
     if query_type == AMODAL_MASK_QUERY_TYPE:

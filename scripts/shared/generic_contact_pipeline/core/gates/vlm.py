@@ -41,6 +41,8 @@ QUERY_FIELDS = [
     "evidence_sha256",
     "visual_factor_roles",
     "contact_factor_roles",
+    "candidate_a_role",
+    "candidate_b_role",
 ]
 
 RESULT_FIELDS = [
@@ -583,12 +585,21 @@ def _visual_line_measurement(profile: CaseProfile, frame: int) -> tuple[tuple[fl
 
 
 def _draw_stage4_context(profile: CaseProfile, img: Any, frame: int) -> None:
-    line = _visual_line_measurement(profile, frame)
-    if line is not None:
-        _draw_line(img, line[0], line[1], "visual object measurement", (40, 255, 80))
+    line_rows = [
+        row for row in _read_rows(profile.result_dir / "line_observations.csv")
+        if _row_frame(row, 1) == frame
+    ]
+    lines: list[tuple[tuple[float, float], tuple[float, float]]] = []
+    for row in line_rows:
+        values = tuple(_float(row, f"physical_{key}") for key in ("x1", "y1", "x2", "y2"))
+        if all(value is not None for value in values):
+            x1, y1, x2, y2 = values
+            lines.append(((float(x1), float(y1)), (float(x2), float(y2))))  # type: ignore[arg-type]
+    for index, line in enumerate(lines):
+        _draw_line(img, line[0], line[1], f"visual rigid line {index + 1}", (40, 255, 80))
     paths = stage_paths(profile)
     observation = _rows_by_frame(paths["object_observations"]).get(frame, {})
-    if line is None:
+    if not lines:
         _draw_circle(
             img,
             _float(observation, "ref_u"),
@@ -883,11 +894,14 @@ def _materialize_interval_candidate_evidence(
     frame: int,
     start: int,
     end: int,
+    stable_first: bool = True,
 ) -> str:
     Image, ImageDraw = _pil_modules()
     if Image is None:
         return ""
     candidate_root = profile.result_dir / "generic_stage4_candidate"
+    stable_video = candidate_root / "stable" / "object_only" / "overlay.mp4"
+    challenger_video = candidate_root / "occlusion_challenger" / "object_only" / "overlay.mp4"
     videos = (
         ("CANDIDATE A", candidate_root / "stable" / "object_only" / "overlay.mp4"),
         (
@@ -895,11 +909,14 @@ def _materialize_interval_candidate_evidence(
             candidate_root / "occlusion_challenger" / "object_only" / "overlay.mp4",
         ),
     )
+    if not stable_first:
+        videos = (("CANDIDATE A", challenger_video), ("CANDIDATE B", stable_video))
     if any(not path.is_file() for _label, path in videos):
         return ""
     out_dir = stage_paths(profile)["vlm_dir"] / "stage4" / "evidence"
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / f"frame{frame:05d}_{INTERVAL_SELECTION_QUERY_TYPE}.png"
+    order = "stable_first" if stable_first else "challenger_first"
+    out_path = out_dir / f"frame{frame:05d}_{INTERVAL_SELECTION_QUERY_TYPE}_{order}.png"
     columns = [max(start, frame - 1), frame, min(end, frame + 1)]
     tile_width, tile_height, label_height = 426, 240, 32
     canvas = Image.new(
@@ -916,6 +933,7 @@ def _materialize_interval_candidate_evidence(
             panel = _extract_video_frame(video, selected_frame)
             if panel is None:
                 return ""
+            _draw_mask(panel, _mask_path(profile.sample_dir, selected_frame))
             _draw_stage4_context(profile, panel, selected_frame)
             panel = _crop_stage4_evidence(profile, panel, selected_frame).resize(
                 (tile_width, tile_height)
@@ -1109,8 +1127,40 @@ def build_queries(
                     "evidence_sha256": evidence_sha256,
                     "visual_factor_roles": "point_reprojection|line_reprojection|mask_silhouette|metric_depth|depth_order",
                     "contact_factor_roles": "contact_distance|contact_relative_velocity|local_anchor_constancy",
+                    "candidate_a_role": (
+                        "stable" if query_type == INTERVAL_SELECTION_QUERY_TYPE else ""
+                    ),
+                    "candidate_b_role": (
+                        "occlusion_challenger" if query_type == INTERVAL_SELECTION_QUERY_TYPE else ""
+                    ),
                 }
             )
+    mirrored: list[dict[str, object]] = []
+    for query in queries:
+        if query.get("query_type") != INTERVAL_SELECTION_QUERY_TYPE:
+            continue
+        evidence_path = _materialize_interval_candidate_evidence(
+            profile,
+            frame=int(query["frame"]),
+            start=int(query["start_frame"]),
+            end=int(query["end_frame"]),
+            stable_first=False,
+        )
+        if not evidence_path:
+            continue
+        mirrored_query = dict(query)
+        mirrored_query.update(
+            {
+                "query_id": str(query["query_id"]) + ":mirrored",
+                "input_image_path": evidence_path,
+                "input_render_path": evidence_path,
+                "evidence_sha256": hashlib.sha256(Path(evidence_path).read_bytes()).hexdigest(),
+                "candidate_a_role": "occlusion_challenger",
+                "candidate_b_role": "stable",
+            }
+        )
+        mirrored.append(mirrored_query)
+    queries.extend(mirrored)
     return queries
 
 

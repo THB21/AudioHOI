@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import subprocess
+import json
 from pathlib import Path
+
+import numpy as np
 
 from ....core.base.config import CaseProfile
 from ....core.base.io import copy_file, repo_path, write_json
@@ -18,10 +21,66 @@ def resolve_urdf_path(profile: CaseProfile) -> Path:
     configured = profile.data.get("articraft_urdf") or profile.data.get("urdf")
     if configured:
         return repo_path(str(configured)).resolve()
+    descriptor_path = profile.data.get("geometry_asset_descriptor")
+    if descriptor_path:
+        descriptor = json.loads(repo_path(str(descriptor_path)).read_text())
+        resource_path = descriptor.get("resource_path")
+        if resource_path:
+            return repo_path(str(resource_path)).resolve()
     urdf = profile.sample_dir / DEFAULT_CHAIR_URDF
     if urdf.exists():
         return urdf.resolve()
     return (profile.sample_dir / "results/mainline_0425/articraft_urdf/model.urdf").resolve()
+
+
+def render_candidate_overlay_evidence(
+    profile: CaseProfile,
+    pose_csv: Path,
+    output_dir: Path,
+) -> dict[str, object]:
+    """Render the current Stage-4 candidate for VLM review, without Stage-5 outputs."""
+
+    if profile.data.get("render_scene") != "generic_urdf":
+        return {"status": "not_applicable", "reason": "candidate evidence requires generic_urdf"}
+    from ..scenes import generic_urdf_scene as scene
+
+    descriptor_path = profile.data.get("geometry_asset_descriptor")
+    descriptor = (
+        json.loads(repo_path(str(descriptor_path)).read_text())
+        if descriptor_path
+        else {}
+    )
+    joint_positions = {
+        str(name): float(value)
+        for name, value in descriptor.get("fixed_resource_joint_state", {}).items()
+    }
+    rows = scene.read_rows(pose_csv)
+    visuals = scene.load_articraft_visuals(resolve_urdf_path(profile), joint_positions)
+    camera = profile.camera
+    intrinsic = np.asarray(
+        (
+            (float(camera["fx"]), 0.0, float(camera["cx"])),
+            (0.0, float(camera["fy"]), float(camera["cy"])),
+            (0.0, 0.0, 1.0),
+        ),
+        dtype=float,
+    )
+    outputs = scene.draw_overlay(
+        profile.sample_dir,
+        rows,
+        visuals,
+        output_dir / "object_only" / "overlay.mp4",
+        float(profile.data.get("preprocess", {}).get("fps", 24.0)),
+        intrinsic,
+        0.78,
+    )
+    return {
+        "status": "rendered",
+        "scope": "stage4_candidate_object_only",
+        "pose_csv": str(pose_csv),
+        "outputs": outputs,
+        "accepted_outputs_written": False,
+    }
 
 
 def render(profile: CaseProfile) -> dict[str, object]:
@@ -60,6 +119,9 @@ def render(profile: CaseProfile) -> dict[str, object]:
                 str(profile.camera["cy"]),
             ]
         )
+        descriptor = profile.data.get("geometry_asset_descriptor")
+        if descriptor:
+            cmd.extend(["--asset-descriptor", str(repo_path(str(descriptor)))])
     subprocess.run(cmd, cwd=repo_path("."), check=True)
     if profile.data.get("render_scene") == "generic_urdf":
         mapping = {dst / rel: rel for rel in REQUIRED_RENDER_FILES}

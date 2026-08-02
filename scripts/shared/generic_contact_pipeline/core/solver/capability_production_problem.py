@@ -1,6 +1,7 @@
 """Capability-driven adapters from current artifacts to one generic object problem."""
 from __future__ import annotations
 
+import copy
 import csv
 import hashlib
 import json
@@ -48,11 +49,46 @@ from .legacy_production_problem import (
 from .capability_initializers import InitializationRequest, initialize_from_capabilities
 from .problem import build_sequence_problem_shadow
 from .problem_factory import SequenceFactorInputs, SequenceProblemFactory, SequenceProblemPreparation
-from .residual_inputs import ContactFactorInput, LineReprojectionFactorInput, MaskSilhouetteFactorInput, MetricDepthFactorInput, PeriodicPhaseFactorInput, PointReprojectionFactorInput, SupportPlaneFactorInput, WorldSpaceContactSample
+from .residual_inputs import ContactFacingFactorInput, ContactFactorInput, LineReprojectionFactorInput, MaskSilhouetteFactorInput, MetricDepthFactorInput, PeriodicPhaseFactorInput, PointReprojectionFactorInput, SupportPlaneFactorInput, WorldSpaceContactSample
 
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _approved_amodal_reference_frames(
+    result_dir: Path,
+    raw_config: object,
+) -> tuple[int, ...]:
+    """Load frames whose occlusion completion was explicitly approved.
+
+    The VLM contributes only a discrete approval.  Continuous pose targets are
+    still computed from the rigid visual estimates on the two observable
+    boundaries by the generic sequence problem factory.
+    """
+
+    if not isinstance(raw_config, Mapping) or not bool(raw_config.get("enabled", False)):
+        return ()
+    relative = Path(
+        str(raw_config.get("manifest", "vlm/stage4/amodal_mask_completion_manifest.json"))
+    )
+    path = relative if relative.is_absolute() else result_dir / relative
+    if not path.is_file():
+        return ()
+    payload = json.loads(path.read_text())
+    if payload.get("continuous_pose_from_vlm") is not False:
+        raise ValueError("amodal pose reference requires VLM to remain a discrete gate")
+    approved = {
+        "completed_from_partial_and_references",
+        "completed_from_partial_mask",
+    }
+    selections = payload.get("selections", ())
+    if not any(
+        isinstance(item, Mapping) and str(item.get("choice")) in approved
+        for item in selections
+    ):
+        return ()
+    return tuple(sorted({int(frame) for frame in payload.get("written_frames", ())}))
 
 
 def _canonical_hash(value: object) -> str:
@@ -118,6 +154,7 @@ def _enrich_mask_shape_measurements(
     measurements: Sequence[object],
     *,
     sample_dir: Path,
+    result_dir: Path,
     raw_config: Mapping[str, object],
 ) -> tuple[list[object], dict[str, object]]:
     """Attach orientation statistics derived from the declared binary mask artifact."""
@@ -128,6 +165,15 @@ def _enrich_mask_shape_measurements(
         raise RuntimeError("mask shape measurements require OpenCV in the solver runtime") from exc
     semantic_role = str(raw_config["semantic_role"])
     artifact_pattern = str(raw_config["artifact_pattern"])
+    fallback_artifact_pattern = str(raw_config.get("fallback_artifact_pattern", ""))
+    artifact_base = str(raw_config.get("artifact_base", "sample_dir"))
+    artifact_bbox_policy = raw_config.get("use_artifact_bbox", False)
+    if artifact_bbox_policy not in {False, True, "completed_only"}:
+        raise ValueError("use_artifact_bbox must be false, true, or 'completed_only'")
+    principal_axis_crop_to_declared_bbox = bool(
+        raw_config.get("principal_axis_crop_to_declared_bbox", False)
+    )
+    completed_confidence = raw_config.get("completed_confidence")
     minimum_pixels = int(raw_config.get("minimum_pixels", 16))
     enriched: list[object] = []
     artifacts: list[str] = []
@@ -136,11 +182,26 @@ def _enrich_mask_shape_measurements(
             enriched.append(item)
             continue
         relative = Path(artifact_pattern.format(frame=item.meta.frame))
-        path = relative if relative.is_absolute() else sample_dir / relative
+        base = result_dir if artifact_base == "result_dir" else sample_dir
+        path = relative if relative.is_absolute() else base / relative
+        using_completed_artifact = path.is_file()
+        if not path.is_file() and fallback_artifact_pattern:
+            fallback = Path(fallback_artifact_pattern.format(frame=item.meta.frame))
+            path = fallback if fallback.is_absolute() else sample_dir / fallback
         image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
         if image is None:
             raise FileNotFoundError(f"missing configured mask shape artifact: {path}")
         rows, cols = np.where(image > 0)
+        if principal_axis_crop_to_declared_bbox:
+            x1, y1, x2, y2 = item.bbox_xyxy
+            inside = (
+                (cols >= x1)
+                & (cols <= x2)
+                & (rows >= y1)
+                & (rows <= y2)
+            )
+            rows = rows[inside]
+            cols = cols[inside]
         if len(rows) < minimum_pixels:
             raise ValueError(f"mask shape artifact has too few foreground pixels: {path}")
         centered = np.column_stack((cols - np.mean(cols), rows - np.mean(rows))).astype(float)
@@ -149,9 +210,34 @@ def _enrich_mask_shape_measurements(
         order = np.argsort(eigenvalues)
         axis = eigenvectors[:, int(order[-1])]
         axis /= np.linalg.norm(axis)
+        bbox = item.bbox_xyxy
+        area = item.area_px
+        use_artifact_bbox = artifact_bbox_policy is True or (
+            artifact_bbox_policy == "completed_only" and using_completed_artifact
+        )
+        if use_artifact_bbox:
+            bbox = (float(np.min(cols)), float(np.min(rows)), float(np.max(cols)), float(np.max(rows)))
+            area = float(len(rows))
         enriched.append(
             replace(
                 item,
+                meta=(
+                    replace(
+                        item.meta,
+                        confidence=max(
+                            0.0 if item.meta.confidence is None else float(item.meta.confidence),
+                            float(completed_confidence),
+                        ),
+                        source=replace(
+                            item.meta.source,
+                            producer=item.meta.source.producer + "+qwen_approved_amodal_mask",
+                        ),
+                    )
+                    if using_completed_artifact and completed_confidence is not None
+                    else item.meta
+                ),
+                bbox_xyxy=bbox,
+                area_px=area,
                 mask_artifact=str(path),
                 principal_axis_uv=(float(axis[0]), float(axis[1])),
                 principal_variances_px2=(
@@ -166,6 +252,10 @@ def _enrich_mask_shape_measurements(
         "semantic_role": semantic_role,
         "enriched_measurement_count": len(artifacts),
         "artifact_pattern": artifact_pattern,
+        "fallback_artifact_pattern": fallback_artifact_pattern,
+        "use_artifact_bbox": artifact_bbox_policy,
+        "principal_axis_crop_to_declared_bbox": principal_axis_crop_to_declared_bbox,
+        "completed_confidence": completed_confidence,
         "case_dispatch_used": False,
     }
 def _support_plane_from_human_foot_sites(
@@ -469,6 +559,52 @@ def _contact_samples_with_line_s(
     return tuple(local_samples)
 
 
+def _align_contact_sources_to_image_targets(
+    samples: Sequence[WorldSpaceContactSample],
+    contact_rows: Sequence[Mapping[str, str]],
+    camera: PinholeCamera,
+    *,
+    object_states: Mapping[int, Sequence[float]] | None = None,
+    geometry_provider: object | None = None,
+) -> tuple[WorldSpaceContactSample, ...]:
+    """Use the observed contact pixel with read-only human-site depth.
+
+    A body-model hand site identifies the interacting side and supplies only a
+    coarse depth.  Its joint center is not assumed to coincide with the true
+    object contact point in the image.
+    """
+
+    rows_by_frame = {
+        int(row["frame"]): row
+        for row in contact_rows
+        if row.get("contact_active") == "1" and row.get("contact_u") and row.get("contact_v")
+    }
+    aligned: list[WorldSpaceContactSample] = []
+    for sample in samples:
+        row = rows_by_frame.get(sample.frame)
+        if row is None:
+            aligned.append(sample)
+            continue
+        u, v = float(row["contact_u"]), float(row["contact_v"])
+        if object_states is not None and geometry_provider is not None:
+            aligned.append(replace(
+                sample,
+                source_uv_px=(u, v),
+                camera_intrinsics=(camera.fx, camera.fy, camera.cx, camera.cy),
+            ))
+            continue
+        z = float(sample.source_xyz_m[2])
+        if z <= 1e-6:
+            aligned.append(sample)
+            continue
+        aligned.append(replace(sample, source_xyz_m=(
+            (u - camera.cx) * z / camera.fx,
+            (v - camera.cy) * z / camera.fy,
+            z,
+        )))
+    return tuple(aligned)
+
+
 def _surface_contact_samples_from_states(
     contact_states: Sequence[object],
     sites: Sequence[HumanSiteMeasurement],
@@ -612,6 +748,13 @@ class CapabilityObjectProblemPreparation:
     measurement_count: int
     contact_constraint_count: int
     factor_arbitration: FactorArbitrationLedger
+    contact_facing_projection: ContactFacingFactorInput | None = None
+    bounded_gap_smoothing_frames: tuple[int, ...] = ()
+    adjacent_translation_smoothing_passes: int = 0
+    adjacent_rotation_smoothing_passes: int = 0
+    maximum_rotation_step_deg: float = 0.0
+    bounded_gap_rotation_recovery_frames: int = 0
+    bounded_gap_project_rotation: bool = True
     case_dispatch_used: bool = False
     baseline_pose_read: bool = False
     human_state_optimized: bool = False
@@ -625,12 +768,25 @@ def prepare_capability_object_problem(
     repository_root: Path,
     body_models_root: Path,
     factor_arbitration_mode: str = "auto",
+    mask_artifact_bbox_policy_override: bool | str | None = None,
 ) -> CapabilityObjectProblemPreparation | LegacyObjectProblemPreparation:
     if factor_arbitration_mode not in {"auto", "off", "required"}:
         raise ValueError("factor arbitration mode must be auto, off, or required")
-    config = profile.data.get("generic_object_problem")
-    if not isinstance(config, Mapping):
+    raw_config = profile.data.get("generic_object_problem")
+    if not isinstance(raw_config, Mapping):
         raise ValueError("case profile is missing generic_object_problem capability configuration")
+    config = copy.deepcopy(dict(raw_config))
+    if mask_artifact_bbox_policy_override is not None:
+        if mask_artifact_bbox_policy_override not in {False, True, "completed_only"}:
+            raise ValueError(
+                "mask artifact bbox policy override must be false, true, or completed_only"
+            )
+        mask_shape = config.get("mask_shape_observations")
+        if not isinstance(mask_shape, Mapping):
+            raise ValueError("mask bbox override requires mask_shape_observations")
+        mask_shape = copy.deepcopy(dict(mask_shape))
+        mask_shape["use_artifact_bbox"] = mask_artifact_bbox_policy_override
+        config["mask_shape_observations"] = mask_shape
     initializer = str(config["initializer"])
 
     descriptor_path = repository_root / str(profile.data["geometry_asset_descriptor"])
@@ -646,6 +802,7 @@ def prepare_capability_object_problem(
         measurements, mask_shape_ledger = _enrich_mask_shape_measurements(
             measurements,
             sample_dir=profile.sample_dir,
+            result_dir=result_dir,
             raw_config=raw_mask_shape,
         )
     contact_path = resolve_contact_artifact(profile, result_dir)
@@ -828,6 +985,31 @@ def prepare_capability_object_problem(
         gvhmr_sites.measurements,
         line_contact_projection=str(descriptor.get("contact_projection", "line_s")),
     )
+    contact_source_projection = config.get("contact_source_projection")
+    if contact_source_projection in {
+        "image_point_at_human_site_depth",
+        "image_point_at_object_seed_depth",
+    }:
+        samples = _align_contact_sources_to_image_targets(
+            samples,
+            contact_rows,
+            PinholeCamera(**profile.camera),
+            object_states=(
+                initial_states
+                if contact_source_projection == "image_point_at_object_seed_depth"
+                else None
+            ),
+            geometry_provider=(
+                provider
+                if contact_source_projection == "image_point_at_object_seed_depth"
+                else None
+            ),
+        )
+        initializer_ledger = {
+            **initializer_ledger,
+            "contact_source_projection": str(contact_source_projection),
+            "human_site_role": "read_only_side_and_image_motion_evidence",
+        }
     contact_state_path = result_dir / str(config.get("contact_state_artifact", "contact_state_frames.csv"))
     if config.get("contact_source") == "interaction_state":
         contact_states = adapt_contact_state_rows(profile.case_name, _rows(contact_state_path), str(contact_state_path))
@@ -861,6 +1043,7 @@ def prepare_capability_object_problem(
         )
     contact_factors: dict[str, ContactFactorInput] = {}
     contact_relative_velocity_factors: dict[str, ContactFactorInput] = {}
+    contact_facing_factors: dict[str, ContactFacingFactorInput] = {}
     contact_twist_gauge_factors: dict[str, ContactFactorInput] = {}
     phase_factors: dict[str, PeriodicPhaseFactorInput] = {}
     line_factors: dict[str, LineReprojectionFactorInput] = {}
@@ -868,6 +1051,10 @@ def prepare_capability_object_problem(
     mask_factors: dict[str, MaskSilhouetteFactorInput] = {}
     depth_factors: dict[str, MetricDepthFactorInput] = {}
     support_factors: dict[str, SupportPlaneFactorInput] = {}
+    reference_state_frames = _approved_amodal_reference_frames(
+        result_dir,
+        config.get("occluded_pose_reference"),
+    )
     cameras = {frame: PinholeCamera(**profile.camera) for frame in initial_states}
     line_measurements = tuple(item for item in measurements if isinstance(item, Line2DMeasurement))
     measurement_roles = config.get("measurement_roles", {})
@@ -890,6 +1077,56 @@ def prepare_capability_object_problem(
                 samples,
                 None,
                 residual_axes=tuple(int(axis) for axis in config.get("contact_residual_axes", (0, 1, 2))),
+            )
+        elif residual_ref == "shadow_residual::contact_facing":
+            facing_config = config.get("contact_facing", {})
+            if not isinstance(facing_config, Mapping):
+                raise ValueError("contact_facing configuration must be a mapping")
+            feature_id = str(facing_config.get("feature_id", "object:handle"))
+            feature_frames = descriptor.get("interaction_feature_frames", {})
+            if not isinstance(feature_frames, Mapping) or not isinstance(feature_frames.get(feature_id), Mapping):
+                raise ValueError(f"asset descriptor lacks interaction feature frame for {feature_id}")
+            feature_frame = feature_frames[feature_id]
+            facing_axis = tuple(float(value) for value in feature_frame["facing_axis_local"])
+            reference_part = str(facing_config.get("human_reference_body_part", "foot"))
+            human_points_by_frame: dict[int, list[np.ndarray]] = {}
+            for site in gvhmr_sites.measurements:
+                if site.site.body_part == reference_part:
+                    human_points_by_frame.setdefault(site.frame, []).append(np.asarray(site.xyz_m, dtype=float))
+            human_reference_by_frame = {
+                frame: tuple(float(value) for value in np.mean(np.stack(points), axis=0))
+                for frame, points in human_points_by_frame.items()
+                if points
+            }
+            active_frames = tuple(
+                sorted(
+                    int(row["frame"])
+                    for row in contact_rows
+                    if row.get("contact_active") == "1" and int(row["frame"]) in human_reference_by_frame
+                )
+            )
+            support_config = config.get("support_plane", {})
+            support_normal = (
+                support_config.get("normal_camera", (0.0, -1.0, 0.0))
+                if isinstance(support_config, Mapping)
+                else (0.0, -1.0, 0.0)
+            )
+            contact_facing_factors[factor_id] = ContactFacingFactorInput(
+                local_facing_axis=facing_axis,
+                human_reference_by_frame=human_reference_by_frame,
+                active_frames=active_frames,
+                support_normal_world=tuple(float(value) for value in support_normal),
+                camera_depth_axis_world=tuple(
+                    float(value)
+                    for value in facing_config.get("camera_depth_axis_world", (0.0, 0.0, 1.0))
+                ),
+                depth_relation=str(facing_config.get("depth_relation", "unconstrained")),
+                minimum_depth_separation_m=float(
+                    facing_config.get("minimum_depth_separation_m", 0.0)
+                ),
+                maximum_facing_angle_rad=math.radians(
+                    float(facing_config.get("maximum_facing_angle_deg", 90.0))
+                ),
             )
         elif residual_ref == "shadow_residual::contact_twist_gauge":
             contact_twist_gauge_factors[factor_id] = ContactFactorInput(provider, samples, None)
@@ -996,6 +1233,30 @@ def prepare_capability_object_problem(
                 if support_config.get("proximity_gate_m") is None
                 else float(support_config["proximity_gate_m"])
             )
+            contact_reduction = str(support_config.get("contact_reduction", "all_points"))
+            contact_group_by_frame: dict[int, int] | None = None
+            all_contact_points_frames: tuple[int, ...] = ()
+            if contact_reduction == "nearest_feature_group":
+                contact_group_by_frame = {}
+                for frame in active_frames:
+                    state = initial_states[frame]
+                    costs = []
+                    for feature_id in support_feature_ids:
+                        distances = plane.signed_distance(provider.feature_points_world(state, feature_id))
+                        costs.append(float(np.mean(np.abs(np.asarray(distances, dtype=float)))))
+                    contact_group_by_frame[frame] = int(np.argmin(np.asarray(costs, dtype=float)))
+                upright_threshold = support_config.get("all_points_when_mask_axis_within_deg")
+                if upright_threshold is not None:
+                    cosine_threshold = math.cos(math.radians(float(upright_threshold)))
+                    all_contact_points_frames = tuple(
+                        sorted(
+                            measurement.meta.frame
+                            for measurement in measurements
+                            if isinstance(measurement, Mask2DMeasurement)
+                            and measurement.principal_axis_uv is not None
+                            and abs(float(measurement.principal_axis_uv[1])) >= cosine_threshold
+                        )
+                    )
             support_factors[factor_id] = SupportPlaneFactorInput(
                 provider,
                 support_feature_ids,
@@ -1007,6 +1268,9 @@ def prepare_capability_object_problem(
                 activation_status_by_frame=status_by_frame,
                 activation_weight_by_frame=weight_by_frame,
                 proximity_gate_m=proximity_gate_m,
+                contact_reduction=contact_reduction,
+                contact_group_by_frame=contact_group_by_frame,
+                all_contact_points_frames=all_contact_points_frames,
                 tangent_gauge_weight=float(support_config.get("tangent_gauge_weight", 0.0)),
                 tangent_gauge_sigma_rad=float(support_config.get("tangent_gauge_sigma_rad", 1.0)),
             )
@@ -1014,6 +1278,7 @@ def prepare_capability_object_problem(
         state_scales=_state_scales(records, sum(dof.dimension for dof in adaptation.state_spec.dofs)),
         contact_factors=contact_factors,
         contact_relative_velocity_factors=contact_relative_velocity_factors,
+        contact_facing_factors=contact_facing_factors,
         contact_twist_gauge_factors=contact_twist_gauge_factors,
         periodic_phase_factors=phase_factors,
         line_reprojection_factors=line_factors,
@@ -1056,6 +1321,23 @@ def prepare_capability_object_problem(
         measurement_count=len(measurements),
         contact_constraint_count=len(constraints),
         factor_arbitration=factor_arbitration,
+        contact_facing_projection=next(iter(contact_facing_factors.values()), None),
+        bounded_gap_smoothing_frames=reference_state_frames,
+        adjacent_translation_smoothing_passes=int(
+            config.get("postsolve_smoothing", {}).get("translation_passes", 0)
+        ),
+        adjacent_rotation_smoothing_passes=int(
+            config.get("postsolve_smoothing", {}).get("rotation_passes", 0)
+        ),
+        maximum_rotation_step_deg=float(
+            config.get("postsolve_smoothing", {}).get("maximum_rotation_step_deg", 0.0)
+        ),
+        bounded_gap_rotation_recovery_frames=int(
+            config.get("occluded_pose_reference", {}).get("rotation_recovery_frames", 0)
+        ),
+        bounded_gap_project_rotation=bool(
+            config.get("occluded_pose_reference", {}).get("project_rotation", True)
+        ),
     )
 
 
@@ -1079,6 +1361,12 @@ def capability_object_problem_preparation_record(prepared: CapabilityObjectProbl
         "read_only_human_sites": {"measurement_count": len(prepared.gvhmr_sites.measurements), "source_artifact": prepared.gvhmr_sites.source_artifact, "source_sha256": prepared.gvhmr_sites.source_sha256, "read_only": True},
         "measurement_count": prepared.measurement_count,
         "contact_constraint_count": prepared.contact_constraint_count,
+        "bounded_gap_smoothing_frames": list(prepared.bounded_gap_smoothing_frames),
+        "adjacent_translation_smoothing_passes": prepared.adjacent_translation_smoothing_passes,
+        "adjacent_rotation_smoothing_passes": prepared.adjacent_rotation_smoothing_passes,
+        "maximum_rotation_step_deg": prepared.maximum_rotation_step_deg,
+        "bounded_gap_rotation_recovery_frames": prepared.bounded_gap_rotation_recovery_frames,
+        "bounded_gap_project_rotation": prepared.bounded_gap_project_rotation,
         "vlm_factor_arbitration": factor_arbitration_ledger_record(prepared.factor_arbitration),
         "case_dispatch_used": False,
         "baseline_pose_read": False,

@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Any, Callable, Mapping, Sequence
 
 import numpy as np
 
 from .factor_residuals import FactorResidualEvaluator
 from .parameterization import StateSpecParameterization
+from .residual_inputs import ContactFacingFactorInput
 from .sparsity import ResidualRowDependency, build_factor_frame_jacobian_sparsity
 
 
@@ -353,3 +354,570 @@ def solve_sequence_optimization(
         **payload,
         canonical_sha256=_canonical_hash(payload),
     )
+
+
+def project_bounded_gap_states(
+    problem: SequenceOptimizationProblem,
+    result: GenericSequenceSolveResult,
+    gap_frames: Sequence[int],
+    *,
+    rotation_recovery_frames: int = 0,
+    project_rotation: bool = True,
+) -> GenericSequenceSolveResult:
+    """Remove bounded occlusion spikes using solved boundary states.
+
+    This is deliberately a post-solve projection: unlike an initializer prior,
+    its endpoints are the optimized visible states. Non-rotational state uses
+    linear interpolation. Quaternion DOFs hold the last trusted orientation
+    through the unsupported part of a gap, then use shortest-path normalized
+    interpolation across the end of the gap and a stable visible recovery
+    window. This avoids leaking a future turn backwards through a long
+    occlusion. No case/object identity participates in the policy.
+    """
+
+    selected = sorted(set(int(frame) for frame in gap_frames if int(frame) in result.frames))
+    if not selected:
+        return result
+    states = {
+        frame: np.asarray(state, dtype=float).copy()
+        for frame, state in zip(result.frames, result.states)
+    }
+    quaternion_groups: list[tuple[int, int, int, int]] = []
+    if problem.state_parameterization is not None:
+        offset = 0
+        for dof in problem.state_parameterization.state_spec.dofs:
+            if dof.kind.value == "rotation_so3":
+                names = tuple(field.rsplit(".", 1)[-1] for field in dof.source_fields)
+                quaternion_groups.append(
+                    tuple(offset + names.index(name) for name in ("qw", "qx", "qy", "qz"))
+                )
+            offset += dof.dimension
+    # Quaternion coordinates are never ordinary linear state dimensions.  If
+    # rotation projection is disabled, preserve the solved quaternion instead
+    # of accidentally interpolating its four scalar components.  If enabled,
+    # the dedicated normalized shortest-path interpolation below owns them.
+    quaternion_indices = {index for group in quaternion_groups for index in group}
+    projected_quaternion_groups = quaternion_groups if project_rotation else []
+    runs: list[tuple[int, int]] = []
+    start = previous = selected[0]
+    for frame in selected[1:]:
+        if frame != previous + 1:
+            runs.append((start, previous))
+            start = frame
+        previous = frame
+    runs.append((start, previous))
+    projected_frames: list[int] = []
+    for start, end in runs:
+        left, right = start - 1, end + 1
+        if left not in states or right not in states:
+            continue
+        span = float(right - left)
+        for frame in range(start, end + 1):
+            if frame not in states:
+                continue
+            alpha = (frame - left) / span
+            for index in range(len(states[frame])):
+                if index not in quaternion_indices:
+                    states[frame][index] = (1.0 - alpha) * states[left][index] + alpha * states[right][index]
+            projected_frames.append(frame)
+        rotation_right = min(
+            int(result.frames[-1]),
+            right + max(0, int(rotation_recovery_frames)),
+        )
+        if rotation_right not in states:
+            rotation_right = right
+        recovery = max(0, int(rotation_recovery_frames))
+        rotation_start = max(start, right - recovery)
+        rotation_span = float(max(1, rotation_right - rotation_start))
+        for group in projected_quaternion_groups:
+            q0 = states[left][list(group)].copy()
+            q1 = states[rotation_right][list(group)].copy()
+            q0 /= np.linalg.norm(q0)
+            q1 /= np.linalg.norm(q1)
+            if float(q0 @ q1) < 0.0:
+                q1 *= -1.0
+            for frame in range(start, rotation_right):
+                if frame not in states:
+                    continue
+                if frame < rotation_start:
+                    quaternion = q0.copy()
+                else:
+                    alpha = (frame - rotation_start) / rotation_span
+                    quaternion = (1.0 - alpha) * q0 + alpha * q1
+                quaternion /= np.linalg.norm(quaternion)
+                states[frame][list(group)] = quaternion
+                if frame not in projected_frames:
+                    projected_frames.append(frame)
+    if not projected_frames:
+        return result
+    projected_states = tuple(tuple(float(value) for value in states[frame]) for frame in result.frames)
+    state_mapping = {frame: state for frame, state in zip(result.frames, projected_states)}
+    final_residual = build_runtime_residual_vector(
+        problem.residual_execution_plan,
+        problem.residual_input_builder(state_mapping),
+        problem.factor_ids,
+    )
+    derived_id = "generic-solve-" + _canonical_hash(
+        {
+            "parent": result.solve_attempt_id,
+            "policy": "bounded_gap_postsolve_interpolation",
+            "frames": projected_frames,
+            "rotation_recovery_frames": int(rotation_recovery_frames),
+            "project_rotation": bool(project_rotation),
+            "rotation_policy": "hold_then_stable_visible_recovery",
+            "states": projected_states,
+        }
+    )[:12]
+    derived = replace(
+        result,
+        solve_attempt_id=derived_id,
+        parent_solve_attempt_id=result.solve_attempt_id,
+        states=projected_states,
+        final_squared_error=float(final_residual @ final_residual),
+        message=result.message + "; bounded-gap post-solve interpolation applied",
+        canonical_sha256="",
+    )
+    payload = asdict(derived)
+    payload.pop("canonical_sha256")
+    return replace(derived, canonical_sha256=_canonical_hash(payload))
+
+
+def reevaluate_solve_result(
+    problem: SequenceOptimizationProblem,
+    result: GenericSequenceSolveResult,
+    *,
+    policy: str,
+) -> GenericSequenceSolveResult:
+    """Recompute residual evidence after a discrete state composition policy."""
+
+    state_mapping = {frame: state for frame, state in zip(result.frames, result.states)}
+    final_residual = build_runtime_residual_vector(
+        problem.residual_execution_plan,
+        problem.residual_input_builder(state_mapping),
+        problem.factor_ids,
+    )
+    derived_id = "generic-solve-" + _canonical_hash(
+        {
+            "parent": result.solve_attempt_id,
+            "policy": policy,
+            "states": result.states,
+            "residual_sha256": hashlib.sha256(final_residual.tobytes()).hexdigest(),
+        }
+    )[:12]
+    derived = replace(
+        result,
+        solve_attempt_id=derived_id,
+        parent_solve_attempt_id=result.solve_attempt_id,
+        final_residual_count=int(final_residual.size),
+        final_squared_error=float(final_residual @ final_residual),
+        message=result.message + f"; residuals reevaluated after {policy}",
+        canonical_sha256="",
+    )
+    payload = asdict(derived)
+    payload.pop("canonical_sha256")
+    return replace(derived, canonical_sha256=_canonical_hash(payload))
+
+
+def project_contact_facing_states(
+    problem: SequenceOptimizationProblem,
+    result: GenericSequenceSolveResult,
+    factor: ContactFacingFactorInput | None,
+    *,
+    smoothing_passes: int = 0,
+    turn_trigger_half_window_frames: int = 0,
+    turn_trigger_span_deg: float = 0.0,
+    latch_exact_alignment_after_turn: bool = False,
+    turn_alignment_ramp_frames: int = 0,
+) -> GenericSequenceSolveResult:
+    """Hard-project only root yaw for an active persistent grasp-face relation.
+
+    Translation and non-yaw rotation are preserved.  The desired horizontal
+    direction is locally averaged on the unit circle before projection, so
+    noisy depth/position observations cannot create alternating yaw jitter.
+    """
+
+    if factor is None or problem.state_parameterization is None:
+        return result
+    quaternion_group: tuple[int, int, int, int] | None = None
+    offset = 0
+    for dof in problem.state_parameterization.state_spec.dofs:
+        if dof.kind.value == "rotation_so3":
+            names = tuple(field.rsplit(".", 1)[-1] for field in dof.source_fields)
+            quaternion_group = tuple(offset + names.index(name) for name in ("qw", "qx", "qy", "qz"))
+            break
+        offset += dof.dimension
+    if quaternion_group is None:
+        return result
+    states = {
+        frame: np.asarray(state, dtype=float).copy()
+        for frame, state in zip(result.frames, result.states)
+    }
+    normal = np.asarray(factor.support_normal_world, dtype=float)
+    normal /= np.linalg.norm(normal)
+    depth_axis = np.asarray(factor.camera_depth_axis_world, dtype=float)
+    depth_axis /= np.linalg.norm(depth_axis)
+    local_axis = np.asarray(factor.local_facing_axis, dtype=float)
+    local_axis /= np.linalg.norm(local_axis)
+    active = tuple(
+        frame
+        for frame in factor.active_frames
+        if frame in states and frame in factor.human_reference_by_frame
+    )
+    if not active:
+        return result
+    desired_by_frame: dict[int, np.ndarray] = {}
+    for frame in active:
+        desired = np.asarray(factor.human_reference_by_frame[frame], dtype=float) - states[frame][:3]
+        if factor.depth_relation == "object_behind_human":
+            component = float(desired @ depth_axis)
+            maximum = -float(factor.minimum_depth_separation_m)
+            if component > maximum:
+                desired += (maximum - component) * depth_axis
+        desired -= normal * float(desired @ normal)
+        length = float(np.linalg.norm(desired))
+        if length > 1e-8:
+            desired_by_frame[frame] = desired / length
+    kernel = np.asarray((1.0, 4.0, 6.0, 4.0, 1.0), dtype=float) / 16.0
+    runs: list[list[int]] = []
+    for frame in active:
+        if frame not in desired_by_frame:
+            continue
+        if not runs or frame != runs[-1][-1] + 1:
+            runs.append([frame])
+        else:
+            runs[-1].append(frame)
+    for run in runs:
+        directions = np.stack([desired_by_frame[frame] for frame in run])
+        exact_alignment_from_frame: int | None = None
+        if (
+            latch_exact_alignment_after_turn
+            and turn_trigger_half_window_frames > 0
+            and turn_trigger_span_deg > 0.0
+            and len(run) >= 2
+        ):
+            reference = depth_axis - normal * float(depth_axis @ normal)
+            if np.linalg.norm(reference) <= 1e-8:
+                reference = directions[0]
+            reference /= np.linalg.norm(reference)
+            orthogonal = np.cross(normal, reference)
+            bearings = np.unwrap(np.asarray([
+                np.arctan2(float(direction @ orthogonal), float(direction @ reference))
+                for direction in directions
+            ]))
+            half_window = int(turn_trigger_half_window_frames)
+            threshold = np.deg2rad(float(turn_trigger_span_deg))
+            for index, frame in enumerate(run):
+                start = max(0, index - half_window)
+                stop = min(len(run), index + half_window + 1)
+                if abs(float(bearings[stop - 1] - bearings[start])) >= threshold:
+                    exact_alignment_from_frame = frame
+                    break
+        for _ in range(max(0, int(smoothing_passes))):
+            padded = np.pad(directions, ((2, 2), (0, 0)), mode="edge")
+            directions = np.stack(
+                [np.sum(padded[index:index + 5] * kernel[:, None], axis=0) for index in range(len(run))]
+            )
+            directions -= (directions @ normal)[:, None] * normal[None, :]
+            directions /= np.linalg.norm(directions, axis=1, keepdims=True)
+        reference = depth_axis - normal * float(depth_axis @ normal)
+        if np.linalg.norm(reference) <= 1e-8:
+            reference = directions[0]
+        reference /= np.linalg.norm(reference)
+        orthogonal = np.cross(normal, reference)
+        desired_bearings = np.unwrap(np.asarray([
+            np.arctan2(float(direction @ orthogonal), float(direction @ reference))
+            for direction in directions
+        ]))
+        predicted_directions: list[np.ndarray] = []
+        for frame in run:
+            q = states[frame][list(quaternion_group)].copy()
+            q /= np.linalg.norm(q)
+            w, x, y, z = q
+            rotation = np.asarray(
+                (
+                    (1.0 - 2.0 * (y*y + z*z), 2.0 * (x*y - z*w), 2.0 * (x*z + y*w)),
+                    (2.0 * (x*y + z*w), 1.0 - 2.0 * (x*x + z*z), 2.0 * (y*z - x*w)),
+                    (2.0 * (x*z - y*w), 2.0 * (y*z + x*w), 1.0 - 2.0 * (x*x + y*y)),
+                ),
+                dtype=float,
+            )
+            predicted = rotation @ local_axis
+            predicted -= normal * float(predicted @ normal)
+            predicted /= np.linalg.norm(predicted)
+            predicted_directions.append(predicted)
+        predicted_bearings = np.unwrap(np.asarray([
+            np.arctan2(float(direction @ orthogonal), float(direction @ reference))
+            for direction in predicted_directions
+        ]))
+        angle_errors = desired_bearings - predicted_bearings
+        angle_errors -= round(float(angle_errors[0]) / (2.0 * np.pi)) * (2.0 * np.pi)
+        for index, (frame, desired) in enumerate(zip(run, directions)):
+            q = states[frame][list(quaternion_group)].copy()
+            q /= np.linalg.norm(q)
+            w, x, y, z = q
+            rotation = np.asarray(
+                (
+                    (1.0 - 2.0 * (y*y + z*z), 2.0 * (x*y - z*w), 2.0 * (x*z + y*w)),
+                    (2.0 * (x*y + z*w), 1.0 - 2.0 * (x*x + z*z), 2.0 * (y*z - x*w)),
+                    (2.0 * (x*z - y*w), 2.0 * (y*z + x*w), 1.0 - 2.0 * (x*x + y*y)),
+                ),
+                dtype=float,
+            )
+            predicted = rotation @ local_axis
+            predicted -= normal * float(predicted @ normal)
+            predicted /= np.linalg.norm(predicted)
+            angle = float(angle_errors[index])
+            maximum_angle = float(factor.maximum_facing_angle_rad)
+            if exact_alignment_from_frame is not None and frame >= exact_alignment_from_frame:
+                progress = (
+                    1.0
+                    if turn_alignment_ramp_frames <= 0
+                    else min(
+                        1.0,
+                        (frame - exact_alignment_from_frame)
+                        / float(turn_alignment_ramp_frames),
+                    )
+                )
+                maximum_angle *= 1.0 - progress
+            if abs(angle) <= maximum_angle:
+                continue
+            angle -= np.sign(angle) * maximum_angle
+            half = 0.5 * angle
+            delta = np.concatenate(([np.cos(half)], normal * np.sin(half)))
+            aw, ax, ay, az = delta
+            bw, bx, by, bz = q
+            projected = np.asarray(
+                (
+                    aw*bw - ax*bx - ay*by - az*bz,
+                    aw*bx + ax*bw + ay*bz - az*by,
+                    aw*by - ax*bz + ay*bw + az*bx,
+                    aw*bz + ax*by - ay*bx + az*bw,
+                ),
+                dtype=float,
+            )
+            projected /= np.linalg.norm(projected)
+            states[frame][list(quaternion_group)] = projected
+    projected_states = tuple(tuple(float(value) for value in states[frame]) for frame in result.frames)
+    state_mapping = {frame: state for frame, state in zip(result.frames, projected_states)}
+    final_residual = build_runtime_residual_vector(
+        problem.residual_execution_plan,
+        problem.residual_input_builder(state_mapping),
+        problem.factor_ids,
+    )
+    derived = replace(
+        result,
+        solve_attempt_id="generic-solve-" + _canonical_hash({
+            "parent": result.solve_attempt_id,
+            "policy": "persistent_contact_facing_state_projection",
+            "smoothing_passes": int(smoothing_passes),
+            "turn_trigger_half_window_frames": int(turn_trigger_half_window_frames),
+            "turn_trigger_span_deg": float(turn_trigger_span_deg),
+            "latch_exact_alignment_after_turn": bool(latch_exact_alignment_after_turn),
+            "turn_alignment_ramp_frames": int(turn_alignment_ramp_frames),
+            "states": projected_states,
+        })[:12],
+        parent_solve_attempt_id=result.solve_attempt_id,
+        states=projected_states,
+        final_squared_error=float(final_residual @ final_residual),
+        message=(
+            result.message
+            + f"; contact-facing cone/turn projection smoothing_passes={int(smoothing_passes)}"
+            + f" turn_half_window={int(turn_trigger_half_window_frames)}"
+            + f" turn_span_deg={float(turn_trigger_span_deg):g}"
+            + f" latch_exact={bool(latch_exact_alignment_after_turn)}"
+            + f" turn_ramp_frames={int(turn_alignment_ramp_frames)}"
+        ),
+        canonical_sha256="",
+    )
+    payload = asdict(derived)
+    payload.pop("canonical_sha256")
+    return replace(derived, canonical_sha256=_canonical_hash(payload))
+
+
+def smooth_adjacent_states(
+    problem: SequenceOptimizationProblem,
+    result: GenericSequenceSolveResult,
+    *,
+    translation_passes: int,
+    rotation_passes: int,
+) -> GenericSequenceSolveResult:
+    """Apply a small binomial smoother to a solved state sequence.
+
+    This opt-in production projection removes adjacent-frame spikes that a
+    robust least-squares loss may deliberately downweight. Quaternion signs
+    are made continuous before normalized convolution; sequence endpoints are
+    preserved exactly.
+    """
+
+    if max(translation_passes, rotation_passes) <= 0 or len(result.states) < 5:
+        return result
+    states = np.asarray(result.states, dtype=float).copy()
+    quaternion_groups: list[tuple[int, int, int, int]] = []
+    if problem.state_parameterization is not None:
+        offset = 0
+        for dof in problem.state_parameterization.state_spec.dofs:
+            if dof.kind.value == "rotation_so3":
+                names = tuple(field.rsplit(".", 1)[-1] for field in dof.source_fields)
+                quaternion_groups.append(
+                    tuple(offset + names.index(name) for name in ("qw", "qx", "qy", "qz"))
+                )
+            offset += dof.dimension
+    quaternion_indices = {index for group in quaternion_groups for index in group}
+    scalar_indices = [index for index in range(states.shape[1]) if index not in quaternion_indices]
+    kernel = np.asarray((1.0, 4.0, 6.0, 4.0, 1.0), dtype=float) / 16.0
+    for pass_index in range(max(int(translation_passes), int(rotation_passes))):
+        previous = states.copy()
+        if pass_index < int(translation_passes):
+            for index in scalar_indices:
+                padded = np.pad(previous[:, index], (2, 2), mode="edge")
+                states[:, index] = np.convolve(padded, kernel, mode="valid")
+        if pass_index < int(rotation_passes):
+            for group in quaternion_groups:
+                continuous = previous[:, list(group)].copy()
+                continuous /= np.linalg.norm(continuous, axis=1, keepdims=True)
+                for frame_index in range(1, len(continuous)):
+                    if float(continuous[frame_index - 1] @ continuous[frame_index]) < 0.0:
+                        continuous[frame_index] *= -1.0
+                padded = np.pad(continuous, ((2, 2), (0, 0)), mode="edge")
+                filtered = np.stack(
+                    [np.sum(padded[index:index + 5] * kernel[:, None], axis=0) for index in range(len(continuous))]
+                )
+                filtered /= np.linalg.norm(filtered, axis=1, keepdims=True)
+                states[:, list(group)] = filtered
+        states[0] = previous[0]
+        states[-1] = previous[-1]
+    smoothed_states = tuple(tuple(float(value) for value in row) for row in states)
+    state_mapping = {frame: state for frame, state in zip(result.frames, smoothed_states)}
+    final_residual = build_runtime_residual_vector(
+        problem.residual_execution_plan,
+        problem.residual_input_builder(state_mapping),
+        problem.factor_ids,
+    )
+    derived_id = "generic-solve-" + _canonical_hash(
+        {
+            "parent": result.solve_attempt_id,
+            "policy": "adjacent_state_binomial_smoothing",
+            "translation_passes": int(translation_passes),
+            "rotation_passes": int(rotation_passes),
+            "states": smoothed_states,
+        }
+    )[:12]
+    derived = replace(
+        result,
+        solve_attempt_id=derived_id,
+        parent_solve_attempt_id=result.solve_attempt_id,
+        states=smoothed_states,
+        final_squared_error=float(final_residual @ final_residual),
+        message=(
+            result.message
+            + f"; adjacent-state smoothing translation_passes={int(translation_passes)}"
+            + f" rotation_passes={int(rotation_passes)}"
+        ),
+        canonical_sha256="",
+    )
+    payload = asdict(derived)
+    payload.pop("canonical_sha256")
+    return replace(derived, canonical_sha256=_canonical_hash(payload))
+
+
+def repair_rotation_step_outliers(
+    problem: SequenceOptimizationProblem,
+    result: GenericSequenceSolveResult,
+    *,
+    maximum_step_deg: float,
+    context_edges: int = 2,
+) -> GenericSequenceSolveResult:
+    """Repair only nonphysical adjacent quaternion spikes.
+
+    Translation and all non-outlier rotation frames remain byte-for-byte
+    unchanged, preserving irregular motion and stops from the solved video.
+    """
+
+    if maximum_step_deg <= 0.0 or len(result.states) < 3 or problem.state_parameterization is None:
+        return result
+    states = np.asarray(result.states, dtype=float).copy()
+    quaternion_groups: list[tuple[int, int, int, int]] = []
+    offset = 0
+    for dof in problem.state_parameterization.state_spec.dofs:
+        if dof.kind.value == "rotation_so3":
+            names = tuple(field.rsplit(".", 1)[-1] for field in dof.source_fields)
+            quaternion_groups.append(
+                tuple(offset + names.index(name) for name in ("qw", "qx", "qy", "qz"))
+            )
+        offset += dof.dimension
+    repaired_intervals: list[tuple[int, int]] = []
+    for group in quaternion_groups:
+        quaternions = states[:, list(group)].copy()
+        quaternions /= np.linalg.norm(quaternions, axis=1, keepdims=True)
+        for index in range(1, len(quaternions)):
+            if float(quaternions[index - 1] @ quaternions[index]) < 0.0:
+                quaternions[index] *= -1.0
+        steps = np.degrees(
+            2.0 * np.arccos(np.clip(np.abs(np.sum(quaternions[:-1] * quaternions[1:], axis=1)), 0.0, 1.0))
+        )
+        bad_edges = [int(index) for index in np.flatnonzero(steps > float(maximum_step_deg))]
+        if not bad_edges:
+            continue
+        clusters: list[list[int]] = [[bad_edges[0]]]
+        for edge in bad_edges[1:]:
+            if edge <= clusters[-1][-1] + 3:
+                clusters[-1].append(edge)
+            else:
+                clusters.append([edge])
+        for cluster in clusters:
+            left = max(0, cluster[0] - int(context_edges))
+            touches_tail = cluster[-1] >= len(quaternions) - 2
+            right = min(len(quaternions) - 1, cluster[-1] + 1 + int(context_edges))
+            if right <= left + 1:
+                continue
+            q0 = quaternions[left].copy()
+            if touches_tail:
+                for index in range(left + 1, len(quaternions)):
+                    quaternions[index] = q0
+                repaired_intervals.append((int(result.frames[left + 1]), int(result.frames[-1])))
+                continue
+            q1 = quaternions[right].copy()
+            if float(q0 @ q1) < 0.0:
+                q1 *= -1.0
+            span = float(right - left)
+            for index in range(left + 1, right):
+                alpha = (index - left) / span
+                quaternion = (1.0 - alpha) * q0 + alpha * q1
+                quaternion /= np.linalg.norm(quaternion)
+                quaternions[index] = quaternion
+            repaired_intervals.append((int(result.frames[left + 1]), int(result.frames[right - 1])))
+        states[:, list(group)] = quaternions
+    if not repaired_intervals:
+        return result
+    repaired_states = tuple(tuple(float(value) for value in row) for row in states)
+    state_mapping = {frame: state for frame, state in zip(result.frames, repaired_states)}
+    final_residual = build_runtime_residual_vector(
+        problem.residual_execution_plan,
+        problem.residual_input_builder(state_mapping),
+        problem.factor_ids,
+    )
+    derived_id = "generic-solve-" + _canonical_hash(
+        {
+            "parent": result.solve_attempt_id,
+            "policy": "local_rotation_step_outlier_repair",
+            "maximum_step_deg": float(maximum_step_deg),
+            "intervals": repaired_intervals,
+            "states": repaired_states,
+        }
+    )[:12]
+    derived = replace(
+        result,
+        solve_attempt_id=derived_id,
+        parent_solve_attempt_id=result.solve_attempt_id,
+        states=repaired_states,
+        final_squared_error=float(final_residual @ final_residual),
+        message=(
+            result.message
+            + f"; local rotation outlier repair max_step_deg={float(maximum_step_deg)}"
+            + f" intervals={repaired_intervals}"
+        ),
+        canonical_sha256="",
+    )
+    payload = asdict(derived)
+    payload.pop("canonical_sha256")
+    return replace(derived, canonical_sha256=_canonical_hash(payload))

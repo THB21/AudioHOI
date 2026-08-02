@@ -120,6 +120,11 @@ from .optimization import (
     SequenceOptimizationProblem,
     build_runtime_residual_blocks,
     build_runtime_residual_vector,
+    project_bounded_gap_states,
+    reevaluate_solve_result,
+    project_contact_facing_states,
+    smooth_adjacent_states,
+    repair_rotation_step_outliers,
     solve_sequence_optimization,
 )
 from .parameterization import StateSpecParameterization
@@ -300,6 +305,11 @@ __all__ = [
     "build_sequence_problem_contract",
     "initialize_from_capabilities",
     "solve_sequence_optimization",
+    "project_bounded_gap_states",
+    "reevaluate_solve_result",
+    "project_contact_facing_states",
+    "smooth_adjacent_states",
+    "repair_rotation_step_outliers",
     "sequence_problem_preparation_record",
     "load_isolated_attempt_state",
     "legacy_object_problem_preparation_record",

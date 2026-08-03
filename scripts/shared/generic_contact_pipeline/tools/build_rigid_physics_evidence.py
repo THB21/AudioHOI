@@ -318,11 +318,61 @@ def _pose_hypotheses(
     return records, ambiguous
 
 
+def _trusted_line_frames(path: Path) -> tuple[pd.DataFrame, set[int]]:
+    """Audit provider-native rigid line evidence without assigning a pose.
+
+    A paired rail observation or an unassigned rail axis both constrain rigid
+    orientation.  Physical left/right identity is intentionally left to the
+    sequence factor compiler; this adapter only establishes that a visible,
+    trusted image line exists.
+    """
+
+    table = pd.read_csv(path)
+    _require_columns(
+        table,
+        {
+            "frame",
+            "physical_x1",
+            "physical_y1",
+            "physical_x2",
+            "physical_y2",
+            "endpoint_track_conf",
+            "line_observation_trusted",
+            "visibility",
+        },
+        "line observations",
+    )
+    finite = np.isfinite(
+        table[["physical_x1", "physical_y1", "physical_x2", "physical_y2"]].to_numpy(float)
+    ).all(axis=1)
+    length = np.hypot(
+        table.physical_x2.to_numpy(float) - table.physical_x1.to_numpy(float),
+        table.physical_y2.to_numpy(float) - table.physical_y1.to_numpy(float),
+    )
+    trusted = (
+        finite
+        & (length >= 8.0)
+        & (table.endpoint_track_conf.to_numpy(float) >= 0.45)
+        & (table.line_observation_trusted.to_numpy(int) == 1)
+        & table.visibility.astype(str).str.startswith("visible").to_numpy()
+    )
+    audited = table.copy()
+    audited["line_length_px"] = length
+    audited["usable_orientation_evidence"] = trusted.astype(int)
+    audited["rejection_reason"] = np.where(
+        trusted,
+        "",
+        np.where(~finite, "nonfinite_endpoint", np.where(length < 8.0, "line_too_short", "untrusted_or_low_confidence")),
+    )
+    return audited, set(audited.loc[trusted, "frame"].astype(int))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sample-id", required=True)
     parser.add_argument("--object-observations", type=Path, required=True)
     parser.add_argument("--feature-tracks", type=Path, required=True)
+    parser.add_argument("--line-observations", type=Path)
     parser.add_argument("--megapose-hypotheses", type=Path, required=True)
     parser.add_argument("--trusted-anchor-intervals", required=True)
     parser.add_argument("--max-visible-orientation-gap", type=int, default=12)
@@ -332,7 +382,10 @@ def main() -> None:
     observations = args.object_observations.resolve()
     feature_tracks = args.feature_tracks.resolve()
     megapose = args.megapose_hypotheses.resolve()
-    for path in (observations, feature_tracks, megapose):
+    line_observations = None if args.line_observations is None else args.line_observations.resolve()
+    for path in (observations, feature_tracks, megapose, line_observations):
+        if path is None:
+            continue
         if not path.is_file():
             raise FileNotFoundError(path)
     trusted_intervals = _parse_intervals(args.trusted_anchor_intervals)
@@ -351,12 +404,19 @@ def main() -> None:
         args.sample_id, feature_tracks, trusted_intervals
     )
     pose_rows, ambiguous_frames = _pose_hypotheses(args.sample_id, megapose)
+    line_rows, provider_line_frames = (
+        (pd.DataFrame(), set())
+        if line_observations is None
+        else _trusted_line_frames(line_observations)
+    )
     trends = _trend_rows(silhouettes, depths)
 
     _write_csv(silhouettes, output / "rigid_silhouette_evidence.csv")
     _write_csv(depths, output / "relative_depth_evidence.csv")
     _write_csv(feature_rows, output / "rigid_feature_track_evidence.csv")
     pd.DataFrame(trends).to_csv(output / "scale_depth_trend.csv", index=False)
+    if line_observations is not None:
+        line_rows.to_csv(output / "rigid_line_evidence.csv", index=False)
     with (output / "rigid_pose_hypotheses_evidence.jsonl").open("w") as handle:
         for record in pose_rows:
             handle.write(json.dumps(asdict(record), sort_keys=True) + "\n")
@@ -364,7 +424,9 @@ def main() -> None:
     in_solve_interval = lambda frame: _inside(frame, solve_intervals)
     usable_rows = [row for row in feature_rows if row.usable and in_solve_interval(row.frame)]
     usable_feature_frames = {row.frame for row in usable_rows}
-    trusted_rail_frames = {row.frame for row in usable_rows if row.feature_kind == "line_endpoint"}
+    trusted_rail_frames = {
+        row.frame for row in usable_rows if row.feature_kind == "line_endpoint"
+    } | {frame for frame in provider_line_frames if in_solve_interval(frame)}
     body_queries_by_frame: dict[int, set[str]] = {}
     for row in usable_rows:
         if row.feature_kind == "body_corner":
@@ -410,6 +472,7 @@ def main() -> None:
             "object_observations": _sha256(observations),
             "feature_tracks": _sha256(feature_tracks),
             "megapose_hypotheses": _sha256(megapose),
+            **({"line_observations": _sha256(line_observations)} if line_observations is not None else {}),
         },
         gates=gates,
         ready_for_solver=all(gates.values()),

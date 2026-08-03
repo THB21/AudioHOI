@@ -193,7 +193,9 @@ def main() -> None:
     parser.add_argument("--sample-dir", type=Path, required=True)
     parser.add_argument("--geometry-descriptor", type=Path, required=True)
     parser.add_argument("--reference-pose", type=Path, required=True)
+    parser.add_argument("--warm-start-pose", type=Path)
     parser.add_argument("--feature-tracks", type=Path, required=True)
+    parser.add_argument("--rigid-physics-evidence-dir", type=Path, required=True)
     parser.add_argument("--free-start", type=int, required=True)
     parser.add_argument("--free-end", type=int, required=True)
     parser.add_argument("--body-feature", required=True)
@@ -203,15 +205,36 @@ def main() -> None:
     parser.add_argument("--contact-facing-feature")
     parser.add_argument("--contact-facing-ramp-frames", type=int, default=12)
     parser.add_argument("--contact-facing-sigma-rad", type=float, default=0.12)
-    parser.add_argument("--main-body-mask-weight", type=float, default=1.0)
+    parser.add_argument("--contact-facing-weight", type=float, default=5.0)
+    parser.add_argument("--contact-facing-min-angle-deg", type=float, default=25.0)
+    parser.add_argument("--main-body-mask-weight", type=float, default=4.0)
+    parser.add_argument("--main-body-center-weight", type=float, default=12.0)
+    parser.add_argument("--main-body-center-sigma-px", type=float, default=4.0)
+    parser.add_argument("--main-body-aspect-weight", type=float, default=6.0)
+    parser.add_argument("--main-body-aspect-sigma", type=float, default=0.05)
+    parser.add_argument("--grasp-point-weight", type=float, default=4.0)
     parser.add_argument("--mask-principal-axis-sigma-rad", type=float, default=0.07)
     parser.add_argument("--mask-silhouette-sigma-px", type=float, default=6.0)
     parser.add_argument("--mask-silhouette-weight", type=float, default=0.25)
     parser.add_argument("--rotation-acceleration-sigma-rad", type=float, default=0.035)
     parser.add_argument("--rotation-step-margin-deg", type=float, default=0.5)
+    parser.add_argument("--maximum-upright-tilt-deg", type=float, default=18.0)
+    parser.add_argument("--upright-tilt-sigma-rad", type=float, default=0.06)
+    parser.add_argument("--relative-depth-lag-frames", type=int, default=4)
+    parser.add_argument("--relative-depth-order-sigma", type=float, default=0.012)
+    parser.add_argument("--relative-depth-order-weight", type=float, default=3.0)
+    parser.add_argument("--relative-depth-scale-coupling", type=float, default=0.25)
+    parser.add_argument("--relative-depth-shape-sigma", type=float, default=0.03)
+    parser.add_argument("--heading-initializer-max-deg", type=float, default=60.0)
+    parser.add_argument("--heading-initializer-samples", type=int, default=31)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--max-nfev", type=int, default=100)
+    parser.add_argument("--loss", choices=("linear", "soft_l1"), default="soft_l1")
     parser.add_argument("--max-rotation-step-deg", type=float, default=8.0)
+    parser.add_argument("--max-translation-step-m", type=float, default=0.12)
+    parser.add_argument("--translation-step-weight", type=float, default=40.0)
+    parser.add_argument("--translation-step-margin-m", type=float, default=0.005)
+    parser.add_argument("--penetration-weight", type=float, default=30.0)
     args = parser.parse_args()
 
     sample_dir = args.sample_dir.resolve()
@@ -227,6 +250,16 @@ def main() -> None:
         raise ValueError("every non-free frame must be reference locked")
 
     descriptor = json.loads(args.geometry_descriptor.resolve().read_text())
+    evidence_dir = args.rigid_physics_evidence_dir.resolve()
+    evidence_manifest_path = evidence_dir / "rigid_physics_evidence_manifest.json"
+    evidence_manifest = json.loads(evidence_manifest_path.read_text())
+    if not bool(evidence_manifest.get("ready_for_solver", False)):
+        failed = sorted(name for name, passed in evidence_manifest.get("gates", {}).items() if not passed)
+        raise RuntimeError(f"rigid physics evidence blocks solving: {failed}")
+    if [args.free_start, args.free_end] not in evidence_manifest.get("solve_intervals", []):
+        raise ValueError("free interval does not match the validated rigid physics evidence")
+    silhouette_evidence = pd.read_csv(evidence_dir / "rigid_silhouette_evidence.csv").set_index("frame")
+    depth_evidence = pd.read_csv(evidence_dir / "relative_depth_evidence.csv").set_index("frame")
     raw_points = descriptor["feature_points"]
     body = np.asarray(raw_points[args.body_feature], dtype=float)
     support_ids = tuple(item.strip() for item in args.support_features.split(",") if item.strip())
@@ -236,6 +269,13 @@ def main() -> None:
     grasp = np.asarray(raw_points[args.grasp_feature], dtype=float)
     if body.shape != (8, 3) or [len(item) for item in support_groups] != [2, 2] or [len(item) for item in lines_local] != [2, 2] or grasp.shape != (1, 3):
         raise ValueError("geometry descriptor does not satisfy the declared rigid feature contract")
+    upright_axis = np.asarray(
+        descriptor.get("initializer", {}).get("upright_axis_local", [0.0, 0.0, 1.0]),
+        dtype=float,
+    )
+    if upright_axis.shape != (3,) or not np.isfinite(upright_axis).all() or np.linalg.norm(upright_axis) < 1e-8:
+        raise ValueError("geometry descriptor has an invalid upright_axis_local")
+    upright_axis /= np.linalg.norm(upright_axis)
 
     facing_axis = None
     if args.contact_facing_feature:
@@ -308,6 +348,31 @@ def main() -> None:
                 "candidate_indices": candidate_indices,
             }
 
+    temporal_line_assignments: dict[int, tuple[int, int]] = {}
+    previous_assigned_lines = None
+    for frame in sorted(observed_lines_by_frame):
+        observed = observed_lines_by_frame[frame]
+        if previous_assigned_lines is None:
+            projected = np.asarray(
+                [_project(line, initial_rotations[frame], initial_translations[frame], camera) for line in lines_local]
+            )
+            candidates = []
+            for assignment in ((0, 1), (1, 0)):
+                cost = sum(
+                    float(np.linalg.norm(projected[index] - observed[observed_index], axis=1).mean())
+                    for index, observed_index in enumerate(assignment)
+                )
+                candidates.append((cost, assignment))
+        else:
+            candidates = []
+            for assignment in ((0, 1), (1, 0)):
+                current = np.asarray([observed[assignment[0]], observed[assignment[1]]])
+                cost = float(np.linalg.norm(current - previous_assigned_lines, axis=2).mean())
+                candidates.append((cost, assignment))
+        _cost, assignment = min(candidates, key=lambda item: item[0])
+        temporal_line_assignments[frame] = assignment
+        previous_assigned_lines = np.asarray([observed[assignment[0]], observed[assignment[1]]])
+
     body_mask_bboxes = {}
     body_mask_axes = {}
     body_mask_anisotropy = {}
@@ -316,6 +381,27 @@ def main() -> None:
         mask_path = sample_dir / "results/segmentation/masks" / f"{frame:05d}_mask.png"
         body_mask_bboxes[frame], _mask_area, body_mask_axes[frame], body_mask_anisotropy[frame] = _mask_body_bbox(mask_path)
         body_mask_boundary_distances[frame] = _mask_body_boundary_distance(mask_path)
+    calibration_frame = args.free_start - 1
+    calibration_mask_bbox, _area, _axis, _anisotropy = _mask_body_bbox(
+        sample_dir / "results/segmentation/masks" / f"{calibration_frame:05d}_mask.png"
+    )
+    calibration_projected_body = _project(
+        body,
+        initial_rotations[calibration_frame],
+        initial_translations[calibration_frame],
+        camera,
+    )
+    calibration_projected_bbox = np.asarray(
+        [
+            calibration_projected_body[:, 0].min(),
+            calibration_projected_body[:, 1].min(),
+            calibration_projected_body[:, 0].max(),
+            calibration_projected_body[:, 1].max(),
+        ]
+    )
+    bbox_size_calibration = (
+        calibration_projected_bbox[2:] - calibration_projected_bbox[:2]
+    ) / np.maximum(calibration_mask_bbox[2:] - calibration_mask_bbox[:2], 1.0)
     mask_bbox_sigma_px = float(descriptor.get("initializer", {}).get("mask_bbox_sigma_px", 8.0))
 
     sites = extract_gvhmr_site_measurements(
@@ -355,20 +441,6 @@ def main() -> None:
             desired @ predicted,
         )))
 
-    initial_line_assignments: dict[int, tuple[int, int]] = {}
-    for frame, observed in observed_lines_by_frame.items():
-        projected = np.asarray([_project(line, initial_rotations[frame], initial_translations[frame], camera) for line in lines_local])
-
-        def line_cost(points: np.ndarray, target: np.ndarray) -> float:
-            direction = target[1] - target[0]
-            normal = np.asarray([-direction[1], direction[0]]) / max(np.linalg.norm(direction), 1e-8)
-            return float(np.abs((points - target[0]) @ normal).sum())
-
-        initial_line_assignments[frame] = min(
-            ((0, 1), (1, 0)),
-            key=lambda assignment: sum(line_cost(projected[i], observed[j]) for i, j in enumerate(assignment)),
-        )
-
     support_group_by_frame = {}
     for frame in free_frames:
         distances = [
@@ -378,7 +450,97 @@ def main() -> None:
         support_group_by_frame[frame] = int(np.argmin(distances))
 
     frame_to_slot = {frame: index for index, frame in enumerate(free_frames)}
-    x0 = np.zeros((len(free_frames), 6), dtype=float).reshape(-1)
+    heading_grid = np.radians(
+        np.linspace(
+            -args.heading_initializer_max_deg,
+            args.heading_initializer_max_deg,
+            args.heading_initializer_samples,
+        )
+    )
+    heading_unary = np.zeros((len(free_frames), len(heading_grid)), dtype=float)
+    for frame_index, frame in enumerate(free_frames):
+        raw_target_bbox = body_mask_bboxes[frame]
+        target_size = np.maximum(
+            (raw_target_bbox[2:] - raw_target_bbox[:2]) * bbox_size_calibration,
+            1.0,
+        )
+        target_log_aspect = float(np.log(target_size[0] / target_size[1]))
+        observation_row = object_observations.loc[frame] if frame in object_observations.index else None
+        if isinstance(observation_row, pd.DataFrame):
+            observation_row = observation_row.iloc[0]
+        for heading_index, heading_delta in enumerate(heading_grid):
+            candidate_rotation = (
+                Rotation.from_rotvec(plane_normal * heading_delta).as_matrix()
+                @ initial_rotations[frame]
+            )
+            projected = _project(body, candidate_rotation, initial_translations[frame], camera)
+            predicted_size = np.maximum(projected.max(axis=0) - projected.min(axis=0), 1.0)
+            predicted_log_aspect = float(np.log(predicted_size[0] / predicted_size[1]))
+            cost = ((predicted_log_aspect - target_log_aspect) / 0.08) ** 2
+            if frame in contacts.index:
+                contact = contacts.loc[frame]
+                if isinstance(contact, pd.DataFrame):
+                    contact = contact.iloc[0]
+                projected_grasp = _project(
+                    grasp,
+                    candidate_rotation,
+                    initial_translations[frame],
+                    camera,
+                )[0]
+                target_grasp = np.asarray([contact.contact_u, contact.contact_v], dtype=float)
+                cost += float(np.sum(np.square((projected_grasp - target_grasp) / 20.0)))
+            if (
+                args.contact_facing_weight > 0.0
+                and facing_axis is not None
+                and frame in contacts.index
+                and frame in human_reference_by_frame
+            ):
+                predicted_facing = candidate_rotation @ facing_axis
+                desired_facing = human_reference_by_frame[frame] - initial_translations[frame]
+                predicted_facing -= plane_normal * float(predicted_facing @ plane_normal)
+                desired_facing -= plane_normal * float(desired_facing @ plane_normal)
+                predicted_facing /= max(np.linalg.norm(predicted_facing), 1e-8)
+                desired_facing /= max(np.linalg.norm(desired_facing), 1e-8)
+                face_angle = float(np.arctan2(
+                    plane_normal @ np.cross(desired_facing, predicted_facing),
+                    desired_facing @ predicted_facing,
+                ))
+                cost += (face_angle / 0.35) ** 2
+            heading_unary[frame_index, heading_index] = cost
+
+    dynamic_cost = heading_unary[0] + np.square(heading_grid / 0.35)
+    predecessors = np.zeros((len(free_frames), len(heading_grid)), dtype=int)
+    for frame_index in range(1, len(free_frames)):
+        transition = np.square(
+            (heading_grid[:, None] - heading_grid[None, :]) / 0.12
+        )
+        total = dynamic_cost[:, None] + transition
+        predecessors[frame_index] = np.argmin(total, axis=0)
+        dynamic_cost = heading_unary[frame_index] + np.min(total, axis=0)
+    dynamic_cost += np.square(heading_grid / 0.35)
+    selected_heading_indices = np.zeros(len(free_frames), dtype=int)
+    selected_heading_indices[-1] = int(np.argmin(dynamic_cost))
+    for frame_index in range(len(free_frames) - 1, 0, -1):
+        selected_heading_indices[frame_index - 1] = predecessors[
+            frame_index, selected_heading_indices[frame_index]
+        ]
+    selected_heading = heading_grid[selected_heading_indices]
+    initial_parameters = np.zeros((len(free_frames), 6), dtype=float)
+    initial_parameters[:, 3:] = selected_heading[:, None] * plane_normal[None, :]
+    warm_start_sha256 = None
+    if args.warm_start_pose is not None:
+        warm_start_path = args.warm_start_pose.resolve()
+        warm_start = pd.read_csv(warm_start_path).set_index("frame")
+        warm_start_sha256 = hashlib.sha256(warm_start_path.read_bytes()).hexdigest()
+        for frame, slot in frame_to_slot.items():
+            if frame not in warm_start.index:
+                raise ValueError(f"warm start lacks frame {frame}")
+            warm_rotation, warm_translation = _pose(warm_start.loc[frame])
+            initial_parameters[slot, :3] = warm_translation - initial_translations[frame]
+            initial_parameters[slot, 3:] = Rotation.from_matrix(
+                warm_rotation @ initial_rotations[frame].T
+            ).as_rotvec()
+    x0 = initial_parameters.reshape(-1)
 
     def states(parameters: np.ndarray) -> tuple[dict[int, np.ndarray], dict[int, np.ndarray]]:
         values = parameters.reshape(len(free_frames), 6)
@@ -419,9 +581,20 @@ def main() -> None:
                     contact = contact.iloc[0]
                 predicted = _project(grasp, rotation, translation, camera)[0]
                 confidence = max(0.1, float(contact.contact_conf))
-                add("grasp_point_reprojection", frame, 1.5 * np.sqrt(confidence) * (predicted - [contact.contact_u, contact.contact_v]) / 6.0)
+                add(
+                    "grasp_point_reprojection",
+                    frame,
+                    args.grasp_point_weight
+                    * np.sqrt(confidence)
+                    * (predicted - [contact.contact_u, contact.contact_v])
+                    / 6.0,
+                )
 
-                if facing_axis is not None and frame in human_reference_by_frame:
+                if (
+                    args.contact_facing_weight > 0.0
+                    and facing_axis is not None
+                    and frame in human_reference_by_frame
+                ):
                     predicted_facing = rotation @ facing_axis
                     desired_facing = human_reference_by_frame[frame] - translation
                     predicted_facing -= plane_normal * float(predicted_facing @ plane_normal)
@@ -436,29 +609,42 @@ def main() -> None:
                         1.0,
                         max(0.0, (frame - args.free_start + 1) / max(1, args.contact_facing_ramp_frames)),
                     )
-                    allowed_angle = (1.0 - ramp_progress) * boundary_facing_angle
+                    allowed_angle = max(
+                        np.radians(args.contact_facing_min_angle_deg),
+                        (1.0 - ramp_progress) * boundary_facing_angle,
+                    )
                     violation = max(angle - allowed_angle, 0.0)
                     add(
                         "descriptor_contact_facing",
                         frame,
-                        np.asarray([2.0 * np.sqrt(confidence) * violation / args.contact_facing_sigma_rad]),
+                        np.asarray([
+                            args.contact_facing_weight
+                            * np.sqrt(confidence)
+                            * violation
+                            / args.contact_facing_sigma_rad
+                        ]),
                     )
 
             observed = observed_lines_by_frame.get(frame)
             if observed is not None:
-                assignment = initial_line_assignments[frame]
                 projected_lines = [_project(line, rotation, translation, camera) for line in lines_local]
+                assignment = temporal_line_assignments[frame]
                 for line_index, observed_index in enumerate(assignment):
                     target = observed[observed_index]
                     direction = target[1] - target[0]
                     direction /= max(np.linalg.norm(direction), 1e-8)
                     normal = np.asarray([-direction[1], direction[0]])
                     predicted = projected_lines[line_index]
-                    add("rail_axis_line", frame, ((predicted - target[0]) @ normal) / 5.0)
+                    metadata = {
+                        "physical_line_index": line_index,
+                        "observed_line_index": observed_index,
+                        "assignment_mode": "temporal_identity_continuity",
+                    }
+                    add("rail_axis_line", frame, ((predicted - target[0]) @ normal) / 5.0, metadata)
                     predicted_direction = predicted[1] - predicted[0]
                     predicted_direction /= max(np.linalg.norm(predicted_direction), 1e-8)
                     cross = predicted_direction[0] * direction[1] - predicted_direction[1] * direction[0]
-                    add("rail_direction", frame, np.asarray([cross / 0.10]))
+                    add("rail_direction", frame, np.asarray([cross / 0.10]), metadata)
             elif frame in unassigned_lines_by_frame:
                 declaration = unassigned_lines_by_frame[frame]
                 target = np.asarray(declaration["target"], dtype=float)
@@ -487,6 +673,9 @@ def main() -> None:
                 [projected_body[:, 0].min(), projected_body[:, 1].min(), projected_body[:, 0].max(), projected_body[:, 1].max()]
             )
             target_bbox = body_mask_bboxes[frame]
+            target_center = 0.5 * (target_bbox[:2] + target_bbox[2:])
+            target_half_size = 0.5 * (target_bbox[2:] - target_bbox[:2]) * bbox_size_calibration
+            target_bbox = np.concatenate((target_center - target_half_size, target_center + target_half_size))
             containment = np.asarray(
                 [
                     max(predicted_bbox[0] - target_bbox[0], 0.0),
@@ -498,11 +687,34 @@ def main() -> None:
             if isinstance(observation_row, pd.DataFrame):
                 observation_row = observation_row.iloc[0]
             if observation_row is not None and str(observation_row.visibility) == "visible":
+                predicted_bbox_center = 0.5 * (predicted_bbox[:2] + predicted_bbox[2:])
+                target_bbox_center = 0.5 * (target_bbox[:2] + target_bbox[2:])
                 add(
-                    "gated_main_body_horizontal_bounds",
+                    "visible_rigid_body_center",
+                    frame,
+                    args.main_body_center_weight
+                    * (predicted_bbox_center - target_bbox_center)
+                    / args.main_body_center_sigma_px,
+                )
+                predicted_size = np.maximum(predicted_bbox[2:] - predicted_bbox[:2], 1.0)
+                target_size = np.maximum(target_bbox[2:] - target_bbox[:2], 1.0)
+                add(
+                    "visible_rigid_body_log_aspect",
+                    frame,
+                    np.asarray([
+                        args.main_body_aspect_weight
+                        * (
+                            np.log(predicted_size[0] / predicted_size[1])
+                            - np.log(target_size[0] / target_size[1])
+                        )
+                        / args.main_body_aspect_sigma
+                    ]),
+                )
+                add(
+                    "visible_rigid_body_bbox",
                     frame,
                     np.sqrt(args.main_body_mask_weight)
-                    * (predicted_bbox[[0, 2]] - target_bbox[[0, 2]])
+                    * (predicted_bbox - target_bbox)
                     / mask_bbox_sigma_px,
                 )
                 hull_samples = _sample_projected_hull(projected_body)
@@ -538,6 +750,18 @@ def main() -> None:
                         ]),
                     )
 
+            predicted_upright = rotation @ upright_axis
+            predicted_upright /= max(np.linalg.norm(predicted_upright), 1e-8)
+            upright_dot = float(np.clip(predicted_upright @ plane_normal, -1.0, 1.0))
+            upright_angle = float(np.arccos(upright_dot))
+            upright_excess = max(upright_angle - np.radians(args.maximum_upright_tilt_deg), 0.0)
+            add(
+                "support_upright_cone",
+                frame,
+                np.asarray([upright_excess / args.upright_tilt_sigma_rad]),
+                {"upright_angle_deg": float(np.degrees(upright_angle))},
+            )
+
             group_index = support_group_by_frame[frame]
             signed_groups = [
                 (group @ rotation.T + translation) @ plane_normal + plane_offset
@@ -545,7 +769,77 @@ def main() -> None:
             ]
             add("wheel_support", frame, signed_groups[group_index] / 0.025)
             penetration = np.minimum(np.concatenate(signed_groups), 0.0)
-            add("wheel_penetration", frame, 3.0 * penetration / 0.015)
+            add(
+                "wheel_penetration",
+                frame,
+                args.penetration_weight * penetration / 0.015,
+            )
+
+            depth_anchor_frame = args.free_start - 1
+            if (
+                frame in depth_evidence.index
+                and depth_anchor_frame in depth_evidence.index
+                and frame in silhouette_evidence.index
+                and bool(silhouette_evidence.loc[frame, "scale_reliable"])
+            ):
+                observed_shape = float(
+                    depth_evidence.loc[frame, "log_depth"]
+                    - depth_evidence.loc[depth_anchor_frame, "log_depth"]
+                )
+                predicted_shape = float(
+                    np.log(max(translation[2], 1e-6))
+                    - np.log(max(translations[depth_anchor_frame][2], 1e-6))
+                )
+                add(
+                    "relative_depth_shape",
+                    frame,
+                    np.asarray([
+                        (
+                            predicted_shape
+                            - args.relative_depth_scale_coupling * observed_shape
+                        )
+                        / args.relative_depth_shape_sigma
+                    ]),
+                    {
+                        "anchor_frame": depth_anchor_frame,
+                        "observed_delta_log_depth": observed_shape,
+                        "predicted_delta_log_depth": predicted_shape,
+                    },
+                )
+
+            previous_depth_frame = frame - args.relative_depth_lag_frames
+            if (
+                frame in depth_evidence.index
+                and previous_depth_frame in depth_evidence.index
+                and frame in silhouette_evidence.index
+                and previous_depth_frame in silhouette_evidence.index
+                and bool(silhouette_evidence.loc[frame, "scale_reliable"])
+                and bool(silhouette_evidence.loc[previous_depth_frame, "scale_reliable"])
+            ):
+                observed_delta = float(
+                    depth_evidence.loc[frame, "log_depth"]
+                    - depth_evidence.loc[previous_depth_frame, "log_depth"]
+                )
+                if abs(observed_delta) >= 0.004:
+                    predicted_delta = float(
+                        np.log(max(translation[2], 1e-6))
+                        - np.log(max(translations[previous_depth_frame][2], 1e-6))
+                    )
+                    signed_progress = np.sign(observed_delta) * predicted_delta
+                    add(
+                        "relative_depth_order",
+                        frame,
+                        np.asarray([
+                            args.relative_depth_order_weight
+                            * max(-signed_progress, 0.0)
+                            / args.relative_depth_order_sigma
+                        ]),
+                        {
+                            "previous_frame": previous_depth_frame,
+                            "observed_delta_log_depth": observed_delta,
+                            "predicted_delta_log_depth": predicted_delta,
+                        },
+                    )
 
         for frame in range(args.free_start, args.free_end + 2):
             previous = frame - 1
@@ -558,6 +852,17 @@ def main() -> None:
             )
             rotation_step_excess = max(rotation_step_angle - soft_rotation_step_limit, 0.0)
             add("rotation_step_limit", frame, np.asarray([10.0 * rotation_step_excess / 0.015]))
+            translation_step = float(np.linalg.norm(translations[frame] - translations[previous]))
+            translation_soft_limit = max(
+                0.0,
+                args.max_translation_step_m - args.translation_step_margin_m,
+            )
+            translation_step_excess = max(translation_step - translation_soft_limit, 0.0)
+            add(
+                "translation_step_limit",
+                frame,
+                np.asarray([args.translation_step_weight * translation_step_excess / 0.02]),
+            )
             current_handle = grasp[0] @ rotations[frame].T + translations[frame]
             previous_handle = grasp[0] @ rotations[previous].T + translations[previous]
             current_contact = contacts.loc[frame] if frame in contacts.index else None
@@ -605,7 +910,7 @@ def main() -> None:
         residual,
         x0,
         bounds=(lower, upper),
-        loss="soft_l1",
+        loss=args.loss,
         f_scale=1.0,
         max_nfev=args.max_nfev,
         ftol=1e-5,
@@ -635,18 +940,55 @@ def main() -> None:
     translation_steps = np.linalg.norm(np.diff(translations_array, axis=0), axis=1)
     rotation_steps = np.degrees((rotations_array[:-1].inv() * rotations_array[1:]).magnitude())
     wheel_distances = []
+    upright_angles = []
     for frame in free_frames:
         for group in support_groups:
             wheel_distances.extend(((group @ rotations[frame].T + translations[frame]) @ plane_normal + plane_offset).tolist())
+        current_upright = rotations[frame] @ upright_axis
+        current_upright /= max(np.linalg.norm(current_upright), 1e-8)
+        upright_angles.append(float(np.degrees(np.arccos(np.clip(current_upright @ plane_normal, -1.0, 1.0)))))
+    depth_order_violation_count = 0
+    depth_order_pair_count = 0
+    depth_rank_observed = []
+    depth_rank_predicted = []
+    for frame in free_frames:
+        previous = frame - args.relative_depth_lag_frames
+        if (
+            frame not in depth_evidence.index
+            or previous not in depth_evidence.index
+            or frame not in silhouette_evidence.index
+            or previous not in silhouette_evidence.index
+            or not bool(silhouette_evidence.loc[frame, "scale_reliable"])
+            or not bool(silhouette_evidence.loc[previous, "scale_reliable"])
+        ):
+            continue
+        observed_delta = float(depth_evidence.loc[frame, "log_depth"] - depth_evidence.loc[previous, "log_depth"])
+        if abs(observed_delta) < 0.004:
+            continue
+        predicted_delta = float(
+            np.log(max(translations[frame][2], 1e-6))
+            - np.log(max(translations[previous][2], 1e-6))
+        )
+        depth_order_pair_count += 1
+        depth_order_violation_count += int(np.sign(observed_delta) * predicted_delta < -0.002)
+        depth_rank_observed.append(float(depth_evidence.loc[frame, "log_depth"]))
+        depth_rank_predicted.append(float(np.log(max(translations[frame][2], 1e-6))))
+    depth_rank_correlation = 1.0
+    if len(depth_rank_observed) >= 2:
+        observed_rank = pd.Series(depth_rank_observed).rank().to_numpy(float)
+        predicted_rank = pd.Series(depth_rank_predicted).rank().to_numpy(float)
+        depth_rank_correlation = float(np.corrcoef(observed_rank, predicted_rank)[0, 1])
     maximum_translation_step = float(np.max(translation_steps[args.free_start - 2 : args.free_end]))
     maximum_rotation_step = float(np.max(rotation_steps[args.free_start - 2 : args.free_end]))
     maximum_penetration = float(max(0.0, -np.min(wheel_distances)))
     gates = {
         "optimizer_converged": bool(solved.success),
         "locked_reference_exact": locked_exact,
-        "translation_step_at_most_0_12m": maximum_translation_step <= 0.12,
+        "translation_step_within_declared_limit": maximum_translation_step <= args.max_translation_step_m,
         "rotation_step_within_declared_limit": maximum_rotation_step <= args.max_rotation_step_deg,
         "wheel_penetration_at_most_0_01m": maximum_penetration <= 0.01,
+        "upright_tilt_within_declared_limit": max(upright_angles) <= args.maximum_upright_tilt_deg + 1.0,
+        "relative_depth_order_consistent": depth_rank_correlation >= 0.30,
     }
     quality_passed = all(gates.values())
     metrics = {
@@ -654,6 +996,7 @@ def main() -> None:
         "success": bool(solved.success),
         "message": solved.message,
         "function_evaluations": int(solved.nfev),
+        "optimizer_loss": args.loss,
         "initial_residual_rms": float(np.sqrt(np.mean(initial_residual * initial_residual))),
         "final_residual_rms": float(np.sqrt(np.mean(final_residual * final_residual))),
         "locked_reference_exact": locked_exact,
@@ -661,16 +1004,37 @@ def main() -> None:
         "max_rotation_step_deg_free_and_boundaries": maximum_rotation_step,
         "minimum_wheel_plane_distance_m": float(np.min(wheel_distances)),
         "maximum_wheel_penetration_m": maximum_penetration,
+        "maximum_translation_step_declared_m": float(args.max_translation_step_m),
+        "translation_step_weight": float(args.translation_step_weight),
+        "translation_step_margin_m": float(args.translation_step_margin_m),
+        "penetration_weight": float(args.penetration_weight),
+        "maximum_upright_tilt_deg": float(max(upright_angles)),
+        "relative_depth_order_pair_count": depth_order_pair_count,
+        "relative_depth_order_violation_count": depth_order_violation_count,
+        "relative_depth_rank_correlation": depth_rank_correlation,
         "named_feature_observation_count": len(point_observations),
         "contact_facing_feature": args.contact_facing_feature,
         "contact_facing_boundary_angle_deg": float(np.degrees(boundary_facing_angle)),
         "contact_facing_ramp_frames": int(args.contact_facing_ramp_frames),
+        "contact_facing_weight": float(args.contact_facing_weight),
+        "contact_facing_min_angle_deg": float(args.contact_facing_min_angle_deg),
+        "grasp_point_weight": float(args.grasp_point_weight),
+        "body_bbox_size_calibration_xy": bbox_size_calibration.tolist(),
         "main_body_mask_weight": float(args.main_body_mask_weight),
+        "main_body_center_weight": float(args.main_body_center_weight),
+        "main_body_aspect_weight": float(args.main_body_aspect_weight),
         "mask_principal_axis_sigma_rad": float(args.mask_principal_axis_sigma_rad),
         "mask_silhouette_sigma_px": float(args.mask_silhouette_sigma_px),
         "mask_silhouette_weight": float(args.mask_silhouette_weight),
         "rotation_acceleration_sigma_rad": float(args.rotation_acceleration_sigma_rad),
         "rotation_step_margin_deg": float(args.rotation_step_margin_deg),
+        "maximum_upright_tilt_declared_deg": float(args.maximum_upright_tilt_deg),
+        "relative_depth_lag_frames": int(args.relative_depth_lag_frames),
+        "relative_depth_order_weight": float(args.relative_depth_order_weight),
+        "relative_depth_scale_coupling": float(args.relative_depth_scale_coupling),
+        "heading_initializer_min_deg": float(np.degrees(selected_heading.min())),
+        "heading_initializer_max_deg": float(np.degrees(selected_heading.max())),
+        "warm_start_pose_sha256": warm_start_sha256,
         "paired_line_frame_count": len(observed_lines_by_frame),
         "unassigned_line_frame_count": len(unassigned_lines_by_frame),
         "case_dispatch_used": False,
@@ -678,6 +1042,7 @@ def main() -> None:
         "accepted_pose_read": False,
         "accepted_pose_written": False,
         "reference_pose_sha256": hashlib.sha256(args.reference_pose.resolve().read_bytes()).hexdigest(),
+        "rigid_physics_evidence_manifest_sha256": hashlib.sha256(evidence_manifest_path.read_bytes()).hexdigest(),
         "quality_gates": gates,
         "quality_passed": quality_passed,
         "publication_status": "isolated_candidate_not_accepted_pose" if quality_passed else "isolated_candidate_rejected_by_quality_gate",

@@ -186,6 +186,13 @@ feat: prepare generic rigid assets for megapose
 
 ### Task 4: Add MegaPose RGB as an external generic pose provider
 
+Measured standalone status (2026-08-03): official RGB multi-hypothesis inference
+produced 50 hypotheses for 10 requested frames with no inference failures. A
+provider-neutral mesh-hull/mask check re-ranked visible hypotheses and combined
+CoTracker visibility blocked frames 155 and 163 rather than fabricating a pose.
+This artifact remains isolated; accepted `object_pose.csv` retains SHA256
+`b86b0834d8c7b61687f8bef24c5d5f9afdaaddc35262d32a8b1ba4fdc7ea648c`.
+
 **Files:**
 - Create: `scripts/shared/generic_contact_pipeline/tools/run_megapose_rigid_pose.py`
 - Modify: `scripts/shared/generic_contact_pipeline/core/preprocess/registry.py`

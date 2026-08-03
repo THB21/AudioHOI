@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "provider": "megapose6d_official",
+  "repository": "https://github.com/megapose6d/megapose6d",
+  "repository_commit": "f3b8e1247f133f3d098833a251b8f2d744c03e1f",
+  "python": "/home/yang/miniconda3/envs/megapose/bin/python",
+  "environment": "megapose",
+  "model_root": "third-party/megapose6d/local_data/megapose-models",
+  "models": {
+    "coarse-rgb-906902141/checkpoint.pth.tar": "30fa2ba97d1bb1b27f6443b6671f557baebf3dff93fcc8605a6c7924ead759a4",
+    "refiner-rgb-653307694/checkpoint.pth.tar": "52dd473fc719488e2f45a98aac2f83960ebe1534b2845cb292c0a287ba70adb7",
+    "refiner-rgbd-288182519/checkpoint.pth.tar": "6e8c833f8f0937492d024f81c533f4cb860570f0195b235c4b71356e78b79235"
+  },
+  "runtime_notes": [
+    "Official inference is run against DISPLAY=:1 because the public Panda3D wheel exposes GLX rather than the patched EGL backend.",
+    "Renderer multiprocessing is disabled to avoid GLX context/fork deadlock; MegaPose model and scoring code are unchanged.",
+    "Frame-buffer multisampling is disabled for compatibility with the available offscreen GLX framebuffer."
+  ]
+}

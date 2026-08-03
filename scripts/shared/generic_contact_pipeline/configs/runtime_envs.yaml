@@ -193,3 +193,21 @@ envs:
       - generic pipeline
       - Qwen-VL judge
       - final evaluator
+  megapose:
+    python: /home/yang/miniconda3/envs/megapose/bin/python
+    purpose: official MegaPose RGB rigid-mesh keyframe pose hypotheses
+    use_for:
+      - external rigid-mesh RGB pose hypotheses
+      - provider-side mesh contour diagnostics
+    required_imports:
+      - megapose
+      - torch
+      - numpy
+      - pandas
+      - PIL
+      - trimesh
+    missing_is_ok: []
+    do_not_use_for:
+      - generic sequence optimization
+      - accepted object-pose publication
+      - human reconstruction or refinement

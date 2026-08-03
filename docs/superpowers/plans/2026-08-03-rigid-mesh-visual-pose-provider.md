@@ -154,11 +154,11 @@ feat: add point-propagated sam2 mask candidate
 - Create: `scripts/shared/generic_contact_pipeline/tools/export_rigid_asset_mesh.py`
 - Modify: `scripts/shared/generic_contact_pipeline/configs/runtime_envs.yaml`
 
-- [ ] **Step 1: Install the official repository outside tracked source**
+- [x] **Step 1: Install the official repository outside tracked source**
 
 Clone `megapose6d/megapose6d` into `third-party/megapose6d`, create its official `megapose` conda environment from `conda/environment_full.yaml`, install the package editable, and download official MegaPose models. Record repository commit and model checksums in a runtime manifest; do not vendor MegaPose source into this commit.
 
-- [ ] **Step 2: Export a fixed-state mesh**
+- [x] **Step 2: Export a fixed-state mesh**
 
 Parse the asset descriptor and URDF visual geometry, apply the declared fixed joint state, concatenate all visual meshes in the root object coordinate frame, and export millimetre units. The command is:
 
@@ -170,15 +170,15 @@ python scripts/shared/generic_contact_pipeline/tools/export_rigid_asset_mesh.py 
 
 The sidecar JSON records source URDF hash, fixed joint state, metre-to-millimetre scale, output mesh hash, bounds, and vertex/face counts.
 
-- [ ] **Step 3: Verify asset geometry visually**
+- [x] **Step 3: Verify asset geometry visually**
 
 Render front, side, and top views of the exported mesh. Confirm constant handle extension, two rails, rigid body, and wheel support before any pose inference.
 
-- [ ] **Step 4: Register the runtime**
+- [x] **Step 4: Register the runtime**
 
 Add a `megapose` environment entry pointing at `/home/yang/miniconda3/envs/megapose/bin/python`, with `megapose`, `torch`, `numpy`, `pandas`, `PIL`, and `trimesh` as required imports.
 
-- [ ] **Step 5: Commit mesh export and runtime registration**
+- [x] **Step 5: Commit mesh export and runtime registration**
 
 ```text
 feat: prepare generic rigid assets for megapose
@@ -191,11 +191,11 @@ feat: prepare generic rigid assets for megapose
 - Modify: `scripts/shared/generic_contact_pipeline/core/preprocess/registry.py`
 - Modify: `scripts/shared/generic_contact_pipeline/configs/cases/suitcase_drag.yaml`
 
-- [ ] **Step 1: Implement provider-neutral input preparation**
+- [x] **Step 1: Implement provider-neutral input preparation**
 
 Read RGB frame, camera intrinsics, asset mesh, and typed mask bbox. Create official MegaPose input files with mesh units in millimetres and run `megapose-1.0-RGB-multi-hypothesis`. The runner accepts only generic arguments: sample directory, asset descriptor, keyframe list, mask source, camera JSON, model name, and output directory.
 
-- [ ] **Step 2: Normalize official outputs**
+- [x] **Step 2: Normalize official outputs**
 
 Write `rigid_pose_hypotheses.jsonl` with frame, hypothesis ID, score, translation in camera metres, normalized quaternion, model/repository identity, frame/mask/camera/mesh hashes, and evidence paths. Preserve incompatible hypotheses separately; do not average rotations.
 

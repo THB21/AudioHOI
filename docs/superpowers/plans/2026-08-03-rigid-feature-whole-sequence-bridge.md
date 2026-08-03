@@ -49,6 +49,8 @@
 - [x] Add hand-handle co-motion, four-wheel support/penetration, and SE(3) velocity/acceleration residuals.
 - [x] Optimize frames 125–163 jointly rather than solving independent PnP poses.
 - [x] Reject the candidate if locked values move, the support plane is violated, or unexplained single-frame jumps remain.
+- [x] Compile the asset-declared persistent grasp-facing relation so trusted
+  boundary states and read-only human motion recover rotation winding.
 
 ### Task 4: Render and review the real candidate
 
@@ -65,3 +67,26 @@
 ## Current execution status
 
 The whole-sequence architecture is implemented and rendered. The final review candidate is deliberately rejected rather than promoted: both locked segments are textually exact, maximum translation step is 0.0757 m, and maximum wheel penetration is 0.00523 m, but the optimizer reached its 100-evaluation limit and the maximum rotation step is 8.045° against the declared 8.0° gate. The canonical accepted pose remains unchanged.
+
+### Task 5: Replace tilt compensation with generic rigid physics factors
+
+**Files:**
+- Modify: `scripts/shared/generic_contact_pipeline/tools/run_rigid_feature_sequence_candidate.py`
+- Create: `output/suitcase_rigid_sequence_v17/`
+
+- [ ] Consume the typed rigid silhouette and relative-depth evidence produced by
+  `build_rigid_physics_evidence.py`; refuse to solve when its blocking manifest
+  is absent or declares contaminated usable tracks.
+- [ ] Add full visible-body width and height residuals instead of horizontal-only
+  containment, preserving partial/occluded measurements as one-sided evidence.
+- [ ] Add a descriptor-driven support-upright factor using
+  `initializer.upright_axis_local` and the observed support plane. This prevents
+  the optimizer from explaining a narrowing rigid silhouette with a 3D tip.
+- [ ] Add relative-depth ordering over reliable visible windows. This is a weak
+  direction/rank constraint, not an absolute DA3-to-camera-depth calibration.
+- [ ] Keep the signed handle-face relation active only while contact is active;
+  after release, use rigid temporal continuity and the locked late boundary.
+- [ ] Write per-factor provenance and reject the candidate on depth-order,
+  upright, support, locked-segment, or motion-jump gate failure.
+- [ ] Run the isolated real candidate, verify the accepted pose hash remains
+  unchanged, and render only if all evidence and trajectory gates pass.

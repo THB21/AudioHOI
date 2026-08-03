@@ -36,6 +36,17 @@ The state is one rigid root SE(3) per frame. One sequence solve uses:
 
 Occluded measurements are downweighted or disabled; they do not generate a new independent pose. VLM may classify visibility and approve an amodal-mask candidate, but may not output or overwrite SE(3).
 
+### Persistent grasp-facing relation
+
+Endpoint quaternion interpolation loses the rotation winding when a rigid
+object moves around a person and returns to a similar endpoint orientation.
+For a persistent grasp, an asset-declared `facing_axis_local` is compared with
+the read-only human reference direction in the support plane. The facing cone
+starts at the trusted boundary's measured angle and tightens smoothly during
+the turn. This recovers the continuous heading from geometry, interaction and
+trusted boundary states; no manually labelled intermediate pose or face order
+is consumed by the solver.
+
 ## Candidate and rejection rules
 
 The first implementation remains an isolated candidate. It must write a feature ledger, per-factor residuals and a pose CSV. It is rejected if either locked segment differs numerically from its reference, if any wheel penetrates the support plane, or if the free interval contains an unexplained one-frame pose jump. Rendering is required before promotion.

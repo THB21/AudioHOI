@@ -72,21 +72,30 @@ The whole-sequence architecture is implemented and rendered. The final review ca
 
 **Files:**
 - Modify: `scripts/shared/generic_contact_pipeline/tools/run_rigid_feature_sequence_candidate.py`
-- Create: `output/suitcase_rigid_sequence_v17/`
+- Create: `output/suitcase_rigid_sequence_v32/`
 
-- [ ] Consume the typed rigid silhouette and relative-depth evidence produced by
+- [x] Consume the typed rigid silhouette and relative-depth evidence produced by
   `build_rigid_physics_evidence.py`; refuse to solve when its blocking manifest
   is absent or declares contaminated usable tracks.
-- [ ] Add full visible-body width and height residuals instead of horizontal-only
+- [x] Add full visible-body width and height residuals instead of horizontal-only
   containment, preserving partial/occluded measurements as one-sided evidence.
-- [ ] Add a descriptor-driven support-upright factor using
+- [x] Add a descriptor-driven support-upright factor using
   `initializer.upright_axis_local` and the observed support plane. This prevents
   the optimizer from explaining a narrowing rigid silhouette with a 3D tip.
-- [ ] Add relative-depth ordering over reliable visible windows. This is a weak
+- [x] Add relative-depth ordering over reliable visible windows. This is a weak
   direction/rank constraint, not an absolute DA3-to-camera-depth calibration.
-- [ ] Keep the signed handle-face relation active only while contact is active;
+- [x] Keep the signed handle-face relation active only while contact is active;
   after release, use rigid temporal continuity and the locked late boundary.
-- [ ] Write per-factor provenance and reject the candidate on depth-order,
+- [x] Write per-factor provenance and reject the candidate on depth-order,
   upright, support, locked-segment, or motion-jump gate failure.
-- [ ] Run the isolated real candidate, verify the accepted pose hash remains
+- [x] Run the isolated real candidate, verify the accepted pose hash remains
   unchanged, and render only if all evidence and trajectory gates pass.
+
+Task 5 completed with isolated attempt v32. The accepted pose remained at
+SHA256 `b86b0834d8c7b61687f8bef24c5d5f9afdaaddc35262d32a8b1ba4fdc7ea648c`.
+The converged candidate preserves both locked intervals exactly, has maximum
+translation step 0.11174 m, maximum rotation step 7.518 degrees, maximum wheel
+penetration 0.000535 m, maximum upright tilt 11.65 degrees, and relative-depth
+rank correlation 0.708. The 137-142 review frames now contain a visible signed
+heading change driven by body aspect plus the projected handle/body lever arm.
+The candidate remains unpromoted pending explicit video approval.

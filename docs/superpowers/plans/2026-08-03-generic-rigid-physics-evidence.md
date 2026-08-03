@@ -23,7 +23,7 @@
 - Create: `scripts/shared/generic_contact_pipeline/core/measurements/rigid_physics.py`
 - Modify: `scripts/shared/generic_contact_pipeline/core/measurements/__init__.py`
 
-- [ ] **Step 1: Define frame-level silhouette and depth evidence**
+- [x] **Step 1: Define frame-level silhouette and depth evidence**
 
 Implement frozen `RigidSilhouetteEvidence` and `RelativeDepthEvidence`
 dataclasses. Silhouette rows contain sample/frame/time, visibility, centroid,
@@ -32,7 +32,7 @@ source artifact. Depth rows contain raw and log metric depth, confidence, and
 source artifact. Reject non-positive dimensions/depth, invalid visibility,
 invalid confidence, and non-finite values.
 
-- [ ] **Step 2: Define feature-track and pose-hypothesis evidence**
+- [x] **Step 2: Define feature-track and pose-hypothesis evidence**
 
 Implement frozen `RigidFeatureTrackEvidence` and
 `RigidPoseHypothesisEvidence`. Track rows retain candidate feature identities,
@@ -40,18 +40,18 @@ role, coordinates, tracker confidence, boundary distance, cross-bank error,
 anchor trust, usability, and rejection reason. Pose rows retain every provider
 hypothesis rather than publishing one selected pose.
 
-- [ ] **Step 3: Define the blocking manifest**
+- [x] **Step 3: Define the blocking manifest**
 
 Implement `RigidPhysicsEvidenceManifest` with coverage and contamination counts,
 input hashes, named gates, and `ready_for_solver`. Validate that
 `ready_for_solver == all(gates.values())`.
 
-- [ ] **Step 4: Verify imports and invalid-value rejection without pytest**
+- [x] **Step 4: Verify imports and invalid-value rejection without pytest**
 
 Run `py_compile`, instantiate valid rows, and confirm zero-width silhouette and
 non-positive depth constructors raise `ValueError`.
 
-- [ ] **Step 5: Commit the contract**
+- [x] **Step 5: Commit the contract**
 
 Commit only the new contract and package exports with message
 `feat: add rigid physics evidence contract`.
@@ -61,25 +61,25 @@ Commit only the new contract and package exports with message
 **Files:**
 - Create: `scripts/shared/generic_contact_pipeline/tools/build_rigid_physics_evidence.py`
 
-- [ ] **Step 1: Add generic artifact inputs**
+- [x] **Step 1: Add generic artifact inputs**
 
 The CLI accepts `--sample-id`, `--object-observations`, `--feature-tracks`,
 `--megapose-hypotheses`, `--trusted-anchor-intervals`, and `--output-dir`.
 It validates required columns and hashes every input.
 
-- [ ] **Step 2: Adapt silhouette rows**
+- [x] **Step 2: Adapt silhouette rows**
 
 Derive stable width, height, log scale, and aspect from body bbox columns. Write
 `rigid_silhouette_evidence.csv`. Only visible rows with observation confidence
 above 0.5 set `scale_reliable=1`; partial and occluded rows remain present.
 
-- [ ] **Step 3: Adapt relative-depth rows**
+- [x] **Step 3: Adapt relative-depth rows**
 
 Accept finite positive `object_ref_depth_m` with positive `depth_conf`. Write
 `relative_depth_evidence.csv`, preserving raw and log depth without aligning it
 to a solved pose.
 
-- [ ] **Step 4: Emit trend diagnostics**
+- [x] **Step 4: Emit trend diagnostics**
 
 For consecutive reliable frames write `scale_depth_trend.csv` containing
 delta-log-depth, delta-log-height, delta-log-area, and whether farther depth is
@@ -90,12 +90,12 @@ consistent with smaller silhouette scale.
 **Files:**
 - Modify: `scripts/shared/generic_contact_pipeline/tools/build_rigid_physics_evidence.py`
 
-- [ ] **Step 1: Validate trusted anchors**
+- [x] **Step 1: Validate trusted anchors**
 
 Parse interval strings such as `1-124,164-240`. Reject tracks whose anchor does
 not fall inside a trusted interval with reason `untrusted_anchor`.
 
-- [ ] **Step 2: Validate feature roles**
+- [x] **Step 2: Validate feature roles**
 
 Use boundary limits of 12 px for body/support points, 10 px for line endpoints,
 and 18 px for grasp points. A track is usable only when its anchor is trusted,
@@ -103,28 +103,28 @@ tracker visibility is at least 0.65, cross-bank error is at most 18 px, it is
 mask compatible, and its boundary distance satisfies the declared role. Write
 `rigid_feature_track_evidence.csv` with explicit rejection reasons.
 
-- [ ] **Step 3: Normalize MegaPose hypotheses**
+- [x] **Step 3: Normalize MegaPose hypotheses**
 
 Write every row to `rigid_pose_hypotheses_evidence.jsonl`. Mark a frame
 ambiguous when the best two mask-IoU hypotheses differ by at most 0.08 or the
 provider reports blocked visual evidence. Never publish the provider-selected
 hypothesis as a trajectory.
 
-- [ ] **Step 4: Build the blocking manifest**
+- [x] **Step 4: Build the blocking manifest**
 
 Require clear scale and relative-depth coverage, zero contaminated usable
 tracks, zero usable tracks from untrusted anchors, at least two usable rigid
 feature frames, and at least two trusted rail frames. Report MegaPose ambiguity
 without treating one hypothesis as truth.
 
-- [ ] **Step 5: Verify on the real suitcase artifacts**
+- [x] **Step 5: Verify on the real suitcase artifacts**
 
 Run the builder with trusted intervals `1-124,164-240`. Confirm anchor 125 is
 untrusted, deep-interior body tracks are rejected, frames 155 and 163 report
 blocked MegaPose evidence, and the manifest blocks solving when trusted rail
 coverage is absent.
 
-- [ ] **Step 6: Commit the builder**
+- [x] **Step 6: Commit the builder**
 
 Commit only the builder with message `feat: build rigid physics evidence audit`.
 
@@ -133,17 +133,44 @@ Commit only the builder with message `feat: build rigid physics evidence audit`.
 **Files:**
 - Modify: `docs/superpowers/plans/2026-08-03-generic-rigid-physics-evidence.md`
 
-- [ ] **Step 1: Record exact manifest results**
+- [x] **Step 1: Record exact manifest results**
 
 Check completed steps and append real counts and failed gate names. Do not mark
 solver integration complete in this plan.
 
-- [ ] **Step 2: Verify isolation**
+- [x] **Step 2: Verify isolation**
 
 Run `git diff --check`, inspect `git status --short`, and verify the accepted
 pose SHA256 remains
 `b86b0834d8c7b61687f8bef24c5d5f9afdaaddc35262d32a8b1ba4fdc7ea648c`.
 
-- [ ] **Step 3: Commit plan status**
+- [x] **Step 3: Commit plan status**
 
 Commit only this plan update with message `docs: record rigid evidence audit status`.
+
+## Real suitcase evidence audit (2026-08-03)
+
+The builder was run against the current suitcase observation, CoTracker, and
+MegaPose artifacts with trusted anchor intervals `1-124,164-240`. It did not
+read or write the accepted pose and did not invoke a solver.
+
+- Frames: 240; solve interval: `125-163`.
+- Clear scale rows in the solve interval: 29; relative-depth rows: 39.
+- Usable rigid-feature frames: 6; trusted rail frames: 0.
+- Trusted orientation frames in the solve interval: `[161]`.
+- Maximum visible orientation gap: 29 frames; allowed maximum: 12 frames.
+- Input tracks rejected as contaminated: 1,368; tracks rejected for an
+  untrusted anchor: 198.
+- Ambiguous or visually blocked MegaPose frames: `1,106,118,155,163,200,226`.
+- Passing gates: clear scale coverage, relative-depth coverage, no
+  contaminated usable tracks, no untrusted-anchor usable tracks, and minimum
+  rigid-feature coverage.
+- Failing gates: `trusted_rail_coverage` and
+  `bounded_visible_orientation_gap`.
+- Publication status: `solver_blocked`; `ready_for_solver=false`.
+
+This phase therefore establishes the exact missing evidence instead of
+publishing another hand-shaped yaw trajectory. Solver integration is
+deliberately not marked complete. The next implementation phase must regenerate
+persistent rail/corner identities from clear frames and compile signed-face,
+scale-depth, and support factors before the blocked interval is solved.

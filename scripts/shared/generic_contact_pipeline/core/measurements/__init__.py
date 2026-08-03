@@ -17,6 +17,15 @@ from .types import (
 )
 from .shadow import build_measurement_shadow
 from .configured import ConfiguredMeasurementResult, adapt_configured_supplemental_measurements
+from .rigid_physics import (
+    RelativeDepthEvidence,
+    RigidFeatureTrackEvidence,
+    RigidPhysicsEvidence,
+    RigidPhysicsEvidenceManifest,
+    RigidPoseHypothesisEvidence,
+    RigidSilhouetteEvidence,
+    rigid_physics_record,
+)
 
 __all__ = [
     "AdaptationResult",
@@ -32,6 +41,13 @@ __all__ = [
     "TrackMeasurement",
     "Unit",
     "VisibilityMeasurement",
+    "RelativeDepthEvidence",
+    "RigidFeatureTrackEvidence",
+    "RigidPhysicsEvidence",
+    "RigidPhysicsEvidenceManifest",
+    "RigidPoseHypothesisEvidence",
+    "RigidSilhouetteEvidence",
+    "rigid_physics_record",
     "adapt_legacy_observation_rows",
     "build_measurement_shadow",
     "ConfiguredMeasurementResult",

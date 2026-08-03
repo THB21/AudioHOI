@@ -42,6 +42,21 @@ The stick historical reference result is kept only as a known-good comparison po
 
 ## Current Execution Mainline
 
+### Active rigid-feature sequence candidate
+
+The suitcase occlusion migration now has an isolated whole-video rigid-feature
+candidate. It tracks asset-declared body corners, wheel support points, handle
+rails, and the grasp point with stable identities, then solves one SE(3)
+sequence. User-approved historical frames 1–124 and 164–240 are hard locked;
+only frames 125–163 are free. The implementation and live status are recorded
+in:
+
+- `docs/superpowers/specs/2026-08-03-rigid-feature-whole-sequence-bridge-design.md`
+- `docs/superpowers/plans/2026-08-03-rigid-feature-whole-sequence-bridge.md`
+
+This remains candidate-only and must not replace the canonical suitcase pose
+until the rendered interval is explicitly approved.
+
 The only intended pipeline entrypoint is:
 
 - `scripts/shared/generic_contact_pipeline/run_pipeline.py`

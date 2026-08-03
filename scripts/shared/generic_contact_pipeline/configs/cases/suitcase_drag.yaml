@@ -17,8 +17,10 @@ preprocess:
   detector_text: small black hard-shell rolling suitcase.
   first_frame_box: 445,365,585,635
   segmenter_model: facebook/sam2.1-hiera-tiny
-  tracker: cotracker3_offline
+  tracker: cotracker3_online
   tracker_query_source: sam2_mask_center
+  tracker_sequence_mode: persistent_online
+  tracker_grid_size: 12
   da3_chunk_size: 16
   da3_process_res: 504
 rigid_mask_observation:

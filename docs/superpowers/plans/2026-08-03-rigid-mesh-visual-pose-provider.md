@@ -32,7 +32,7 @@
 - Modify: `scripts/shared/generic_contact_pipeline/core/preprocess/registry.py`
 - Modify: `scripts/shared/generic_contact_pipeline/configs/cases/suitcase_drag.yaml`
 
-- [ ] **Step 1: Record the immutable accepted-pose hash**
+- [x] **Step 1: Record the immutable accepted-pose hash**
 
 Run:
 
@@ -46,7 +46,7 @@ Expected hash:
 b86b0834d8c7b61687f8bef24c5d5f9afdaaddc35262d32a8b1ba4fdc7ea648c
 ```
 
-- [ ] **Step 2: Replace chunk-local query initialization with one persistent query set**
+- [x] **Step 2: Replace chunk-local query initialization with one persistent query set**
 
 Implement these focused helpers in `run_cotracker_object_points.py`:
 
@@ -69,7 +69,7 @@ def sample_persistent_queries(mask: np.ndarray, *, grid_size: int) -> list[tuple
     return queries
 ```
 
-Call official CoTracker3 offline once for the complete resized video:
+Prefer official CoTracker3 offline once for the complete resized video:
 
 ```python
 queries = torch.zeros((1, len(points), 3), dtype=torch.float32, device=device)
@@ -77,9 +77,9 @@ queries[0, :, 1:] = torch.from_numpy(points).to(device)
 pred_tracks, pred_visibility = cotracker(video, queries=queries)
 ```
 
-Do not loop over independent 32-frame ranges. Keep `track_id` unchanged for every output frame.
+If full-sequence offline inference exceeds available GPU memory, use the official stateful online API with overlapping `model.step * 2` windows. Initialize `queries` exactly once with `is_first_step=True`, then retain the model state and the same query identities in later windows. Do not loop over independent 32-frame tracking attempts. Keep `track_id` unchanged for every output frame.
 
-- [ ] **Step 3: Write the new persistent artifact without breaking legacy outputs**
+- [x] **Step 3: Write the new persistent artifact without breaking legacy outputs**
 
 Write `results/tracking/rigid_point_tracks.csv` with this exact schema:
 
@@ -89,7 +89,7 @@ frame,time,track_id,query_frame,x,y,visible,confidence,semantic_feature_id,sourc
 
 Write `results/tracking/rigid_point_tracks_manifest.json` containing tracker model, query mask hash, query count, query frame, frame count, resize scale, and `reinitialization_frames: []`. Derive legacy center and boundary CSVs from the persistent tracks for compatibility; do not assign fake local 3D coordinates.
 
-- [ ] **Step 4: Register and validate artifacts**
+- [x] **Step 4: Register and validate artifacts**
 
 Add `ArtifactSpec` entries and require:
 
@@ -99,7 +99,7 @@ _validate_frame_csv(rigid_tracks.path, count, allow_multiple=True)
 
 The manifest is a required file. Include `query_policy`, `grid_size`, and `sequence_mode: persistent_offline` in the task fingerprint.
 
-- [ ] **Step 5: Run only Stage 0 tracking for suitcase**
+- [x] **Step 5: Run only Stage 0 tracking for suitcase**
 
 Use the existing case-ingestion entry point with the suitcase config, forcing only the CoTracker task to regenerate. Expected evidence:
 
@@ -108,7 +108,7 @@ Use the existing case-ingestion entry point with the suitcase config, forcing on
 - no reinitialization at frames 33, 65, 97, 129, 161, 193, or 225;
 - accepted pose hash unchanged.
 
-- [ ] **Step 6: Commit the persistent tracker change**
+- [x] **Step 6: Commit the persistent tracker change**
 
 Stage only the three source/config files and commit:
 

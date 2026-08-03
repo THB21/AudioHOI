@@ -164,6 +164,9 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
         cotracker_args.extend(("--fps", str(fps)))
     if preprocess.get("tracker_resize_width"):
         cotracker_args.extend(("--resize-width", str(preprocess["tracker_resize_width"])))
+    tracker_sequence_mode = str(preprocess.get("tracker_sequence_mode", "chunked_legacy"))
+    tracker_grid_size = int(preprocess.get("tracker_grid_size", 12))
+    cotracker_args.extend(("--sequence-mode", tracker_sequence_mode, "--grid-size", str(tracker_grid_size)))
     da3_args = ["--sample-dir", str(sample), "--da3-root", str(da3_root)]
     da3_args.extend(("--model-dir", da3_model, "--chunk-size", str(da3_chunk_size)))
     if preprocess.get("da3_process_res"):
@@ -182,6 +185,17 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
     center = ArtifactSpec("cotracker_center", results / "tracking/object_center_trajectory.csv")
     points = ArtifactSpec("cotracker_points", results / "tracking/object_points.csv")
     mesh = ArtifactSpec("cotracker_mesh_tracks", results / "tracking/object_mesh_tracks_test.csv")
+    persistent_tracking = tracker_sequence_mode in {"persistent_offline", "persistent_online"}
+    rigid_tracks = ArtifactSpec(
+        "cotracker_rigid_tracks",
+        results / "tracking/rigid_point_tracks.csv",
+        required=persistent_tracking,
+    )
+    rigid_tracks_manifest = ArtifactSpec(
+        "cotracker_rigid_tracks_manifest",
+        results / "tracking/rigid_point_tracks_manifest.json",
+        required=persistent_tracking,
+    )
     depth = ArtifactSpec("da3_scene_depth", results / "da3/scene_depth", "directory")
     depth_prior = ArtifactSpec("object_depth_prior", results / "da3/priors/object_depth_prior.csv")
     gvhmr = ArtifactSpec("gvhmr_result", results / "gvhmr/result.pkl")
@@ -208,13 +222,21 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
         ),
         _task(
             "cotracker", "audiohoi", ("frame_extract", "sam2"), (frames, masks),
-            (center, points, mesh), _runtime_command("audiohoi", cotracker_tool, *cotracker_args),
-            config={"object_family": profile.data.get("object_family", "generic_object"), "tracker": preprocess.get("tracker", "cotracker3_offline")},
+            (center, points, mesh, rigid_tracks, rigid_tracks_manifest), _runtime_command("audiohoi", cotracker_tool, *cotracker_args),
+            config={
+                "object_family": profile.data.get("object_family", "generic_object"),
+                "tracker": preprocess.get("tracker", "cotracker3_offline"),
+                "sequence_mode": tracker_sequence_mode,
+                "query_policy": "sam2_mask_interior_grid_plus_legacy_anchors" if persistent_tracking else "chunk_local_legacy_anchors",
+                "grid_size": tracker_grid_size,
+            },
             model={"tracker": preprocess.get("tracker", "cotracker3_offline")},
             validator=lambda count: (
                 _validate_frame_csv(center.path, count),
                 _validate_frame_csv(points.path, count),
                 _validate_frame_csv(mesh.path, count, allow_multiple=True),
+                _validate_frame_csv(rigid_tracks.path, count, allow_multiple=True) if persistent_tracking else None,
+                json.loads(rigid_tracks_manifest.path.read_text()) if persistent_tracking else None,
             ),
         ),
         _task(

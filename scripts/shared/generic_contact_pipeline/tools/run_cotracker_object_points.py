@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
+import json
 from pathlib import Path
 
 import cv2
@@ -96,6 +98,39 @@ def read_mask_points(mask_path: Path, *, object_family: str) -> list[tuple[str, 
     return initial_points_from_mask(mask, object_family=object_family)
 
 
+def sample_persistent_queries(
+    mask: np.ndarray,
+    *,
+    object_family: str,
+    grid_size: int,
+) -> list[tuple[str, np.ndarray]]:
+    """Create one stable query set for the complete tracking attempt."""
+
+    if grid_size < 2:
+        raise ValueError("persistent CoTracker grid size must be at least 2")
+    ys, xs = np.where(mask > 0)
+    if len(xs) == 0:
+        raise RuntimeError("Empty SAM2 mask")
+    named_points = initial_points_from_mask(mask, object_family=object_family)
+    existing = {name for name, _point in named_points}
+    x_grid = np.linspace(float(xs.min()), float(xs.max()), grid_size)
+    y_grid = np.linspace(float(ys.min()), float(ys.max()), grid_size)
+    for row, y in enumerate(y_grid):
+        for col, x in enumerate(x_grid):
+            xi = int(np.clip(round(x), 0, mask.shape[1] - 1))
+            yi = int(np.clip(round(y), 0, mask.shape[0] - 1))
+            if mask[yi, xi] == 0:
+                continue
+            point_id = f"grid_{row:02d}_{col:02d}"
+            if point_id not in existing:
+                named_points.append((point_id, np.array([x, y], dtype=np.float64)))
+    if len(named_points) < 8:
+        raise RuntimeError(
+            f"Persistent rigid tracking requires at least 8 mask-interior queries, got {len(named_points)}"
+        )
+    return named_points
+
+
 def write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="") as f:
@@ -123,6 +158,8 @@ def run_cotracker(
     object_family: str,
     resize_width: int | None,
     chunk_len: int,
+    sequence_mode: str,
+    grid_size: int,
     device: str,
 ) -> dict[str, object]:
     import torch
@@ -131,44 +168,122 @@ def run_cotracker(
     tracking_dir = results_dir / "tracking"
     masks_dir = results_dir / "segmentation" / "masks"
     frames, sx, sy = read_frames(sample_dir / "frames", resize_width)
+    tracker_hub_model = "cotracker3_online" if sequence_mode == "persistent_online" else "cotracker3_offline"
     cotracker = torch.hub.load(
         "facebookresearch/co-tracker",
-        "cotracker3_offline",
+        tracker_hub_model,
         trust_repo=True,
     ).to(device)
     cotracker.eval()
 
+    if sequence_mode not in {"chunked_legacy", "persistent_offline", "persistent_online"}:
+        raise ValueError(f"Unsupported CoTracker sequence mode: {sequence_mode}")
+
     track_by_frame: dict[int, list[tuple[str, np.ndarray]]] = {}
     visibility_by_frame: dict[int, np.ndarray] = {}
+    query_frame_by_name: dict[str, int] = {}
+    query_mask_path: Path | None = None
     with torch.inference_mode():
-        for start in range(0, frames.shape[0], chunk_len):
-            end = min(start + chunk_len, frames.shape[0])
-            mask_path = masks_dir / f"{start + 1:05d}_mask.png"
-            named_points = read_mask_points(mask_path, object_family=object_family)
+        if sequence_mode in {"persistent_offline", "persistent_online"}:
+            query_mask_path = masks_dir / "00001_mask.png"
+            query_mask = cv2.imread(str(query_mask_path), cv2.IMREAD_GRAYSCALE)
+            if query_mask is None:
+                raise RuntimeError(f"Could not read mask {query_mask_path}")
+            named_points = sample_persistent_queries(
+                query_mask,
+                object_family=object_family,
+                grid_size=grid_size,
+            )
             names = [name for name, _point in named_points]
+            query_frame_by_name.update({name: 1 for name in names})
             points = np.stack([point for _name, point in named_points]).astype(np.float32)
             scaled_points = points.copy()
             scaled_points[:, 0] *= sx
             scaled_points[:, 1] *= sy
-
-            video = (
-                torch.from_numpy(frames[start:end])
-                .permute(0, 3, 1, 2)[None]
-                .float()
-                .to(device)
-            )
             queries = torch.zeros((1, len(scaled_points), 3), dtype=torch.float32, device=device)
             queries[0, :, 1:] = torch.from_numpy(scaled_points).to(device)
-            pred_tracks, pred_visibility = cotracker(video, queries=queries)
+            if sequence_mode == "persistent_offline":
+                video = (
+                    torch.from_numpy(frames)
+                    .permute(0, 3, 1, 2)[None]
+                    .float()
+                    .to(device)
+                )
+                pred_tracks, pred_visibility = cotracker(video, queries=queries)
+            else:
+                window_frames: list[np.ndarray] = []
+                is_first_step = True
+                pred_tracks = pred_visibility = None
+
+                def process_online_window(window: list[np.ndarray], first_step: bool):
+                    video_chunk = (
+                        torch.from_numpy(np.stack(window[-cotracker.step * 2 :]))
+                        .permute(0, 3, 1, 2)[None]
+                        .float()
+                        .to(device)
+                    )
+                    return cotracker(
+                        video_chunk,
+                        is_first_step=first_step,
+                        queries=queries if first_step else None,
+                        grid_size=0,
+                    )
+
+                for frame_idx, frame in enumerate(frames):
+                    if frame_idx % cotracker.step == 0 and frame_idx != 0:
+                        pred_tracks, pred_visibility = process_online_window(
+                            window_frames,
+                            is_first_step,
+                        )
+                        is_first_step = False
+                    window_frames.append(frame)
+                final_window_start = -(frame_idx % cotracker.step) - cotracker.step - 1
+                pred_tracks, pred_visibility = process_online_window(
+                    window_frames[final_window_start:],
+                    is_first_step,
+                )
+                if pred_tracks is None or pred_visibility is None:
+                    raise RuntimeError("Online CoTracker produced no accumulated tracks")
             tracks_chunk = pred_tracks[0].detach().cpu().numpy()
             visibility_chunk = pred_visibility[0].detach().cpu().numpy()
             tracks_chunk[:, :, 0] /= sx
             tracks_chunk[:, :, 1] /= sy
             for offset in range(tracks_chunk.shape[0]):
-                frame_idx = start + offset
-                if frame_idx < frames.shape[0]:
-                    track_by_frame[frame_idx] = [(name, tracks_chunk[offset, i]) for i, name in enumerate(names)]
-                    visibility_by_frame[frame_idx] = visibility_chunk[offset]
+                track_by_frame[offset] = [
+                    (name, tracks_chunk[offset, i]) for i, name in enumerate(names)
+                ]
+                visibility_by_frame[offset] = visibility_chunk[offset]
+        else:
+            for start in range(0, frames.shape[0], chunk_len):
+                end = min(start + chunk_len, frames.shape[0])
+                mask_path = masks_dir / f"{start + 1:05d}_mask.png"
+                named_points = read_mask_points(mask_path, object_family=object_family)
+                names = [name for name, _point in named_points]
+                query_frame_by_name.update({f"{start + 1}:{name}": start + 1 for name in names})
+                points = np.stack([point for _name, point in named_points]).astype(np.float32)
+                scaled_points = points.copy()
+                scaled_points[:, 0] *= sx
+                scaled_points[:, 1] *= sy
+                video = (
+                    torch.from_numpy(frames[start:end])
+                    .permute(0, 3, 1, 2)[None]
+                    .float()
+                    .to(device)
+                )
+                queries = torch.zeros((1, len(scaled_points), 3), dtype=torch.float32, device=device)
+                queries[0, :, 1:] = torch.from_numpy(scaled_points).to(device)
+                pred_tracks, pred_visibility = cotracker(video, queries=queries)
+                tracks_chunk = pred_tracks[0].detach().cpu().numpy()
+                visibility_chunk = pred_visibility[0].detach().cpu().numpy()
+                tracks_chunk[:, :, 0] /= sx
+                tracks_chunk[:, :, 1] /= sy
+                for offset in range(tracks_chunk.shape[0]):
+                    frame_idx = start + offset
+                    if frame_idx < frames.shape[0]:
+                        track_by_frame[frame_idx] = [
+                            (name, tracks_chunk[offset, i]) for i, name in enumerate(names)
+                        ]
+                        visibility_by_frame[frame_idx] = visibility_chunk[offset]
 
     if not track_by_frame:
         raise RuntimeError("CoTracker produced no tracks")
@@ -176,6 +291,11 @@ def run_cotracker(
     center_rows: list[dict[str, object]] = []
     point_rows: list[dict[str, object]] = []
     mesh_rows: list[dict[str, object]] = []
+    rigid_track_rows: list[dict[str, object]] = []
+    query_mask_hash = ""
+    if query_mask_path is not None:
+        query_mask_hash = hashlib.sha256(query_mask_path.read_bytes()).hexdigest()
+    attempt_id = f"cotracker-{sequence_mode}-{query_mask_hash[:12] or 'legacy'}"
     for frame_idx in sorted(track_by_frame):
         frame_1based = frame_idx + 1
         time = f"{frame_idx / fps:.6f}"
@@ -210,6 +330,23 @@ def run_cotracker(
         point_rows.append(row)
 
         for point_idx, (name, xy) in enumerate(named_tracks):
+            visible = float(visibility[point_idx])
+            if sequence_mode in {"persistent_offline", "persistent_online"}:
+                rigid_track_rows.append(
+                    {
+                        "frame": frame_1based,
+                        "time": time,
+                        "track_id": name,
+                        "query_frame": query_frame_by_name[name],
+                        "x": f"{float(xy[0]):.3f}",
+                        "y": f"{float(xy[1]):.3f}",
+                        "visible": f"{visible:.6f}",
+                        "confidence": f"{visible:.6f}",
+                        "semantic_feature_id": "",
+                        "source": "cotracker3_persistent_sam2_queries",
+                        "attempt_id": attempt_id,
+                    }
+                )
             mesh_rows.append(
                 {
                     "frame": frame_1based,
@@ -218,7 +355,7 @@ def run_cotracker(
                     "point_type": _point_type(name),
                     "x": f"{float(xy[0]):.3f}",
                     "y": f"{float(xy[1]):.3f}",
-                    "visible": f"{float(visibility[point_idx]):.6f}",
+                    "visible": f"{visible:.6f}",
                     "local_x": f"{_local_x(name):.6f}",
                     "local_y": "0.000000",
                     "local_z": "0.000000",
@@ -239,12 +376,52 @@ def run_cotracker(
         mesh_rows,
         ["frame", "time", "point_id", "point_type", "x", "y", "visible", "local_x", "local_y", "local_z", "source"],
     )
+    rigid_tracks_path = tracking_dir / "rigid_point_tracks.csv"
+    rigid_manifest_path = tracking_dir / "rigid_point_tracks_manifest.json"
+    if sequence_mode in {"persistent_offline", "persistent_online"}:
+        write_csv(
+            rigid_tracks_path,
+            rigid_track_rows,
+            [
+                "frame",
+                "time",
+                "track_id",
+                "query_frame",
+                "x",
+                "y",
+                "visible",
+                "confidence",
+                "semantic_feature_id",
+                "source",
+                "attempt_id",
+            ],
+        )
+        manifest = {
+            "schema_version": 1,
+            "attempt_id": attempt_id,
+            "tracker": f"facebookresearch/co-tracker:{tracker_hub_model}",
+            "sequence_mode": sequence_mode,
+            "query_policy": "sam2_mask_interior_grid_plus_legacy_anchors",
+            "query_frame": 1,
+            "query_mask": str(query_mask_path),
+            "query_mask_sha256": query_mask_hash,
+            "query_count": len(track_by_frame[0]),
+            "frame_count": len(track_by_frame),
+            "resize_scale_xy": [sx, sy],
+            "grid_size": grid_size,
+            "reinitialization_frames": [],
+            "local_3d_coordinates_assigned": False,
+        }
+        rigid_manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
     return {
         "frames": len(center_rows),
         "points_per_frame": len(track_by_frame[min(track_by_frame)]),
         "center_trajectory": str(tracking_dir / "object_center_trajectory.csv"),
         "object_points": str(tracking_dir / "object_points.csv"),
         "object_mesh_tracks": str(tracking_dir / "object_mesh_tracks_test.csv"),
+        "sequence_mode": sequence_mode,
+        "rigid_point_tracks": str(rigid_tracks_path) if rigid_tracks_path.is_file() else None,
+        "rigid_point_tracks_manifest": str(rigid_manifest_path) if rigid_manifest_path.is_file() else None,
     }
 
 
@@ -256,6 +433,12 @@ def main() -> None:
     parser.add_argument("--object-family", default=None)
     parser.add_argument("--resize-width", type=int, default=256)
     parser.add_argument("--chunk-len", type=int, default=32)
+    parser.add_argument(
+        "--sequence-mode",
+        choices=("chunked_legacy", "persistent_offline", "persistent_online"),
+        default=None,
+    )
+    parser.add_argument("--grid-size", type=int, default=None)
     parser.add_argument("--device", default=None)
     args = parser.parse_args()
 
@@ -267,6 +450,10 @@ def main() -> None:
     if not str(sample_dir):
         raise ValueError("--sample-dir or case_config.sample_dir is required")
     object_family = args.object_family or str(case_config.get("object_family", "generic_object"))
+    preprocess = case_config.get("preprocess", {})
+    preprocess = dict(preprocess) if isinstance(preprocess, dict) else {}
+    sequence_mode = args.sequence_mode or str(preprocess.get("tracker_sequence_mode", "chunked_legacy"))
+    grid_size = args.grid_size or int(preprocess.get("tracker_grid_size", 12))
     device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
     summary = run_cotracker(
         sample_dir=sample_dir,
@@ -274,6 +461,8 @@ def main() -> None:
         object_family=object_family,
         resize_width=args.resize_width,
         chunk_len=args.chunk_len,
+        sequence_mode=sequence_mode,
+        grid_size=grid_size,
         device=device,
     )
     print(json.dumps(summary, indent=2))

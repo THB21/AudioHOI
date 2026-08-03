@@ -21,6 +21,10 @@ preprocess:
   tracker_query_source: sam2_mask_center
   tracker_sequence_mode: persistent_online
   tracker_grid_size: 12
+  sam_pt_mask_refine: true
+  sam_pt_prompt_stride: 24
+  sam_pt_minimum_visible_points: 16
+  sam_pt_maximum_prompt_points: 16
   da3_chunk_size: 16
   da3_process_res: 504
 rigid_mask_observation:

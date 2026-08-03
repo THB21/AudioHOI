@@ -136,6 +136,7 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
     media_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_media_extract.py"
     sam2_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py"
     cotracker_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_cotracker_object_points.py"
+    sam_pt_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_sam_pt_mask_refine.py"
     da3_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_da3_scene_depth.py"
     depth_prior_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_object_depth_prior.py"
     audio_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_audio_event_extract.py"
@@ -167,6 +168,20 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
     tracker_sequence_mode = str(preprocess.get("tracker_sequence_mode", "chunked_legacy"))
     tracker_grid_size = int(preprocess.get("tracker_grid_size", 12))
     cotracker_args.extend(("--sequence-mode", tracker_sequence_mode, "--grid-size", str(tracker_grid_size)))
+    sam_pt_enabled = bool(preprocess.get("sam_pt_mask_refine", False))
+    sam_pt_prompt_stride = int(preprocess.get("sam_pt_prompt_stride", 24))
+    sam_pt_minimum_visible = int(preprocess.get("sam_pt_minimum_visible_points", 16))
+    sam_pt_maximum_prompts = int(preprocess.get("sam_pt_maximum_prompt_points", 16))
+    sam_pt_args = [
+        "--sample-dir",
+        str(sample),
+        "--prompt-stride",
+        str(sam_pt_prompt_stride),
+        "--minimum-visible-points",
+        str(sam_pt_minimum_visible),
+        "--maximum-prompt-points",
+        str(sam_pt_maximum_prompts),
+    ]
     da3_args = ["--sample-dir", str(sample), "--da3-root", str(da3_root)]
     da3_args.extend(("--model-dir", da3_model, "--chunk-size", str(da3_chunk_size)))
     if preprocess.get("da3_process_res"):
@@ -195,6 +210,17 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
         "cotracker_rigid_tracks_manifest",
         results / "tracking/rigid_point_tracks_manifest.json",
         required=persistent_tracking,
+    )
+    sam_pt_masks = ArtifactSpec(
+        "sam_pt_candidate_masks",
+        results / "segmentation/sam_pt_candidate_masks",
+        "directory",
+        required=sam_pt_enabled,
+    )
+    sam_pt_manifest = ArtifactSpec(
+        "sam_pt_candidate_manifest",
+        results / "segmentation/sam_pt_candidate_manifest.json",
+        required=sam_pt_enabled,
     )
     depth = ArtifactSpec("da3_scene_depth", results / "da3/scene_depth", "directory")
     depth_prior = ArtifactSpec("object_depth_prior", results / "da3/priors/object_depth_prior.csv")
@@ -237,6 +263,27 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
                 _validate_frame_csv(mesh.path, count, allow_multiple=True),
                 _validate_frame_csv(rigid_tracks.path, count, allow_multiple=True) if persistent_tracking else None,
                 json.loads(rigid_tracks_manifest.path.read_text()) if persistent_tracking else None,
+            ),
+        ),
+        _task(
+            "sam_pt_mask_candidate",
+            "audiohoi",
+            ("frame_extract", "sam2", "cotracker"),
+            (frames, masks, rigid_tracks),
+            (sam_pt_masks, sam_pt_manifest),
+            _runtime_command("audiohoi", sam_pt_tool, *sam_pt_args),
+            config={
+                "method": "sam_pt_compatible_persistent_point_prompting",
+                "prompt_stride": sam_pt_prompt_stride,
+                "minimum_visible_points": sam_pt_minimum_visible,
+                "maximum_prompt_points": sam_pt_maximum_prompts,
+                "canonical_masks_overwritten": False,
+            },
+            model={"segmenter": preprocess.get("segmenter_model", "facebook/sam2.1-hiera-tiny")},
+            required=sam_pt_enabled,
+            validator=lambda count: (
+                _validate_masks(sam_pt_masks.path, count),
+                json.loads(sam_pt_manifest.path.read_text()),
             ),
         ),
         _task(

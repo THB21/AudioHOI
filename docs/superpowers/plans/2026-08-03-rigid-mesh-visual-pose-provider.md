@@ -123,11 +123,11 @@ fix: keep rigid cotracker identities across sequence
 - Modify: `scripts/shared/generic_contact_pipeline/core/preprocess/registry.py`
 - Modify: `scripts/shared/generic_contact_pipeline/configs/cases/suitcase_drag.yaml`
 
-- [ ] **Step 1: Build visible positive/negative prompts from persistent tracks**
+- [x] **Step 1: Build reliable visible prompts from persistent tracks**
 
-For each configured checkpoint frame, select visible tracked points inside the current mask as positive prompts. Select negative prompts from a narrow dilated ring outside the mask and from explicit human-occluder pixels when available. Preserve source point IDs in the manifest.
+For each configured checkpoint frame, select visible tracked points inside a narrow dilation of the current mask as positive prompts. Skip low-visibility transitions instead of using uncertain tracks as prompts. Human-occluder negatives may be added only when an explicit occluder mask is available; do not infer negative points from the incomplete object mask. Preserve source point IDs in the manifest.
 
-- [ ] **Step 2: Refine into a separate mask directory**
+- [x] **Step 2: Refine into a separate mask directory**
 
 Use the existing SAM2 video predictor API and write only:
 
@@ -138,11 +138,11 @@ results/segmentation/sam_pt_candidate_manifest.json
 
 Never overwrite `results/segmentation/masks` during diagnostics. Invisible points are omitted rather than treated as negative object evidence.
 
-- [ ] **Step 3: Validate visible-mask behavior**
+- [x] **Step 3: Validate visible-mask behavior**
 
 Generate contact sheets for frames 118, 125, 127, 128, 140, 154, 155, and 163. Confirm that original object pixels are retained, obvious person pixels are not absorbed, and the mask artifact records uncertainty during occlusion.
 
-- [ ] **Step 4: Commit the isolated mask-refinement task**
+- [x] **Step 4: Commit the isolated mask-refinement task**
 
 ```text
 feat: add point-propagated sam2 mask candidate

@@ -258,7 +258,7 @@ def main() -> None:
     table["usable"] = (
         (table.cotracker_visibility >= 0.65)
         & (table.cross_bank_error_px <= 18.0)
-        & ((table.mask_compatible == 1) | (table.feature_kind == "grasp_point"))
+        & (table.mask_compatible == 1)
     ).astype(int)
     output.parent.mkdir(parents=True, exist_ok=True)
     table.to_csv(output, index=False)

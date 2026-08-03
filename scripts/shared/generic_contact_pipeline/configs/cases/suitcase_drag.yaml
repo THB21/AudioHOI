@@ -21,6 +21,10 @@ preprocess:
   tracker_query_source: sam2_mask_center
   tracker_sequence_mode: persistent_online
   tracker_grid_size: 12
+  rigid_pose_provider: megapose_rgb
+  rigid_pose_keyframes: [1, 80, 106, 118, 125, 127, 155, 163, 200, 226]
+  megapose_data_dir: third-party/megapose6d/local_data
+  megapose_display: ":1"
   sam_pt_mask_refine: true
   sam_pt_prompt_stride: 24
   sam_pt_minimum_visible_points: 16
@@ -30,52 +34,108 @@ preprocess:
 rigid_mask_observation:
   mask_pattern: results/segmentation/masks/{frame:05d}_mask.png
   body_row_width_ratio: 0.45
+  parallel_line_pair:
+    artifact: line_observations.csv
+    semantic_role: handle_rail
+    feature_ids: [object:handle_rail_left, object:handle_rail_right]
+    minimum_feature_height_px: 24
+    minimum_span_ratio: 0.28
+    single_minimum_feature_height_px: 12
+    single_minimum_line_span_px: 12
+    single_minimum_span_ratio: 0.35
+    maximum_angle_delta_deg: 10.0
+    minimum_separation_body_ratio: 0.15
+supplemental_measurements:
+  - adapter: physical_line_endpoints_v1
+    artifact: line_observations.csv
+    feature_id_field: feature_id
+    semantic_role_field: semantic_role
+    fps: 24.0
+amodal_mask_completion:
+  enabled: true
+  trigger: missing_bounded_parallel_line_pair
+  minimum_gap_frames: 3
+  selector: qwen_forced_choice
 persistent_feature_grasp:
   geometry_feature_id: object:handle
   object_part: handle
-  activation_distance_min_bbox_ratio: 1.0
+  activation_distance_min_bbox_ratio: 0.30
+  release_distance_min_bbox_ratio: 0.55
+  acquire_min_frames: 2
+  release_min_frames: 3
   hold_when_occluded: true
+  persist_until_release: true
+  image_offset_update_alpha: 0.2
+  anchor_update_visibility_states: [visible]
 generic_object_problem:
   initializer: rigid_cuboid_feature_correspondence
   interaction_state_artifact: contact_candidates.csv
   initializer_artifacts: [object_observations.csv, object_contact_points.csv]
   contact_artifact: object_contact_points.csv
-  measurement_factors: [point_reprojection, mask_silhouette, metric_depth]
+  contact_source_projection: image_point_at_object_seed_depth
+  contact_residual_axes: [0, 1, 2]
+  measurement_factors: [point_reprojection, line_reprojection, mask_silhouette, metric_depth]
   measurement_roles:
     point_reprojection: [object_center, handle_center]
     mask_silhouette: [object_body_mask]
     metric_depth: [object_center_depth]
   mask_shape_observations:
     semantic_role: object_body_mask
-    artifact_pattern: results/segmentation/masks/{frame:05d}_mask.png
+    artifact_pattern: vlm/stage4/amodal_masks/{frame:05d}.png
+    artifact_base: result_dir
+    fallback_artifact_pattern: results/segmentation/masks/{frame:05d}_mask.png
+    use_artifact_bbox: false
+    principal_axis_crop_to_declared_bbox: true
+    completed_confidence: 0.65
     minimum_pixels: 64
+    principal_axis_sigma_rad: 0.07
   sequence_factors: [temporal_velocity, temporal_acceleration, static_freeze]
+  occluded_pose_reference:
+    enabled: true
+    manifest: vlm/stage4/amodal_mask_completion_manifest.json
+    rotation_recovery_frames: 7
+    project_rotation: false
+  postsolve_smoothing:
+    translation_passes: 0
+    rotation_passes: 0
+    maximum_rotation_step_deg: 0.0
+  robust_loss: linear
+  robust_scale: 1.0
+  max_function_evaluations: 160
   interaction_factors: [contact_distance, contact_relative_velocity]
   environment_factors: [support_and_penetration]
   support_plane:
     source: gvhmr_foot_sites
     activation: all_frames
+    contact_reduction: nearest_feature_group
+    all_points_when_mask_axis_within_deg: 15.0
     human_site_surface_offset_m: 0.05
     penetration_weight: 2.0
 factor_runtime:
   point_reprojection:
     weight: 1.0
-    sigma: 6.0
+    sigma: 8.0
     sigma_unit: px
     source: typed_rigid_center_and_descriptor_feature
-    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
+    activation_weight_tiers: {active: 1.0, downweighted: 0.05, inactive: 0.0}
+  line_reprojection:
+    weight: 1.0
+    sigma: 6.0
+    sigma_unit: px
+    source: typed_parallel_rigid_feature_lines
+    activation_weight_tiers: {active: 1.0, downweighted: 0.20, inactive: 0.0}
   mask_silhouette:
     weight: 1.0
     sigma: 8.0
     sigma_unit: px
     source: typed_object_mask_and_descriptor_cuboid
-    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
+    activation_weight_tiers: {active: 1.0, downweighted: 0.80, inactive: 0.0}
   metric_depth:
     weight: 0.245
     sigma: 0.55
     sigma_unit: m
     source: typed_monocular_metric_depth_weak_prior
-    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
+    activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
   contact_distance:
     weight: 1.0
     sigma: 0.035
@@ -88,6 +148,12 @@ factor_runtime:
     sigma_unit: m/frame
     source: generic_persistent_grasp_comotion
     activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
+  contact_facing:
+    weight: 2.0
+    sigma: 0.12
+    sigma_unit: rad
+    source: descriptor_handle_broad_face_toward_read_only_human_reference
+    activation_weight_tiers: {active: 1.0, downweighted: 0.5, inactive: 0.0}
   temporal_velocity:
     weight: 0.7
     state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
@@ -104,10 +170,10 @@ factor_runtime:
     source: generic_supported_static_interval_anchor
     activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
   support_and_penetration:
-    weight: 1.0
+    weight: 4.0
     sigma: 0.02
     sigma_unit: m
-    source: descriptor_wheel_support_sites_and_gvhmr_floor
+    source: asset_declared_rigid_wheel_support_points_and_gvhmr_floor
     activation_weight_tiers: {active: 1.0, downweighted: 1.0, inactive: 0.0}
 vlm:
   target: rigid rolling suitcase
@@ -117,7 +183,7 @@ vlm:
   frame_policy:
     stage1: all
     stage2: all
-    stage4: all
+    stage4: risk
 camera:
   fx: 1468.604736328125
   fy: 1468.604736328125

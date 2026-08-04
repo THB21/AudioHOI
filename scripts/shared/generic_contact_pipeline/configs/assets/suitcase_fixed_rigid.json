@@ -2,6 +2,7 @@
   "schema_version": 1,
   "geometry_id": "asset:articraft_fixed_rigid_with_support",
   "geometry_kind": "rigid_mesh",
+  "line_reprojection_constraint": "axis_line",
   "resource_path": "samples_known_object/15_suitcase_drag/articraft/materialized_suitcase/model.urdf",
   "resource_sha256": "20451d2218075319d0aa503b211e1598a102948617d8bb50ad9fdb4048092432",
   "articraft_record_id": "rec_create-a-realistic-black-hard-shell-carry-on-rol_20260731_015156_616489_a9b2bd71",
@@ -52,17 +53,39 @@
       [0.19, -0.115, 0.53], [0.19, 0.115, 0.53]
     ],
     "object:handle": [[0.0, 0.125, 0.891]],
-    "object:support": [
-      [-0.145, -0.085, 0.0], [0.145, -0.085, 0.0],
-      [-0.145, 0.085, 0.0], [0.145, 0.085, 0.0]
+    "object:handle_rail_left": [
+      [-0.07, 0.125, 0.570], [-0.07, 0.125, 0.890]
+    ],
+    "object:handle_rail_right": [
+      [0.07, 0.125, 0.570], [0.07, 0.125, 0.890]
+    ],
+    "object:wheel_centers": [
+      [-0.145, -0.085, 0.035], [-0.145, 0.085, 0.035],
+      [0.145, -0.085, 0.035], [0.145, 0.085, 0.035]
+    ],
+    "object:support_rear_axle": [
+      [-0.145, -0.085, 0.0], [-0.145, 0.085, 0.0]
+    ],
+    "object:support_front_axle": [
+      [0.145, -0.085, 0.0], [0.145, 0.085, 0.0]
     ]
   },
-  "support_features": ["object:support"],
+  "visual_tracking_features": {
+    "wheel_centers": "object:wheel_centers",
+    "handle_rails": ["object:handle_rail_left", "object:handle_rail_right"]
+  },
+  "support_features": ["object:support_rear_axle", "object:support_front_axle"],
   "contact_visibility_features": {
     "handle": "object:handle"
   },
   "contact_feature_overrides": {
     "handle": "object:handle",
     "telescoping_handle": "object:handle"
+  },
+  "interaction_feature_frames": {
+    "object:handle": {
+      "facing_axis_local": [0.0, 1.0, 0.0],
+      "relation": "grasp_face_toward_human"
+    }
   }
 }

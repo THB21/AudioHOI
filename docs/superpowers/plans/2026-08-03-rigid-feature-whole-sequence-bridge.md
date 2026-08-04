@@ -156,3 +156,38 @@ The isolated v50 review has a +246.908-degree signed turn, zero reversals,
 0.9651 relative-depth rank correlation.  It remains unpromoted: the optimizer
 hit its evaluation limit, maximum full-SE(3) step is 8.37 degrees, and the
 legacy upright gate still rejects the intentional tilted pull state.
+
+### Task 7: Use both rails and all four wheels as whole-sequence motion evidence
+
+The v50 review exposed a semantic error in the original feature tracker.  The
+four points called `support_point` were ground-contact points at local `z=0`,
+not visible wheel centres.  CoTracker was therefore queried on the floor below
+the visible wheels.  The subsequent audit compounded the error by requiring
+those points to lie in the SAM2 main-body mask and by comparing long-baseline
+track banks.  This left only sparse evidence from two front-axle points.
+
+- [x] Add four asset-derived visual wheel centres at local wheel radius while
+  retaining the four distinct `z=0` support points for physical contact.
+- [x] Track both rail endpoints and all four wheel centres from dense local
+  anchors over frames 1-240; keep the current pose only as the query seed.
+- [x] Separate absolute pixel evidence from relative local flow so a projected
+  query is never relabelled as a measured 2D landmark.
+- [x] Compile one local-flow factor per named feature and frame, with the
+  nearest reliable bank selected to prevent dense-anchor over-weighting.
+- [x] Keep the old absolute feature table as a separate input, permitting an
+  isolated flow/no-flow comparison with all other solver inputs fixed.
+- [x] Verify full-video flow coverage and render the isolated candidate without
+  modifying the accepted pose.
+
+The local tracker now covers all 240 frames.  In the free interval 111-163,
+all four wheel centres are directly measured in 49/53 frames and three are
+measured in each of the remaining four frames; all four rail endpoints are
+available in 49/53 frames and at least two in every frame.  Missing visible
+measurements remain fixed local features of the same SE(3) asset and are
+propagated by rigid state continuity, never fabricated as pixel observations.
+The v53 solve compiled 208 wheel-centre and 206 rail-endpoint flow observations
+across all 53 free frames.  Against the current-code no-flow control v54, it preserves the
++246.908-degree winding and zero reversals, changes median rotation by 3.88
+degrees, and reduces maximum wheel penetration from 1.99 mm to 0.39 mm.  It
+remains isolated because the optimizer hit its evaluation limit and the full
+SE(3) step gate is 8.75 degrees against the declared 8-degree limit.

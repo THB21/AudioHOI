@@ -200,11 +200,13 @@ def main() -> None:
     parser.add_argument("--reference-pose", type=Path, required=True)
     parser.add_argument("--warm-start-pose", type=Path)
     parser.add_argument("--feature-tracks", type=Path, required=True)
+    parser.add_argument("--feature-flow-tracks", type=Path)
     parser.add_argument("--rigid-physics-evidence-dir", type=Path, required=True)
     parser.add_argument("--free-start", type=int, required=True)
     parser.add_argument("--free-end", type=int, required=True)
     parser.add_argument("--body-feature", required=True)
     parser.add_argument("--support-features", required=True)
+    parser.add_argument("--wheel-features", default="")
     parser.add_argument("--line-features", required=True)
     parser.add_argument("--grasp-feature", required=True)
     parser.add_argument("--contact-facing-feature")
@@ -218,6 +220,9 @@ def main() -> None:
     parser.add_argument("--main-body-aspect-weight", type=float, default=6.0)
     parser.add_argument("--main-body-aspect-sigma", type=float, default=0.05)
     parser.add_argument("--grasp-point-weight", type=float, default=4.0)
+    parser.add_argument("--feature-flow-weight", type=float, default=2.0)
+    parser.add_argument("--feature-flow-sigma-px", type=float, default=6.0)
+    parser.add_argument("--feature-flow-max-distance", type=int, default=12)
     parser.add_argument("--mask-principal-axis-sigma-rad", type=float, default=0.07)
     parser.add_argument("--mask-silhouette-sigma-px", type=float, default=6.0)
     parser.add_argument("--mask-silhouette-weight", type=float, default=0.25)
@@ -282,10 +287,14 @@ def main() -> None:
     support_ids = tuple(item.strip() for item in args.support_features.split(",") if item.strip())
     line_ids = tuple(item.strip() for item in args.line_features.split(",") if item.strip())
     support_groups = [np.asarray(raw_points[item], dtype=float) for item in support_ids]
+    wheel_ids = tuple(item.strip() for item in args.wheel_features.split(",") if item.strip())
+    wheel_points = [np.asarray(raw_points[item], dtype=float) for item in wheel_ids]
     lines_local = [np.asarray(raw_points[item], dtype=float) for item in line_ids]
     grasp = np.asarray(raw_points[args.grasp_feature], dtype=float)
     if body.shape != (8, 3) or [len(item) for item in support_groups] != [2, 2] or [len(item) for item in lines_local] != [2, 2] or grasp.shape != (1, 3):
         raise ValueError("geometry descriptor does not satisfy the declared rigid feature contract")
+    if wheel_points and sum(len(item) for item in wheel_points) != 4:
+        raise ValueError("declared visual wheel features must contain exactly four wheel centres")
     upright_axis = np.asarray(
         descriptor.get("initializer", {}).get("upright_axis_local", [0.0, 0.0, 1.0]),
         dtype=float,
@@ -311,9 +320,11 @@ def main() -> None:
     initial_translations = {frame: _pose(reference_by_frame.loc[frame])[1] for frame in frames}
 
     tracks = pd.read_csv(args.feature_tracks.resolve())
-    tracks = tracks[(tracks.usable == 1) & tracks.frame.isin(free_frames)].copy()
+    absolute_tracks = tracks[
+        (tracks.usable == 1) & tracks.frame.isin(free_frames)
+    ].copy()
     aggregate_rows = []
-    for (frame, query_id), rows in tracks.groupby(["frame", "query_id"]):
+    for (frame, query_id), rows in absolute_tracks.groupby(["frame", "query_id"]):
         weights = np.maximum(rows.reliability.to_numpy(float), 1e-6)
         aggregate_rows.append(
             {
@@ -332,6 +343,56 @@ def main() -> None:
             }
         )
     point_observations = pd.DataFrame(aggregate_rows)
+
+    flow_observations = pd.DataFrame()
+    flow_track_path = None
+    if args.feature_flow_tracks is not None:
+        flow_track_path = args.feature_flow_tracks.resolve()
+        flow_tracks = pd.read_csv(flow_track_path)
+        required_flow_columns = {
+            "flow_usable",
+            "anchor_distance_frames",
+            "reliability",
+            "query_id",
+            "feature_kind",
+            "anchor_frame",
+            "direction",
+            "frame",
+            "x",
+            "y",
+            "local_x",
+            "local_y",
+            "local_z",
+        }
+        missing_flow_columns = sorted(required_flow_columns - set(flow_tracks.columns))
+        if missing_flow_columns:
+            raise ValueError(f"feature flow tracks lack fields: {missing_flow_columns}")
+        flow_candidates = flow_tracks[
+            (flow_tracks.flow_usable == 1)
+            & flow_tracks.frame.isin(free_frames)
+            & (flow_tracks.anchor_distance_frames <= args.feature_flow_max_distance)
+        ].copy()
+        anchor_rows = flow_tracks[flow_tracks.frame == flow_tracks.anchor_frame][
+            ["query_id", "anchor_frame", "direction", "x", "y"]
+        ].rename(columns={"x": "anchor_x", "y": "anchor_y"})
+        flow_candidates = flow_candidates.merge(
+            anchor_rows,
+            on=["query_id", "anchor_frame", "direction"],
+            how="inner",
+            validate="many_to_one",
+        )
+        flow_candidates["flow_score"] = (
+            flow_candidates.reliability
+            * np.exp(-flow_candidates.anchor_distance_frames / 8.0)
+        )
+        # One local bank per named feature and frame prevents dense anchor
+        # overlap from changing factor weight.  The closest reliable bank wins.
+        flow_observations = (
+            flow_candidates.sort_values("flow_score", ascending=False)
+            .groupby(["frame", "query_id"], as_index=False)
+            .head(1)
+            .copy()
+        )
 
     contacts = pd.read_csv(sample_dir / "results/pure_solver_no_audio_no_vlm/contact_candidates.csv")
     contacts = contacts[(contacts.contact_active == 1) & contacts.frame.isin(free_frames)].set_index("frame")
@@ -746,6 +807,33 @@ def main() -> None:
             local = np.asarray([[row.local_x, row.local_y, row.local_z]], dtype=float)
             predicted = _project(local, rotations[row.frame], translations[row.frame], camera)[0]
             add("named_feature_reprojection", row.frame, np.sqrt(row.confidence) * (predicted - [row.x, row.y]) / 8.0)
+
+        for row in flow_observations.itertuples():
+            local = np.asarray([[row.local_x, row.local_y, row.local_z]], dtype=float)
+            predicted = _project(local, rotations[row.frame], translations[row.frame], camera)[0]
+            predicted_anchor = _project(
+                local,
+                rotations[int(row.anchor_frame)],
+                translations[int(row.anchor_frame)],
+                camera,
+            )[0]
+            tracked_delta = np.asarray(
+                [row.x - row.anchor_x, row.y - row.anchor_y], dtype=float
+            )
+            predicted_delta = predicted - predicted_anchor
+            add(
+                f"{row.feature_kind}_local_flow",
+                int(row.frame),
+                args.feature_flow_weight
+                * np.sqrt(max(float(row.flow_score), 1e-6))
+                * (predicted_delta - tracked_delta)
+                / args.feature_flow_sigma_px,
+                {
+                    "query_id": row.query_id,
+                    "anchor_frame": int(row.anchor_frame),
+                    "anchor_distance_frames": int(row.anchor_distance_frames),
+                },
+            )
 
         for frame in free_frames:
             rotation, translation = rotations[frame], translations[frame]
@@ -1272,6 +1360,22 @@ def main() -> None:
         "heading_reversal_count": heading_reversal_count,
         "free_interval_signed_heading_change_deg": float(np.degrees(solved_heading_values[-1] - solved_heading_values[0])),
         "named_feature_observation_count": len(point_observations),
+        "feature_flow_observation_count": len(flow_observations),
+        "feature_flow_frame_count": int(flow_observations.frame.nunique()) if len(flow_observations) else 0,
+        "feature_flow_counts_by_kind": (
+            flow_observations.groupby("feature_kind").size().astype(int).to_dict()
+            if len(flow_observations)
+            else {}
+        ),
+        "feature_flow_named_feature_count": int(flow_observations.query_id.nunique()) if len(flow_observations) else 0,
+        "feature_flow_weight": float(args.feature_flow_weight),
+        "feature_flow_sigma_px": float(args.feature_flow_sigma_px),
+        "feature_flow_max_distance": int(args.feature_flow_max_distance),
+        "feature_flow_tracks_sha256": (
+            hashlib.sha256(flow_track_path.read_bytes()).hexdigest()
+            if flow_track_path is not None
+            else None
+        ),
         "contact_facing_feature": args.contact_facing_feature,
         "contact_facing_boundary_angle_deg": float(np.degrees(boundary_facing_angle)),
         "contact_facing_ramp_frames": int(args.contact_facing_ramp_frames),

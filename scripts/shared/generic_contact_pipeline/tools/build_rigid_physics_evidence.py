@@ -30,6 +30,7 @@ from scripts.shared.generic_contact_pipeline.core.measurements import (
 _BOUNDARY_LIMIT_PX = {
     "body_corner": 12.0,
     "support_point": 12.0,
+    "wheel_center": 32.0,
     "line_endpoint": 10.0,
     "grasp_point": 18.0,
 }

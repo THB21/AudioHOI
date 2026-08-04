@@ -55,6 +55,7 @@ def _feature_rows(
     *,
     body_feature: str,
     support_features: Iterable[str],
+    wheel_features: Iterable[str],
     line_features: Iterable[str],
     grasp_feature: str,
 ) -> list[dict[str, object]]:
@@ -64,6 +65,7 @@ def _feature_rows(
     groups = (
         ((body_feature,), "body_corner"),
         (tuple(support_features), "support_point"),
+        (tuple(wheel_features), "wheel_center"),
         (tuple(line_features), "line_endpoint"),
         ((grasp_feature,), "grasp_point"),
     )
@@ -93,6 +95,8 @@ def _feature_rows(
         "line_endpoint": 4,
         "grasp_point": 1,
     }
+    if tuple(wheel_features):
+        expected["wheel_center"] = 4
     actual = pd.DataFrame(rows).groupby("feature_kind").size().to_dict()
     if actual != expected:
         raise ValueError(f"rigid feature contract mismatch: expected {expected}, got {actual}")
@@ -131,10 +135,12 @@ def main() -> None:
     parser.add_argument("--late-pose-start", type=int, required=True)
     parser.add_argument("--body-feature", required=True)
     parser.add_argument("--support-features", required=True)
+    parser.add_argument("--wheel-features", default="")
     parser.add_argument("--line-features", required=True)
     parser.add_argument("--grasp-feature", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--resize-width", type=int, default=512)
+    parser.add_argument("--max-track-distance", type=int, default=0)
     args = parser.parse_args()
 
     sample_dir = args.sample_dir.resolve()
@@ -145,6 +151,7 @@ def main() -> None:
         descriptor,
         body_feature=args.body_feature,
         support_features=_csv_list(args.support_features),
+        wheel_features=_csv_list(args.wheel_features),
         line_features=_csv_list(args.line_features),
         grasp_feature=args.grasp_feature,
     )
@@ -209,9 +216,12 @@ def main() -> None:
         if anchor not in source.index:
             raise ValueError(f"anchor frame {anchor} missing from its pose source")
         query_points = _project(points_local, _pose_matrix(source.loc[anchor]), camera)
+        maximum_distance = args.max_track_distance if args.max_track_distance > 0 else len(frames)
+        forward_end = min(len(frames), anchor + maximum_distance)
+        backward_start = max(0, anchor - maximum_distance - 1)
         for direction, sequence, frame_numbers in (
-            ("forward", frames[anchor - 1 :], list(range(anchor, len(frames) + 1))),
-            ("backward", list(reversed(frames[:anchor])), list(range(anchor, 0, -1))),
+            ("forward", frames[anchor - 1 : forward_end], list(range(anchor, forward_end + 1))),
+            ("backward", list(reversed(frames[backward_start:anchor])), list(range(anchor, backward_start, -1))),
         ):
             tracked, visibility = track_sequence(sequence, query_points)
             for sequence_index, frame in enumerate(frame_numbers):
@@ -232,6 +242,7 @@ def main() -> None:
                             "anchor_pose_source": "annotation_2" if source is late else "annotation_1",
                             "direction": direction,
                             "frame": frame,
+                            "anchor_distance_frames": abs(frame - anchor),
                             "x": float(x),
                             "y": float(y),
                             "cotracker_visibility": float(visibility[sequence_index, feature_index]),
@@ -241,8 +252,15 @@ def main() -> None:
                     )
 
     table = pd.DataFrame(rows)
+    local_rows = table[
+        (table.cotracker_visibility >= 0.65)
+        & (
+            (args.max_track_distance <= 0)
+            | (table.anchor_distance_frames <= args.max_track_distance)
+        )
+    ]
     medians = (
-        table[table.cotracker_visibility >= 0.65]
+        local_rows
         .groupby(["frame", "query_id"])[["x", "y"]]
         .median()
         .rename(columns={"x": "bank_median_x", "y": "bank_median_y"})
@@ -254,11 +272,28 @@ def main() -> None:
     visibility_score = np.clip((table.cotracker_visibility - 0.45) / 0.45, 0.0, 1.0)
     bank_score = np.exp(-np.square(table.cross_bank_error_px.fillna(1e6) / 12.0))
     mask_score = np.where(table.mask_compatible == 1, 1.0, 0.20)
-    table["reliability"] = visibility_score * bank_score * mask_score
+    local_score = np.exp(-table.anchor_distance_frames / 12.0)
+    table["reliability"] = visibility_score * bank_score * mask_score * local_score
+    absolute_role_compatible = table.mask_compatible == 1
     table["usable"] = (
         (table.cotracker_visibility >= 0.65)
         & (table.cross_bank_error_px <= 18.0)
-        & (table.mask_compatible == 1)
+        & absolute_role_compatible
+    ).astype(int)
+    # Wheel centres and rail endpoints may lie outside a main-body SAM mask.
+    # They remain valid for short-baseline *relative flow* when independent
+    # local banks agree.  This is deliberately separate from absolute_usable:
+    # the projected query location is a pose prior, not a pixel annotation.
+    flow_role = table.feature_kind.isin(["wheel_center", "line_endpoint"])
+    table["flow_usable"] = (
+        flow_role
+        & (table.anchor_distance_frames > 0)
+        & (table.cotracker_visibility >= 0.65)
+        & (table.cross_bank_error_px <= 24.0)
+        & (
+            (args.max_track_distance <= 0)
+            | (table.anchor_distance_frames <= args.max_track_distance)
+        )
     ).astype(int)
     output.parent.mkdir(parents=True, exist_ok=True)
     table.to_csv(output, index=False)
@@ -269,8 +304,11 @@ def main() -> None:
         "feature_counts": feature_table.groupby("feature_kind").size().to_dict(),
         "row_count": len(table),
         "usable_row_count": int(table.usable.sum()),
+        "flow_usable_row_count": int(table.flow_usable.sum()),
+        "flow_usable_frames": int(table.loc[table.flow_usable == 1, "frame"].nunique()),
         "usable_frames": int(table.loc[table.usable == 1, "frame"].nunique()),
         "resize_width": args.resize_width,
+        "max_track_distance": args.max_track_distance,
         "descriptor_sha256": hashlib.sha256(descriptor_path.read_bytes()).hexdigest(),
         "case_dispatch_used": False,
         "accepted_pose_read": False,

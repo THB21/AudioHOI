@@ -21,6 +21,7 @@ from scripts.shared.generic_contact_pipeline.core.gates.vlm import RESULT_FIELDS
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_provider import load_vlm_provider  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_gates import GATE_FIELDS, gate_row_from_result, write_stage_gates  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.amodal_mask_completion import QUERY_TYPE as AMODAL_MASK_QUERY_TYPE, materialize_selected_masks  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.gates.semantic_relations import materialize_semantic_relation_artifacts  # noqa: E402
 
 
 PROMPT_TEMPLATE = """You are a conservative visual verifier for an AudioHOI pipeline.
@@ -30,6 +31,7 @@ Rules:
 - Choose "unclear" if the image is insufficient, ambiguous, or the requested highlight is not visible.
 - Do not propose pose corrections, loss weights, or 3D coordinates.
 - Ignore debug text unless it directly names the highlighted point/part.
+- Estimate confidence from the visible evidence. Use 0 only for missing/invalid input; do not copy the example value.
 
 Question:
 {question}
@@ -38,7 +40,7 @@ Allowed labels:
 {choices}
 
 Return ONLY compact JSON:
-{{"label":"one_allowed_label","confidence":0.0,"short_reason":"brief visual reason"}}
+{{"label":"one_allowed_label","confidence":0.73,"short_reason":"brief visual reason"}}
 """
 
 AMODAL_PROMPT_TEMPLATE = """You are completing an amodal binary object mask from visual evidence.
@@ -59,7 +61,7 @@ Allowed labels:
 {choices}
 
 Return ONLY compact JSON:
-{{"label":"one_allowed_label","confidence":0.0,"short_reason":"brief visual reason"}}
+{{"label":"one_allowed_label","confidence":0.73,"short_reason":"brief visual reason"}}
 """
 
 
@@ -365,6 +367,7 @@ def evaluate_stage(profile, stage: str, args: argparse.Namespace) -> dict[str, o
         write_json(out_dir / "qwen_raw_results.json", raw_rows)
         if stage == "stage4":
             materialize_selected_masks(profile, raw_rows)
+            materialize_semantic_relation_artifacts(out_dir, raw_rows, status="qwen_evaluated")
         write_json(out_dir / "stage_decision.json", decision)
         write_aggregate(profile)
         write_stage_gates(profile, stage)

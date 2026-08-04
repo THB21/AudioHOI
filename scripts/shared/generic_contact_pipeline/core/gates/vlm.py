@@ -18,6 +18,12 @@ from .amodal_mask_completion import (
     materialize_candidate_evidence,
 )
 from .interval_candidate_selection import QUERY_TYPE as INTERVAL_SELECTION_QUERY_TYPE
+from .semantic_relations import (
+    PREDICATE_BY_QUERY_TYPE,
+    SEMANTIC_QUERY_TYPES,
+    profile_uncertain_windows,
+    question_for_query_type,
+)
 
 
 QUERY_FIELDS = [
@@ -43,6 +49,9 @@ QUERY_FIELDS = [
     "contact_factor_roles",
     "candidate_a_role",
     "candidate_b_role",
+    "semantic_predicate",
+    "subject_entity",
+    "object_entity",
 ]
 
 RESULT_FIELDS = [
@@ -68,7 +77,7 @@ STAGE_QUERY_TYPES = {
     "stage1": ["keypart_identity_check", "track_stability_check"],
     "stage2": ["contact_relation_check", "keypart_visibility_check"],
     "stage3": ["overlay_alignment_check"],
-    "stage4": ["anchor_update_check", "contact_relation_check", "overlay_alignment_check", "temporal_motion_check", "constraint_reliability_check", AMODAL_MASK_QUERY_TYPE, INTERVAL_SELECTION_QUERY_TYPE],
+    "stage4": ["anchor_update_check", "contact_relation_check", "overlay_alignment_check", "temporal_motion_check", "constraint_reliability_check", AMODAL_MASK_QUERY_TYPE, INTERVAL_SELECTION_QUERY_TYPE, *SEMANTIC_QUERY_TYPES],
     "stage5": ["post_render_sanity_check", "temporal_motion_check"],
     "stage6": ["baseline_regression_check"],
     "stage7": ["loss_diagnostic_check"],
@@ -835,15 +844,24 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
         img.save(out_path)
         return str(out_path)
     video = _render_video_for_stage(profile, stage)
-    if stage in {"stage4", "stage5"} and query_type in {"temporal_motion_check", "constraint_reliability_check"} and video is not None:
+    if stage in {"stage4", "stage5"} and query_type in {"temporal_motion_check", "constraint_reliability_check", *SEMANTIC_QUERY_TYPES} and video is not None:
         Image, ImageDraw = _pil_modules()
         if Image is not None:
             frames = []
-            for fr in [max(1, frame - 1), frame, frame + 1]:
+            semantic_radius = int(
+                dict(dict(profile.data.get("vlm", {})).get("semantic_orientation", {})).get(
+                    "temporal_radius_frames", 1
+                )
+            )
+            offsets = [-semantic_radius, 0, semantic_radius] if query_type in SEMANTIC_QUERY_TYPES else [-1, 0, 1]
+            for offset in offsets:
+                fr = max(1, frame + offset)
                 panel = _extract_video_frame(video, fr)
                 if panel is None:
                     panel = _read_frame(profile.sample_dir, fr)
                 if panel is not None:
+                    if query_type in SEMANTIC_QUERY_TYPES:
+                        _draw_mask(panel, _mask_path(profile.sample_dir, fr))
                     _draw_stage4_context(profile, panel, fr)
                     _draw_label(panel, f"frame {fr:03d}", (18, 24), (255, 255, 255))
                     panel = _crop_stage4_evidence(profile, panel, fr)
@@ -957,6 +975,13 @@ def question_for(profile: CaseProfile, query_type: str) -> tuple[str, list[str],
     parts = list(obj["parts"])  # type: ignore[arg-type]
     contacts = list(obj["contacts"])  # type: ignore[arg-type]
     stable_refs = list(obj["stable_refs"])  # type: ignore[arg-type]
+    if query_type in PREDICATE_BY_QUERY_TYPE:
+        spec = question_for_query_type(target, query_type)
+        return (
+            str(spec["question"]),
+            str(spec["choices"]).split("|"),
+            "temporal_rigid_face_rails_wheels_handle_support_overlay",
+        )
     if query_type == "target_mask_check":
         return (
             f"Does the highlighted mask correspond to the target {target}?",
@@ -1048,6 +1073,15 @@ def query_types_for_stage(profile: CaseProfile, stage: str) -> list[str]:
                 selected = out
     if not selected:
         selected = list(STAGE_QUERY_TYPES.get(stage, []))
+    if stage == "stage4":
+        semantic = dict(dict(profile.data.get("vlm", {})).get("semantic_orientation", {}))
+        disabled = "disable_vlm_semantic_evidence" in set(profile.data.get("ablation_flags", ()))
+        configured = {str(value) for value in semantic.get("predicates", ())}
+        selected = [
+            query_type for query_type in selected
+            if query_type not in PREDICATE_BY_QUERY_TYPE
+            or (semantic.get("enabled", False) and not disabled and PREDICATE_BY_QUERY_TYPE[query_type] in configured)
+        ]
     runtime = profile.data.get("factor_runtime")
     if stage == "stage4" and isinstance(runtime, dict):
         kinds = {str(value) for value in runtime}
@@ -1068,7 +1102,9 @@ def build_queries(
     for query_type in query_types_for_stage(profile, stage):
         if query_type_filter and query_type != query_type_filter:
             continue
-        if query_type == "constraint_reliability_check":
+        if query_type in PREDICATE_BY_QUERY_TYPE:
+            windows = profile_uncertain_windows(profile)
+        elif query_type == "constraint_reliability_check":
             windows = constraint_risk_intervals(profile)
         elif query_type in {AMODAL_MASK_QUERY_TYPE, INTERVAL_SELECTION_QUERY_TYPE}:
             windows = completion_intervals(profile)
@@ -1133,6 +1169,9 @@ def build_queries(
                     "candidate_b_role": (
                         "occlusion_challenger" if query_type == INTERVAL_SELECTION_QUERY_TYPE else ""
                     ),
+                    "semantic_predicate": PREDICATE_BY_QUERY_TYPE.get(query_type, ""),
+                    "subject_entity": "target_object" if query_type in PREDICATE_BY_QUERY_TYPE else "",
+                    "object_entity": "human" if query_type in PREDICATE_BY_QUERY_TYPE else "",
                 }
             )
     mirrored: list[dict[str, object]] = []

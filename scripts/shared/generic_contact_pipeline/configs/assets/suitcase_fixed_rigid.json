@@ -75,6 +75,10 @@
     "handle_rails": ["object:handle_rail_left", "object:handle_rail_right"]
   },
   "support_features": ["object:support_rear_axle", "object:support_front_axle"],
+  "support_model": {
+    "mode": "rolling_axle",
+    "maximum_tilt_deg": 50.0
+  },
   "contact_visibility_features": {
     "handle": "object:handle"
   },

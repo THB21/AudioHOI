@@ -16,6 +16,7 @@ import cv2
 import numpy as np
 import pandas as pd
 from scipy.optimize import least_squares
+from scipy.sparse import lil_matrix
 from scipy.spatial.transform import Rotation
 
 REPO = Path(__file__).resolve().parents[4]
@@ -37,6 +38,65 @@ def _project(points: np.ndarray, rotation: np.ndarray, translation: np.ndarray, 
     return np.column_stack(
         (camera[0, 0] * world[:, 0] / z + camera[0, 2], camera[1, 1] * world[:, 1] / z + camera[1, 2])
     )
+
+
+def _mask_rays(
+    mask_path: Path,
+    bbox: np.ndarray,
+    camera: np.ndarray,
+    grid_size: int = 13,
+) -> np.ndarray:
+    """Return deterministic camera rays sampling the observed rigid-body mask."""
+
+    mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
+    if mask is None:
+        raise FileNotFoundError(mask_path)
+    xs = np.linspace(float(bbox[0]), float(bbox[2]), grid_size)
+    ys = np.linspace(float(bbox[1]), float(bbox[3]), grid_size)
+    pixels = []
+    for y in ys:
+        for x in xs:
+            ix, iy = int(round(x)), int(round(y))
+            if 0 <= iy < mask.shape[0] and 0 <= ix < mask.shape[1] and mask[iy, ix] > 0:
+                pixels.append((x, y))
+    if len(pixels) < 16:
+        raise ValueError(f"rigid body mask has too few depth rays: {mask_path}")
+    pixels = np.asarray(pixels, dtype=float)
+    return np.column_stack(
+        (
+            (pixels[:, 0] - camera[0, 2]) / camera[0, 0],
+            (pixels[:, 1] - camera[1, 2]) / camera[1, 1],
+            np.ones(len(pixels)),
+        )
+    )
+
+
+def _oriented_box_visible_depth(
+    local_bounds: np.ndarray,
+    rotation: np.ndarray,
+    translation: np.ndarray,
+    camera_rays: np.ndarray,
+) -> tuple[float, int]:
+    """Ray-cast an oriented box and return its visible near-surface median z."""
+
+    ray_origin_local = -rotation.T @ translation
+    ray_directions_local = camera_rays @ rotation
+    safe_directions = np.where(
+        np.abs(ray_directions_local) < 1e-10,
+        np.copysign(1e-10, ray_directions_local + 1e-12),
+        ray_directions_local,
+    )
+    intersections = (
+        local_bounds[None, :, :] - ray_origin_local[None, None, :]
+    ) / safe_directions[:, None, :]
+    near = np.max(np.min(intersections, axis=1), axis=1)
+    far = np.min(np.max(intersections, axis=1), axis=1)
+    valid = far >= np.maximum(near, 0.0)
+    if not np.any(valid):
+        return float(translation[2]), 0
+    # Rays are parameterized with camera-z component one, so intersection
+    # parameter t is also the camera-space z value.
+    return float(np.median(near[valid])), int(np.sum(valid))
 
 
 def _plane_from_feet(feet: np.ndarray, surface_offset_m: float) -> tuple[np.ndarray, float]:
@@ -306,13 +366,19 @@ def main() -> None:
     parser.add_argument("--translation-jerk-sigma-m", type=float, default=0.0)
     parser.add_argument("--rotation-jerk-sigma-rad", type=float, default=0.0)
     parser.add_argument("--rotation-step-margin-deg", type=float, default=0.5)
-    parser.add_argument("--maximum-upright-tilt-deg", type=float, default=18.0)
+    parser.add_argument("--maximum-upright-tilt-deg", type=float)
     parser.add_argument("--upright-tilt-sigma-rad", type=float, default=0.06)
     parser.add_argument("--relative-depth-lag-frames", type=int, default=4)
     parser.add_argument("--relative-depth-order-sigma", type=float, default=0.012)
     parser.add_argument("--relative-depth-order-weight", type=float, default=3.0)
     parser.add_argument("--relative-depth-scale-coupling", type=float, default=0.25)
     parser.add_argument("--relative-depth-shape-sigma", type=float, default=0.03)
+    parser.add_argument("--relative-depth-shape-weight", type=float, default=1.0)
+    parser.add_argument(
+        "--relative-depth-prediction-target",
+        choices=("root_translation", "oriented_box_visible_surface"),
+        default="root_translation",
+    )
     parser.add_argument("--heading-initializer-max-deg", type=float, default=60.0)
     parser.add_argument("--heading-initializer-samples", type=int, default=31)
     parser.add_argument("--heading-direction-window", type=int, default=8)
@@ -329,6 +395,7 @@ def main() -> None:
     parser.add_argument("--translation-step-weight", type=float, default=40.0)
     parser.add_argument("--translation-step-margin-m", type=float, default=0.005)
     parser.add_argument("--penetration-weight", type=float, default=30.0)
+    parser.add_argument("--use-jacobian-sparsity", action="store_true")
     parser.add_argument("--expand-free-interval", action="store_true")
     args = parser.parse_args()
     if args.heading_direction_sign is not None and args.heading_screen_direction is not None:
@@ -350,6 +417,17 @@ def main() -> None:
         raise ValueError("every non-free frame must be reference locked")
 
     descriptor = json.loads(args.geometry_descriptor.resolve().read_text())
+    support_model = dict(descriptor.get("support_model", {}))
+    support_mode = str(support_model.get("mode", "upright_static"))
+    if args.maximum_upright_tilt_deg is None:
+        args.maximum_upright_tilt_deg = float(
+            support_model.get("maximum_tilt_deg", 18.0)
+        )
+        upright_tilt_limit_source = "geometry_descriptor.support_model"
+    else:
+        upright_tilt_limit_source = "cli"
+    if not 0.0 < args.maximum_upright_tilt_deg <= 90.0:
+        raise ValueError("maximum upright tilt must be in (0, 90] degrees")
     evidence_dir = args.rigid_physics_evidence_dir.resolve()
     evidence_manifest_path = evidence_dir / "rigid_physics_evidence_manifest.json"
     evidence_manifest = json.loads(evidence_manifest_path.read_text())
@@ -373,6 +451,7 @@ def main() -> None:
         raise ValueError("geometry descriptor does not satisfy the declared rigid feature contract")
     if wheel_points and sum(len(item) for item in wheel_points) != 4:
         raise ValueError("declared visual wheel features must contain exactly four wheel centres")
+    body_local_bounds = np.stack((body.min(axis=0), body.max(axis=0)))
     upright_axis = np.asarray(
         descriptor.get("initializer", {}).get("upright_axis_local", [0.0, 0.0, 1.0]),
         dtype=float,
@@ -637,6 +716,32 @@ def main() -> None:
         calibration_projected_bbox[2:] - calibration_projected_bbox[:2]
     ) / np.maximum(calibration_mask_bbox[2:] - calibration_mask_bbox[:2], 1.0)
     mask_bbox_sigma_px = float(descriptor.get("initializer", {}).get("mask_bbox_sigma_px", 8.0))
+    depth_rays_by_frame: dict[int, np.ndarray] = {}
+    if args.relative_depth_prediction_target == "oriented_box_visible_surface":
+        depth_ray_start = max(int(frames.min()), args.free_start - args.relative_depth_lag_frames)
+        for frame in range(depth_ray_start, args.free_end + 1):
+            if frame not in depth_evidence.index:
+                continue
+            mask_path = sample_dir / "results/segmentation/masks" / f"{frame:05d}_mask.png"
+            frame_bbox, _area, _axis, _anisotropy = _mask_body_bbox(mask_path)
+            depth_rays_by_frame[frame] = _mask_rays(mask_path, frame_bbox, camera)
+
+    def predicted_depth(
+        frame: int,
+        rotations: dict[int, np.ndarray],
+        translations: dict[int, np.ndarray],
+    ) -> tuple[float, int]:
+        if args.relative_depth_prediction_target == "root_translation":
+            return float(translations[frame][2]), 0
+        rays = depth_rays_by_frame.get(frame)
+        if rays is None:
+            raise ValueError(f"missing visible-surface depth rays for frame {frame}")
+        return _oriented_box_visible_depth(
+            body_local_bounds,
+            rotations[frame],
+            translations[frame],
+            rays,
+        )
 
     sites = extract_gvhmr_site_measurements(
         sample_id="rigid_feature_sequence_candidate",
@@ -1248,9 +1353,15 @@ def main() -> None:
                     depth_evidence.loc[frame, "log_depth"]
                     - depth_evidence.loc[depth_anchor_frame, "log_depth"]
                 )
+                current_predicted_depth, current_depth_ray_hits = predicted_depth(
+                    frame, rotations, translations
+                )
+                anchor_predicted_depth, anchor_depth_ray_hits = predicted_depth(
+                    depth_anchor_frame, rotations, translations
+                )
                 predicted_shape = float(
-                    np.log(max(translation[2], 1e-6))
-                    - np.log(max(translations[depth_anchor_frame][2], 1e-6))
+                    np.log(max(current_predicted_depth, 1e-6))
+                    - np.log(max(anchor_predicted_depth, 1e-6))
                 )
                 add(
                     "relative_depth_shape",
@@ -1260,12 +1371,15 @@ def main() -> None:
                             predicted_shape
                             - args.relative_depth_scale_coupling * observed_shape
                         )
+                        * args.relative_depth_shape_weight
                         / args.relative_depth_shape_sigma
                     ]),
                     {
                         "anchor_frame": depth_anchor_frame,
                         "observed_delta_log_depth": observed_shape,
                         "predicted_delta_log_depth": predicted_shape,
+                        "depth_ray_hit_count": current_depth_ray_hits,
+                        "anchor_depth_ray_hit_count": anchor_depth_ray_hits,
                     },
                 )
 
@@ -1283,9 +1397,15 @@ def main() -> None:
                     - depth_evidence.loc[previous_depth_frame, "log_depth"]
                 )
                 if abs(observed_delta) >= 0.004:
+                    current_predicted_depth, current_depth_ray_hits = predicted_depth(
+                        frame, rotations, translations
+                    )
+                    previous_predicted_depth, previous_depth_ray_hits = predicted_depth(
+                        previous_depth_frame, rotations, translations
+                    )
                     predicted_delta = float(
-                        np.log(max(translation[2], 1e-6))
-                        - np.log(max(translations[previous_depth_frame][2], 1e-6))
+                        np.log(max(current_predicted_depth, 1e-6))
+                        - np.log(max(previous_predicted_depth, 1e-6))
                     )
                     signed_progress = np.sign(observed_delta) * predicted_delta
                     add(
@@ -1300,6 +1420,8 @@ def main() -> None:
                             "previous_frame": previous_depth_frame,
                             "observed_delta_log_depth": observed_delta,
                             "predicted_delta_log_depth": predicted_delta,
+                            "depth_ray_hit_count": current_depth_ray_hits,
+                            "previous_depth_ray_hit_count": previous_depth_ray_hits,
                         },
                     )
 
@@ -1435,7 +1557,36 @@ def main() -> None:
 
     lower = np.tile(np.asarray([-0.45, -0.35, -0.55, -1.1, -1.1, -8.0]), len(free_frames))
     upper = np.tile(np.asarray([0.45, 0.35, 0.55, 1.1, 1.1, 8.0]), len(free_frames))
-    initial_residual = residual(x0)
+    jacobian_sparsity = None
+    if args.use_jacobian_sparsity:
+        initial_residual, initial_ledger = residual(x0, ledger=True)
+        jacobian_sparsity = lil_matrix(
+            (len(initial_residual), len(x0)), dtype=np.int8
+        )
+        all_heading_columns = np.arange(5, len(x0), 6, dtype=int)
+        row_offset = 0
+        for record in initial_ledger:
+            row_count = int(record["rows"])
+            row_slice = slice(row_offset, row_offset + row_count)
+            jacobian_sparsity[row_slice, all_heading_columns] = 1
+            frame = int(record["frame"])
+            dependent_frames = set(range(frame - 4, frame + 5))
+            for field in ("anchor_frame", "previous_frame"):
+                value = record.get(field)
+                if value is not None and np.isfinite(float(value)):
+                    dependent_frames.add(int(value))
+            for dependent_frame in dependent_frames:
+                slot = frame_to_slot.get(dependent_frame)
+                if slot is None:
+                    continue
+                start = slot * 6
+                jacobian_sparsity[row_slice, start : start + 5] = 1
+            row_offset += row_count
+        if row_offset != len(initial_residual):
+            raise RuntimeError("factor ledger does not cover the residual vector")
+        jacobian_sparsity = jacobian_sparsity.tocsr()
+    else:
+        initial_residual = residual(x0)
     solved = least_squares(
         residual,
         x0,
@@ -1446,6 +1597,7 @@ def main() -> None:
         ftol=1e-5,
         xtol=1e-6,
         gtol=1e-6,
+        jac_sparsity=jacobian_sparsity,
         verbose=1,
     )
     final_residual, ledger_rows = residual(solved.x, ledger=True)
@@ -1481,6 +1633,7 @@ def main() -> None:
     depth_order_pair_count = 0
     depth_rank_observed = []
     depth_rank_predicted = []
+    depth_ray_hit_counts = []
     for frame in free_frames:
         previous = frame - args.relative_depth_lag_frames
         if (
@@ -1495,14 +1648,21 @@ def main() -> None:
         observed_delta = float(depth_evidence.loc[frame, "log_depth"] - depth_evidence.loc[previous, "log_depth"])
         if abs(observed_delta) < 0.004:
             continue
+        current_predicted_depth, current_depth_ray_hits = predicted_depth(
+            frame, rotations, translations
+        )
+        previous_predicted_depth, previous_depth_ray_hits = predicted_depth(
+            previous, rotations, translations
+        )
         predicted_delta = float(
-            np.log(max(translations[frame][2], 1e-6))
-            - np.log(max(translations[previous][2], 1e-6))
+            np.log(max(current_predicted_depth, 1e-6))
+            - np.log(max(previous_predicted_depth, 1e-6))
         )
         depth_order_pair_count += 1
         depth_order_violation_count += int(np.sign(observed_delta) * predicted_delta < -0.002)
         depth_rank_observed.append(float(depth_evidence.loc[frame, "log_depth"]))
-        depth_rank_predicted.append(float(np.log(max(translations[frame][2], 1e-6))))
+        depth_rank_predicted.append(float(np.log(max(current_predicted_depth, 1e-6))))
+        depth_ray_hit_counts.extend((current_depth_ray_hits, previous_depth_ray_hits))
     depth_rank_correlation = 1.0
     if len(depth_rank_observed) >= 2:
         observed_rank = pd.Series(depth_rank_observed).rank().to_numpy(float)
@@ -1527,6 +1687,10 @@ def main() -> None:
         "wheel_penetration_at_most_0_01m": maximum_penetration <= 0.01,
         "upright_tilt_within_declared_limit": max(upright_angles) <= args.maximum_upright_tilt_deg + 1.0,
         "relative_depth_order_consistent": depth_rank_correlation >= 0.30,
+        "visible_surface_depth_coverage": (
+            args.relative_depth_prediction_target == "root_translation"
+            or (bool(depth_ray_hit_counts) and min(depth_ray_hit_counts) >= 16)
+        ),
         "heading_direction_continuous": heading_reversal_count == 0,
     }
     quality_passed = all(gates.values())
@@ -1535,6 +1699,10 @@ def main() -> None:
         "success": bool(solved.success),
         "message": solved.message,
         "function_evaluations": int(solved.nfev),
+        "jacobian_sparsity_used": bool(args.use_jacobian_sparsity),
+        "jacobian_sparsity_nonzero_count": (
+            int(jacobian_sparsity.nnz) if jacobian_sparsity is not None else 0
+        ),
         "optimizer_loss": args.loss,
         "initial_residual_rms": float(np.sqrt(np.mean(initial_residual * initial_residual))),
         "final_residual_rms": float(np.sqrt(np.mean(final_residual * final_residual))),
@@ -1600,9 +1768,16 @@ def main() -> None:
         "rotation_jerk_sigma_rad": float(args.rotation_jerk_sigma_rad),
         "rotation_step_margin_deg": float(args.rotation_step_margin_deg),
         "maximum_upright_tilt_declared_deg": float(args.maximum_upright_tilt_deg),
+        "support_mode": support_mode,
+        "upright_tilt_limit_source": upright_tilt_limit_source,
         "relative_depth_lag_frames": int(args.relative_depth_lag_frames),
         "relative_depth_order_weight": float(args.relative_depth_order_weight),
         "relative_depth_scale_coupling": float(args.relative_depth_scale_coupling),
+        "relative_depth_shape_weight": float(args.relative_depth_shape_weight),
+        "relative_depth_prediction_target": args.relative_depth_prediction_target,
+        "minimum_visible_surface_depth_ray_hits": (
+            int(min(depth_ray_hit_counts)) if depth_ray_hit_counts else 0
+        ),
         "heading_initializer_min_deg": float(np.degrees(selected_heading.min())),
         "heading_initializer_max_deg": float(np.degrees(selected_heading.max())),
         "warm_start_pose_sha256": warm_start_sha256,

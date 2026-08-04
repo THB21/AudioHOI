@@ -303,15 +303,30 @@ evidence had rejected, including tracks seeded from non-trusted anchors.
   heading reversals, and leaves the accepted pose untouched.
 - [x] Test and reject a nearest-body-point visible-depth approximation: it
   lowers local order violations but retains negative global rank correlation.
-- [ ] Replace the invalid `mask median depth == root tz` assumption with a
-  renderer/GeometryProvider measurement model that predicts the median depth
-  of the actually visible rigid surface under the current SE(3) state.
-- [ ] Add sparse Jacobian structure or a bounded block solver before attempting
-  an unlocked whole-video solve; a 49-frame 100-evaluation dense control takes
-  roughly 27 minutes and still does not converge.
+- [x] Replace the invalid `mask median depth == root tz` assumption with a
+  geometry-aware measurement model.  The production candidate now casts a
+  deterministic set of camera rays through the observed body mask, intersects
+  them with the oriented rigid-body box under the current SE(3), and compares
+  Stage-0 DA3 against the median visible near-surface depth.  The v68 control
+  changes the depth-rank correlation from negative to `0.511`; the final v70
+  solve reaches `0.658` with four order violations and at least 66 valid rays.
+- [x] Add a factor-ledger-derived sparse Jacobian structure before attempting
+  another unlocked solve.  The v69 isolation control converges in 32 function
+  evaluations instead of exhausting the dense 100-evaluation budget.  The v70
+  solve converges in 34 evaluations with final residual RMS `1.578`, zero
+  heading reversals, a `7.624`-degree maximum rotation step and a `0.1151 m`
+  maximum translation step.
+- [x] Move the upright limit out of the solver's implicit suitcase assumption
+  and into the geometry capability declaration.  The fixed asset declares
+  `support_model.mode=rolling_axle` and a 50-degree pulled-tilt envelope; v70's
+  maximum tilt is `44.269` degrees with only `0.053 mm` wheel penetration.
+- [x] Render all 240 v70 frames in object-only and read-only-human-overlay
+  variants.  The solver reports `human_state_optimized=false`, every pose field
+  outside frames 62-110 is exactly equal to the reference, and the canonical
+  accepted pose SHA-256 remains
+  `b86b0834d8c7b61687f8bef24c5d5f9afdaaddc35262d32a8b1ba4fdc7ea648c`.
 
-The nearest-point approximation is not retained in production code.  The
-remaining depth and upright failures are coupled: the current optimizer can
-trade root depth against tilt because Stage-0 observes visible surface depth
-while the solver compares it to the asset root.  Promotion remains blocked
-until both quantities share the same geometry-aware measurement contract.
+The nearest-point approximation is not retained in production code.  v70 now
+passes every declared hard gate and remains an isolated candidate pending video
+approval; it has not replaced the canonical pose.  The human result is read
+only for object-contact evidence and relation rendering and is never optimized.

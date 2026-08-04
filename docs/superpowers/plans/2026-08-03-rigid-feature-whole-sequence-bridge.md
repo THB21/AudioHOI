@@ -222,3 +222,34 @@ from 13.1432 to 9.4331.  It keeps the required signed turn and zero reversals.
 The candidate remains unpromoted because the optimizer still reaches its
 evaluation limit and its 8.20-degree maximum SE(3) step is slightly above the
 declared 8-degree gate; visual approval is also required.
+
+### Task 9: Re-solve the visible 62-108 turn under the same signed heading topology
+
+The v58 audit proved that frames 62-108 were not a trustworthy lock.  They are
+copied exactly from `generic-solve-c661e65678cf`, whose support-plane heading
+contains 22 positive and 22 negative steps despite the observed side-to-broad
+face transition being purely screen-counterclockwise.  The old attempt applied
+six local quaternion repair intervals and a per-frame contact-facing projection,
+but had no sequence-level winding constraint.  The current whole-sequence solve
+cannot correct it because its free interval starts at frame 111.
+
+**Artifacts:**
+
+- Create: `output/suitcase_rigid_physics_evidence_62_163/`
+- Create: `output/suitcase_rigid_sequence_v59_full_turn/`
+- Preserve: `samples_known_object/15_suitcase_drag/results/pure_solver_no_audio_no_vlm/object_pose.csv`
+
+- [ ] Rebuild the generic rigid evidence manifest with trusted intervals
+  `1-61,164-240`; require all evidence gates to pass before solving.
+- [ ] Run `run_rigid_feature_sequence_candidate.py` with free interval 62-163,
+  `--expand-free-interval`, the v58 pose as warm start, the same local-flow
+  hysteresis, line gate ramp and jerk factors, and
+  `--heading-screen-direction counterclockwise`.
+- [ ] Verify frames 1-61 and 164-240 remain textually locked; require zero
+  signed heading reversals over 62-163 and preserve support penetration and
+  bounded translation steps.
+- [ ] Render all 240 frames and inspect the 62-108 side-to-broad transition,
+  then compare frames 111-163 against v58 to ensure the previously approved
+  face sequence is retained.
+- [ ] Keep the candidate isolated unless both hard gates and video review pass;
+  do not publish canonical output.

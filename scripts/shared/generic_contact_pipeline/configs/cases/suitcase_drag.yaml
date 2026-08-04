@@ -184,6 +184,13 @@ vlm:
     stage1: all
     stage2: all
     stage4: risk
+  semantic_orientation:
+    enabled: true
+    uncertainty_threshold: 0.42
+    temporal_radius_frames: 3
+    suppression_radius_frames: 8
+    maximum_queries: 12
+    predicates: [visible_face, facing_relation, turn_direction_screen, visibility, grasp_state]
 camera:
   fx: 1468.604736328125
   fy: 1468.604736328125

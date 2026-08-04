@@ -74,6 +74,31 @@
     "wheel_centers": "object:wheel_centers",
     "handle_rails": ["object:handle_rail_left", "object:handle_rail_right"]
   },
+  "semantic_orientation_features": {
+    "grasp_side_wide": {
+      "normal_local": [0.0, 1.0, 0.0],
+      "vertices_feature_id": "object:body",
+      "vertex_indices": [1, 3, 5, 7]
+    },
+    "opposite_wide": {
+      "normal_local": [0.0, -1.0, 0.0],
+      "vertices_feature_id": "object:body",
+      "vertex_indices": [0, 2, 4, 6]
+    },
+    "side_left": {
+      "normal_local": [-1.0, 0.0, 0.0],
+      "vertices_feature_id": "object:body",
+      "vertex_indices": [0, 1, 4, 5]
+    },
+    "side_right": {
+      "normal_local": [1.0, 0.0, 0.0],
+      "vertices_feature_id": "object:body",
+      "vertex_indices": [2, 3, 6, 7]
+    },
+    "handle_feature_id": "object:handle",
+    "rail_feature_ids": ["object:handle_rail_left", "object:handle_rail_right"],
+    "wheel_feature_id": "object:wheel_centers"
+  },
   "support_features": ["object:support_rear_axle", "object:support_front_axle"],
   "support_model": {
     "mode": "rolling_axle",

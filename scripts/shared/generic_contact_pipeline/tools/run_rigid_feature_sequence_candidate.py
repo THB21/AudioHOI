@@ -227,6 +227,11 @@ def main() -> None:
     parser.add_argument("--relative-depth-shape-sigma", type=float, default=0.03)
     parser.add_argument("--heading-initializer-max-deg", type=float, default=60.0)
     parser.add_argument("--heading-initializer-samples", type=int, default=31)
+    parser.add_argument("--heading-direction-window", type=int, default=8)
+    parser.add_argument("--heading-direction-sign", type=float, choices=(-1.0, 1.0))
+    parser.add_argument("--heading-direction-source", default="trusted_boundary_motion")
+    parser.add_argument("--heading-direction-weight", type=float, default=8.0)
+    parser.add_argument("--heading-reversal-tolerance-deg", type=float, default=0.5)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--max-nfev", type=int, default=100)
     parser.add_argument("--loss", choices=("linear", "soft_l1"), default="soft_l1")
@@ -235,6 +240,7 @@ def main() -> None:
     parser.add_argument("--translation-step-weight", type=float, default=40.0)
     parser.add_argument("--translation-step-margin-m", type=float, default=0.005)
     parser.add_argument("--penetration-weight", type=float, default=30.0)
+    parser.add_argument("--expand-free-interval", action="store_true")
     args = parser.parse_args()
 
     sample_dir = args.sample_dir.resolve()
@@ -244,6 +250,9 @@ def main() -> None:
     free_frames = np.arange(args.free_start, args.free_end + 1, dtype=int)
     if not np.array_equal(free_frames, frames[(frames >= args.free_start) & (frames <= args.free_end)]):
         raise ValueError("free interval must be contiguous and present in reference pose")
+    if args.expand_free_interval:
+        reference.loc[reference.frame.isin(free_frames), "locked"] = 0
+        reference.loc[~reference.frame.isin(free_frames), "locked"] = 1
     if np.any(reference.loc[reference.frame.isin(free_frames), "locked"].astype(int) != 0):
         raise ValueError("free interval overlaps a locked reference frame")
     if np.any(reference.loc[~reference.frame.isin(free_frames), "locked"].astype(int) != 1):
@@ -450,6 +459,50 @@ def main() -> None:
         support_group_by_frame[frame] = int(np.argmin(distances))
 
     frame_to_slot = {frame: index for index, frame in enumerate(free_frames)}
+    heading_axis_for_direction = np.asarray(
+        descriptor.get("initializer", {}).get("heading_axis_local", [1.0, 0.0, 0.0]),
+        dtype=float,
+    ) if facing_axis is None else facing_axis
+    heading_axis_for_direction /= max(np.linalg.norm(heading_axis_for_direction), 1e-8)
+    heading_reference_axis = initial_rotations[args.free_start - 1] @ heading_axis_for_direction
+    heading_reference_axis -= plane_normal * float(heading_reference_axis @ plane_normal)
+    heading_reference_axis /= max(np.linalg.norm(heading_reference_axis), 1e-8)
+    tilt_basis_a = heading_reference_axis
+    tilt_basis_b = np.cross(plane_normal, tilt_basis_a)
+    tilt_basis_b /= max(np.linalg.norm(tilt_basis_b), 1e-8)
+
+    def signed_heading(rotation: np.ndarray) -> float:
+        axis = rotation @ heading_axis_for_direction
+        axis -= plane_normal * float(axis @ plane_normal)
+        axis /= max(np.linalg.norm(axis), 1e-8)
+        return float(np.arctan2(
+            plane_normal @ np.cross(heading_reference_axis, axis),
+            heading_reference_axis @ axis,
+        ))
+
+    boundary_heading_frames = list(
+        range(
+            max(int(frames.min()), args.free_start - args.heading_direction_window),
+            args.free_start,
+        )
+    )
+    boundary_heading_values = np.unwrap(
+        np.asarray([signed_heading(initial_rotations[frame]) for frame in boundary_heading_frames])
+    )
+    boundary_heading_steps = np.diff(boundary_heading_values)
+    median_boundary_heading_step = (
+        float(np.median(boundary_heading_steps)) if len(boundary_heading_steps) else 0.0
+    )
+    heading_direction_sign = (
+        0.0
+        if abs(median_boundary_heading_step) < np.radians(0.1)
+        else float(np.sign(median_boundary_heading_step))
+    )
+    if args.heading_direction_sign is not None:
+        heading_direction_sign = float(args.heading_direction_sign)
+    base_heading = np.unwrap(
+        np.asarray([signed_heading(initial_rotations[frame]) for frame in free_frames])
+    )
     heading_grid = np.radians(
         np.linspace(
             -args.heading_initializer_max_deg,
@@ -514,6 +567,16 @@ def main() -> None:
         transition = np.square(
             (heading_grid[:, None] - heading_grid[None, :]) / 0.12
         )
+        if heading_direction_sign != 0.0:
+            previous_heading = base_heading[frame_index - 1] + heading_grid[:, None]
+            current_heading = base_heading[frame_index] + heading_grid[None, :]
+            signed_progress = heading_direction_sign * (current_heading - previous_heading)
+            reversal = np.maximum(-signed_progress - np.radians(args.heading_reversal_tolerance_deg), 0.0)
+            transition = np.where(
+                reversal > 0.0,
+                1e12,
+                transition,
+            )
         total = dynamic_cost[:, None] + transition
         predecessors[frame_index] = np.argmin(total, axis=0)
         dynamic_cost = heading_unary[frame_index] + np.min(total, axis=0)
@@ -525,29 +588,100 @@ def main() -> None:
             frame_index, selected_heading_indices[frame_index]
         ]
     selected_heading = heading_grid[selected_heading_indices]
+    selected_absolute_heading = base_heading + selected_heading
     initial_parameters = np.zeros((len(free_frames), 6), dtype=float)
-    initial_parameters[:, 3:] = selected_heading[:, None] * plane_normal[None, :]
+    heading_total_target = 0.0
+    # A support-constrained rigid object has a signed heading trajectory.  Store
+    # that trajectory as same-sign cumulative increments instead of independent
+    # per-frame yaw corrections.  This makes a reversal outside the feasible
+    # state space; visual/contact evidence can choose the speed, but not silently
+    # switch the winding direction during an occlusion.
+    heading_step_cap = np.radians(args.max_rotation_step_deg)
+    if heading_direction_sign != 0.0:
+        selected_progress = heading_direction_sign * np.diff(
+            np.concatenate(([0.0], selected_absolute_heading))
+        )
+        selected_progress = np.clip(selected_progress, 1e-5, heading_step_cap - 1e-5)
+        heading_total_target = float(selected_progress.sum())
+        initial_parameters[:, 5] = np.log(selected_progress)
+        initial_parameters[:, 5] = np.clip(initial_parameters[:, 5], -7.5, 7.5)
+    else:
+        initial_parameters[:, 5] = selected_heading
     warm_start_sha256 = None
     if args.warm_start_pose is not None:
         warm_start_path = args.warm_start_pose.resolve()
         warm_start = pd.read_csv(warm_start_path).set_index("frame")
         warm_start_sha256 = hashlib.sha256(warm_start_path.read_bytes()).hexdigest()
+        warm_headings = []
         for frame, slot in frame_to_slot.items():
             if frame not in warm_start.index:
                 raise ValueError(f"warm start lacks frame {frame}")
             warm_rotation, warm_translation = _pose(warm_start.loc[frame])
+            warm_headings.append(signed_heading(warm_rotation))
             initial_parameters[slot, :3] = warm_translation - initial_translations[frame]
-            initial_parameters[slot, 3:] = Rotation.from_matrix(
+            warm_delta = Rotation.from_matrix(
                 warm_rotation @ initial_rotations[frame].T
             ).as_rotvec()
+            initial_parameters[slot, 3] = float(warm_delta @ tilt_basis_a)
+            initial_parameters[slot, 4] = float(warm_delta @ tilt_basis_b)
+        if heading_direction_sign != 0.0:
+            warm_headings = np.unwrap(np.asarray(warm_headings, dtype=float))
+            directed_heading = heading_direction_sign * warm_headings
+            # Isotonic projection preserves every already-correct segment while
+            # replacing only reverse motion by a hold.  Subsequent optimization
+            # can distribute that turn using image/contact evidence.
+            directed_heading = np.maximum.accumulate(np.maximum(directed_heading, 0.0))
+            directed_steps = np.diff(np.concatenate(([0.0], directed_heading)))
+            directed_steps = np.clip(directed_steps, 1e-5, heading_step_cap - 1e-5)
+            endpoint_frame = args.free_end + 1
+            if endpoint_frame in initial_rotations:
+                endpoint_directed_heading = (
+                    heading_direction_sign * signed_heading(initial_rotations[endpoint_frame])
+                )
+                endpoint_directed_heading += 2.0 * np.pi * round(
+                    (directed_steps.sum() - endpoint_directed_heading) / (2.0 * np.pi)
+                )
+                while endpoint_directed_heading < 0.0:
+                    endpoint_directed_heading += 2.0 * np.pi
+                required = endpoint_directed_heading - directed_steps.sum()
+                capacity = heading_step_cap - directed_steps
+                if required > capacity.sum() + 1e-8:
+                    raise ValueError(
+                        "locked endpoint cannot be reached with the declared signed heading step limit"
+                    )
+                if required > 0.0:
+                    directed_steps += required * capacity / capacity.sum()
+                elif required < 0.0:
+                    removable = directed_steps - 1e-5
+                    if -required > removable.sum() + 1e-8:
+                        raise ValueError(
+                            "locked endpoint requires reversing the declared signed heading direction"
+                        )
+                    directed_steps += required * removable / removable.sum()
+            heading_total_target = float(directed_steps.sum())
+            initial_parameters[:, 5] = np.log(directed_steps)
+            initial_parameters[:, 5] = np.clip(initial_parameters[:, 5], -7.5, 7.5)
     x0 = initial_parameters.reshape(-1)
 
     def states(parameters: np.ndarray) -> tuple[dict[int, np.ndarray], dict[int, np.ndarray]]:
         values = parameters.reshape(len(free_frames), 6)
         rotations = dict(initial_rotations)
         translations = dict(initial_translations)
+        if heading_direction_sign != 0.0:
+            heading_step_logits = values[:, 5] - np.max(values[:, 5])
+            heading_steps = np.exp(heading_step_logits)
+            heading_steps *= heading_total_target / heading_steps.sum()
+            constrained_headings = heading_direction_sign * np.cumsum(heading_steps)
+        else:
+            constrained_headings = values[:, 5]
         for frame, slot in frame_to_slot.items():
-            rotations[frame] = Rotation.from_rotvec(values[slot, 3:]).as_matrix() @ initial_rotations[frame]
+            tilt_seed = values[slot, 3] * tilt_basis_a + values[slot, 4] * tilt_basis_b
+            tilted_rotation = Rotation.from_rotvec(tilt_seed).as_matrix() @ initial_rotations[frame]
+            heading_delta = constrained_headings[slot] - signed_heading(tilted_rotation)
+            rotations[frame] = (
+                Rotation.from_rotvec(plane_normal * heading_delta).as_matrix()
+                @ tilted_rotation
+            )
             translations[frame] = initial_translations[frame] + values[slot, :3]
         return rotations, translations
 
@@ -852,6 +986,33 @@ def main() -> None:
             )
             rotation_step_excess = max(rotation_step_angle - soft_rotation_step_limit, 0.0)
             add("rotation_step_limit", frame, np.asarray([10.0 * rotation_step_excess / 0.015]))
+            if heading_direction_sign != 0.0:
+                previous_axis = rotations[previous] @ heading_axis_for_direction
+                current_axis = rotations[frame] @ heading_axis_for_direction
+                previous_axis -= plane_normal * float(previous_axis @ plane_normal)
+                current_axis -= plane_normal * float(current_axis @ plane_normal)
+                previous_axis /= max(np.linalg.norm(previous_axis), 1e-8)
+                current_axis /= max(np.linalg.norm(current_axis), 1e-8)
+                signed_step = float(np.arctan2(
+                    plane_normal @ np.cross(previous_axis, current_axis),
+                    previous_axis @ current_axis,
+                ))
+                reversal = max(
+                    -heading_direction_sign * signed_step
+                    - np.radians(args.heading_reversal_tolerance_deg),
+                    0.0,
+                )
+                add(
+                    "heading_direction_continuity",
+                    frame,
+                    np.asarray([
+                        args.heading_direction_weight * reversal / np.radians(1.0)
+                    ]),
+                    {
+                        "signed_heading_step_deg": float(np.degrees(signed_step)),
+                        "expected_direction_sign": heading_direction_sign,
+                    },
+                )
             translation_step = float(np.linalg.norm(translations[frame] - translations[previous]))
             translation_soft_limit = max(
                 0.0,
@@ -899,12 +1060,16 @@ def main() -> None:
 
         values = parameters.reshape(len(free_frames), 6)
         for frame, slot in frame_to_slot.items():
-            add("bounded_interpolation_prior", frame, np.concatenate((values[slot, :3] / 0.20, values[slot, 3:] / 0.45)))
+            add(
+                "bounded_interpolation_prior",
+                frame,
+                np.concatenate((values[slot, :3] / 0.20, values[slot, 3:5] / 0.45)),
+            )
         vector = np.concatenate(blocks)
         return (vector, ledger_rows) if ledger else vector
 
-    lower = np.tile(np.asarray([-0.45, -0.35, -0.55, -1.1, -1.1, -1.1]), len(free_frames))
-    upper = -lower
+    lower = np.tile(np.asarray([-0.45, -0.35, -0.55, -1.1, -1.1, -8.0]), len(free_frames))
+    upper = np.tile(np.asarray([0.45, 0.35, 0.55, 1.1, 1.1, 8.0]), len(free_frames))
     initial_residual = residual(x0)
     solved = least_squares(
         residual,
@@ -978,6 +1143,14 @@ def main() -> None:
         observed_rank = pd.Series(depth_rank_observed).rank().to_numpy(float)
         predicted_rank = pd.Series(depth_rank_predicted).rank().to_numpy(float)
         depth_rank_correlation = float(np.corrcoef(observed_rank, predicted_rank)[0, 1])
+    solved_heading_values = np.unwrap(
+        np.asarray([signed_heading(rotations[frame]) for frame in range(args.free_start - 1, args.free_end + 2)])
+    )
+    solved_heading_steps = np.diff(solved_heading_values)
+    heading_reversal_count = int(np.sum(
+        heading_direction_sign * solved_heading_steps
+        < -np.radians(args.heading_reversal_tolerance_deg)
+    )) if heading_direction_sign != 0.0 else 0
     maximum_translation_step = float(np.max(translation_steps[args.free_start - 2 : args.free_end]))
     maximum_rotation_step = float(np.max(rotation_steps[args.free_start - 2 : args.free_end]))
     maximum_penetration = float(max(0.0, -np.min(wheel_distances)))
@@ -989,6 +1162,7 @@ def main() -> None:
         "wheel_penetration_at_most_0_01m": maximum_penetration <= 0.01,
         "upright_tilt_within_declared_limit": max(upright_angles) <= args.maximum_upright_tilt_deg + 1.0,
         "relative_depth_order_consistent": depth_rank_correlation >= 0.30,
+        "heading_direction_continuous": heading_reversal_count == 0,
     }
     quality_passed = all(gates.values())
     metrics = {
@@ -1012,6 +1186,11 @@ def main() -> None:
         "relative_depth_order_pair_count": depth_order_pair_count,
         "relative_depth_order_violation_count": depth_order_violation_count,
         "relative_depth_rank_correlation": depth_rank_correlation,
+        "boundary_heading_direction_sign": heading_direction_sign,
+        "heading_direction_source": args.heading_direction_source,
+        "median_boundary_heading_step_deg": float(np.degrees(median_boundary_heading_step)),
+        "heading_reversal_count": heading_reversal_count,
+        "free_interval_signed_heading_change_deg": float(np.degrees(solved_heading_values[-1] - solved_heading_values[0])),
         "named_feature_observation_count": len(point_observations),
         "contact_facing_feature": args.contact_facing_feature,
         "contact_facing_boundary_angle_deg": float(np.degrees(boundary_facing_angle)),

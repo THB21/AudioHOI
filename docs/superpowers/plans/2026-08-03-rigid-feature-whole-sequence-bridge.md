@@ -99,3 +99,34 @@ penetration 0.000535 m, maximum upright tilt 11.65 degrees, and relative-depth
 rank correlation 0.708. The 137-142 review frames now contain a visible signed
 heading change driven by body aspect plus the projected handle/body lever arm.
 The candidate remains unpromoted pending explicit video approval.
+
+### Task 6: Preserve signed heading through the complete visible-to-occluded turn
+
+The later frame-by-frame review superseded the earlier assumption that frames
+111-124 were trustworthy locks.  Numeric audit of v32 found a real winding
+reversal: heading advanced in one direction through frame 137, reversed over
+137-142, and changed direction again afterward.  The cause was structural:
+mask aspect supplied heading magnitude but not sign, rail axes were unsigned,
+and independent per-frame quaternion corrections allowed robust optimization to
+sacrifice a soft direction residual.
+
+- [x] Expand the audited solve interval to 111-163 while preserving frames
+  1-110 and 164-240 exactly.
+- [x] Rebuild rigid evidence for that interval; all seven evidence gates pass,
+  with 43 clear-scale rows, 53 depth rows, 13 usable feature frames, 36 trusted
+  rail frames, and a maximum visible orientation gap of 6 frames.
+- [x] Record a signed winding decision and its source rather than inferring a
+  new sign independently inside the occlusion.
+- [x] Parameterize support-plane heading as same-sign positive increments, so
+  a reverse step is outside the continuous solver's feasible state space.
+- [x] Resolve the periodic endpoint branch using both clear boundaries and fix
+  the total turn; optimization only redistributes that turn over time.
+- [x] Include the locked right boundary in reversal accounting.
+
+The v45 diagnostic verifies the corrected topology across both boundaries:
+signed turn is -113.092 degrees, reversal count is zero, depth-rank correlation
+is 0.9901, maximum translation step is 0.11788 m, and maximum wheel penetration
+is 0.00377 m.  It remains an isolated, unpromoted candidate because it is an
+initializer verification run, the maximum full-SE(3) step is 9.37 degrees, and
+the legacy 18-degree upright gate incorrectly rejects the visibly tilted pull
+state.  The accepted pose hash remains unchanged.

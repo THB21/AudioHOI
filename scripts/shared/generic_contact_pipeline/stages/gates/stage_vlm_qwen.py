@@ -17,11 +17,22 @@ if __package__ in {None, ""}:
 from scripts.shared.generic_contact_pipeline.core.base.config import available_cases, load_case_profile, with_runtime_overrides  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.base.io import write_csv, write_json  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.base.schema import stage_paths  # noqa: E402
-from scripts.shared.generic_contact_pipeline.core.gates.vlm import RESULT_FIELDS, STAGE_QUERY_TYPES, fuse_stage_decision, write_aggregate, write_stage_verification  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.gates.vlm import (  # noqa: E402
+    QUERY_FIELDS,
+    RESULT_FIELDS,
+    STAGE_QUERY_TYPES,
+    build_queries,
+    fuse_stage_decision,
+    write_aggregate,
+    write_stage_verification,
+)
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_provider import load_vlm_provider  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.vlm_gates import GATE_FIELDS, gate_row_from_result, write_stage_gates  # noqa: E402
 from scripts.shared.generic_contact_pipeline.core.gates.amodal_mask_completion import QUERY_TYPE as AMODAL_MASK_QUERY_TYPE, materialize_selected_masks  # noqa: E402
-from scripts.shared.generic_contact_pipeline.core.gates.semantic_relations import materialize_semantic_relation_artifacts  # noqa: E402
+from scripts.shared.generic_contact_pipeline.core.gates.semantic_relations import (  # noqa: E402
+    PREDICATE_BY_QUERY_TYPE,
+    materialize_semantic_relation_artifacts,
+)
 
 
 PROMPT_TEMPLATE = """You are a conservative visual verifier for an AudioHOI pipeline.
@@ -269,14 +280,36 @@ def result_row(query: dict[str, str], label: str, gate: str, action: str) -> dic
     }
 
 
-def evaluate_stage(profile, stage: str, args: argparse.Namespace) -> dict[str, object]:
+def _scoped_queries(profile, stage: str, args: argparse.Namespace) -> tuple[list[dict[str, str]], Path]:
     paths = stage_paths(profile)
+    out_dir = paths["vlm_dir"] / stage
+    semantic_only = bool(getattr(args, "semantic_only", False))
+    postsolve_only = bool(getattr(args, "postsolve_only", False))
+    if semantic_only and postsolve_only:
+        raise ValueError("semantic-only and postsolve-only are mutually exclusive")
+    if semantic_only:
+        selected: list[dict[str, object]] = []
+        for query_type in PREDICATE_BY_QUERY_TYPE:
+            selected.extend(build_queries(profile, stage, query_type))
+        qpath = out_dir / "semantic_prepass_queries.csv"
+        write_csv(qpath, selected, QUERY_FIELDS)
+        return [{key: str(value) for key, value in row.items()} for row in selected], qpath
     if args.refresh_queries:
         write_stage_verification(profile, stage, args.query_type or None)
-    qpath = paths["vlm_dir"] / stage / "vlm_queries.csv"
+    qpath = out_dir / "vlm_queries.csv"
     if not qpath.exists():
         raise FileNotFoundError(f"Missing VLM queries: {qpath}. Run stage_vlm_verify first.")
     queries = read_csv(qpath)
+    if postsolve_only:
+        queries = [row for row in queries if row.get("query_type") not in PREDICATE_BY_QUERY_TYPE]
+    return queries, qpath
+
+
+def evaluate_stage(profile, stage: str, args: argparse.Namespace) -> dict[str, object]:
+    paths = stage_paths(profile)
+    semantic_only = bool(getattr(args, "semantic_only", False))
+    postsolve_only = bool(getattr(args, "postsolve_only", False))
+    queries, qpath = _scoped_queries(profile, stage, args)
     if args.query_type:
         queries = [row for row in queries if row.get("query_type") == args.query_type]
         if not queries:
@@ -325,7 +358,18 @@ def evaluate_stage(profile, stage: str, args: argparse.Namespace) -> dict[str, o
 
     out_dir = paths["vlm_dir"] / stage
     decision = fuse_stage_decision(profile.case_name, stage, results, mode="qwen_vl")
-    if debug_limited:
+    if semantic_only:
+        materialize_semantic_relation_artifacts(out_dir, raw_rows, status="qwen_semantic_prepass")
+        decision.update(
+            {
+                "phase": "semantic_prepass",
+                "query_path": str(qpath),
+                "continuous_pose_fields_allowed": False,
+            }
+        )
+        write_json(out_dir / "semantic_prepass_raw_results.json", raw_rows)
+        write_json(out_dir / "semantic_prepass_decision.json", decision)
+    elif debug_limited:
         write_csv(out_dir / "vlm_results_qwen_debug.csv", results, RESULT_FIELDS)
         gates = [gate_row_from_result({key: str(value) for key, value in row.items()}) for row in results]
         write_csv(out_dir / "vlm_gates_qwen_debug.csv", gates, GATE_FIELDS)
@@ -367,7 +411,10 @@ def evaluate_stage(profile, stage: str, args: argparse.Namespace) -> dict[str, o
         write_json(out_dir / "qwen_raw_results.json", raw_rows)
         if stage == "stage4":
             materialize_selected_masks(profile, raw_rows)
-            materialize_semantic_relation_artifacts(out_dir, raw_rows, status="qwen_evaluated")
+            if any(str(row.get("query_type", "")) in PREDICATE_BY_QUERY_TYPE for row in raw_rows):
+                materialize_semantic_relation_artifacts(out_dir, raw_rows, status="qwen_evaluated")
+        if postsolve_only:
+            decision["phase"] = "postsolve_audit"
         write_json(out_dir / "stage_decision.json", decision)
         write_aggregate(profile)
         write_stage_gates(profile, stage)
@@ -402,6 +449,9 @@ def main() -> None:
     ap.add_argument("--resize-max", type=int, default=provider.resize_max, help="Resize the longest image side before inference. 0 disables resizing.")
     ap.add_argument("--limit", type=int, default=0, help="Debug limit per stage. 0 means all queries.")
     ap.add_argument("--query-type", default="", help="Evaluate one registered query type while preserving other stage results.")
+    scope = ap.add_mutually_exclusive_group()
+    scope.add_argument("--semantic-only", action="store_true", help="Evaluate only typed semantic relations before Stage 4 solving.")
+    scope.add_argument("--postsolve-only", action="store_true", help="Evaluate only non-semantic Stage 4 audit queries after solving.")
     ap.add_argument("--no-refresh-queries", dest="refresh_queries", action="store_false", help="Use existing vlm_queries.csv without regenerating evidence images.")
     ap.add_argument("--doctor", action="store_true", help="Print provider/environment status and exit.")
     ap.set_defaults(refresh_queries=True)

@@ -70,7 +70,14 @@ def selected_stages(from_stage: str, to_stage: str):
     return STAGES[i0 : i1 + 1]
 
 
-def _run_stage_vlm(profile, stage_name: str, args: argparse.Namespace) -> dict[str, object] | None:
+def _run_stage_vlm(
+    profile,
+    stage_name: str,
+    args: argparse.Namespace,
+    *,
+    semantic_only: bool = False,
+    postsolve_only: bool = False,
+) -> dict[str, object] | None:
     if args.vlm_mode == "none" or stage_name not in stage_vlm_verify.STAGE_QUERY_TYPES:
         return None
     if args.vlm_mode == "dry-run":
@@ -112,11 +119,19 @@ def _run_stage_vlm(profile, stage_name: str, args: argparse.Namespace) -> dict[s
             cmd.append("--no-load-4bit")
         if args.vlm_no_refresh_queries:
             cmd.append("--no-refresh-queries")
+        if semantic_only:
+            cmd.append("--semantic-only")
+        elif postsolve_only:
+            cmd.append("--postsolve-only")
         env = os.environ.copy()
         env.update(provider.env)
         subprocess.run(cmd, cwd=Path(__file__).resolve().parents[3], env=env, check=True)
         out_dir = stage_paths(profile)["vlm_dir"] / stage_name
-        decision_path = out_dir / ("stage_decision_qwen_debug.json" if args.vlm_limit > 0 else "stage_decision.json")
+        decision_path = (
+            out_dir / "semantic_prepass_decision.json"
+            if semantic_only
+            else out_dir / ("stage_decision_qwen_debug.json" if args.vlm_limit > 0 else "stage_decision.json")
+        )
         if not decision_path.exists():
             raise FileNotFoundError(f"Qwen VLM finished but did not write {decision_path}")
         with decision_path.open() as f:
@@ -131,8 +146,19 @@ def _run_stage_vlm(profile, stage_name: str, args: argparse.Namespace) -> dict[s
         resize_max=args.vlm_resize_max if args.vlm_resize_max is not None else provider.resize_max,
         limit=args.vlm_limit,
         refresh_queries=not args.vlm_no_refresh_queries,
+        query_type="",
+        semantic_only=semantic_only,
+        postsolve_only=postsolve_only,
     )
     return stage_vlm_qwen.evaluate_stage(profile, stage_name, qwen_args)
+
+
+def _stage4_semantic_prepass_enabled(profile, stage_name: str, args: argparse.Namespace) -> bool:
+    if stage_name != "stage4" or args.vlm_mode != "qwen":
+        return False
+    semantic = dict(dict(profile.data.get("vlm", {})).get("semantic_orientation", {}))
+    disabled = "disable_vlm_semantic_evidence" in set(profile.data.get("ablation_flags", ()))
+    return bool(semantic.get("enabled", False)) and not disabled
 
 
 def _csv_count(path: Path) -> int:
@@ -308,15 +334,29 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
         )
         attempt_finished = False
         try:
+            semantic_prepass = None
+            if _stage4_semantic_prepass_enabled(profile, stage_name, args):
+                semantic_prepass = _run_stage_vlm(
+                    profile,
+                    stage_name,
+                    args,
+                    semantic_only=True,
+                )
             if stage_name in {"stage-1", "stage6.5"}:
                 result = fn(profile, args.llm_mode)
             else:
                 result = fn(profile)
-            vlm_result = _run_stage_vlm(profile, stage_name, args)
+            vlm_result = _run_stage_vlm(
+                profile,
+                stage_name,
+                args,
+                postsolve_only=semantic_prepass is not None,
+            )
             vlm_gate_result = None
             if vlm_result is not None:
                 vlm_gate_result = write_stage_gates(profile, stage_name)
-                result = _refresh_generic_mainline_after_vlm(profile, stage_name, result)
+                if semantic_prepass is None:
+                    result = _refresh_generic_mainline_after_vlm(profile, stage_name, result)
                 print(
                     f"[{case_name}] {stage_name} vlm={vlm_result.get('mode')} "
                     f"decision={vlm_result.get('decision')} gates={vlm_result.get('gate_counts', {})}",
@@ -357,7 +397,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
                 attempt.finish(status="failed", error=exc)
             raise
         if args.vlm_blocking and vlm_result and vlm_result.get("blocking"):
-            stage_results.append({"stage": stage_name, "result": result, "vlm_verification": vlm_result, "vlm_gate": vlm_gate_result, "stage_audit": stage_audit_result})
+            stage_results.append({"stage": stage_name, "result": result, "vlm_semantic_prepass": semantic_prepass, "vlm_verification": vlm_result, "vlm_gate": vlm_gate_result, "stage_audit": stage_audit_result})
             manifest = {
                 "case_name": case_name,
                 "profile": profile.data,
@@ -373,7 +413,7 @@ def run_case(case_name: str, from_stage: str, to_stage: str, *, args: argparse.N
             }
             write_json(stage_paths(profile)["pipeline_manifest"], manifest)
             raise RuntimeError(f"VLM blocked {case_name} at {stage_name}: {vlm_result.get('decision')}")
-        stage_results.append({"stage": stage_name, "result": result, "vlm_verification": vlm_result, "vlm_gate": vlm_gate_result, "stage_audit": stage_audit_result})
+        stage_results.append({"stage": stage_name, "result": result, "vlm_semantic_prepass": semantic_prepass, "vlm_verification": vlm_result, "vlm_gate": vlm_gate_result, "stage_audit": stage_audit_result})
     manifest = {
         "case_name": case_name,
         "profile": profile.data,

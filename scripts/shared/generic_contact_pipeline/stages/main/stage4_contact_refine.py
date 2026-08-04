@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from ...core.base.config import CaseProfile
 from ...core.base.io import REPO, write_csv, write_json
 from ...core.base.schema import stage_paths
@@ -38,9 +40,17 @@ def _write_multimodal_factor_ledgers(profile, prepared, solve_result, candidate_
         residual_inputs,
         problem.factor_ids,
     ))
+    execution_plan = problem.residual_execution_plan
+    plan_records = (
+        execution_plan.get("records", ())
+        if isinstance(execution_plan, Mapping)
+        else getattr(execution_plan, "records", ())
+    )
     records = [
-        residual_execution_plan_record(record)
-        for record in getattr(problem.residual_execution_plan, "records", ())
+        dict(record)
+        if isinstance(record, Mapping)
+        else residual_execution_plan_record(record)
+        for record in plan_records
     ]
     write_json(
         candidate_dir / "factor_ledger.json",

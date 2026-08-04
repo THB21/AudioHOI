@@ -53,6 +53,14 @@
       [-0.19, -0.115, 0.53], [-0.19, 0.115, 0.53],
       [0.19, -0.115, 0.53], [0.19, 0.115, 0.53]
     ],
+    "object:body_corner_nx_ny_bottom": [[-0.19, -0.115, 0.07]],
+    "object:body_corner_nx_py_bottom": [[-0.19, 0.115, 0.07]],
+    "object:body_corner_px_ny_bottom": [[0.19, -0.115, 0.07]],
+    "object:body_corner_px_py_bottom": [[0.19, 0.115, 0.07]],
+    "object:body_corner_nx_ny_top": [[-0.19, -0.115, 0.53]],
+    "object:body_corner_nx_py_top": [[-0.19, 0.115, 0.53]],
+    "object:body_corner_px_ny_top": [[0.19, -0.115, 0.53]],
+    "object:body_corner_px_py_top": [[0.19, 0.115, 0.53]],
     "object:handle": [[0.0, 0.125, 0.891]],
     "object:handle_rail_left": [
       [-0.07, 0.125, 0.570], [-0.07, 0.125, 0.890]
@@ -64,6 +72,14 @@
       [-0.145, -0.085, 0.035], [-0.145, 0.085, 0.035],
       [0.145, -0.085, 0.035], [0.145, 0.085, 0.035]
     ],
+    "object:wheel_nx_ny": [[-0.145, -0.085, 0.035]],
+    "object:wheel_nx_py": [[-0.145, 0.085, 0.035]],
+    "object:wheel_px_ny": [[0.145, -0.085, 0.035]],
+    "object:wheel_px_py": [[0.145, 0.085, 0.035]],
+    "object:rail_left_bottom": [[-0.07, 0.125, 0.570]],
+    "object:rail_left_top": [[-0.07, 0.125, 0.890]],
+    "object:rail_right_bottom": [[0.07, 0.125, 0.570]],
+    "object:rail_right_top": [[0.07, 0.125, 0.890]],
     "object:support_rear_axle": [
       [-0.145, -0.085, 0.0], [-0.145, 0.085, 0.0]
     ],
@@ -73,7 +89,26 @@
   },
   "visual_tracking_features": {
     "wheel_centers": "object:wheel_centers",
-    "handle_rails": ["object:handle_rail_left", "object:handle_rail_right"]
+    "handle_rails": ["object:handle_rail_left", "object:handle_rail_right"],
+    "point_feature_ids": [
+      "object:body_corner_nx_ny_bottom",
+      "object:body_corner_nx_py_bottom",
+      "object:body_corner_px_ny_bottom",
+      "object:body_corner_px_py_bottom",
+      "object:body_corner_nx_ny_top",
+      "object:body_corner_nx_py_top",
+      "object:body_corner_px_ny_top",
+      "object:body_corner_px_py_top",
+      "object:wheel_nx_ny",
+      "object:wheel_nx_py",
+      "object:wheel_px_ny",
+      "object:wheel_px_py",
+      "object:rail_left_bottom",
+      "object:rail_left_top",
+      "object:rail_right_bottom",
+      "object:rail_right_top",
+      "object:handle"
+    ]
   },
   "semantic_orientation_features": {
     "grasp_side_wide": {

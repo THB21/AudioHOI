@@ -6,6 +6,8 @@
 
 **Architecture:** Bind CoTracker observations to descriptor-declared rigid feature points at reliable visible anchors, then consume those typed point/line measurements in the existing generic sequence solver. Replace framewise semantic heading pressure with interval cumulative-sign and reversal inequalities; audio controls motion-state timing only and cannot freeze a visually moving interval. Keep the rigid object as the only optimized state and publish only isolated candidates until all hard gates and visual review pass.
 
+**Evidence-driven correction (2026-08-05):** The original generic mask/depth initializer projected the fixed asset at roughly twice the observed image height (`z=1.8–2.4m`), so an 18px association gate yielded zero matches. Existing high-IoU MegaPose keyframe hypotheses (`z=3.3–4.8m`) are valid Stage 0 external observations and recover the correct projection scale without reading a final pose. Because the existing CoTracker queries are SAM-interior grid points rather than literal corners, association uses one globally unique best reliable anchor per track/feature pair instead of requiring the same imperfect pose hypothesis to win at two anchors. The 18px gate remains unchanged.
+
 **Tech Stack:** Python 3, NumPy, SciPy, OpenCV, existing typed MeasurementIR/InteractionStateIR/factor runtime, Qwen forced-choice SemanticRelationIR, ffmpeg, YAML/JSON/CSV provenance.
 
 ---
@@ -51,7 +53,7 @@
 - Read: `samples_known_object/15_suitcase_drag/results/tracking/rigid_point_tracks.csv`
 - Create generated diagnostic: `/tmp/suitcase_interval_heading_baseline.json`
 
-- [ ] **Step 1: Record the current full and ablation metrics without modifying them**
+- [x] **Step 1: Record the current full and ablation metrics without modifying them**
 
 Run:
 
@@ -93,7 +95,7 @@ PY
 
 Expected: full remains approximately `23.827 px` total projection, `26.307 px` point projection, `0.08732 m` contact p95, and `12.533 deg/frame` rotation p95 on frames 111–163.
 
-- [ ] **Step 2: Prove raw tracker rows are not yet bound to asset features**
+- [x] **Step 2: Prove raw tracker rows are not yet bound to asset features**
 
 Run:
 
@@ -112,7 +114,7 @@ PY
 
 Expected: PASS with all semantic feature IDs empty. This is the failing boundary the next task fixes.
 
-- [ ] **Step 3: Verify canonical output remains outside the candidate write set**
+- [x] **Step 3: Verify canonical output remains outside the candidate write set**
 
 Run:
 
@@ -129,7 +131,7 @@ Expected: no output.
 - Create: `scripts/shared/generic_contact_pipeline/core/measurements/rigid_feature_tracks.py`
 - Create: `scripts/shared/generic_contact_pipeline/tools/bind_rigid_feature_tracks.py`
 
-- [ ] **Step 1: Split compound asset features into stable point IDs**
+- [x] **Step 1: Split compound asset features into stable point IDs**
 
 Add these descriptor entries while retaining existing aggregate features for compatibility:
 
@@ -154,7 +156,7 @@ Add these descriptor entries while retaining existing aggregate features for com
 
 Declare `visual_tracking_features.point_feature_ids` as the ordered list of the 16 entries plus `object:handle`. Do not encode frame numbers or screen colors.
 
-- [ ] **Step 2: Implement the generic association contract**
+- [x] **Step 2: Implement the generic association contract**
 
 Create `rigid_feature_tracks.py` with these public records and function:
 
@@ -182,11 +184,11 @@ projection, assignment, consensus filtering, and row emission in separate privat
 helpers so each phase can be checked with focused assertions.
 ```
 
-At each reliable anchor, project every one-point feature through the initializer state. Build a distance matrix to visible tracks and use `scipy.optimize.linear_sum_assignment`. Accept an association only when its projected distance is within `maximum_anchor_error_px`; require the same track/feature pair to win at two or more reliable anchors when both are available. Emit one row per visible associated track observation with `frame,time,u,v,geometry_feature_id,semantic_role,track_id,confidence,source_anchor_frames`.
+At each reliable high-IoU external pose anchor, project every one-point feature. Retain the lowest-error anchor for each track/feature pair, then use `scipy.optimize.linear_sum_assignment` once across the sequence to enforce unique track and feature identities. Accept an association only when its projected distance is within `maximum_anchor_error_px`. Emit one row per visible associated track observation with `frame,time,u,v,geometry_feature_id,semantic_role,track_id,confidence,source_anchor_frames`.
 
 Do not use `object_pose.csv`, any final pose, or a hand-edited orientation.
 
-- [ ] **Step 3: Add the materialization tool**
+- [x] **Step 3: Add the materialization tool**
 
 `bind_rigid_feature_tracks.py` must accept:
 
@@ -200,13 +202,13 @@ Do not use `object_pose.csv`, any final pose, or a hand-edited orientation.
 --minimum-track-visibility
 ```
 
-It prepares the capability initializer, passes `initialized.states_by_frame` and descriptor feature IDs into `bind_rigid_feature_tracks`, and atomically writes the CSV and a manifest containing input/output hashes, association count, feature coverage, reliable anchor frames, rejected reasons, `baseline_pose_read=false`, and `human_state_optimized=false`.
+It prepares the capability initializer for provenance, loads `selected_by_visual_geometry` MegaPose hypotheses whose official render-mask IoU passes the declared reliability gate, and passes those external observation states plus descriptor feature IDs into `bind_rigid_feature_tracks`. It atomically writes the CSV and a manifest containing input/output hashes, pose-source hash, association count, feature coverage, reliable anchor frames, rejected reasons, `baseline_pose_read=false`, and `human_state_optimized=false`.
 
-- [ ] **Step 4: Run a focused synthetic association check**
+- [x] **Step 4: Run a focused synthetic association check**
 
 Run an inline assertion using four known local points projected through an identity rigid state, perturb each image observation by less than 1 px, and assert that all four tracks map to distinct feature IDs. Then perturb one observation by 100 px and assert it is rejected. Expected: `rigid track binding synthetic check: PASS`.
 
-- [ ] **Step 5: Materialize real suitcase bindings**
+- [x] **Step 5: Materialize real suitcase bindings**
 
 Run:
 

@@ -107,11 +107,11 @@ def _persistent_contact_state(state: FrameInteractionState) -> str:
     if state.motion_mode == MotionMode.SUPPORTED_STATIC:
         return "downweighted"
     if (
-        state.contact_mode == InteractionContactMode.GRASP
-        and state.contact_state in {ContactStateAxis.PERSISTENT, ContactStateAxis.OCCLUDED_HOLD}
+        state.contact_state in {ContactStateAxis.PERSISTENT, ContactStateAxis.OCCLUDED_HOLD}
+        and state.active_contact_ids
     ):
         return "active"
-    if state.contact_mode == InteractionContactMode.GRASP and state.contact_state == ContactStateAxis.ACTIVE:
+    if state.contact_state == ContactStateAxis.ACTIVE and state.active_contact_ids:
         return "downweighted"
     return "inactive"
 
@@ -180,12 +180,20 @@ def _policy_for_kind(kind: FactorKind) -> tuple[str, object, tuple[str, ...]]:
             _contact_state,
             ("ContactState", "ContactMode", "active_contact_ids"),
         )
-    if kind in {FactorKind.CONTACT_RELATIVE_VELOCITY, FactorKind.CONTACT_TWIST_GAUGE}:
+    if kind in {
+        FactorKind.CONTACT_RELATIVE_VELOCITY,
+        FactorKind.CONTACT_FACING,
+        FactorKind.CONTACT_TWIST_GAUGE,
+    }:
         return (
             (
                 "persistent_contact_controls_relative_velocity"
                 if kind == FactorKind.CONTACT_RELATIVE_VELOCITY
-                else "persistent_two_site_contact_controls_unobservable_twist"
+                else (
+                    "persistent_grasp_controls_feature_face_toward_human"
+                    if kind == FactorKind.CONTACT_FACING
+                    else "persistent_two_site_contact_controls_unobservable_twist"
+                )
             ),
             _persistent_contact_state,
             ("ContactState", "ContactMode", "active_contact_ids"),
@@ -219,6 +227,24 @@ def _policy_for_kind(kind: FactorKind) -> tuple[str, object, tuple[str, ...]]:
             "audio_and_interaction_transition_control_alignment",
             _audio_state,
             ("AudioEventIR", "audio_event_ids", "ContactState", "ContactMode"),
+        )
+    if kind == FactorKind.FACE_VISIBILITY_INEQUALITY:
+        return (
+            "confident_semantic_face_evidence_controls_visibility_rank",
+            _visual_state,
+            ("VisibilityState", "SemanticRelationIR", "semantic_relation_ids"),
+        )
+    if kind in {FactorKind.FACING_RELATION, FactorKind.HEADING_TOPOLOGY}:
+        return (
+            "persistent_grasp_and_semantic_evidence_control_orientation_topology",
+            _persistent_contact_state,
+            ("ContactState", "ContactMode", "SemanticRelationIR", "semantic_relation_ids"),
+        )
+    if kind == FactorKind.AUDIO_MOTION_ENVELOPE:
+        return (
+            "audio_interval_and_support_state_control_tangential_motion",
+            _support_state,
+            ("AudioEventIR", "audio_event_ids", "MotionMode", "support_contact_ids"),
         )
     return (
         "always_on_state_or_geometry_regularizer",

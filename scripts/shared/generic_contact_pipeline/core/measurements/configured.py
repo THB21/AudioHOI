@@ -56,11 +56,27 @@ def adapt_configured_supplemental_measurements(
         source_path = str(repo_relative_value(path))
         sources.append(source_path)
         fps = float(spec.get("fps", 24.0))
-        feature_id = str(spec["feature_id"])
+        feature_id = str(spec.get("feature_id", ""))
+        feature_id_field = str(spec.get("feature_id_field", ""))
+        if not feature_id and not feature_id_field:
+            raise ValueError("physical line measurements require feature_id or feature_id_field")
         semantic_role = str(spec.get("semantic_role", "physical_line"))
+        semantic_role_field = str(spec.get("semantic_role_field", ""))
         fields = ("physical_x1", "physical_y1", "physical_x2", "physical_y2")
         for row in rows:
             frame = int(row["frame"])
+            row_feature_id = str(row.get(feature_id_field, "")) if feature_id_field else feature_id
+            row_semantic_role = str(row.get(semantic_role_field, "")) if semantic_role_field else semantic_role
+            if not row_feature_id and str(row.get("line_observation_mode", "")) == "unassigned_axis":
+                # A single visible rail is intentionally identity-ambiguous.
+                # Keep it in the source artifact for uncertainty/VLM evidence,
+                # but do not invent a left/right geometry feature identity for
+                # a typed reprojection residual.
+                if not str(row.get("candidate_feature_ids", "")).strip():
+                    raise ValueError("unassigned line row requires candidate feature identities")
+                continue
+            if not row_feature_id or not row_semantic_role:
+                raise ValueError("physical line row is missing configured feature identity")
             confidence_raw = row.get("endpoint_track_conf", "")
             confidence = float(confidence_raw) if confidence_raw not in {"", None} else None
             if confidence is not None:
@@ -68,11 +84,11 @@ def adapt_configured_supplemental_measurements(
             if row.get("line_observation_trusted", "1") != "1":
                 confidence = 0.0
             meta = MeasurementMeta(
-                measurement_id=f"{profile.case_name}:{frame}:line2d:{feature_id}",
+                measurement_id=f"{profile.case_name}:{frame}:line2d:{row_feature_id}",
                 sample_id=profile.case_name,
                 frame=frame,
                 time=(frame - 1) / fps,
-                feature=FeatureRef(semantic_role, feature_id),
+                feature=FeatureRef(row_semantic_role, row_feature_id),
                 coordinate_frame=CoordinateFrame.IMAGE_PIXELS,
                 unit=Unit.PIXEL,
                 confidence=confidence,

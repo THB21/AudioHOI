@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...core.base.config import CaseProfile
-from ...core.base.io import REPO, write_json
+from ...core.base.io import REPO, write_csv, write_json
 from ...core.base.schema import stage_paths
 from ...core.factors import factor_arbitration_ledger_record
 from ...core.gates.interval_candidate_selection import (
@@ -24,7 +24,64 @@ from ...core.solver import (
     prepare_capability_object_problem,
     update_isolated_attempt_evidence,
     write_isolated_sequence_attempt,
+    build_runtime_residual_blocks,
+    residual_execution_plan_record,
 )
+
+
+def _write_multimodal_factor_ledgers(profile, prepared, solve_result, candidate_dir) -> None:
+    problem = prepared.preparation.problem
+    states = dict(zip(solve_result.frames, solve_result.states))
+    residual_inputs = problem.residual_input_builder(states)
+    blocks = dict(build_runtime_residual_blocks(
+        problem.residual_execution_plan,
+        residual_inputs,
+        problem.factor_ids,
+    ))
+    records = [
+        residual_execution_plan_record(record)
+        for record in getattr(problem.residual_execution_plan, "records", ())
+    ]
+    write_json(
+        candidate_dir / "factor_ledger.json",
+        {
+            "schema_version": 1,
+            "records": records,
+            "case_dispatch_used": False,
+            "baseline_pose_read": False,
+            "human_state_optimized": False,
+        },
+    )
+    consumption = []
+    for item in prepared.evidence_consumption:
+        record = dict(item)
+        values = blocks.get(str(record["factor_id"]))
+        if values is not None:
+            record["residual_count"] = int(values.size)
+            record["residual_squared_error"] = float(values @ values)
+            record["residual_mean_abs"] = float(abs(values).mean())
+            record["residual_max_abs"] = float(abs(values).max())
+        record["activation_status"] = "active"
+        consumption.append(record)
+    flags = set(profile.data.get("ablation_flags", ()))
+    if "disable_vlm_semantic_evidence" in flags:
+        consumption.append({"evidence_kind": "semantic_relation", "activation_status": "disabled_by_ablation"})
+    if "disable_audio_events" in flags:
+        consumption.append({"evidence_kind": "audio_event", "activation_status": "disabled_by_ablation"})
+    write_json(
+        candidate_dir / "evidence_consumption.json",
+        {
+            "schema_version": 1,
+            "records": consumption,
+            "case_dispatch_used": False,
+            "baseline_pose_read": False,
+            "human_state_optimized": False,
+        },
+    )
+    semantic_rows = [record for record in consumption if record.get("evidence_kind") == "semantic_relation" and record.get("factor_id")]
+    audio_rows = [record for record in consumption if record.get("evidence_kind") == "audio_event" and record.get("factor_id")]
+    write_csv(candidate_dir / "semantic_factor_residuals.csv", semantic_rows)
+    write_csv(candidate_dir / "audio_factor_residuals.csv", audio_rows)
 
 
 def _quaternion_groups(prepared: object) -> tuple[tuple[int, int, int, int], ...]:
@@ -40,9 +97,15 @@ def _quaternion_groups(prepared: object) -> tuple[tuple[int, int, int, int], ...
 
 
 def _solve_prepared(prepared: object, config: dict[str, object], max_evaluations: int):
+    robust_loss = str(config.get("robust_loss", "soft_l1"))
+    robust_scale = float(config.get("robust_scale", 1.0))
     solve_result = GenericSequenceExecutor().solve(
         prepared.preparation.problem,
-        SequenceOptimizationParameters(max_function_evaluations=max_evaluations),
+        SequenceOptimizationParameters(
+            robust_loss=robust_loss,
+            robust_scale=robust_scale,
+            max_function_evaluations=max_evaluations,
+        ),
     )
     solve_result = smooth_adjacent_states(
         prepared.preparation.problem,
@@ -216,6 +279,11 @@ def run(profile: CaseProfile) -> dict[str, object]:
     )
     if composition is not None:
         write_json(candidate_dir / "interval_selection_provenance.json", composition.provenance)
+    _write_multimodal_factor_ledgers(profile, prepared, solve_result, candidate_dir)
+    assert prepared.case_dispatch_used is False
+    assert prepared.baseline_pose_read is False
+    assert prepared.human_state_optimized is False
+    assert candidate_dir.resolve() != (result_dir / "object_pose.csv").resolve()
     attempt_dir = write_isolated_sequence_attempt(
         result_dir / "generic_sequence_solver_attempts",
         prepared.preparation.problem,

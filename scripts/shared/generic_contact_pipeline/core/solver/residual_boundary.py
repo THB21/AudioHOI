@@ -17,6 +17,7 @@ SUPPORTED_RESIDUAL_REFS = {
     "shadow_residual::line_reprojection": "FactorResidualEvaluator.line_reprojection",
     "shadow_residual::contact_distance": "FactorResidualEvaluator.contact_distance",
     "shadow_residual::contact_relative_velocity": "FactorResidualEvaluator.contact_relative_velocity",
+    "shadow_residual::contact_facing": "FactorResidualEvaluator.contact_facing",
     "shadow_residual::contact_twist_gauge": "FactorResidualEvaluator.contact_twist_gauge",
     "shadow_residual::metric_depth": "FactorResidualEvaluator.metric_depth",
     "shadow_residual::support_and_penetration": "FactorResidualEvaluator.support_plane",
@@ -29,6 +30,10 @@ SUPPORTED_RESIDUAL_REFS = {
     "shadow_residual::regularization": "FactorResidualEvaluator.regularization",
     "shadow_residual::periodic_phase_prior": "FactorResidualEvaluator.periodic_phase_prior",
     "shadow_residual::audio_event_prior": "FactorResidualEvaluator.audio_event_prior",
+    "shadow_residual::face_visibility_inequality": "FactorResidualEvaluator.face_visibility_inequality",
+    "shadow_residual::facing_relation": "FactorResidualEvaluator.facing_relation",
+    "shadow_residual::heading_topology": "FactorResidualEvaluator.heading_topology",
+    "shadow_residual::audio_motion_envelope": "FactorResidualEvaluator.audio_motion_envelope",
 }
 
 

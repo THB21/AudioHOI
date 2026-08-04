@@ -11,6 +11,16 @@ from ..interaction import ContactStateAxis, InteractionContactMode, InteractionT
 from ..measurements import Line2DMeasurement, Mask2DMeasurement, MetricDepthMeasurement, Point2DMeasurement
 from ..state.geometry_provider import FeaturePointGeometryProvider, GeometryProvider, PinholeCamera, PlaneSurface
 from .sparsity import ResidualRowDependency
+from .semantic_factor_inputs import (
+    AudioMotionEnvelopeFactorInput,
+    FaceVisibilityFactorInput,
+    FacingRelationFactorInput,
+    HeadingTopologyFactorInput,
+    build_audio_motion_inputs,
+    build_face_visibility_inputs,
+    build_facing_relation_inputs,
+    build_heading_topology_inputs,
+)
 
 
 @dataclass(frozen=True)
@@ -63,6 +73,8 @@ class WorldSpaceContactSample:
     confidence: float | None = None
     source_offset_xyz_m: tuple[float, float, float] = (0.0, 0.0, 0.0)
     contact_track_id: str | None = None
+    source_uv_px: tuple[float, float] | None = None
+    camera_intrinsics: tuple[float, float, float, float] | None = None
 
     def __post_init__(self) -> None:
         if self.frame < 1 or len(self.source_xyz_m) != 3 or not all(isfinite(value) for value in self.source_xyz_m):
@@ -79,6 +91,32 @@ class WorldSpaceContactSample:
             raise ValueError("world-space contact sample offset must contain three finite coordinates")
         if self.contact_track_id is not None and not self.contact_track_id:
             raise ValueError("world-space contact track id must be nonempty when present")
+        if (self.source_uv_px is None) != (self.camera_intrinsics is None):
+            raise ValueError("image-ray contact samples require both uv and camera intrinsics")
+        if self.source_uv_px is not None and (
+            len(self.source_uv_px) != 2 or not all(isfinite(value) for value in self.source_uv_px)
+        ):
+            raise ValueError("image-ray contact uv must contain two finite values")
+        if self.camera_intrinsics is not None and (
+            len(self.camera_intrinsics) != 4
+            or not all(isfinite(value) for value in self.camera_intrinsics)
+            or self.camera_intrinsics[0] <= 0.0
+            or self.camera_intrinsics[1] <= 0.0
+        ):
+            raise ValueError("image-ray contact intrinsics must be finite fx/fy/cx/cy")
+
+
+def _contact_source_at_target_depth(
+    sample: WorldSpaceContactSample,
+    target_xyz: Sequence[float],
+) -> np.ndarray:
+    source = np.asarray(sample.source_xyz_m, dtype=float) + np.asarray(sample.source_offset_xyz_m, dtype=float)
+    if sample.source_uv_px is None or sample.camera_intrinsics is None:
+        return source
+    u, v = sample.source_uv_px
+    fx, fy, cx, cy = sample.camera_intrinsics
+    z = float(target_xyz[2])
+    return np.asarray(((u - cx) * z / fx, (v - cy) * z / fy, z), dtype=float)
 
 
 @dataclass(frozen=True)
@@ -93,6 +131,38 @@ class ContactFactorInput:
     def __post_init__(self) -> None:
         if not self.residual_axes or any(axis not in {0, 1, 2} for axis in self.residual_axes):
             raise ValueError("contact residual axes must be a nonempty subset of x/y/z")
+
+
+@dataclass(frozen=True)
+class ContactFacingFactorInput:
+    """Asset-declared grasp face constrained to a read-only human-facing cone."""
+
+    local_facing_axis: tuple[float, float, float]
+    human_reference_by_frame: Mapping[int, tuple[float, float, float]]
+    active_frames: tuple[int, ...]
+    support_normal_world: tuple[float, float, float]
+    camera_depth_axis_world: tuple[float, float, float] = (0.0, 0.0, 1.0)
+    depth_relation: str = "unconstrained"
+    minimum_depth_separation_m: float = 0.0
+    maximum_facing_angle_rad: float = np.pi / 2.0
+    weight: float = 1.0
+    sigma_rad: float = 1.0
+
+    def __post_init__(self) -> None:
+        axis = np.asarray(self.local_facing_axis, dtype=float)
+        normal = np.asarray(self.support_normal_world, dtype=float)
+        if axis.shape != (3,) or not np.isfinite(axis).all() or np.linalg.norm(axis) <= 1e-8:
+            raise ValueError("contact facing requires a finite nonzero local axis")
+        if normal.shape != (3,) or not np.isfinite(normal).all() or np.linalg.norm(normal) <= 1e-8:
+            raise ValueError("contact facing requires a finite nonzero support normal")
+        if self.sigma_rad <= 0.0:
+            raise ValueError("contact facing sigma must be positive")
+        if self.depth_relation not in {"unconstrained", "object_behind_human"}:
+            raise ValueError("unsupported contact-facing depth relation")
+        if self.minimum_depth_separation_m < 0.0:
+            raise ValueError("contact-facing depth separation must be non-negative")
+        if not 0.0 < self.maximum_facing_angle_rad <= np.pi:
+            raise ValueError("contact-facing cone angle must be within (0, pi]")
 
 
 @dataclass(frozen=True)
@@ -202,6 +272,9 @@ class SupportPlaneFactorInput:
     activation_status_by_frame: Mapping[int, str] | None = None
     activation_weight_by_frame: Mapping[int, float] | None = None
     proximity_gate_m: float | None = None
+    contact_reduction: str = "all_points"
+    contact_group_by_frame: Mapping[int, int] | None = None
+    all_contact_points_frames: tuple[int, ...] = ()
     tangent_gauge_weight: float = 0.0
     tangent_gauge_sigma_rad: float = 1.0
 
@@ -593,19 +666,27 @@ def build_support_plane_residual_inputs(
     activation_status_by_frame: Mapping[int, str] | None = None,
     activation_weight_by_frame: Mapping[int, float] | None = None,
     proximity_gate_m: float | None = None,
+    contact_reduction: str = "all_points",
+    contact_group_by_frame: Mapping[int, int] | None = None,
+    all_contact_points_frames: Iterable[int] = (),
     tangent_gauge_weight: float = 0.0,
     tangent_gauge_sigma_rad: float = 1.0,
 ) -> dict[str, dict[str, Any]]:
+    all_points_frame_set = {int(value) for value in all_contact_points_frames}
     distances: list[float] = []
     row_weights: list[float] = []
+    penetration_row_weights: list[float] = []
     for frame in sorted(set(int(value) for value in active_frames)):
         state = object_states.get(frame)
         if state is None:
             continue
         frame_distances: list[float] = []
+        feature_group_sizes: list[int] = []
         for feature_id in support_feature_ids:
             points = geometry_provider.feature_points_world(state, feature_id)
-            frame_distances.extend(float(value) for value in plane.signed_distance(points))
+            feature_distances = [float(value) for value in plane.signed_distance(points)]
+            frame_distances.extend(feature_distances)
+            feature_group_sizes.append(len(feature_distances))
         frame_weight = float((activation_weight_by_frame or {}).get(frame, 1.0))
         if (
             proximity_gate_m is not None
@@ -614,13 +695,54 @@ def build_support_plane_residual_inputs(
             nearest = min(abs(value) for value in frame_distances)
             frame_weight *= max(0.0, min(1.0, 1.0 - nearest / float(proximity_gate_m)))
         distances.extend(frame_distances)
-        row_weights.extend([frame_weight] * len(frame_distances))
+        penetration_row_weights.extend([frame_weight] * len(frame_distances))
+        if contact_reduction == "all_points":
+            row_weights.extend([frame_weight] * len(frame_distances))
+        elif contact_reduction == "nearest_point":
+            nearest_index = int(np.argmin(np.abs(np.asarray(frame_distances, dtype=float))))
+            row_weights.extend([
+                frame_weight if index == nearest_index else 0.0
+                for index in range(len(frame_distances))
+            ])
+        elif contact_reduction == "nearest_feature_group":
+            if frame in all_points_frame_set:
+                row_weights.extend([frame_weight] * len(frame_distances))
+                continue
+            group_costs: list[float] = []
+            cursor = 0
+            for size in feature_group_sizes:
+                values = np.asarray(frame_distances[cursor : cursor + size], dtype=float)
+                group_costs.append(float(np.mean(np.abs(values))))
+                cursor += size
+            nearest_group = int((contact_group_by_frame or {}).get(
+                frame,
+                int(np.argmin(np.asarray(group_costs, dtype=float))),
+            ))
+            if nearest_group < 0 or nearest_group >= len(feature_group_sizes):
+                raise ValueError("support contact group index is outside declared feature groups")
+            row_weights.extend([
+                frame_weight if group_index == nearest_group else 0.0
+                for group_index, size in enumerate(feature_group_sizes)
+                for _ in range(size)
+            ])
+        else:
+            raise ValueError(f"unsupported support contact reduction: {contact_reduction}")
     if not distances:
         return {}
+    # Contact reduction selects which point/group is required to carry the
+    # object.  It must not disable collision handling for the remaining
+    # declared support points: a tilted rolling rigid body normally rests on
+    # one wheel group while every other wheel is still forbidden to cross the
+    # floor.  Sharing the reduced contact weights with penetration incorrectly
+    # either pins every wheel to the plane or permits inactive wheels through
+    # it.
     payload: dict[str, Any] = {
             "signed_distance_m": distances,
             "support_weight": [float(support_weight) * value for value in row_weights],
-            "penetration_weight": [float(penetration_weight) * value for value in row_weights],
+            "penetration_weight": [
+                float(penetration_weight) * value
+                for value in penetration_row_weights
+            ],
             "sigma_m": float(sigma_m),
     }
     tangent_rows: list[float] = []
@@ -860,11 +982,11 @@ def build_world_space_contact_sample_residual_inputs(
         state = object_states.get(int(sample.frame))
         if state is None:
             continue
-        source_xyz = [
+        raw_source_xyz = [
             float(value) + float(offset)
             for value, offset in zip(sample.source_xyz_m, sample.source_offset_xyz_m)
         ]
-        if len(source_xyz) != 3:
+        if len(raw_source_xyz) != 3:
             raise ValueError("world-space source sites must have exactly three coordinates")
         feature_id = sample.object_feature_id or object_feature_id
         if feature_id is None:
@@ -872,13 +994,20 @@ def build_world_space_contact_sample_residual_inputs(
                 f"world-space contact sample at frame {sample.frame} requires a target feature id"
             )
         if sample.line_s is None:
-            target_xyz = geometry_provider.contact_point_world(state, feature_id, source_xyz)
+            target_xyz = geometry_provider.contact_point_world(state, feature_id, raw_source_xyz)
         else:
             line_point_world = getattr(geometry_provider, "line_point_world", None)
             if line_point_world is None:
                 raise ValueError("LineS contact requires line-parameter geometry capability")
             target_xyz = line_point_world(state, sample.line_s)
         target_xyz = [float(value) for value in target_xyz]
+        source_xyz = _contact_source_at_target_depth(sample, target_xyz).tolist()
+        if sample.source_uv_px is not None and sample.line_s is None:
+            target_xyz = [
+                float(value)
+                for value in geometry_provider.contact_point_world(state, feature_id, source_xyz)
+            ]
+            source_xyz = _contact_source_at_target_depth(sample, target_xyz).tolist()
         for axis in {0, 1, 2} - set(residual_axes):
             source_xyz[axis] = target_xyz[axis]
         anchors.append(source_xyz)
@@ -939,6 +1068,7 @@ def build_world_space_contact_relative_velocity_residual_inputs(
     weight: float,
     sigma_m_per_frame: float,
     weight_by_frame: Mapping[int, float] | None = None,
+    residual_axes: tuple[int, ...] = (0, 1, 2),
 ) -> dict[str, dict[str, Any]]:
     """Match object-anchor and read-only human-site displacement during a persistent grasp."""
 
@@ -949,15 +1079,15 @@ def build_world_space_contact_relative_velocity_residual_inputs(
         feature_id = current.object_feature_id or object_feature_id
         if feature_id is None:
             raise ValueError("contact relative velocity requires a target feature id")
-        previous_source = np.asarray(previous.source_xyz_m, dtype=float) + np.asarray(previous.source_offset_xyz_m, dtype=float)
-        current_source = np.asarray(current.source_xyz_m, dtype=float) + np.asarray(current.source_offset_xyz_m, dtype=float)
+        previous_raw_source = np.asarray(previous.source_xyz_m, dtype=float) + np.asarray(previous.source_offset_xyz_m, dtype=float)
+        current_raw_source = np.asarray(current.source_xyz_m, dtype=float) + np.asarray(current.source_offset_xyz_m, dtype=float)
         if current.line_s is None:
             previous_target = np.asarray(
-                geometry_provider.contact_point_world(object_states[previous.frame], feature_id, previous_source),
+                geometry_provider.contact_point_world(object_states[previous.frame], feature_id, previous_raw_source),
                 dtype=float,
             )
             current_target = np.asarray(
-                geometry_provider.contact_point_world(object_states[current.frame], feature_id, current_source),
+                geometry_provider.contact_point_world(object_states[current.frame], feature_id, current_raw_source),
                 dtype=float,
             )
         else:
@@ -966,8 +1096,14 @@ def build_world_space_contact_relative_velocity_residual_inputs(
                 raise ValueError("LineS relative velocity requires line-parameter geometry capability")
             previous_target = np.asarray(line_point_world(object_states[previous.frame], previous.line_s), dtype=float)
             current_target = np.asarray(line_point_world(object_states[current.frame], current.line_s), dtype=float)
-        source_displacements.append((current_source - previous_source).tolist())
-        target_displacements.append((current_target - previous_target).tolist())
+        previous_source = _contact_source_at_target_depth(previous, previous_target)
+        current_source = _contact_source_at_target_depth(current, current_target)
+        source_displacement = current_source - previous_source
+        target_displacement = current_target - previous_target
+        for axis in {0, 1, 2} - set(residual_axes):
+            source_displacement[axis] = target_displacement[axis]
+        source_displacements.append(source_displacement.tolist())
+        target_displacements.append(target_displacement.tolist())
         confidence = min(
             1.0 if previous.confidence is None else previous.confidence,
             1.0 if current.confidence is None else current.confidence,
@@ -981,6 +1117,90 @@ def build_world_space_contact_relative_velocity_residual_inputs(
             "target_displacement_m": target_displacements,
             "weight": _scalar_or_row_weights(row_weights, weight),
             "sigma_m_per_frame": float(sigma_m_per_frame),
+        }
+    }
+
+
+def _rotate_wxyz(quaternion: Sequence[float], vector: Sequence[float]) -> np.ndarray:
+    q = np.asarray(quaternion, dtype=float)
+    q /= np.linalg.norm(q)
+    w, x, y, z = q
+    rotation = np.asarray(
+        (
+            (1.0 - 2.0 * (y * y + z * z), 2.0 * (x * y - z * w), 2.0 * (x * z + y * w)),
+            (2.0 * (x * y + z * w), 1.0 - 2.0 * (x * x + z * z), 2.0 * (y * z - x * w)),
+            (2.0 * (x * z - y * w), 2.0 * (y * z + x * w), 1.0 - 2.0 * (x * x + y * y)),
+        ),
+        dtype=float,
+    )
+    return rotation @ np.asarray(vector, dtype=float)
+
+
+def build_contact_facing_residual_inputs(
+    *,
+    factor_id: str,
+    object_states: Mapping[int, Sequence[float]],
+    factor: ContactFacingFactorInput,
+    weight: float,
+    sigma_rad: float,
+    weight_by_frame: Mapping[int, float] | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Keep a descriptor face normal inside a human-facing angular cone."""
+
+    plane_normal = np.asarray(factor.support_normal_world, dtype=float)
+    plane_normal /= np.linalg.norm(plane_normal)
+    local_axis = np.asarray(factor.local_facing_axis, dtype=float)
+    local_axis /= np.linalg.norm(local_axis)
+    depth_axis = np.asarray(factor.camera_depth_axis_world, dtype=float)
+    depth_axis /= np.linalg.norm(depth_axis)
+    direction_deltas: list[list[float]] = []
+    row_weights: list[float] = []
+    for frame in factor.active_frames:
+        if frame not in object_states or frame not in factor.human_reference_by_frame:
+            continue
+        state = np.asarray(object_states[frame], dtype=float)
+        if len(state) < 7:
+            raise ValueError("contact facing requires root translation and quaternion")
+        predicted = _rotate_wxyz(state[3:7], local_axis)
+        desired = np.asarray(factor.human_reference_by_frame[frame], dtype=float) - state[:3]
+        if factor.depth_relation == "object_behind_human":
+            depth_component = float(desired @ depth_axis)
+            maximum_component = -float(factor.minimum_depth_separation_m)
+            if depth_component > maximum_component:
+                desired += (maximum_component - depth_component) * depth_axis
+        predicted -= plane_normal * float(predicted @ plane_normal)
+        desired -= plane_normal * float(desired @ plane_normal)
+        predicted_norm = float(np.linalg.norm(predicted))
+        desired_norm = float(np.linalg.norm(desired))
+        if predicted_norm <= 1e-8 or desired_norm <= 1e-8:
+            continue
+        predicted /= predicted_norm
+        desired /= desired_norm
+        signed_angle = float(np.arctan2(
+            plane_normal @ np.cross(desired, predicted),
+            float(desired @ predicted),
+        ))
+        violation = max(0.0, abs(signed_angle) - float(factor.maximum_facing_angle_rad))
+        if violation <= 0.0:
+            direction_deltas.append([0.0, 0.0, 0.0])
+        else:
+            correction_angle = -np.sign(signed_angle) * violation
+            cosine = float(np.cos(correction_angle))
+            sine = float(np.sin(correction_angle))
+            corrected = (
+                predicted * cosine
+                + np.cross(plane_normal, predicted) * sine
+                + plane_normal * float(plane_normal @ predicted) * (1.0 - cosine)
+            )
+            direction_deltas.append((predicted - corrected).tolist())
+        row_weights.append(float((weight_by_frame or {}).get(frame, weight)))
+    if not direction_deltas:
+        return {}
+    return {
+        factor_id: {
+            "direction_delta": direction_deltas,
+            "weight": _scalar_or_row_weights(row_weights, weight),
+            "sigma_rad": float(sigma_rad),
         }
     }
 
@@ -1205,6 +1425,7 @@ def build_geometry_sequence_residual_input_bundle(
     reference_states: Mapping[int, Sequence[float]] | None = None,
     contact_factors: Mapping[str, ContactFactorInput] | None = None,
     contact_relative_velocity_factors: Mapping[str, ContactFactorInput] | None = None,
+    contact_facing_factors: Mapping[str, ContactFacingFactorInput] | None = None,
     contact_twist_gauge_factors: Mapping[str, ContactFactorInput] | None = None,
     pose_prior_factors: Mapping[str, PosePriorFactorInput] | None = None,
     periodic_phase_factors: Mapping[str, PeriodicPhaseFactorInput] | None = None,
@@ -1216,6 +1437,10 @@ def build_geometry_sequence_residual_input_bundle(
     mask_silhouette_factors: Mapping[str, MaskSilhouetteFactorInput] | None = None,
     metric_depth_factors: Mapping[str, MetricDepthFactorInput] | None = None,
     support_plane_factors: Mapping[str, SupportPlaneFactorInput] | None = None,
+    face_visibility_factors: Mapping[str, FaceVisibilityFactorInput] | None = None,
+    facing_relation_factors: Mapping[str, FacingRelationFactorInput] | None = None,
+    heading_topology_factors: Mapping[str, HeadingTopologyFactorInput] | None = None,
+    audio_motion_factors: Mapping[str, AudioMotionEnvelopeFactorInput] | None = None,
     rotation_quaternion_indices: tuple[tuple[int, int, int, int], ...] = (),
 ) -> dict[str, dict[str, Any]]:
     """Build common sequence residuals from explicit state and factor inputs.
@@ -1304,6 +1529,26 @@ def build_geometry_sequence_residual_input_bundle(
             weight_by_frame=_runtime_weights_by_frame(
                 request,
                 (sample.frame for sample in factor.samples),
+                base_weight,
+            ),
+            residual_axes=factor.residual_axes,
+        )
+        return payload.get(request.factor_id)
+
+    def contact_facing(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (contact_facing_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        base_weight = _runtime_weight(request, factor.weight)
+        payload = build_contact_facing_residual_inputs(
+            factor_id=request.factor_id,
+            object_states=object_states,
+            factor=factor,
+            weight=base_weight,
+            sigma_rad=_runtime_sigma(request, factor.sigma_rad, "rad"),
+            weight_by_frame=_runtime_weights_by_frame(
+                request,
+                factor.active_frames,
                 base_weight,
             ),
         )
@@ -1495,10 +1740,71 @@ def build_geometry_sequence_residual_input_bundle(
             activation_status_by_frame=factor.activation_status_by_frame,
             activation_weight_by_frame=factor.activation_weight_by_frame,
             proximity_gate_m=factor.proximity_gate_m,
+            contact_reduction=factor.contact_reduction,
+            contact_group_by_frame=factor.contact_group_by_frame,
+            all_contact_points_frames=factor.all_contact_points_frames,
             tangent_gauge_weight=factor.tangent_gauge_weight,
             tangent_gauge_sigma_rad=factor.tangent_gauge_sigma_rad,
         )
         return payload.get(request.factor_id)
+
+    def face_visibility(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (face_visibility_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        base_weight = _runtime_weight(request, factor.weight)
+        payload = build_face_visibility_inputs(
+            object_states,
+            factor,
+            _runtime_weights_by_frame(request, factor.active_frames, base_weight),
+        )
+        return {**payload, "weight": payload["weight"]} if payload["selected_rank"] else None
+
+    def facing_relation(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (facing_relation_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        base_weight = _runtime_weight(request, factor.weight)
+        payload = build_facing_relation_inputs(
+            object_states,
+            factor,
+            _runtime_weights_by_frame(request, factor.active_frames, base_weight),
+        )
+        return payload if payload["agreement"] else None
+
+    def heading_topology(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (heading_topology_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        base_weight = _runtime_weight(request, factor.weight)
+        frames = tuple(
+            frame
+            for interval in factor.intervals
+            for frame in range(interval.start_frame + 1, interval.end_frame + 1)
+        )
+        payload = build_heading_topology_inputs(
+            object_states,
+            factor,
+            _runtime_weights_by_frame(request, frames, base_weight),
+        )
+        return payload if payload["signed_increment_rad"] else None
+
+    def audio_motion(request: ResidualInputRequest) -> dict[str, Any] | None:
+        factor = (audio_motion_factors or {}).get(request.factor_id)
+        if factor is None:
+            return None
+        base_weight = _runtime_weight(request, factor.weight)
+        frames = tuple(
+            frame
+            for interval in factor.intervals
+            for frame in range(interval.start_frame + 1, interval.end_frame + 1)
+        )
+        payload = build_audio_motion_inputs(
+            object_states,
+            factor,
+            _runtime_weights_by_frame(request, frames, base_weight),
+        )
+        return payload if payload["tangential_speed_m_per_frame"] else None
 
     return build_residual_input_bundle(
         residual_execution_plan,
@@ -1509,6 +1815,7 @@ def build_geometry_sequence_residual_input_bundle(
             "shadow_residual::regularization": regularization,
             "shadow_residual::contact_distance": contact,
             "shadow_residual::contact_relative_velocity": contact_relative_velocity,
+            "shadow_residual::contact_facing": contact_facing,
             "shadow_residual::contact_twist_gauge": contact_twist_gauge,
             "shadow_residual::pose_prior": pose_prior,
             "shadow_residual::periodic_phase_prior": periodic_phase,
@@ -1520,6 +1827,10 @@ def build_geometry_sequence_residual_input_bundle(
             "shadow_residual::mask_silhouette": mask_silhouette,
             "shadow_residual::metric_depth": metric_depth,
             "shadow_residual::support_and_penetration": support_plane,
+            "shadow_residual::face_visibility_inequality": face_visibility,
+            "shadow_residual::facing_relation": facing_relation,
+            "shadow_residual::heading_topology": heading_topology,
+            "shadow_residual::audio_motion_envelope": audio_motion,
         },
     )
 
@@ -1532,6 +1843,7 @@ def build_geometry_sequence_residual_dependencies(
     reference_states: Mapping[int, Sequence[float]] | None = None,
     contact_factors: Mapping[str, ContactFactorInput] | None = None,
     contact_relative_velocity_factors: Mapping[str, ContactFactorInput] | None = None,
+    contact_facing_factors: Mapping[str, ContactFacingFactorInput] | None = None,
     contact_twist_gauge_factors: Mapping[str, ContactFactorInput] | None = None,
     periodic_phase_factors: Mapping[str, PeriodicPhaseFactorInput] | None = None,
     line_reprojection_factors: Mapping[str, LineReprojectionFactorInput] | None = None,
@@ -1539,6 +1851,10 @@ def build_geometry_sequence_residual_dependencies(
     mask_silhouette_factors: Mapping[str, MaskSilhouetteFactorInput] | None = None,
     metric_depth_factors: Mapping[str, MetricDepthFactorInput] | None = None,
     support_plane_factors: Mapping[str, SupportPlaneFactorInput] | None = None,
+    face_visibility_factors: Mapping[str, FaceVisibilityFactorInput] | None = None,
+    facing_relation_factors: Mapping[str, FacingRelationFactorInput] | None = None,
+    heading_topology_factors: Mapping[str, HeadingTopologyFactorInput] | None = None,
+    audio_motion_factors: Mapping[str, AudioMotionEnvelopeFactorInput] | None = None,
 ) -> tuple[ResidualRowDependency, ...]:
     """Compile typed runtime input ordering into row-level state dependencies.
 
@@ -1655,6 +1971,19 @@ def build_geometry_sequence_residual_dependencies(
                     )
                 )
             continue
+        if residual_ref == "shadow_residual::contact_facing":
+            factor = (contact_facing_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            residual_index = 0
+            for frame in factor.active_frames:
+                if frame not in object_states or frame not in factor.human_reference_by_frame:
+                    continue
+                dependencies.append(
+                    ResidualRowDependency(factor_id, 3 * residual_index, 3 * (residual_index + 1), (frame,))
+                )
+                residual_index += 1
+            continue
         if residual_ref == "shadow_residual::contact_twist_gauge":
             factor = (contact_twist_gauge_factors or {}).get(factor_id)
             if factor is None:
@@ -1674,6 +2003,52 @@ def build_geometry_sequence_residual_dependencies(
                         (frame - 1, frame),
                     )
                 )
+            continue
+        if residual_ref == "shadow_residual::face_visibility_inequality":
+            factor = (face_visibility_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            row = 0
+            for frame in factor.active_frames:
+                if frame in object_states and frame in factor.camera_center_world_by_frame:
+                    dependencies.append(ResidualRowDependency(factor_id, row, row + 1, (frame,)))
+                    row += 1
+            continue
+        if residual_ref == "shadow_residual::facing_relation":
+            factor = (facing_relation_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            row = 0
+            for frame in factor.active_frames:
+                if frame in object_states and frame in factor.human_reference_by_frame:
+                    dependencies.append(ResidualRowDependency(factor_id, row, row + 1, (frame,)))
+                    row += 1
+            continue
+        if residual_ref == "shadow_residual::heading_topology":
+            factor = (heading_topology_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            row = 0
+            for interval in factor.intervals:
+                if interval.label not in {"counterclockwise", "clockwise"} or not interval.geometry_consistent:
+                    continue
+                for frame in range(interval.start_frame + 1, interval.end_frame + 1):
+                    if frame - 1 in object_states and frame in object_states:
+                        dependencies.append(ResidualRowDependency(factor_id, row, row + 1, (frame - 1, frame)))
+                        row += 1
+            continue
+        if residual_ref == "shadow_residual::audio_motion_envelope":
+            factor = (audio_motion_factors or {}).get(factor_id)
+            if factor is None:
+                continue
+            row = 0
+            for interval in factor.intervals:
+                if interval.event_type == "silence" and not interval.visual_speed_is_low:
+                    continue
+                for frame in range(interval.start_frame + 1, interval.end_frame + 1):
+                    if frame - 1 in object_states and frame in object_states:
+                        dependencies.append(ResidualRowDependency(factor_id, row, row + 1, (frame - 1, frame)))
+                        row += 1
             continue
         if residual_ref == "shadow_residual::periodic_phase_prior":
             factor = (periodic_phase_factors or {}).get(factor_id)

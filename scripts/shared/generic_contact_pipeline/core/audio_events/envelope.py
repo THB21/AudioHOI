@@ -86,7 +86,10 @@ def extract_audio_evidence(
     if fps <= 0:
         raise ValueError("video FPS must be positive")
     rate, samples = _read_pcm_mono(audio_path)
-    frame_count = max(1, int(np.ceil(len(samples) / rate * fps)))
+    # Audio containers commonly carry a few milliseconds of encoder padding.
+    # Map duration to the nearest video-frame count so sub-half-frame padding
+    # does not create an impossible extra object frame.
+    frame_count = max(1, int(round(len(samples) / rate * fps)))
     half_window = max(1, int(round(config.window_ms * rate / 2000.0)))
     rms = np.zeros(frame_count, dtype=np.float64)
     flux = np.zeros(frame_count, dtype=np.float64)

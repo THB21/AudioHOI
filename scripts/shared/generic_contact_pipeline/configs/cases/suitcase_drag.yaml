@@ -104,6 +104,19 @@ generic_object_problem:
   max_function_evaluations: 160
   interaction_factors: [contact_distance, contact_relative_velocity]
   environment_factors: [support_and_penetration]
+  semantic_factors: [face_visibility_inequality, facing_relation, heading_topology]
+  audio_factors: [audio_motion_envelope]
+  semantic_evidence:
+    artifact: vlm/stage4/semantic_relations.jsonl
+    minimum_confidence: 0.70
+    human_reference_body_part: foot
+    face_rank_margin: 0.05
+    facing_margin: 0.10
+    minimum_observable_increment_rad: 0.01
+    minimum_heading_increment_rad: 0.002
+  audio_motion_evidence:
+    visual_low_speed_px_per_frame: 3.0
+    minimum_motion_m_per_frame: 0.002
   environment_support_state: rolling
   support_plane:
     source: gvhmr_foot_sites
@@ -176,6 +189,30 @@ factor_runtime:
     sigma_unit: m
     source: asset_declared_rigid_wheel_support_points_and_gvhmr_floor
     activation_weight_tiers: {active: 1.0, downweighted: 1.0, inactive: 0.0}
+  face_visibility_inequality:
+    weight: 1.0
+    sigma: 0.20
+    sigma_unit: rank
+    source: fixed_profile_semantic_face_rank
+    activation_weight_tiers: {active: 1.0, downweighted: 0.15, inactive: 0.0}
+  facing_relation:
+    weight: 1.5
+    sigma: 0.20
+    sigma_unit: alignment
+    source: fixed_profile_grasp_face_to_human_bearing
+    activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
+  heading_topology:
+    weight: 1.2
+    sigma: 0.08
+    sigma_unit: rad
+    source: fixed_profile_signed_heading_topology
+    activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
+  audio_motion_envelope:
+    weight: 1.5
+    sigma: 0.006
+    sigma_unit: m/frame
+    source: fixed_profile_interval_audio_motion_envelope
+    activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
 vlm:
   target: rigid rolling suitcase
   parts: [handle, body, wheels, background, unclear]

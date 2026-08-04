@@ -122,8 +122,12 @@ def _robust_loss(kind: FactorKind) -> str:
         FactorKind.METRIC_DEPTH,
         FactorKind.CONTACT_DISTANCE,
         FactorKind.CONTACT_RELATIVE_VELOCITY,
+        FactorKind.CONTACT_FACING,
         FactorKind.CONTACT_TWIST_GAUGE,
         FactorKind.SUPPORT_AND_PENETRATION,
+        FactorKind.FACE_VISIBILITY_INEQUALITY,
+        FactorKind.FACING_RELATION,
+        FactorKind.HEADING_TOPOLOGY,
     }:
         return "huber_shadow"
     if kind in {
@@ -131,6 +135,7 @@ def _robust_loss(kind: FactorKind) -> str:
         FactorKind.TEMPORAL_ACCELERATION,
         FactorKind.STATIC_FREEZE,
         FactorKind.CONTACT_TWIST_GAUGE,
+        FactorKind.AUDIO_MOTION_ENVELOPE,
     }:
         return "quadratic_shadow"
     return "identity_shadow"

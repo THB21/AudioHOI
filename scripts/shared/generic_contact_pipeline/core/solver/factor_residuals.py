@@ -20,6 +20,12 @@ def _row_weights(weight: float | np.ndarray, row_count: int) -> np.ndarray:
     return flattened
 
 
+def _smooth_hinge(values: np.ndarray, margin: float, beta: float = 20.0) -> np.ndarray:
+    """Finite soft lower-bound violation: zero-ish above ``margin``."""
+
+    return np.logaddexp(0.0, beta * (float(margin) - values)) / beta
+
+
 @dataclass(frozen=True)
 class FactorResidualEvaluator:
     """Shared residual block assembly for isolated factor executors.
@@ -63,8 +69,6 @@ class FactorResidualEvaluator:
             raise ValueError("mask principal axes must be matching (N, 2) arrays")
         if axis_weights.shape != (len(delta),):
             raise ValueError("mask principal-axis weights must match rows")
-        # A silhouette axis is undirected. The 2-D determinant is sin(theta),
-        # hence it is zero for both aligned and sign-reversed equivalent axes.
         signed_sine = (
             predicted_axis[:, 0] * target_axis[:, 1]
             - predicted_axis[:, 1] * target_axis[:, 0]
@@ -160,6 +164,22 @@ class FactorResidualEvaluator:
             _row_weights(weight, len(delta))[:, None]
             * delta
             / float(sigma_m_per_frame)
+        ).reshape(-1).astype(float)
+
+    def contact_facing(
+        self,
+        direction_delta: np.ndarray,
+        *,
+        weight: float | np.ndarray,
+        sigma_rad: float,
+    ) -> np.ndarray:
+        values = np.asarray(direction_delta, dtype=float)
+        if values.ndim != 2 or values.shape[1] != 3:
+            raise ValueError("contact facing requires an (N, 3) direction delta")
+        return (
+            _row_weights(weight, len(values))[:, None]
+            * values
+            / float(sigma_rad)
         ).reshape(-1).astype(float)
 
     def contact_twist_gauge(
@@ -288,3 +308,68 @@ class FactorResidualEvaluator:
             * (predicted_event_time_s.reshape(-1) - observed_event_time_s.reshape(-1))
             / float(sigma_s)
         ).astype(float)
+
+    def face_visibility_inequality(
+        self,
+        selected_rank: np.ndarray,
+        incompatible_rank: np.ndarray,
+        *,
+        weight: float | np.ndarray,
+        margin: float,
+        sigma: float,
+    ) -> np.ndarray:
+        selected = np.asarray(selected_rank, dtype=float).reshape(-1)
+        incompatible = np.asarray(incompatible_rank, dtype=float).reshape(-1)
+        if selected.shape != incompatible.shape:
+            raise ValueError("face visibility ranks must have matching shapes")
+        agreement = selected - incompatible
+        return (_row_weights(weight, len(agreement)) * _smooth_hinge(agreement, margin) / float(sigma)).astype(float)
+
+    def facing_relation(
+        self,
+        agreement: np.ndarray,
+        *,
+        weight: float | np.ndarray,
+        margin: float,
+        sigma: float,
+    ) -> np.ndarray:
+        values = np.asarray(agreement, dtype=float).reshape(-1)
+        return (_row_weights(weight, len(values)) * _smooth_hinge(values, margin) / float(sigma)).astype(float)
+
+    def heading_topology(
+        self,
+        signed_increment_rad: np.ndarray,
+        target_sign: np.ndarray,
+        *,
+        weight: float | np.ndarray,
+        minimum_increment_rad: float,
+        sigma_rad: float,
+    ) -> np.ndarray:
+        increments = np.asarray(signed_increment_rad, dtype=float).reshape(-1)
+        signs = np.asarray(target_sign, dtype=float).reshape(-1)
+        if increments.shape != signs.shape or np.any(np.abs(signs) != 1.0):
+            raise ValueError("heading topology requires matching increments and +/-1 target signs")
+        agreement = increments * signs
+        return (_row_weights(weight, len(agreement)) * _smooth_hinge(agreement, minimum_increment_rad) / float(sigma_rad)).astype(float)
+
+    def audio_motion_envelope(
+        self,
+        tangential_speed_m_per_frame: np.ndarray,
+        event_mode: np.ndarray,
+        *,
+        weight: float | np.ndarray,
+        minimum_motion_m_per_frame: float,
+        sigma_m_per_frame: float,
+    ) -> np.ndarray:
+        speed = np.asarray(tangential_speed_m_per_frame, dtype=float).reshape(-1)
+        mode = np.asarray(event_mode, dtype=float).reshape(-1)
+        if speed.shape != mode.shape or np.any(speed < 0.0):
+            raise ValueError("audio motion envelope requires matching nonnegative speed and mode arrays")
+        residual = np.zeros_like(speed)
+        moving = mode == 1.0
+        silent = mode == 0.0
+        residual[moving] = _smooth_hinge(speed[moving], minimum_motion_m_per_frame)
+        residual[silent] = speed[silent]
+        # Onset/offset and seam-click evidence intentionally impose no position;
+        # their role is to relax transition smoothing through activation policy.
+        return (_row_weights(weight, len(speed)) * residual / float(sigma_m_per_frame)).astype(float)

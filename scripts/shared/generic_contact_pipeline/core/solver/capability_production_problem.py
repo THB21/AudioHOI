@@ -14,11 +14,14 @@ import numpy as np
 
 from ..base.config import CaseProfile
 from ..base.schema import resolve_contact_artifact
+from ..audio_events import AudioEventType, load_audio_events
 from ..contact_constraints import ContactConstraint, ContactMode, ContactState, LineS, LocalXYZ, adapt_contact_event_rows, adapt_contact_state_rows, adapt_legacy_contact_rows
 from ..human_sites import GVHMRSiteExtractionResult, HumanSiteMeasurement, extract_gvhmr_site_measurements
 from ..factors import FactorArbitrationLedger, build_factor_arbitration_ledger, factor_arbitration_ledger_record
 from ..gates import load_factor_arbitration_ledger
+from ..interaction import ContactStateAxis, VisibilityState, build_interaction_timeline
 from ..measurements import Line2DMeasurement, Mask2DMeasurement, MetricDepthMeasurement, Point2DMeasurement, VisibilityMeasurement, adapt_configured_supplemental_measurements, adapt_legacy_observation_rows
+from ..semantics import SemanticRelation, load_semantic_relations
 from ..state import (
     Bound,
     CapsuleGeometryProvider,
@@ -50,6 +53,15 @@ from .capability_initializers import InitializationRequest, initialize_from_capa
 from .problem import build_sequence_problem_shadow
 from .problem_factory import SequenceFactorInputs, SequenceProblemFactory, SequenceProblemPreparation
 from .residual_inputs import ContactFacingFactorInput, ContactFactorInput, LineReprojectionFactorInput, MaskSilhouetteFactorInput, MetricDepthFactorInput, PeriodicPhaseFactorInput, PointReprojectionFactorInput, SupportPlaneFactorInput, WorldSpaceContactSample
+from .semantic_factor_inputs import (
+    AudioMotionEnvelopeFactorInput,
+    AudioMotionInterval,
+    FaceVisibilityFactorInput,
+    FacingRelationFactorInput,
+    HeadingTopologyFactorInput,
+    HeadingTopologyInterval,
+    arbitrate_heading_topology,
+)
 
 
 def _sha256(path: Path) -> str:
@@ -93,6 +105,43 @@ def _approved_amodal_reference_frames(
 
 def _canonical_hash(value: object) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def _semantic_relation_by_frame(
+    relations: Sequence[SemanticRelation],
+    predicate: str,
+    *,
+    minimum_confidence: float,
+) -> dict[int, SemanticRelation]:
+    selected: dict[int, SemanticRelation] = {}
+    for relation in relations:
+        if relation.predicate != predicate or relation.label == "unclear" or relation.confidence < minimum_confidence:
+            continue
+        for frame in range(relation.start_frame, relation.end_frame + 1):
+            previous = selected.get(frame)
+            if previous is None or relation.confidence > previous.confidence:
+                selected[frame] = relation
+    return selected
+
+
+def _visual_speed_low_by_interval(
+    measurements: Sequence[object],
+    start_frame: int,
+    end_frame: int,
+    threshold_px_per_frame: float,
+) -> bool:
+    centers = {
+        item.meta.frame: np.asarray((item.u, item.v), dtype=float)
+        for item in measurements
+        if isinstance(item, Point2DMeasurement)
+        and item.meta.feature.semantic_role == "object_center"
+    }
+    speeds = [
+        float(np.linalg.norm(centers[frame] - centers[frame - 1]))
+        for frame in range(start_frame + 1, end_frame + 1)
+        if frame in centers and frame - 1 in centers
+    ]
+    return bool(speeds) and float(np.median(speeds)) <= threshold_px_per_frame
 
 
 def _gate_feature_points_by_human_site(
@@ -748,6 +797,7 @@ class CapabilityObjectProblemPreparation:
     measurement_count: int
     contact_constraint_count: int
     factor_arbitration: FactorArbitrationLedger
+    evidence_consumption: tuple[Mapping[str, object], ...] = ()
     contact_facing_projection: ContactFacingFactorInput | None = None
     bounded_gap_smoothing_frames: tuple[int, ...] = ()
     adjacent_translation_smoothing_passes: int = 0
@@ -1056,12 +1106,159 @@ def prepare_capability_object_problem(
     mask_factors: dict[str, MaskSilhouetteFactorInput] = {}
     depth_factors: dict[str, MetricDepthFactorInput] = {}
     support_factors: dict[str, SupportPlaneFactorInput] = {}
+    face_visibility_factors: dict[str, FaceVisibilityFactorInput] = {}
+    facing_relation_factors: dict[str, FacingRelationFactorInput] = {}
+    heading_topology_factors: dict[str, HeadingTopologyFactorInput] = {}
+    audio_motion_factors: dict[str, AudioMotionEnvelopeFactorInput] = {}
     reference_state_frames = _approved_amodal_reference_frames(
         result_dir,
         config.get("occluded_pose_reference"),
     )
     cameras = {frame: PinholeCamera(**profile.camera) for frame in initial_states}
     line_measurements = tuple(item for item in measurements if isinstance(item, Line2DMeasurement))
+    configured_interaction_artifact = config.get("interaction_state_artifact")
+    timeline = build_interaction_timeline(
+        profile.case_name,
+        result_dir,
+        None if not configured_interaction_artifact else result_dir / str(configured_interaction_artifact),
+        environment_support_mode=str(config.get("environment_support_state", "")),
+    )
+    state_by_frame = {state.frame: state for state in timeline.frames}
+    flags = set(profile.data.get("ablation_flags", ()))
+    semantic_config = config.get("semantic_evidence", {})
+    if not isinstance(semantic_config, Mapping):
+        raise ValueError("semantic_evidence configuration must be a mapping")
+    semantic_relations = (
+        ()
+        if "disable_vlm_semantic_evidence" in flags
+        else load_semantic_relations(result_dir / str(semantic_config.get("artifact", "vlm/stage4/semantic_relations.jsonl")))
+    )
+    semantic_confidence = float(semantic_config.get("minimum_confidence", 0.70))
+    face_features = descriptor.get("semantic_orientation_features", {})
+    face_normals = {
+        str(label): tuple(float(value) for value in raw["normal_local"])
+        for label, raw in face_features.items()
+        if isinstance(raw, Mapping) and isinstance(raw.get("normal_local"), (list, tuple))
+    } if isinstance(face_features, Mapping) else {}
+    face_relations = _semantic_relation_by_frame(
+        semantic_relations, "visible_face", minimum_confidence=semantic_confidence
+    )
+    face_frames = tuple(sorted(frame for frame, relation in face_relations.items() if relation.label in face_normals and frame in initial_states))
+    face_factor_input = None
+    if face_frames and len(face_normals) >= 2:
+        face_factor_input = FaceVisibilityFactorInput(
+            selected_face_normal_local_by_frame={frame: face_normals[face_relations[frame].label] for frame in face_frames},
+            incompatible_face_normals_local_by_frame={
+                frame: tuple(normal for label, normal in face_normals.items() if label != face_relations[frame].label)
+                for frame in face_frames
+            },
+            camera_center_world_by_frame={frame: (0.0, 0.0, 0.0) for frame in face_frames},
+            active_frames=face_frames,
+            confidence_by_frame={frame: face_relations[frame].confidence for frame in face_frames},
+            evidence_ids_by_frame={frame: (face_relations[frame].relation_id,) for frame in face_frames},
+            margin=float(semantic_config.get("face_rank_margin", 0.05)),
+        )
+    facing_relations = _semantic_relation_by_frame(
+        semantic_relations, "facing_relation", minimum_confidence=semantic_confidence
+    )
+    facing_frames = tuple(sorted(
+        frame for frame, relation in facing_relations.items()
+        if frame in initial_states
+        and frame in state_by_frame
+        and state_by_frame[frame].contact_state in {ContactStateAxis.PERSISTENT, ContactStateAxis.OCCLUDED_HOLD}
+    ))
+    facing_factor_input = None
+    if facing_frames:
+        reference_part = str(semantic_config.get("human_reference_body_part", "foot"))
+        human_points: dict[int, list[np.ndarray]] = {}
+        for site in gvhmr_sites.measurements:
+            if site.site.body_part == reference_part:
+                human_points.setdefault(site.frame, []).append(np.asarray(site.xyz_m, dtype=float))
+        human_reference = {
+            frame: tuple(float(value) for value in np.mean(np.stack(human_points[frame]), axis=0))
+            for frame in facing_frames if human_points.get(frame)
+        }
+        facing_frames = tuple(frame for frame in facing_frames if frame in human_reference)
+        if facing_frames:
+            facing_factor_input = FacingRelationFactorInput(
+                local_facing_axis=tuple(float(value) for value in face_normals.get("grasp_side_wide", (0.0, 1.0, 0.0))),
+                human_reference_by_frame=human_reference,
+                active_frames=facing_frames,
+                target_label_by_frame={frame: facing_relations[frame].label for frame in facing_frames},
+                confidence_by_frame={frame: facing_relations[frame].confidence for frame in facing_frames},
+                evidence_ids_by_frame={frame: (facing_relations[frame].relation_id,) for frame in facing_frames},
+                support_normal_world=tuple(float(value) for value in config.get("support_plane", {}).get("normal_camera", (0.0, -1.0, 0.0))),
+                margin=float(semantic_config.get("facing_margin", 0.10)),
+            )
+    heading_intervals = tuple(
+        HeadingTopologyInterval(
+            relation.start_frame,
+            relation.end_frame,
+            relation.label,
+            relation.confidence,
+            (relation.relation_id,),
+        )
+        for relation in semantic_relations
+        if relation.predicate == "turn_direction_screen"
+        and relation.label != "unclear"
+        and relation.confidence >= semantic_confidence
+    )
+    reliable_heading_frames = tuple(sorted(
+        {measurement.meta.frame for measurement in line_measurements}
+        & {
+            frame for frame, interaction in state_by_frame.items()
+            if interaction.visibility_state in {VisibilityState.VISIBLE, VisibilityState.PARTIALLY_VISIBLE}
+        }
+    ))
+    support_normal = tuple(float(value) for value in config.get("support_plane", {}).get("normal_camera", (0.0, -1.0, 0.0)))
+    heading_intervals = arbitrate_heading_topology(
+        heading_intervals,
+        initial_states,
+        support_normal_world=support_normal,
+        reliable_frames=reliable_heading_frames,
+        minimum_observable_increment_rad=float(semantic_config.get("minimum_observable_increment_rad", 0.01)),
+    )
+    heading_factor_input = HeadingTopologyFactorInput(
+        heading_intervals,
+        support_normal_world=support_normal,
+        minimum_increment_rad=float(semantic_config.get("minimum_heading_increment_rad", 0.002)),
+    ) if any(interval.geometry_consistent and interval.label in {"clockwise", "counterclockwise"} for interval in heading_intervals) else None
+    audio_config = config.get("audio_motion_evidence", {})
+    if not isinstance(audio_config, Mapping):
+        raise ValueError("audio_motion_evidence configuration must be a mapping")
+    audio_events = () if "disable_audio_events" in flags else load_audio_events(profile.case_name, result_dir).events
+    audio_intervals = tuple(
+        AudioMotionInterval(
+            start_frame=int(event.start_frame or event.frame),
+            end_frame=int(event.end_frame or event.frame),
+            event_type=event.event_type.value,
+            confidence=float(event.confidence if event.confidence is not None else 0.5),
+            evidence_id=event.event_id,
+            visual_speed_is_low=(
+                event.event_type == AudioEventType.SILENCE
+                and _visual_speed_low_by_interval(
+                    measurements,
+                    int(event.start_frame or event.frame),
+                    int(event.end_frame or event.frame),
+                    float(audio_config.get("visual_low_speed_px_per_frame", 3.0)),
+                )
+            ),
+        )
+        for event in audio_events
+        if event.event_type in {
+            AudioEventType.SUSTAINED_MOTION,
+            AudioEventType.SHORT_TUG,
+            AudioEventType.MOTION_ONSET,
+            AudioEventType.MOTION_OFFSET,
+            AudioEventType.SEAM_CLICK,
+            AudioEventType.SILENCE,
+        }
+    )
+    audio_factor_input = AudioMotionEnvelopeFactorInput(
+        audio_intervals,
+        support_normal_world=support_normal,
+        minimum_motion_m_per_frame=float(audio_config.get("minimum_motion_m_per_frame", 0.002)),
+    ) if audio_intervals else None
     measurement_roles = config.get("measurement_roles", {})
     point_roles = set(measurement_roles.get("point_reprojection", ())) if isinstance(measurement_roles, Mapping) else set()
     mask_roles = set(measurement_roles.get("mask_silhouette", ())) if isinstance(measurement_roles, Mapping) else set()
@@ -1135,6 +1332,14 @@ def prepare_capability_object_problem(
             )
         elif residual_ref == "shadow_residual::contact_twist_gauge":
             contact_twist_gauge_factors[factor_id] = ContactFactorInput(provider, samples, None)
+        elif residual_ref == "shadow_residual::face_visibility_inequality" and face_factor_input is not None:
+            face_visibility_factors[factor_id] = face_factor_input
+        elif residual_ref == "shadow_residual::facing_relation" and facing_factor_input is not None:
+            facing_relation_factors[factor_id] = facing_factor_input
+        elif residual_ref == "shadow_residual::heading_topology" and heading_factor_input is not None:
+            heading_topology_factors[factor_id] = heading_factor_input
+        elif residual_ref == "shadow_residual::audio_motion_envelope" and audio_factor_input is not None:
+            audio_motion_factors[factor_id] = audio_factor_input
         elif residual_ref == "shadow_residual::periodic_phase_prior":
             phase_targets = {frame: initial_states[frame][8] for frame in sorted(initial_states)}
             phase_factors[factor_id] = PeriodicPhaseFactorInput((), (), state_index=8, target_by_frame=phase_targets)
@@ -1291,6 +1496,10 @@ def prepare_capability_object_problem(
         mask_silhouette_factors=mask_factors,
         metric_depth_factors=depth_factors,
         support_plane_factors=support_factors,
+        face_visibility_factors=face_visibility_factors,
+        facing_relation_factors=facing_relation_factors,
+        heading_topology_factors=heading_topology_factors,
+        audio_motion_factors=audio_motion_factors,
     )
     preparation = SequenceProblemFactory().prepare(
         attempt_id=str(shadow["attempt_ledger"]["attempt_id"]),
@@ -1303,6 +1512,51 @@ def prepare_capability_object_problem(
         human_sites=gvhmr_sites.measurements,
         contact_initialization_mode="seed",
     )
+    record_by_id = {str(record["factor_id"]): record for record in records}
+    evidence_consumption: list[dict[str, object]] = []
+    for factor_id, factor in face_visibility_factors.items():
+        evidence_consumption.append({
+            "factor_id": factor_id,
+            "evidence_kind": "semantic_relation",
+            "evidence_ids": sorted({item for values in factor.evidence_ids_by_frame.values() for item in values}),
+            "start_frame": min(factor.active_frames),
+            "end_frame": max(factor.active_frames),
+            "weight_source": record_by_id[factor_id]["runtime_config"]["source"],
+            "gate_source": "visibility_state+typed_confidence",
+        })
+    for factor_id, factor in facing_relation_factors.items():
+        evidence_consumption.append({
+            "factor_id": factor_id,
+            "evidence_kind": "semantic_relation",
+            "evidence_ids": sorted({item for values in factor.evidence_ids_by_frame.values() for item in values}),
+            "start_frame": min(factor.active_frames),
+            "end_frame": max(factor.active_frames),
+            "weight_source": record_by_id[factor_id]["runtime_config"]["source"],
+            "gate_source": "persistent_contact+typed_confidence",
+        })
+    for factor_id, factor in heading_topology_factors.items():
+        active_intervals = tuple(interval for interval in factor.intervals if interval.geometry_consistent)
+        evidence_consumption.append({
+            "factor_id": factor_id,
+            "evidence_kind": "semantic_relation",
+            "evidence_ids": sorted({item for interval in factor.intervals for item in interval.evidence_ids}),
+            "start_frame": min(interval.start_frame for interval in factor.intervals),
+            "end_frame": max(interval.end_frame for interval in factor.intervals),
+            "active_evidence_ids": sorted({item for interval in active_intervals for item in interval.evidence_ids}),
+            "conflict_rejected_evidence_ids": sorted({item for interval in factor.intervals if not interval.geometry_consistent for item in interval.evidence_ids}),
+            "weight_source": record_by_id[factor_id]["runtime_config"]["source"],
+            "gate_source": "persistent_contact+reliable_geometry_sign_veto",
+        })
+    for factor_id, factor in audio_motion_factors.items():
+        evidence_consumption.append({
+            "factor_id": factor_id,
+            "evidence_kind": "audio_event",
+            "evidence_ids": sorted({interval.evidence_id for interval in factor.intervals}),
+            "start_frame": min(interval.start_frame for interval in factor.intervals),
+            "end_frame": max(interval.end_frame for interval in factor.intervals),
+            "weight_source": record_by_id[factor_id]["runtime_config"]["source"],
+            "gate_source": "support_state+audio_interval+visual_low_speed_for_silence",
+        })
     configured_contact_name = str(config.get("contact_artifact", "object_contact_points.csv"))
     initializer_inputs = [
         (
@@ -1326,6 +1580,7 @@ def prepare_capability_object_problem(
         measurement_count=len(measurements),
         contact_constraint_count=len(constraints),
         factor_arbitration=factor_arbitration,
+        evidence_consumption=tuple(evidence_consumption),
         contact_facing_projection=next(iter(contact_facing_factors.values()), None),
         bounded_gap_smoothing_frames=reference_state_frames,
         adjacent_translation_smoothing_passes=int(
@@ -1373,6 +1628,7 @@ def capability_object_problem_preparation_record(prepared: CapabilityObjectProbl
         "bounded_gap_rotation_recovery_frames": prepared.bounded_gap_rotation_recovery_frames,
         "bounded_gap_project_rotation": prepared.bounded_gap_project_rotation,
         "vlm_factor_arbitration": factor_arbitration_ledger_record(prepared.factor_arbitration),
+        "evidence_consumption": [dict(item) for item in prepared.evidence_consumption],
         "case_dispatch_used": False,
         "baseline_pose_read": False,
         "human_state_optimized": False,

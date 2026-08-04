@@ -20,6 +20,7 @@ from .optimization import SequenceOptimizationProblem
 from .parameterization import StateSpecParameterization
 from .residual_inputs import (
     AudioAlignmentFactorInput,
+    ContactFacingFactorInput,
     ContactFactorInput,
     GaugeFactorInput,
     JointLimitFactorInput,
@@ -32,6 +33,12 @@ from .residual_inputs import (
     SupportPlaneFactorInput,
     build_geometry_sequence_residual_dependencies,
     build_geometry_sequence_residual_input_bundle,
+)
+from .semantic_factor_inputs import (
+    AudioMotionEnvelopeFactorInput,
+    FaceVisibilityFactorInput,
+    FacingRelationFactorInput,
+    HeadingTopologyFactorInput,
 )
 
 
@@ -168,6 +175,72 @@ def _project_occluded_rotation_initial_states(
     return {frame: tuple(values) for frame, values in projected.items()}
 
 
+def _project_bounded_pose_reference_initial_states(
+    states: Mapping[int, Sequence[float]],
+    reference_frames: Sequence[int],
+    rotation_quaternion_indices: Sequence[tuple[int, int, int, int]],
+) -> dict[int, tuple[float, ...]]:
+    """Interpolate complete rigid state through explicitly approved gaps.
+
+    The approved frame ids come from a discrete occlusion-completion gate.
+    Pose values are never supplied by the VLM: translation and non-rotational
+    state are linearly interpolated from observable boundaries, while rigid
+    rotation uses the same shortest-path SLERP as the visual initializer.
+    """
+
+    projected = {int(frame): list(float(value) for value in state) for frame, state in states.items()}
+    selected = sorted(set(int(frame) for frame in reference_frames if int(frame) in projected))
+    if not selected:
+        return {frame: tuple(values) for frame, values in projected.items()}
+    runs: list[tuple[int, int]] = []
+    start = previous = selected[0]
+    for frame in selected[1:]:
+        if frame != previous + 1:
+            runs.append((start, previous))
+            start = frame
+        previous = frame
+    runs.append((start, previous))
+    quaternion_index_sets = {tuple(indices) for indices in rotation_quaternion_indices}
+    quaternion_indices = {index for indices in quaternion_index_sets for index in indices}
+    for start, end in runs:
+        left, right = start - 1, end + 1
+        if left not in projected or right not in projected:
+            continue
+        span = float(right - left)
+        for frame in range(start, end + 1):
+            alpha = (frame - left) / span
+            for index in range(len(projected[frame])):
+                if index in quaternion_indices:
+                    continue
+                projected[frame][index] = (
+                    (1.0 - alpha) * projected[left][index]
+                    + alpha * projected[right][index]
+                )
+        for indices in quaternion_index_sets:
+            q0 = np.asarray([projected[left][index] for index in indices], dtype=float)
+            q1 = np.asarray([projected[right][index] for index in indices], dtype=float)
+            q0 /= np.linalg.norm(q0)
+            q1 /= np.linalg.norm(q1)
+            dot = float(np.clip(q0 @ q1, -1.0, 1.0))
+            if dot < 0.0:
+                q1 *= -1.0
+                dot = -dot
+            angle = float(np.arccos(np.clip(dot, -1.0, 1.0)))
+            for frame in range(start, end + 1):
+                alpha = (frame - left) / span
+                if angle <= 1e-8:
+                    quaternion = (1.0 - alpha) * q0 + alpha * q1
+                else:
+                    quaternion = (
+                        np.sin((1.0 - alpha) * angle) * q0
+                        + np.sin(alpha * angle) * q1
+                    ) / np.sin(angle)
+                quaternion /= np.linalg.norm(quaternion)
+                for index, value in zip(indices, quaternion):
+                    projected[frame][index] = float(value)
+    return {frame: tuple(values) for frame, values in projected.items()}
+
+
 def _freeze_support_proximity_gates(
     factor_inputs: "SequenceFactorInputs",
     states: Mapping[int, Sequence[float]],
@@ -211,8 +284,10 @@ class SequenceFactorInputs:
 
     state_scales: tuple[float, ...]
     reference_states: Mapping[int, Sequence[float]] | None = None
+    reference_state_frames: tuple[int, ...] = ()
     contact_factors: Mapping[str, ContactFactorInput] = field(default_factory=dict)
     contact_relative_velocity_factors: Mapping[str, ContactFactorInput] = field(default_factory=dict)
+    contact_facing_factors: Mapping[str, ContactFacingFactorInput] = field(default_factory=dict)
     contact_twist_gauge_factors: Mapping[str, ContactFactorInput] = field(default_factory=dict)
     pose_prior_factors: Mapping[str, PosePriorFactorInput] = field(default_factory=dict)
     periodic_phase_factors: Mapping[str, PeriodicPhaseFactorInput] = field(default_factory=dict)
@@ -224,6 +299,10 @@ class SequenceFactorInputs:
     mask_silhouette_factors: Mapping[str, MaskSilhouetteFactorInput] = field(default_factory=dict)
     metric_depth_factors: Mapping[str, MetricDepthFactorInput] = field(default_factory=dict)
     support_plane_factors: Mapping[str, SupportPlaneFactorInput] = field(default_factory=dict)
+    face_visibility_factors: Mapping[str, FaceVisibilityFactorInput] = field(default_factory=dict)
+    facing_relation_factors: Mapping[str, FacingRelationFactorInput] = field(default_factory=dict)
+    heading_topology_factors: Mapping[str, HeadingTopologyFactorInput] = field(default_factory=dict)
+    audio_motion_factors: Mapping[str, AudioMotionEnvelopeFactorInput] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.state_scales or any(float(value) <= 0.0 for value in self.state_scales):
@@ -326,6 +405,22 @@ class SequenceProblemFactory:
         )
         states = _project_static_interval_initial_states(states, residual_execution_plan)
 
+        if factor_inputs.reference_state_frames:
+            states = _project_bounded_pose_reference_initial_states(
+                states,
+                factor_inputs.reference_state_frames,
+                rotation_quaternion_indices,
+            )
+
+        if factor_inputs.reference_states is None and factor_inputs.reference_state_frames:
+            reference_frames = tuple(
+                frame for frame in factor_inputs.reference_state_frames if frame in states
+            )
+            factor_inputs = replace(
+                factor_inputs,
+                reference_states={frame: states[frame] for frame in reference_frames},
+            )
+
         factor_inputs = _freeze_support_proximity_gates(factor_inputs, states)
 
         def residual_input_builder(
@@ -338,6 +433,7 @@ class SequenceProblemFactory:
                 reference_states=factor_inputs.reference_states,
                 contact_factors=factor_inputs.contact_factors,
                 contact_relative_velocity_factors=factor_inputs.contact_relative_velocity_factors,
+                contact_facing_factors=factor_inputs.contact_facing_factors,
                 contact_twist_gauge_factors=factor_inputs.contact_twist_gauge_factors,
                 pose_prior_factors=factor_inputs.pose_prior_factors,
                 periodic_phase_factors=factor_inputs.periodic_phase_factors,
@@ -349,6 +445,10 @@ class SequenceProblemFactory:
                 mask_silhouette_factors=factor_inputs.mask_silhouette_factors,
                 metric_depth_factors=factor_inputs.metric_depth_factors,
                 support_plane_factors=factor_inputs.support_plane_factors,
+                face_visibility_factors=factor_inputs.face_visibility_factors,
+                facing_relation_factors=factor_inputs.facing_relation_factors,
+                heading_topology_factors=factor_inputs.heading_topology_factors,
+                audio_motion_factors=factor_inputs.audio_motion_factors,
                 rotation_quaternion_indices=tuple(rotation_quaternion_indices),
             )
 
@@ -372,6 +472,7 @@ class SequenceProblemFactory:
             reference_states=factor_inputs.reference_states,
             contact_factors=factor_inputs.contact_factors,
             contact_relative_velocity_factors=factor_inputs.contact_relative_velocity_factors,
+            contact_facing_factors=factor_inputs.contact_facing_factors,
             contact_twist_gauge_factors=factor_inputs.contact_twist_gauge_factors,
             periodic_phase_factors=factor_inputs.periodic_phase_factors,
             line_reprojection_factors=factor_inputs.line_reprojection_factors,
@@ -379,6 +480,10 @@ class SequenceProblemFactory:
             mask_silhouette_factors=factor_inputs.mask_silhouette_factors,
             metric_depth_factors=factor_inputs.metric_depth_factors,
             support_plane_factors=factor_inputs.support_plane_factors,
+            face_visibility_factors=factor_inputs.face_visibility_factors,
+            facing_relation_factors=factor_inputs.facing_relation_factors,
+            heading_topology_factors=factor_inputs.heading_topology_factors,
+            audio_motion_factors=factor_inputs.audio_motion_factors,
         )
         seeded = (
             contact_initialization_mode == "seed"

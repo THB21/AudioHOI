@@ -117,6 +117,7 @@ def _input_refs(kind: FactorKind) -> tuple[FactorInputRef, ...]:
     if kind in {
         FactorKind.CONTACT_DISTANCE,
         FactorKind.CONTACT_RELATIVE_VELOCITY,
+        FactorKind.CONTACT_FACING,
         FactorKind.CONTACT_TWIST_GAUGE,
         FactorKind.SUPPORT_AND_PENETRATION,
     }:
@@ -124,6 +125,16 @@ def _input_refs(kind: FactorKind) -> tuple[FactorInputRef, ...]:
     if kind == FactorKind.AUDIO_EVENT_PRIOR:
         refs.append(FactorInputRef("measurement", "AudioEventIR", "audio_events"))
         refs.append(FactorInputRef("constraint", "ContactConstraintIR", "audio_contact_phase"))
+    if kind in {
+        FactorKind.FACE_VISIBILITY_INEQUALITY,
+        FactorKind.FACING_RELATION,
+        FactorKind.HEADING_TOPOLOGY,
+    }:
+        refs.append(FactorInputRef("relation", "SemanticRelationIR", "semantic_orientation"))
+        refs.append(FactorInputRef("geometry", "GeometryDescriptor", "semantic_faces"))
+    if kind == FactorKind.AUDIO_MOTION_ENVELOPE:
+        refs.append(FactorInputRef("measurement", "AudioEventIR", "interval_motion_envelope"))
+        refs.append(FactorInputRef("constraint", "InteractionStateIR", "support_motion_state"))
     if kind == FactorKind.PERIODIC_PHASE_PRIOR:
         refs.append(FactorInputRef("measurement", "MeasurementIR", "periodic_feature_observation"))
         refs.append(FactorInputRef("state", "StateSpec", "body_yaw_zero_observable_axial_angle_in_phase"))
@@ -406,6 +417,34 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
             )
         )
 
+    if "occluded_pose_reference" in sequence_factors:
+        factors = [factor for factor in factors if factor.kind != FactorKind.REGULARIZATION]
+        summaries = [summary for summary in summaries if summary.kind != FactorKind.REGULARIZATION]
+        factors.append(
+            FactorSpec(
+                factor_id="regularization:occluded_pose_reference",
+                kind=FactorKind.REGULARIZATION,
+                frame_count=len(observation_rows),
+                input_refs=_input_refs(FactorKind.REGULARIZATION),
+                residual_unit="state_delta_to_bounded_visual_interpolation",
+                weight_source="factor_runtime_configuration:regularization",
+                gate_source="VLM-approved amodal interval bounded by visible rigid features",
+                residual_source=_source(
+                    observation_csv,
+                    ("frame", "time"),
+                    "bounded_visible_rigid_pose_interpolation",
+                ),
+            )
+        )
+        summaries.append(
+            FactorEnergySummary(
+                "state_spec:occluded_pose_reference",
+                FactorKind.REGULARIZATION,
+                len(observation_rows),
+                0.0,
+            )
+        )
+
     environment_factors = set(generic_problem.get("environment_factors", ())) if isinstance(generic_problem, dict) else set()
     if "support_and_penetration" in environment_factors:
         factors = [factor for factor in factors if factor.kind != FactorKind.SUPPORT_AND_PENETRATION]
@@ -435,6 +474,66 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
             )
         )
 
+    flags = set(profile.data.get("ablation_flags", ()))
+    semantic_factors = set(generic_problem.get("semantic_factors", ())) if isinstance(generic_problem, dict) else set()
+    if "disable_vlm_semantic_evidence" not in flags:
+        semantic_path = result_dir / "vlm/stage4/semantic_relations.jsonl"
+        semantic_rows = sum(1 for line in semantic_path.read_text().splitlines() if line.strip()) if semantic_path.is_file() else 0
+        semantic_specs = {
+            "face_visibility_inequality": (FactorKind.FACE_VISIBILITY_INEQUALITY, "projected_face_rank_hinge"),
+            "facing_relation": (FactorKind.FACING_RELATION, "human_bearing_face_alignment_hinge"),
+            "heading_topology": (FactorKind.HEADING_TOPOLOGY, "signed_heading_increment_hinge"),
+        }
+        for factor_name in sorted(semantic_factors):
+            if factor_name not in semantic_specs or semantic_rows == 0:
+                continue
+            kind, unit = semantic_specs[factor_name]
+            factors = [factor for factor in factors if factor.kind != kind]
+            summaries = [summary for summary in summaries if summary.kind != kind]
+            factors.append(
+                FactorSpec(
+                    factor_id=f"{factor_name}:semantic_relation_ir",
+                    kind=kind,
+                    frame_count=len(observation_rows),
+                    input_refs=_input_refs(kind),
+                    residual_unit=unit,
+                    weight_source=f"factor_runtime_configuration:{factor_name}",
+                    gate_source="InteractionState semantic_relation_ids and typed confidence",
+                    residual_source=_source(
+                        semantic_path,
+                        ("start_frame", "end_frame", "predicate", "label", "confidence", "relation_id"),
+                        "typed_semantic_relation_factor",
+                    ),
+                )
+            )
+            summaries.append(FactorEnergySummary(f"semantic_relation_ir:{factor_name}", kind, semantic_rows, 0.0))
+
+    audio_factors = set(generic_problem.get("audio_factors", ())) if isinstance(generic_problem, dict) else set()
+    if "disable_audio_events" not in flags and "audio_motion_envelope" in audio_factors:
+        audio_path = result_dir.parent / "events/audio_events.csv"
+        audio_rows = _read_csv(audio_path)
+        if audio_rows:
+            kind = FactorKind.AUDIO_MOTION_ENVELOPE
+            factors = [factor for factor in factors if factor.kind != kind]
+            summaries = [summary for summary in summaries if summary.kind != kind]
+            factors.append(
+                FactorSpec(
+                    factor_id="audio_motion_envelope:audio_event_ir",
+                    kind=kind,
+                    frame_count=len(observation_rows),
+                    input_refs=_input_refs(kind),
+                    residual_unit="metric_tangential_displacement_envelope",
+                    weight_source="factor_runtime_configuration:audio_motion_envelope",
+                    gate_source="InteractionState audio_event_ids/support MotionMode",
+                    residual_source=_source(
+                        audio_path,
+                        ("event", "event_type", "start_frame", "end_frame", "audio_score"),
+                        "typed_interval_audio_motion_factor",
+                    ),
+                )
+            )
+            summaries.append(FactorEnergySummary("audio_event_ir:motion_envelope", kind, len(audio_rows), 0.0))
+
     interaction_factors = set(generic_problem.get("interaction_factors", ())) if isinstance(generic_problem, dict) else set()
     if "contact_relative_velocity" in interaction_factors:
         factors = [factor for factor in factors if factor.kind != FactorKind.CONTACT_RELATIVE_VELOCITY]
@@ -460,6 +559,33 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
                 "interaction_state:contact_relative_velocity",
                 FactorKind.CONTACT_RELATIVE_VELOCITY,
                 max(0, len(observation_rows) - 1),
+                0.0,
+            )
+        )
+    if "contact_facing" in interaction_factors:
+        factors = [factor for factor in factors if factor.kind != FactorKind.CONTACT_FACING]
+        summaries = [summary for summary in summaries if summary.kind != FactorKind.CONTACT_FACING]
+        factors.append(
+            FactorSpec(
+                factor_id="contact_facing:interaction_state",
+                kind=FactorKind.CONTACT_FACING,
+                frame_count=len(observation_rows),
+                input_refs=_input_refs(FactorKind.CONTACT_FACING),
+                residual_unit="radian_feature_face_to_human_alignment",
+                weight_source="factor_runtime_configuration:contact_facing",
+                gate_source="InteractionState persistent/occluded_hold grasp activation",
+                residual_source=_source(
+                    contact_csv,
+                    ("frame", "contact_active", "geometry_feature_id"),
+                    "typed_persistent_grasp_facing_relation",
+                ),
+            )
+        )
+        summaries.append(
+            FactorEnergySummary(
+                "interaction_state:contact_facing",
+                FactorKind.CONTACT_FACING,
+                len(observation_rows),
                 0.0,
             )
         )

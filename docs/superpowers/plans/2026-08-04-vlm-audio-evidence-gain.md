@@ -8,6 +8,24 @@
 
 **Tech Stack:** Python 3, NumPy, SciPy, OpenCV, ffmpeg, Qwen VLM provider, existing `generic_contact_pipeline` typed IR/factor/runtime framework, YAML/JSONL/CSV provenance.
 
+## Execution status (2026-08-05)
+
+- Tasks 1–5 are implemented and recorded in earlier commits.
+- Task 6 has produced four fair isolated object-only pose candidates with real
+  ablation flags. The diagnostic preparation entry point now accepts the same
+  repeated `--ablation-flag` values as the production pipeline.
+- The rigid cuboid initializer now consumes declared line features, retains a
+  physically connected heading hypothesis path, rejects disconnected DP paths,
+  and records its maximum selected heading step.
+- Interaction-state estimation now uses short-window visual displacement so a
+  low-energy audio frame cannot erase sustained visible motion.
+- Quantitative comparison is stored in
+  `output/suitcase_evidence_ablations/candidate_comparison.md`.
+- Publication remains blocked: total projection passes, but point projection
+  p95 is 26.307 px (limit 24 px), contact p95 is 0.08732 m (limit 0.08 m), and
+  the full candidate still has 12.533 deg/frame rotation p95 on frames 111–163.
+- No canonical pose was overwritten and no human state was optimized.
+
 ---
 
 ## Scope and invariants

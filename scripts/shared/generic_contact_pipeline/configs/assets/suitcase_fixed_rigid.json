@@ -39,8 +39,9 @@
     "preferred_upright_camera": [0.0, -1.0, 0.0],
     "heading_axis_local": [1.0, 0.0, 0.0],
     "heading_grid_samples": 181,
-    "heading_candidate_count": 6,
+    "heading_candidate_count": 181,
     "temporal_heading_sigma_rad_per_frame": 0.12,
+    "maximum_heading_rad_per_frame": 0.12,
     "mask_bbox_sigma_px": 8.0,
     "depth_sigma_m": 0.55
   },

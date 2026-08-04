@@ -379,6 +379,10 @@ def _rigid_cuboid_feature_correspondence(request: InitializationRequest) -> Init
     masks = {item.meta.frame: item for item in request.measurements if isinstance(item, Mask2DMeasurement) and item.meta.feature.semantic_role == mask_role}
     depths = {item.meta.frame: item for item in request.measurements if isinstance(item, MetricDepthMeasurement) and item.meta.feature.semantic_role == depth_role}
     orientation_points = {item.meta.frame: item for item in request.measurements if isinstance(item, Point2DMeasurement) and item.meta.feature.semantic_role == orientation_role}
+    line_measurements_by_frame: dict[int, list[Line2DMeasurement]] = {}
+    for item in request.measurements:
+        if isinstance(item, Line2DMeasurement):
+            line_measurements_by_frame.setdefault(item.meta.frame, []).append(item)
     frames = tuple(sorted(request.cameras))
     if not frames or any(frame not in centers or frame not in masks or frame not in depths for frame in frames):
         raise ValueError("rigid cuboid initializer requires frame-complete center, body mask, and depth evidence")
@@ -401,8 +405,10 @@ def _rigid_cuboid_feature_correspondence(request: InitializationRequest) -> Init
     candidate_count = int(initializer.get("heading_candidate_count", 6))
     bbox_sigma = float(initializer.get("mask_bbox_sigma_px", 8.0))
     feature_sigma = float(initializer.get("orientation_feature_sigma_px", 12.0))
+    line_sigma = float(initializer.get("line_axis_sigma_px", 6.0))
     transition_rate = float(initializer.get("temporal_heading_sigma_rad_per_frame", 0.12))
-    if bbox_sigma <= 0.0 or feature_sigma <= 0.0 or transition_rate <= 0.0:
+    maximum_heading_rate = float(initializer.get("maximum_heading_rad_per_frame", 0.5))
+    if bbox_sigma <= 0.0 or feature_sigma <= 0.0 or line_sigma <= 0.0 or transition_rate <= 0.0 or maximum_heading_rate <= 0.0:
         raise ValueError("rigid cuboid initializer sigmas must be positive")
 
     evidence: list[tuple[int, list[tuple[float, float, np.ndarray, np.ndarray]]]] = []
@@ -429,12 +435,47 @@ def _rigid_cuboid_feature_correspondence(request: InitializationRequest) -> Init
                 predicted_feature = _project_rigid_points(camera, orientation_local, translation, rotation, 1.0)[0]
                 delta = (predicted_feature - np.asarray((feature.u, feature.v))) / feature_sigma
                 score += float(np.sum(delta * delta))
+            for line in line_measurements_by_frame.get(frame, ()):
+                local_line = np.asarray(
+                    provider_points.get(line.meta.feature.geometry_feature_id),
+                    dtype=float,
+                )
+                if local_line.shape != (2, 3):
+                    continue
+                predicted_line = _project_rigid_points(
+                    camera,
+                    local_line,
+                    translation,
+                    rotation,
+                    1.0,
+                )
+                target_start = np.asarray(line.start_uv, dtype=float)
+                target_end = np.asarray(line.end_uv, dtype=float)
+                target_direction = target_end - target_start
+                target_length = float(np.linalg.norm(target_direction))
+                if target_length <= 1e-8:
+                    continue
+                offsets = predicted_line - target_start[None, :]
+                signed_distance = (
+                    target_direction[0] * offsets[:, 1]
+                    - target_direction[1] * offsets[:, 0]
+                ) / target_length
+                confidence = (
+                    float(line.meta.confidence)
+                    if line.meta.confidence is not None
+                    else 1.0
+                )
+                normalized = signed_distance / line_sigma
+                score += confidence * float(
+                    np.sum(2.0 * (np.sqrt(1.0 + normalized * normalized) - 1.0))
+                )
             candidates.append((float(angle), score, translation, rotation))
         candidates.sort(key=lambda item: (item[1], item[0]))
         evidence.append((frame, candidates[:candidate_count]))
 
     costs: list[np.ndarray] = []
     parents: list[np.ndarray] = []
+    disconnected_transition_frames: list[int] = []
     for index, (frame, candidates) in enumerate(evidence):
         emission = np.asarray([candidate[1] for candidate in candidates])
         if index == 0:
@@ -446,10 +487,29 @@ def _rigid_cuboid_feature_correspondence(request: InitializationRequest) -> Init
         current_cost = np.full(len(candidates), np.inf)
         current_parent = np.full(len(candidates), -1, dtype=int)
         for current_index, current in enumerate(candidates):
-            transitions = np.asarray([costs[-1][previous_index] + (_wrap_pi(current[0] - previous[0]) / sigma) ** 2 for previous_index, previous in enumerate(previous_candidates)])
+            transitions = []
+            maximum_step = maximum_heading_rate * max(1, frame - previous_frame)
+            for previous_index, previous in enumerate(previous_candidates):
+                delta = _wrap_pi(current[0] - previous[0])
+                hard_branch_penalty = np.inf if abs(delta) > maximum_step else 0.0
+                transitions.append(
+                    costs[-1][previous_index]
+                    + (delta / sigma) ** 2
+                    + hard_branch_penalty
+                )
+            transitions = np.asarray(transitions)
+            if not np.any(np.isfinite(transitions)):
+                continue
             parent = int(np.argmin(transitions))
             current_cost[current_index] = emission[current_index] + transitions[parent]
             current_parent[current_index] = parent
+        if not np.any(np.isfinite(current_cost)):
+            disconnected_transition_frames.append(frame)
+            raise ValueError(
+                "rigid cuboid heading candidates have no physically continuous path "
+                f"into frame {frame}; retain more geometry hypotheses or relax the "
+                "asset-declared maximum heading rate"
+            )
         costs.append(current_cost)
         parents.append(current_parent)
     selected = [0] * len(evidence)
@@ -463,6 +523,7 @@ def _rigid_cuboid_feature_correspondence(request: InitializationRequest) -> Init
     templates: list[dict[str, object]] = []
     previous_quaternion: np.ndarray | None = None
     selected_scores: list[float] = []
+    selected_angles: list[float] = []
     for evidence_index, (frame, candidates) in enumerate(evidence):
         angle, score, translation, rotation = candidates[selected[evidence_index]]
         qx, qy, qz, qw = Rotation.from_matrix(rotation).as_quat()
@@ -478,10 +539,15 @@ def _rigid_cuboid_feature_correspondence(request: InitializationRequest) -> Init
         row.update({field: float(value) for field, value in zip(fields, state)})
         templates.append(row)
         selected_scores.append(score)
+        selected_angles.append(angle)
+    selected_steps = [
+        abs(_wrap_pi(current - previous))
+        for previous, current in zip(selected_angles, selected_angles[1:])
+    ]
     return InitializationResult(
         states_by_frame=states,
         template_rows=tuple(templates),
-        hypothesis_ledger={"initializer_kind": "rigid_cuboid_feature_correspondence", "frame_count": len(frames), "heading_hypotheses_per_frame": candidate_count, "orientation_feature_frame_count": len(orientation_points), "selected_emission_median": float(np.median(selected_scores)), "baseline_pose_read": False, "case_dispatch_used": False, "human_state_optimized": False},
+        hypothesis_ledger={"initializer_kind": "rigid_cuboid_feature_correspondence", "frame_count": len(frames), "heading_hypotheses_per_frame": candidate_count, "orientation_feature_frame_count": len(orientation_points), "line_orientation_frame_count": len(line_measurements_by_frame), "line_axis_sigma_px": line_sigma, "maximum_heading_rad_per_frame": maximum_heading_rate, "selected_maximum_heading_step_rad": float(max(selected_steps, default=0.0)), "disconnected_transition_frames": disconnected_transition_frames, "selected_emission_median": float(np.median(selected_scores)), "baseline_pose_read": False, "case_dispatch_used": False, "human_state_optimized": False},
         input_artifact_ids=tuple(sorted(artifacts)),
     )
 

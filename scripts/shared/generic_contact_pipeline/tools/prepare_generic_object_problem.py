@@ -48,6 +48,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", required=True)
     parser.add_argument("--result-name", required=True)
+    parser.add_argument(
+        "--ablation-flag",
+        action="append",
+        default=[],
+        help="Apply the same typed evidence ablation flags as the production pipeline.",
+    )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--solve", action="store_true")
     parser.add_argument("--candidate-dir", type=Path)
@@ -69,7 +75,11 @@ def main() -> None:
         default=REPO / "third-party/GVHMR/inputs/checkpoints/body_models",
     )
     args = parser.parse_args()
-    profile = with_runtime_overrides(load_case_profile(args.case), result_name=args.result_name)
+    profile = with_runtime_overrides(
+        load_case_profile(args.case),
+        result_name=args.result_name,
+        ablation_flags=args.ablation_flag,
+    )
     prepared = prepare_capability_object_problem(
         profile=profile,
         result_dir=profile.result_dir,

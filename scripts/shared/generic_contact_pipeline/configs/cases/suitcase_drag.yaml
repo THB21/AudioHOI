@@ -170,17 +170,17 @@ factor_runtime:
     activation_weight_tiers: {active: 1.0, downweighted: 0.5, inactive: 0.0}
   temporal_velocity:
     weight: 0.7
-    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    state_scales: [1.0, 1.0, 1.0, 1.0, 0.1, 0.1, 0.1]
     source: generic_rigid_sequence_continuity
     activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
   temporal_acceleration:
     weight: 4.0
-    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    state_scales: [1.0, 1.0, 1.0, 1.0, 0.1, 0.1, 0.1]
     source: generic_rigid_sequence_acceleration
     activation_weight_tiers: {active: 1.0, downweighted: 0.12, inactive: 0.0}
   static_freeze:
     weight: 100.0
-    state_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    state_scales: [1.0, 1.0, 1.0, 1.0, 0.1, 0.1, 0.1]
     source: generic_supported_static_interval_anchor
     activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
   support_and_penetration:

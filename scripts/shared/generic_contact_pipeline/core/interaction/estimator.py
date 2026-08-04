@@ -249,7 +249,7 @@ def _frame_state(
         if audio_motion and visual_moving:
             contact_mode = InteractionContactMode.ROLLING
             motion_mode = MotionMode.SUPPORTED_MOVING
-        elif audio_silence and not visual_moving_strong:
+        elif audio_silence and not visual_moving:
             contact_mode = InteractionContactMode.GRASP if active_contact_ids else InteractionContactMode.SUPPORT
             motion_mode = MotionMode.SUPPORTED_STATIC
         elif visual_moving:
@@ -332,6 +332,7 @@ def build_interaction_timeline(
     frames: list[FrameInteractionState] = []
     previous_contact_active = False
     previous_primary: dict[str, str] | None = None
+    primary_history: list[dict[str, str]] = []
     for primary in primary_rows:
         frame = int(float(primary["frame"]))
         contacts = list(contacts_by_frame.get(frame, []))
@@ -347,6 +348,12 @@ def build_interaction_timeline(
                     "source": f"profile_declared_{environment_support_mode}_support_capability",
                 }
             )
+        one_frame_speed = _visual_speed_px(primary, previous_primary)
+        window_speed = (
+            _visual_speed_px(primary, primary_history[-4]) / 4.0
+            if len(primary_history) >= 4
+            else one_frame_speed
+        )
         state = _frame_state(
             sample_id,
             primary,
@@ -359,11 +366,12 @@ def build_interaction_timeline(
             audio_source,
             motion_by_frame.get(frame),
             motion_source,
-            _visual_speed_px(primary, previous_primary),
+            max(one_frame_speed, window_speed),
         )
         frames.append(state)
         previous_contact_active = bool(state.active_contact_ids or state.support_contact_ids)
         previous_primary = primary
+        primary_history.append(primary)
     timeline = InteractionTimeline(
         schema_version=1,
         sample_id=sample_id,

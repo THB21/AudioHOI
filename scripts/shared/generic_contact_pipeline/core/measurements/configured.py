@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import csv
 from dataclasses import dataclass
+from math import isfinite
 from pathlib import Path
 from typing import Mapping
 
 from ..base.config import CaseProfile
 from ..base.io import repo_relative_value
 from .adapters import adapt_legacy_observation_rows
-from .types import CoordinateFrame, FeatureRef, Line2DMeasurement, Measurement, MeasurementMeta, SourceRef, Unit
+from .types import CoordinateFrame, FeatureRef, Line2DMeasurement, Measurement, MeasurementMeta, Point2DMeasurement, SourceRef, Unit
 
 
 @dataclass(frozen=True)
@@ -46,6 +47,55 @@ def adapt_configured_supplemental_measurements(
                 if not allowed_roles or measurement.meta.feature.semantic_role in allowed_roles
             )
             sources.append(source_path)
+            continue
+        if adapter == "rigid_feature_points_v1":
+            with path.open(newline="") as handle:
+                rows = list(csv.DictReader(handle))
+            if not rows:
+                raise ValueError(f"supplemental measurement artifact is empty: {path}")
+            source_path = str(repo_relative_value(path))
+            sources.append(source_path)
+            fps = float(spec.get("fps", 24.0))
+            if not isfinite(fps) or fps <= 0.0:
+                raise ValueError("rigid feature point measurements require positive finite fps")
+            seen: set[tuple[int, str]] = set()
+            fields = ("u", "v", "track_id", "geometry_feature_id")
+            for row in rows:
+                frame = int(row["frame"])
+                track_id = str(row.get("track_id", "")).strip()
+                geometry_feature_id = str(row.get("geometry_feature_id", "")).strip()
+                semantic_role = str(row.get("semantic_role", "")).strip()
+                if not track_id or not geometry_feature_id or not semantic_role:
+                    raise ValueError("rigid feature point row is missing typed feature identity")
+                identity = (frame, track_id)
+                if identity in seen:
+                    raise ValueError(f"duplicate rigid feature point observation: {identity}")
+                seen.add(identity)
+                u, v = float(row["u"]), float(row["v"])
+                confidence = float(row["confidence"])
+                if not all(isfinite(value) for value in (u, v, confidence)):
+                    raise ValueError("rigid feature point coordinates and confidence must be finite")
+                if not 0.0 <= confidence <= 1.0:
+                    raise ValueError("rigid feature point confidence must be within [0, 1]")
+                time_raw = row.get("time", "")
+                time = float(time_raw) if time_raw not in {"", None} else (frame - 1) / fps
+                if not isfinite(time):
+                    raise ValueError("rigid feature point time must be finite")
+                meta = MeasurementMeta(
+                    measurement_id=(
+                        f"{profile.case_name}:{frame}:rigid_track:{track_id}:"
+                        f"{geometry_feature_id}"
+                    ),
+                    sample_id=profile.case_name,
+                    frame=frame,
+                    time=time,
+                    feature=FeatureRef(semantic_role, geometry_feature_id),
+                    coordinate_frame=CoordinateFrame.IMAGE_PIXELS,
+                    unit=Unit.PIXEL,
+                    confidence=confidence,
+                    source=SourceRef(source_path, fields, adapter),
+                )
+                measurements.append(Point2DMeasurement(meta, u, v))
             continue
         if adapter != "physical_line_endpoints_v1":
             raise ValueError(f"unsupported supplemental measurement adapter: {adapter}")

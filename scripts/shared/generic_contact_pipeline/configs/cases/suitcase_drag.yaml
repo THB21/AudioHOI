@@ -23,6 +23,9 @@ preprocess:
   tracker_grid_size: 12
   rigid_pose_provider: megapose_rgb
   rigid_pose_keyframes: [1, 80, 106, 118, 125, 127, 155, 163, 200, 226]
+  rigid_feature_maximum_anchor_error_px: 18.0
+  rigid_feature_minimum_track_visibility: 0.5
+  rigid_feature_minimum_pose_mask_iou: 0.60
   megapose_data_dir: third-party/megapose6d/local_data
   megapose_display: ":1"
   sam_pt_mask_refine: true
@@ -51,6 +54,9 @@ supplemental_measurements:
     feature_id_field: feature_id
     semantic_role_field: semantic_role
     fps: 24.0
+  - adapter: rigid_feature_points_v1
+    artifact: rigid_feature_measurements.csv
+    fps: 24.0
 amodal_mask_completion:
   enabled: true
   trigger: missing_bounded_parallel_line_pair
@@ -76,7 +82,7 @@ generic_object_problem:
   contact_residual_axes: [0, 1, 2]
   measurement_factors: [point_reprojection, line_reprojection, mask_silhouette, metric_depth]
   measurement_roles:
-    point_reprojection: [object_center, handle_center]
+    point_reprojection: [object_center, handle_center, rigid_body_corner, rigid_wheel_center, rigid_rail_endpoint]
     mask_silhouette: [object_body_mask]
     metric_depth: [object_center_depth]
   mask_shape_observations:

@@ -226,7 +226,7 @@ Run:
 
 Expected: at least two rails/rail endpoints, two body corners, and two wheel/support points are bound over reliable visible frames. If this coverage is not achieved, stop and report the actual coverage; do not loosen the radius until wrong associations are accepted.
 
-- [ ] **Step 6: Commit only descriptor and binding implementation**
+- [x] **Step 6: Commit only descriptor and binding implementation**
 
 ```bash
 git add \
@@ -243,7 +243,7 @@ git commit -m "feat: bind rigid asset features to tracked points"
 - Modify: `scripts/shared/generic_contact_pipeline/configs/cases/suitcase_drag.yaml`
 - Modify: `scripts/shared/generic_contact_pipeline/core/preprocess/registry.py`
 
-- [ ] **Step 1: Add the `rigid_feature_points_v1` configured adapter**
+- [x] **Step 1: Add the `rigid_feature_points_v1` configured adapter**
 
 In `adapt_configured_supplemental_measurements`, parse each bound row into:
 
@@ -264,7 +264,7 @@ measurements.append(Point2DMeasurement(meta, float(row['u']), float(row['v'])))
 
 Reject an empty feature ID, duplicate `(frame, track_id)`, nonfinite coordinates, confidence outside `[0,1]`, and any feature not declared by the descriptor-backed geometry provider at problem preparation.
 
-- [ ] **Step 2: Register the supplemental artifact**
+- [x] **Step 2: Register the supplemental artifact**
 
 Add to `suitcase_drag.yaml`:
 
@@ -282,11 +282,11 @@ supplemental_measurements:
 
 Extend `measurement_roles.point_reprojection` with `rigid_body_corner`, `rigid_wheel_center`, `rigid_rail_endpoint`, and `handle_center`.
 
-- [ ] **Step 3: Register the preprocessing cache contract**
+- [x] **Step 3: Register the preprocessing cache contract**
 
 Add a generic `bind_rigid_feature_tracks` task after CoTracker and before Stage 1 typed measurement materialization. Inputs are track CSV/manifest, asset descriptor, initializer observations, and camera/profile hashes. Outputs are the bound CSV/manifest. Failure must name missing feature coverage rather than silently falling back to fabricated points.
 
-- [ ] **Step 4: Verify real typed coverage without solving**
+- [x] **Step 4: Verify real typed coverage without solving**
 
 Prepare the full problem and assert:
 
@@ -303,7 +303,7 @@ assert roles['rigid_rail_endpoint'] > 0
 
 Also assert every consumed geometry feature resolves to exactly one local 3D point.
 
-- [ ] **Step 5: Commit measurement production**
+- [x] **Step 5: Commit measurement production**
 
 ```bash
 git add \

@@ -92,6 +92,51 @@ def _validate_object_depth_prior(path: Path, expected: int) -> None:
             raise ValueError("object depth prior contains a non-finite numeric value")
 
 
+def _validate_rigid_pose_hypotheses(
+    path: Path, manifest_path: Path, requested_frames: tuple[int, ...]
+) -> None:
+    rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+    manifest = json.loads(manifest_path.read_text())
+    successful = tuple(sorted(int(frame) for frame in manifest.get("successful_frames", ())))
+    if successful != requested_frames or manifest.get("failures"):
+        raise ValueError("external rigid pose provider did not complete every requested keyframe")
+    covered = {int(row["frame"]) for row in rows}
+    if covered != set(requested_frames):
+        raise ValueError("external rigid pose hypotheses do not cover the requested keyframes")
+    for row in rows:
+        required = {
+            "frame", "tx_m", "ty_m", "tz_m", "qx", "qy", "qz", "qw",
+            "provider_status", "official_render_mask_iou", "visual_geometry_rank",
+        }
+        if not required.issubset(row):
+            raise ValueError(f"external rigid pose row is missing fields: {sorted(required - set(row))}")
+
+
+def _validate_rigid_feature_measurements(path: Path, manifest_path: Path) -> None:
+    rows = _csv_rows(path)
+    manifest = json.loads(manifest_path.read_text())
+    if not rows or int(manifest.get("measurement_count", -1)) != len(rows):
+        raise ValueError("rigid feature binding produced no rows or a mismatched manifest")
+    required = {
+        "frame", "time", "u", "v", "geometry_feature_id", "semantic_role",
+        "track_id", "confidence", "source_anchor_frames",
+    }
+    if not required.issubset(rows[0]):
+        raise ValueError(f"rigid feature rows are missing columns: {sorted(required - set(rows[0]))}")
+    expected_roles = {"rigid_body_corner", "rigid_wheel_center", "rigid_rail_endpoint"}
+    roles = {row["semantic_role"] for row in rows}
+    if not expected_roles.issubset(roles):
+        raise ValueError(f"rigid feature coverage is missing roles: {sorted(expected_roles - roles)}")
+    for row in rows:
+        if not row["geometry_feature_id"] or not row["track_id"]:
+            raise ValueError("rigid feature row has an empty typed identity")
+        numeric = (float(row["time"]), float(row["u"]), float(row["v"]), float(row["confidence"]))
+        if not all(np.isfinite(value) for value in numeric) or not 0.0 <= numeric[-1] <= 1.0:
+            raise ValueError("rigid feature row contains an invalid numeric value")
+    if manifest.get("baseline_pose_read") is not False or manifest.get("human_state_optimized") is not False:
+        raise ValueError("rigid feature binding violated the object-only input boundary")
+
+
 def _runtime_command(environment: str, script: Path, *arguments: str) -> tuple[str, ...]:
     return (runtime_python(environment), str(script), *arguments)
 
@@ -137,6 +182,9 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
     sam2_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py"
     cotracker_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_cotracker_object_points.py"
     sam_pt_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_sam_pt_mask_refine.py"
+    rigid_mesh_export_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/export_rigid_asset_mesh.py"
+    megapose_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_megapose_rigid_pose.py"
+    rigid_feature_binding_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/bind_rigid_feature_tracks.py"
     da3_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_da3_scene_depth.py"
     depth_prior_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_object_depth_prior.py"
     audio_tool = REPO / "scripts/shared/generic_contact_pipeline/tools/run_audio_event_extract.py"
@@ -172,6 +220,19 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
     sam_pt_prompt_stride = int(preprocess.get("sam_pt_prompt_stride", 24))
     sam_pt_minimum_visible = int(preprocess.get("sam_pt_minimum_visible_points", 16))
     sam_pt_maximum_prompts = int(preprocess.get("sam_pt_maximum_prompt_points", 16))
+    rigid_pose_provider = str(preprocess.get("rigid_pose_provider", "none"))
+    megapose_enabled = rigid_pose_provider == "megapose_rgb"
+    megapose_keyframes = tuple(sorted({int(frame) for frame in preprocess.get("rigid_pose_keyframes", ())}))
+    megapose_data_dir = Path(
+        str(preprocess.get("megapose_data_dir", REPO / "third-party/megapose6d/local_data"))
+    )
+    megapose_display = str(preprocess.get("megapose_display", ":1"))
+    asset_descriptor_raw = profile.data.get("geometry_asset_descriptor")
+    asset_descriptor = (
+        Path(str(asset_descriptor_raw)) if asset_descriptor_raw else REPO / "missing_asset_descriptor.json"
+    )
+    if not asset_descriptor.is_absolute():
+        asset_descriptor = REPO / asset_descriptor
     sam_pt_args = [
         "--sample-dir",
         str(sample),
@@ -181,6 +242,45 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
         str(sam_pt_minimum_visible),
         "--maximum-prompt-points",
         str(sam_pt_maximum_prompts),
+    ]
+    rigid_asset_mesh_path = sample / "articraft/megapose/fixed_rigid_asset_mm.ply"
+    rigid_mesh_args = [
+        "--asset-descriptor", str(asset_descriptor),
+        "--output", str(rigid_asset_mesh_path),
+    ]
+    megapose_output_path = results / "megapose/rigid_pose_hypotheses.jsonl"
+    megapose_overlay_path = results / "megapose/official_overlays"
+    megapose_args = [
+        "--case-config", str(config_path),
+        "--sample-dir", str(sample),
+        "--asset-mesh", str(rigid_asset_mesh_path),
+        "--mask-dir", str(results / "segmentation/masks"),
+        "--track-artifact", str(results / "tracking/rigid_point_tracks.csv"),
+        "--frames", ",".join(str(frame) for frame in megapose_keyframes),
+        "--output", str(megapose_output_path),
+        "--overlay-dir", str(megapose_overlay_path),
+        "--megapose-data-dir", str(megapose_data_dir),
+        "--display", megapose_display,
+        "--renderer-workers", "0",
+        "--batch-size", "64",
+    ]
+    supplemental = profile.data.get("supplemental_measurements", ())
+    rigid_feature_binding_enabled = megapose_enabled and any(
+        isinstance(spec, dict) and spec.get("adapter") == "rigid_feature_points_v1"
+        for spec in supplemental
+    )
+    rigid_feature_measurements_path = profile.result_dir / "rigid_feature_measurements.csv"
+    rigid_feature_manifest_path = profile.result_dir / "rigid_feature_measurements_manifest.json"
+    rigid_feature_binding_args = [
+        "--case", profile.case_name,
+        "--result-name", profile.result_name,
+        "--track-artifact", str(results / "tracking/rigid_point_tracks.csv"),
+        "--pose-hypotheses", str(megapose_output_path),
+        "--output-csv", str(rigid_feature_measurements_path),
+        "--output-manifest", str(rigid_feature_manifest_path),
+        "--maximum-anchor-error-px", str(preprocess.get("rigid_feature_maximum_anchor_error_px", 18.0)),
+        "--minimum-track-visibility", str(preprocess.get("rigid_feature_minimum_track_visibility", 0.5)),
+        "--minimum-pose-mask-iou", str(preprocess.get("rigid_feature_minimum_pose_mask_iou", 0.60)),
     ]
     da3_args = ["--sample-dir", str(sample), "--da3-root", str(da3_root)]
     da3_args.extend(("--model-dir", da3_model, "--chunk-size", str(da3_chunk_size)))
@@ -221,6 +321,38 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
         "sam_pt_candidate_manifest",
         results / "segmentation/sam_pt_candidate_manifest.json",
         required=sam_pt_enabled,
+    )
+    rigid_asset_mesh = ArtifactSpec(
+        "rigid_provider_mesh", rigid_asset_mesh_path, required=megapose_enabled
+    )
+    rigid_asset_mesh_manifest = ArtifactSpec(
+        "rigid_provider_mesh_manifest",
+        rigid_asset_mesh_path.with_suffix(rigid_asset_mesh_path.suffix + ".json"),
+        required=megapose_enabled,
+    )
+    megapose_hypotheses = ArtifactSpec(
+        "external_rigid_pose_hypotheses", megapose_output_path, required=megapose_enabled
+    )
+    megapose_manifest = ArtifactSpec(
+        "external_rigid_pose_manifest",
+        megapose_output_path.with_suffix(megapose_output_path.suffix + ".manifest.json"),
+        required=megapose_enabled,
+    )
+    megapose_overlays = ArtifactSpec(
+        "external_rigid_pose_overlays",
+        megapose_overlay_path,
+        "directory",
+        required=megapose_enabled,
+    )
+    rigid_feature_measurements = ArtifactSpec(
+        "rigid_feature_measurements",
+        rigid_feature_measurements_path,
+        required=rigid_feature_binding_enabled,
+    )
+    rigid_feature_manifest = ArtifactSpec(
+        "rigid_feature_measurements_manifest",
+        rigid_feature_manifest_path,
+        required=rigid_feature_binding_enabled,
     )
     depth = ArtifactSpec("da3_scene_depth", results / "da3/scene_depth", "directory")
     depth_prior = ArtifactSpec("object_depth_prior", results / "da3/priors/object_depth_prior.csv")
@@ -284,6 +416,62 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
             validator=lambda count: (
                 _validate_masks(sam_pt_masks.path, count),
                 json.loads(sam_pt_manifest.path.read_text()),
+            ),
+        ),
+        _task(
+            "rigid_asset_mesh_export",
+            "megapose",
+            ("frame_extract",),
+            (ArtifactSpec("rigid_asset_descriptor", asset_descriptor),),
+            (rigid_asset_mesh, rigid_asset_mesh_manifest),
+            _runtime_command("megapose", rigid_mesh_export_tool, *rigid_mesh_args),
+            config={"geometry_contract": "fixed_rigid_mesh_mm", "minimum_vertices": 4096},
+            required=megapose_enabled,
+            validator=lambda _count: json.loads(rigid_asset_mesh_manifest.path.read_text()),
+        ),
+        _task(
+            "external_rigid_pose_provider",
+            "megapose",
+            ("frame_extract", "sam2", "cotracker", "rigid_asset_mesh_export"),
+            (frames, masks, rigid_tracks, rigid_asset_mesh, rigid_asset_mesh_manifest),
+            (megapose_hypotheses, megapose_manifest, megapose_overlays),
+            _runtime_command("megapose", megapose_tool, *megapose_args),
+            config={
+                "provider": rigid_pose_provider,
+                "keyframes": list(megapose_keyframes),
+                "selection": "official_render_mask_iou_with_persistent_track_visibility",
+                "accepted_pose_publication": False,
+            },
+            model={"model": "megapose-1.0-RGB-multi-hypothesis"},
+            required=megapose_enabled,
+            validator=lambda _count: _validate_rigid_pose_hypotheses(
+                megapose_hypotheses.path, megapose_manifest.path, megapose_keyframes
+            ),
+        ),
+        _task(
+            "bind_rigid_feature_tracks",
+            "audiohoi",
+            ("cotracker", "external_rigid_pose_provider"),
+            (
+                rigid_tracks,
+                rigid_tracks_manifest,
+                megapose_hypotheses,
+                megapose_manifest,
+                ArtifactSpec("rigid_asset_descriptor", asset_descriptor),
+            ),
+            (rigid_feature_measurements, rigid_feature_manifest),
+            _runtime_command("audiohoi", rigid_feature_binding_tool, *rigid_feature_binding_args),
+            config={
+                "association": "global_unique_best_reliable_pose_anchor",
+                "maximum_anchor_error_px": preprocess.get("rigid_feature_maximum_anchor_error_px", 18.0),
+                "minimum_track_visibility": preprocess.get("rigid_feature_minimum_track_visibility", 0.5),
+                "minimum_pose_mask_iou": preprocess.get("rigid_feature_minimum_pose_mask_iou", 0.60),
+                "baseline_pose_read": False,
+                "human_state_optimized": False,
+            },
+            required=rigid_feature_binding_enabled,
+            validator=lambda _count: _validate_rigid_feature_measurements(
+                rigid_feature_measurements.path, rigid_feature_manifest.path
             ),
         ),
         _task(

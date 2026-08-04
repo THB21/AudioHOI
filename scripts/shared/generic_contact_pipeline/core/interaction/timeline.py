@@ -26,6 +26,7 @@ def interaction_intervals(timeline: InteractionTimeline) -> list[dict[str, objec
     for state in timeline.frames[1:]:
         key = _interval_key(state)
         if key != current_key:
+            interval_frames = [item for item in timeline.frames if start.frame <= item.frame <= previous.frame]
             intervals.append(
                 {
                     "start_frame": start.frame,
@@ -36,11 +37,14 @@ def interaction_intervals(timeline: InteractionTimeline) -> list[dict[str, objec
                     "contact_state": current_key[1],
                     "contact_mode": current_key[2],
                     "motion_mode": current_key[3],
+                    "audio_event_ids": "|".join(sorted({value for item in interval_frames for value in item.audio_event_ids})),
+                    "semantic_relation_ids": "|".join(sorted({value for item in interval_frames for value in item.semantic_relation_ids})),
                 }
             )
             start = state
             current_key = key
         previous = state
+    interval_frames = [item for item in timeline.frames if start.frame <= item.frame <= previous.frame]
     intervals.append(
         {
             "start_frame": start.frame,
@@ -51,6 +55,8 @@ def interaction_intervals(timeline: InteractionTimeline) -> list[dict[str, objec
             "contact_state": current_key[1],
             "contact_mode": current_key[2],
             "motion_mode": current_key[3],
+            "audio_event_ids": "|".join(sorted({value for item in interval_frames for value in item.audio_event_ids})),
+            "semantic_relation_ids": "|".join(sorted({value for item in interval_frames for value in item.semantic_relation_ids})),
         }
     )
     return intervals
@@ -74,6 +80,8 @@ def write_interaction_timeline(timeline: InteractionTimeline, out_dir: Path) -> 
         "contact_state",
         "contact_mode",
         "motion_mode",
+        "audio_event_ids",
+        "semantic_relation_ids",
     ]
     with intervals_path.open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)

@@ -162,6 +162,7 @@ def _interaction_state_shadow(profile: CaseProfile, result_dir: Path, timeline: 
                 str(repo_relative_value(result_dir / "contact_candidates_internal/audio_events.csv")),
                 str(repo_relative_value(result_dir / "events/audio_events.csv")),
                 str(repo_relative_value(result_dir.parent / "events/audio_events.csv")),
+                str(repo_relative_value(result_dir / "vlm/stage4/semantic_relations.jsonl")),
             ],
         },
         "frame_count": len(frames),
@@ -263,6 +264,11 @@ def build_sequence_problem_shadow(
             None
             if not configured_interaction_artifact
             else result_dir / str(configured_interaction_artifact)
+        ),
+        environment_support_mode=str(
+            generic_problem.get("environment_support_state", "")
+            if isinstance(generic_problem, dict)
+            else ""
         ),
     )
     interaction_shadow = _interaction_state_shadow(profile, result_dir, timeline)

@@ -104,6 +104,7 @@ generic_object_problem:
   max_function_evaluations: 160
   interaction_factors: [contact_distance, contact_relative_velocity]
   environment_factors: [support_and_penetration]
+  environment_support_state: rolling
   support_plane:
     source: gvhmr_foot_sites
     activation: all_frames

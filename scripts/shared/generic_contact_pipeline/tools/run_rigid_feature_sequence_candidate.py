@@ -193,6 +193,79 @@ def write_candidate_with_locked_reference_text(
     formatted.to_csv(output, index=False)
 
 
+def _select_temporally_consistent_flow_banks(
+    candidates: pd.DataFrame,
+    switch_penalty: float,
+) -> tuple[pd.DataFrame, int]:
+    """Select one locally tracked bank per feature/frame with temporal hysteresis.
+
+    CoTracker banks overlap.  Selecting the highest score independently at
+    every frame makes the measurement target jump whenever two banks exchange
+    rank.  This dynamic program keeps a bank until another is sufficiently
+    better, while still switching when the current bank leaves its local
+    tracking window.
+    """
+
+    selected: list[pd.Series] = []
+    switch_count = 0
+    for _query_id, query_rows in candidates.groupby("query_id"):
+        available_frames = sorted(query_rows.frame.astype(int).unique())
+        segments: list[list[int]] = []
+        for frame in available_frames:
+            if not segments or frame != segments[-1][-1] + 1:
+                segments.append([frame])
+            else:
+                segments[-1].append(frame)
+        for segment in segments:
+            frame_rows: list[pd.DataFrame] = []
+            backpointers: list[dict[tuple[int, str], tuple[int, str] | None]] = []
+            costs: dict[tuple[int, str], float] = {}
+            for frame_index, frame in enumerate(segment):
+                rows = query_rows[query_rows.frame == frame].copy()
+                rows["bank_key"] = list(
+                    zip(rows.anchor_frame.astype(int), rows.direction.astype(str))
+                )
+                rows = (
+                    rows.sort_values("flow_score", ascending=False)
+                    .drop_duplicates("bank_key")
+                )
+                frame_rows.append(rows)
+                new_costs: dict[tuple[int, str], float] = {}
+                predecessors: dict[tuple[int, str], tuple[int, str] | None] = {}
+                for row in rows.itertuples():
+                    bank = (int(row.anchor_frame), str(row.direction))
+                    observation_cost = -float(np.log(max(float(row.flow_score), 1e-9)))
+                    if frame_index == 0:
+                        new_costs[bank] = observation_cost
+                        predecessors[bank] = None
+                        continue
+                    transition_cost, predecessor = min(
+                        (
+                            previous_cost + (0.0 if previous_bank == bank else switch_penalty),
+                            previous_bank,
+                        )
+                        for previous_bank, previous_cost in costs.items()
+                    )
+                    new_costs[bank] = observation_cost + transition_cost
+                    predecessors[bank] = predecessor
+                costs = new_costs
+                backpointers.append(predecessors)
+            bank = min(costs, key=costs.get)
+            reversed_rows: list[pd.Series] = []
+            for frame_index in range(len(segment) - 1, -1, -1):
+                rows = frame_rows[frame_index]
+                row = rows[rows.bank_key == bank].iloc[0].copy()
+                row["selected_bank_key"] = f"{bank[0]}:{bank[1]}"
+                reversed_rows.append(row)
+                predecessor = backpointers[frame_index][bank]
+                if predecessor is not None:
+                    switch_count += int(predecessor != bank)
+                    bank = predecessor
+            selected.extend(reversed(reversed_rows))
+    result = pd.DataFrame(selected).sort_values(["frame", "query_id"]).reset_index(drop=True)
+    return result, switch_count
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sample-dir", type=Path, required=True)
@@ -223,10 +296,14 @@ def main() -> None:
     parser.add_argument("--feature-flow-weight", type=float, default=2.0)
     parser.add_argument("--feature-flow-sigma-px", type=float, default=6.0)
     parser.add_argument("--feature-flow-max-distance", type=int, default=12)
+    parser.add_argument("--feature-flow-bank-switch-penalty", type=float, default=0.0)
+    parser.add_argument("--line-gate-ramp-frames", type=int, default=0)
     parser.add_argument("--mask-principal-axis-sigma-rad", type=float, default=0.07)
     parser.add_argument("--mask-silhouette-sigma-px", type=float, default=6.0)
     parser.add_argument("--mask-silhouette-weight", type=float, default=0.25)
     parser.add_argument("--rotation-acceleration-sigma-rad", type=float, default=0.035)
+    parser.add_argument("--translation-jerk-sigma-m", type=float, default=0.0)
+    parser.add_argument("--rotation-jerk-sigma-rad", type=float, default=0.0)
     parser.add_argument("--rotation-step-margin-deg", type=float, default=0.5)
     parser.add_argument("--maximum-upright-tilt-deg", type=float, default=18.0)
     parser.add_argument("--upright-tilt-sigma-rad", type=float, default=0.06)
@@ -385,14 +462,12 @@ def main() -> None:
             flow_candidates.reliability
             * np.exp(-flow_candidates.anchor_distance_frames / 8.0)
         )
-        # One local bank per named feature and frame prevents dense anchor
-        # overlap from changing factor weight.  The closest reliable bank wins.
-        flow_observations = (
-            flow_candidates.sort_values("flow_score", ascending=False)
-            .groupby(["frame", "query_id"], as_index=False)
-            .head(1)
-            .copy()
+        flow_observations, flow_bank_switch_count = _select_temporally_consistent_flow_banks(
+            flow_candidates,
+            args.feature_flow_bank_switch_penalty,
         )
+    else:
+        flow_bank_switch_count = 0
 
     contacts = pd.read_csv(sample_dir / "results/pure_solver_no_audio_no_vlm/contact_candidates.csv")
     contacts = contacts[(contacts.contact_active == 1) & contacts.frame.isin(free_frames)].set_index("frame")
@@ -405,12 +480,21 @@ def main() -> None:
     line_observations = pd.read_csv(sample_dir / "results/pure_solver_no_audio_no_vlm/line_observations.csv")
     line_observations = line_observations[(line_observations.line_observation_trusted == 1) & line_observations.frame.isin(free_frames)]
     observed_lines_by_frame: dict[int, np.ndarray] = {}
+    observed_line_confidence_by_frame: dict[int, float] = {}
     unassigned_lines_by_frame: dict[int, dict[str, object]] = {}
     for frame, rows in line_observations.groupby("frame"):
         modes = rows.get("line_observation_mode", pd.Series("paired", index=rows.index)).astype(str)
         paired = rows[modes != "unassigned_axis"]
         if len(paired) == 2:
             observed_lines_by_frame[int(frame)] = paired[["physical_x1", "physical_y1", "physical_x2", "physical_y2"]].to_numpy(float).reshape(2, 2, 2)
+            observed_lengths = np.hypot(
+                paired.physical_x2.to_numpy(float) - paired.physical_x1.to_numpy(float),
+                paired.physical_y2.to_numpy(float) - paired.physical_y1.to_numpy(float),
+            )
+            observed_line_confidence_by_frame[int(frame)] = float(
+                np.mean(paired.endpoint_track_conf.to_numpy(float))
+                * min(1.0, float(np.mean(observed_lengths)) / 60.0)
+            )
         unassigned = rows[modes == "unassigned_axis"]
         if len(unassigned) == 1:
             row = unassigned.iloc[0]
@@ -422,9 +506,47 @@ def main() -> None:
                 raise ValueError(f"unassigned line frame {frame} has no declared geometry candidates")
             unassigned_lines_by_frame[int(frame)] = {
                 "target": row[["physical_x1", "physical_y1", "physical_x2", "physical_y2"]].to_numpy(float).reshape(2, 2),
-                "confidence": float(row.endpoint_track_conf),
+                "confidence": float(row.endpoint_track_conf)
+                * min(
+                    1.0,
+                    float(np.hypot(
+                        row.physical_x2 - row.physical_x1,
+                        row.physical_y2 - row.physical_y1,
+                    )) / 60.0,
+                ),
                 "candidate_indices": candidate_indices,
             }
+
+    line_modes = {
+        **{frame: "paired" for frame in observed_lines_by_frame},
+        **{frame: "unassigned" for frame in unassigned_lines_by_frame},
+    }
+    line_gate_weights = {frame: 1.0 for frame in line_modes}
+    if args.line_gate_ramp_frames > 0:
+        ordered_frames = sorted(line_modes)
+        segments: list[list[int]] = []
+        for frame in ordered_frames:
+            if (
+                not segments
+                or frame != segments[-1][-1] + 1
+                or line_modes[frame] != line_modes[segments[-1][-1]]
+            ):
+                segments.append([frame])
+            else:
+                segments[-1].append(frame)
+        for segment in segments:
+            for index, frame in enumerate(segment):
+                start_weight = (
+                    1.0
+                    if segment[0] == args.free_start
+                    else min(1.0, (index + 1) / args.line_gate_ramp_frames)
+                )
+                end_weight = (
+                    1.0
+                    if segment[-1] == args.free_end
+                    else min(1.0, (len(segment) - index) / args.line_gate_ramp_frames)
+                )
+                line_gate_weights[frame] = min(start_weight, end_weight)
 
     temporal_line_assignments: dict[int, tuple[int, int]] = {}
     previous_assigned_lines = None
@@ -889,6 +1011,9 @@ def main() -> None:
 
             observed = observed_lines_by_frame.get(frame)
             if observed is not None:
+                line_confidence = np.sqrt(
+                    max(observed_line_confidence_by_frame.get(frame, 0.0), 0.0)
+                ) * line_gate_weights.get(frame, 1.0)
                 projected_lines = [_project(line, rotation, translation, camera) for line in lines_local]
                 assignment = temporal_line_assignments[frame]
                 for line_index, observed_index in enumerate(assignment):
@@ -902,11 +1027,11 @@ def main() -> None:
                         "observed_line_index": observed_index,
                         "assignment_mode": "temporal_identity_continuity",
                     }
-                    add("rail_axis_line", frame, ((predicted - target[0]) @ normal) / 5.0, metadata)
+                    add("rail_axis_line", frame, line_confidence * ((predicted - target[0]) @ normal) / 5.0, metadata)
                     predicted_direction = predicted[1] - predicted[0]
                     predicted_direction /= max(np.linalg.norm(predicted_direction), 1e-8)
                     cross = predicted_direction[0] * direction[1] - predicted_direction[1] * direction[0]
-                    add("rail_direction", frame, np.asarray([cross / 0.10]), metadata)
+                    add("rail_direction", frame, np.asarray([line_confidence * cross / 0.10]), metadata)
                 if len(projected_lines) == 2 and len(observed) == 2:
                     predicted_separation = float(np.linalg.norm(
                         projected_lines[0].mean(axis=0) - projected_lines[1].mean(axis=0)
@@ -917,7 +1042,7 @@ def main() -> None:
                     add(
                         "parallel_line_bundle_separation",
                         frame,
-                        np.asarray([(predicted_separation - observed_separation) / 3.0]),
+                        np.asarray([line_confidence * (predicted_separation - observed_separation) / 3.0]),
                         {
                             "predicted_separation_px": predicted_separation,
                             "observed_separation_px": observed_separation,
@@ -929,7 +1054,10 @@ def main() -> None:
                 direction = target[1] - target[0]
                 direction /= max(np.linalg.norm(direction), 1e-8)
                 normal = np.asarray([-direction[1], direction[0]])
-                confidence = np.sqrt(max(0.0, float(declaration["confidence"])))
+                confidence = (
+                    np.sqrt(max(0.0, float(declaration["confidence"])))
+                    * line_gate_weights.get(frame, 1.0)
+                )
                 candidates: list[tuple[float, int, np.ndarray, float]] = []
                 for line_index in declaration["candidate_indices"]:
                     predicted = _project(lines_local[line_index], rotation, translation, camera)
@@ -1224,6 +1352,43 @@ def main() -> None:
                 (next_step - previous_step) / args.rotation_acceleration_sigma_rad,
             )
 
+        if args.translation_jerk_sigma_m > 0.0 or args.rotation_jerk_sigma_rad > 0.0:
+            for frame in range(args.free_start, args.free_end):
+                previous, following, second_following = frame - 1, frame + 1, frame + 2
+                if any(
+                    value not in rotations
+                    for value in (previous, frame, following, second_following)
+                ):
+                    continue
+                if args.translation_jerk_sigma_m > 0.0:
+                    translation_jerk = (
+                        translations[second_following]
+                        - 3.0 * translations[following]
+                        + 3.0 * translations[frame]
+                        - translations[previous]
+                    )
+                    add(
+                        "translation_jerk",
+                        frame,
+                        translation_jerk / args.translation_jerk_sigma_m,
+                    )
+                if args.rotation_jerk_sigma_rad > 0.0:
+                    previous_step = Rotation.from_matrix(
+                        rotations[previous].T @ rotations[frame]
+                    ).as_rotvec()
+                    current_step = Rotation.from_matrix(
+                        rotations[frame].T @ rotations[following]
+                    ).as_rotvec()
+                    following_step = Rotation.from_matrix(
+                        rotations[following].T @ rotations[second_following]
+                    ).as_rotvec()
+                    add(
+                        "rotation_jerk",
+                        frame,
+                        (following_step - 2.0 * current_step + previous_step)
+                        / args.rotation_jerk_sigma_rad,
+                    )
+
         values = parameters.reshape(len(free_frames), 6)
         for frame, slot in frame_to_slot.items():
             add(
@@ -1371,6 +1536,8 @@ def main() -> None:
         "feature_flow_weight": float(args.feature_flow_weight),
         "feature_flow_sigma_px": float(args.feature_flow_sigma_px),
         "feature_flow_max_distance": int(args.feature_flow_max_distance),
+        "feature_flow_bank_switch_penalty": float(args.feature_flow_bank_switch_penalty),
+        "feature_flow_bank_switch_count": int(flow_bank_switch_count),
         "feature_flow_tracks_sha256": (
             hashlib.sha256(flow_track_path.read_bytes()).hexdigest()
             if flow_track_path is not None
@@ -1390,6 +1557,8 @@ def main() -> None:
         "mask_silhouette_sigma_px": float(args.mask_silhouette_sigma_px),
         "mask_silhouette_weight": float(args.mask_silhouette_weight),
         "rotation_acceleration_sigma_rad": float(args.rotation_acceleration_sigma_rad),
+        "translation_jerk_sigma_m": float(args.translation_jerk_sigma_m),
+        "rotation_jerk_sigma_rad": float(args.rotation_jerk_sigma_rad),
         "rotation_step_margin_deg": float(args.rotation_step_margin_deg),
         "maximum_upright_tilt_declared_deg": float(args.maximum_upright_tilt_deg),
         "relative_depth_lag_frames": int(args.relative_depth_lag_frames),
@@ -1400,6 +1569,10 @@ def main() -> None:
         "warm_start_pose_sha256": warm_start_sha256,
         "paired_line_frame_count": len(observed_lines_by_frame),
         "unassigned_line_frame_count": len(unassigned_lines_by_frame),
+        "line_gate_ramp_frames": int(args.line_gate_ramp_frames),
+        "minimum_active_line_gate_weight": (
+            float(min(line_gate_weights.values())) if line_gate_weights else 0.0
+        ),
         "case_dispatch_used": False,
         "human_state_optimized": False,
         "accepted_pose_read": False,

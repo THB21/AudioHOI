@@ -191,3 +191,34 @@ across all 53 free frames.  Against the current-code no-flow control v54, it pre
 degrees, and reduces maximum wheel penetration from 1.99 mm to 0.39 mm.  It
 remains isolated because the optimizer hit its evaluation limit and the full
 SE(3) step gate is 8.75 degrees against the declared 8-degree limit.
+
+### Task 8: Remove measurement-source and factor-gate jitter without changing the motion
+
+The v53 trajectory has the correct named-face winding, but framewise audit
+found two generic sources of high-frequency jitter.  First, overlapping local
+CoTracker banks were selected independently by score, causing 193 changes of
+measurement source even when the named rigid feature stayed the same.  Second,
+rail evidence changed abruptly between paired, unassigned and missing modes at
+the visibility boundary.  Acceleration alone then concentrated those conflicts
+into adjacent pose steps.
+
+- [x] Select overlapping flow banks with temporal hysteresis per named feature;
+  retain the same 414 measured observations and reduce source changes from 193
+  to 90.
+- [x] Scale line evidence by endpoint reliability and visible line length, and
+  ramp line factors at mode boundaries instead of switching them in one frame.
+- [x] Add optional translation and SO(3) rotation jerk factors to the generic
+  rigid sequence objective; keep their default weights disabled for parity.
+- [x] Preserve the locked intervals, +246.908-degree winding, zero reversals,
+  support contact and the original non-uniform translation.
+- [x] Render the isolated result and leave canonical publication unchanged.
+
+The v58 isolated candidate uses a flow-bank switch penalty of 3, a three-frame
+line gate ramp, 0.04 m translation-jerk sigma and 0.06 rad rotation-jerk sigma.
+Relative to v53 over frames 111-163, median translation jerk drops from 0.0390
+to 0.0231 m/frame^3, maximum translation jerk from 0.1970 to 0.1298, median
+rotation jerk from 2.2582 to 1.4873 degrees/frame^3, and maximum rotation jerk
+from 13.1432 to 9.4331.  It keeps the required signed turn and zero reversals.
+The candidate remains unpromoted because the optimizer still reaches its
+evaluation limit and its 8.20-degree maximum SE(3) step is slightly above the
+declared 8-degree gate; visual approval is also required.

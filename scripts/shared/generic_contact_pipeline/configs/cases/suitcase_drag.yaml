@@ -219,8 +219,8 @@ vlm:
   contacts: [left_hand_handle, right_hand_handle, wheels_floor, no_contact, unclear]
   stable_refs: [handle_top, body_top_edge, outer_wheel, lower_corner, unclear]
   frame_policy:
-    stage1: all
-    stage2: all
+    stage1: risk
+    stage2: risk
     stage4: risk
   semantic_orientation:
     enabled: true

@@ -285,3 +285,33 @@ remains isolated: the optimizer reaches its evaluation limit, the existing
 upright metric peaks at 45.54 degrees during the visibly tilted pull, and the
 relative-depth rank gate is negative.  Video review therefore precedes any
 promotion.
+
+### Task 10: Correct the audited-feature boundary and visible-depth contract
+
+The v60 failure audit disproved the hypothesis that more optimizer evaluations
+would resolve the remaining depth conflict.  A 100-evaluation control reduced
+RMS only from 2.047 to 1.884, did not converge, and retained negative depth-rank
+correlation.  It also exposed a concrete data-boundary bug: the solver read the
+raw feature-track table directly and accepted 401 rows which the typed rigid
+evidence had rejected, including tracks seeded from non-trusted anchors.
+
+- [x] Require every absolute rigid feature row consumed by the solver to match
+  a usable row in `rigid_feature_track_evidence.csv`.
+- [x] Record consumed audited rows and rejected raw rows in trajectory metrics.
+- [x] Verify the real 62-110 control removes 401 unaudited rows, reduces named
+  observations from 433 to 217, reduces RMS from 2.047 to 1.485, preserves zero
+  heading reversals, and leaves the accepted pose untouched.
+- [x] Test and reject a nearest-body-point visible-depth approximation: it
+  lowers local order violations but retains negative global rank correlation.
+- [ ] Replace the invalid `mask median depth == root tz` assumption with a
+  renderer/GeometryProvider measurement model that predicts the median depth
+  of the actually visible rigid surface under the current SE(3) state.
+- [ ] Add sparse Jacobian structure or a bounded block solver before attempting
+  an unlocked whole-video solve; a 49-frame 100-evaluation dense control takes
+  roughly 27 minutes and still does not converge.
+
+The nearest-point approximation is not retained in production code.  The
+remaining depth and upright failures are coupled: the current optimizer can
+trade root depth against tilt because Stage-0 observes visible surface depth
+while the solver compares it to the asset root.  Promotion remains blocked
+until both quantities share the same geometry-aware measurement contract.

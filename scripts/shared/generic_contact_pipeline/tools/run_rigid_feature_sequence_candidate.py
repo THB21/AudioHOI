@@ -398,9 +398,35 @@ def main() -> None:
     initial_translations = {frame: _pose(reference_by_frame.loc[frame])[1] for frame in frames}
 
     tracks = pd.read_csv(args.feature_tracks.resolve())
-    absolute_tracks = tracks[
+    audited_track_path = evidence_dir / "rigid_feature_track_evidence.csv"
+    audited_tracks = pd.read_csv(audited_track_path)
+    required_audit_columns = {
+        "frame",
+        "query_id",
+        "anchor_frame",
+        "u",
+        "v",
+        "anchor_trusted",
+        "role_compatible",
+        "usable",
+    }
+    missing_audit_columns = sorted(required_audit_columns - set(audited_tracks.columns))
+    if missing_audit_columns:
+        raise ValueError(f"audited rigid feature tracks lack fields: {missing_audit_columns}")
+    usable_audit = audited_tracks[
+        audited_tracks.usable.astype(str).str.lower().isin({"true", "1"})
+    ].rename(columns={"u": "x", "v": "y"})
+    audit_keys = usable_audit[["frame", "query_id", "anchor_frame", "x", "y"]]
+    raw_absolute_tracks = tracks[
         (tracks.usable == 1) & tracks.frame.isin(free_frames)
     ].copy()
+    absolute_tracks = raw_absolute_tracks.merge(
+        audit_keys,
+        on=["frame", "query_id", "anchor_frame", "x", "y"],
+        how="inner",
+        validate="many_to_one",
+    )
+    rejected_unaudited_absolute_track_count = len(raw_absolute_tracks) - len(absolute_tracks)
     aggregate_rows = []
     for (frame, query_id), rows in absolute_tracks.groupby(["frame", "query_id"]):
         weights = np.maximum(rows.reliability.to_numpy(float), 1e-6)
@@ -1533,6 +1559,8 @@ def main() -> None:
         "heading_reversal_count": heading_reversal_count,
         "free_interval_signed_heading_change_deg": float(np.degrees(solved_heading_values[-1] - solved_heading_values[0])),
         "named_feature_observation_count": len(point_observations),
+        "audited_absolute_track_row_count": len(absolute_tracks),
+        "rejected_unaudited_absolute_track_count": rejected_unaudited_absolute_track_count,
         "feature_flow_observation_count": len(flow_observations),
         "feature_flow_frame_count": int(flow_observations.frame.nunique()) if len(flow_observations) else 0,
         "feature_flow_counts_by_kind": (

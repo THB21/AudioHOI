@@ -39,6 +39,38 @@ MATERIALIZED_DEFAULT_VARIANTS = [
 ]
 
 
+# Object-stage evidence ablations are intentionally separate from the downstream
+# HOI evaluation registry above.  All four variants use the same generic object
+# problem; only the availability of typed VLM/audio evidence changes.
+SUITCASE_EVIDENCE_VARIANTS = (
+    MethodVariant("full", "suitcase_evidence_full", [], audio=True, vlm="qwen", llm="none"),
+    MethodVariant(
+        "no_vlm",
+        "suitcase_evidence_no_vlm",
+        ["disable_vlm_semantic_evidence"],
+        audio=True,
+        vlm="none",
+        llm="none",
+    ),
+    MethodVariant(
+        "no_audio",
+        "suitcase_evidence_no_audio",
+        ["disable_audio_events"],
+        audio=False,
+        vlm="qwen",
+        llm="none",
+    ),
+    MethodVariant(
+        "vision_only",
+        "suitcase_evidence_vision_only",
+        ["disable_vlm_semantic_evidence", "disable_audio_events"],
+        audio=False,
+        vlm="none",
+        llm="none",
+    ),
+)
+
+
 def resolve_variant_profile(profile: CaseProfile, variant: MethodVariant) -> CaseProfile:
     return with_runtime_overrides(profile, result_name=variant.result_name, ablation_flags=variant.ablation_flags)
 

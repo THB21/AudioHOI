@@ -1217,12 +1217,18 @@ def prepare_capability_object_problem(
         support_normal_world=support_normal,
         reliable_frames=reliable_heading_frames,
         minimum_observable_increment_rad=float(semantic_config.get("minimum_observable_increment_rad", 0.01)),
+        maximum_observable_increment_rad=float(semantic_config.get("maximum_observable_increment_rad", 0.5)),
     )
     heading_factor_input = HeadingTopologyFactorInput(
         heading_intervals,
         support_normal_world=support_normal,
         minimum_increment_rad=float(semantic_config.get("minimum_heading_increment_rad", 0.002)),
-    ) if any(interval.geometry_consistent and interval.label in {"clockwise", "counterclockwise"} for interval in heading_intervals) else None
+    ) if any(
+        interval.geometry_consistent
+        and interval.world_yaw_sign is not None
+        and interval.label in {"clockwise", "counterclockwise"}
+        for interval in heading_intervals
+    ) else None
     audio_config = config.get("audio_motion_evidence", {})
     if not isinstance(audio_config, Mapping):
         raise ValueError("audio_motion_evidence configuration must be a mapping")
@@ -1535,7 +1541,11 @@ def prepare_capability_object_problem(
             "gate_source": "persistent_contact+typed_confidence",
         })
     for factor_id, factor in heading_topology_factors.items():
-        active_intervals = tuple(interval for interval in factor.intervals if interval.geometry_consistent)
+        active_intervals = tuple(
+            interval
+            for interval in factor.intervals
+            if interval.geometry_consistent and interval.world_yaw_sign is not None
+        )
         evidence_consumption.append({
             "factor_id": factor_id,
             "evidence_kind": "semantic_relation",
@@ -1544,8 +1554,23 @@ def prepare_capability_object_problem(
             "end_frame": max(interval.end_frame for interval in factor.intervals),
             "active_evidence_ids": sorted({item for interval in active_intervals for item in interval.evidence_ids}),
             "conflict_rejected_evidence_ids": sorted({item for interval in factor.intervals if not interval.geometry_consistent for item in interval.evidence_ids}),
+            "screen_label_by_evidence_id": {
+                evidence_id: interval.label
+                for interval in factor.intervals
+                for evidence_id in interval.evidence_ids
+            },
+            "calibrated_world_yaw_sign_by_evidence_id": {
+                evidence_id: interval.world_yaw_sign
+                for interval in factor.intervals
+                for evidence_id in interval.evidence_ids
+            },
+            "geometry_observed_world_yaw_sign_by_evidence_id": {
+                evidence_id: interval.geometry_observed_yaw_sign
+                for interval in factor.intervals
+                for evidence_id in interval.evidence_ids
+            },
             "weight_source": record_by_id[factor_id]["runtime_config"]["source"],
-            "gate_source": "persistent_contact+reliable_geometry_sign_veto",
+            "gate_source": "persistent_contact+camera_calibrated_reliable_geometry_sign_veto",
         })
     for factor_id, factor in audio_motion_factors.items():
         evidence_consumption.append({

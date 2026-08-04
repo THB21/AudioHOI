@@ -124,6 +124,8 @@ class HeadingTopologyInterval:
     confidence: float
     evidence_ids: tuple[str, ...]
     geometry_consistent: bool = True
+    world_yaw_sign: float | None = None
+    geometry_observed_yaw_sign: float | None = None
 
     def __post_init__(self) -> None:
         if self.start_frame < 1 or self.end_frame < self.start_frame:
@@ -132,6 +134,10 @@ class HeadingTopologyInterval:
             raise ValueError("unsupported heading topology label")
         if not 0.0 <= self.confidence <= 1.0 or not self.evidence_ids:
             raise ValueError("heading topology requires confidence and evidence IDs")
+        if self.world_yaw_sign is not None and self.world_yaw_sign not in {-1.0, 1.0}:
+            raise ValueError("calibrated world yaw sign must be -1 or 1")
+        if self.geometry_observed_yaw_sign is not None and self.geometry_observed_yaw_sign not in {-1.0, 1.0}:
+            raise ValueError("observed world yaw sign must be -1 or 1")
 
 
 @dataclass(frozen=True)
@@ -187,33 +193,66 @@ def arbitrate_heading_topology(
     support_normal_world: Sequence[float],
     reliable_frames: Sequence[int],
     minimum_observable_increment_rad: float = 0.01,
+    maximum_observable_increment_rad: float = 0.5,
 ) -> tuple[HeadingTopologyInterval, ...]:
-    """Reject a VLM turn label only when reliable geometry disproves its sign.
+    """Calibrate screen-turn labels to world yaw using reliable geometry.
 
-    The function never changes a label or writes a pose.  Sparse reliable
-    rail/wheel/face frames merely provide a sign-consistency veto; an
-    unobservable interval remains available as semantic evidence.
+    Screen clockwise/counterclockwise has no camera-independent world sign.
+    Sparse reliable rail/wheel/face frames establish one sequence-level
+    screen-to-world sign mapping.  The function never changes a label or
+    writes a pose.  Conflicting intervals are vetoed, and without calibration
+    evidence the semantic factor remains inactive instead of guessing.
     """
 
     normal = _unit(support_normal_world, "support normal")
+    if (
+        minimum_observable_increment_rad < 0.0
+        or maximum_observable_increment_rad <= minimum_observable_increment_rad
+    ):
+        raise ValueError("heading calibration increment bounds are invalid")
     reliable = {int(frame) for frame in reliable_frames}
-    output: list[HeadingTopologyInterval] = []
-    for interval in intervals:
-        expected = _TURN_LABELS.get(interval.label)
+    observed_sign_by_index: dict[int, float] = {}
+    calibration_votes: list[float] = []
+    for index, interval in enumerate(intervals):
+        screen_sign = _TURN_LABELS.get(interval.label)
+        if screen_sign is None:
+            continue
         measured: list[float] = []
-        if expected is not None:
-            for frame in range(interval.start_frame + 1, interval.end_frame + 1):
-                if frame - 1 not in reliable or frame not in reliable:
-                    continue
-                if frame - 1 not in states or frame not in states:
-                    continue
-                increment = float(_relative_rotvec(states[frame - 1], states[frame]) @ normal)
-                if abs(increment) >= minimum_observable_increment_rad:
-                    measured.append(increment)
-        consistent = interval.geometry_consistent
-        if expected is not None and measured:
-            consistent = consistent and float(np.median(measured)) * expected > 0.0
-        output.append(replace(interval, geometry_consistent=consistent))
+        for frame in range(interval.start_frame + 1, interval.end_frame + 1):
+            if frame - 1 not in reliable or frame not in reliable:
+                continue
+            if frame - 1 not in states or frame not in states:
+                continue
+            increment = float(_relative_rotvec(states[frame - 1], states[frame]) @ normal)
+            if minimum_observable_increment_rad <= abs(increment) <= maximum_observable_increment_rad:
+                measured.append(increment)
+        if measured:
+            observed_sign = 1.0 if float(np.median(measured)) > 0.0 else -1.0
+            observed_sign_by_index[index] = observed_sign
+            calibration_votes.append(observed_sign * screen_sign)
+    calibration = None
+    vote_sum = float(np.sum(calibration_votes))
+    if vote_sum > 0.0:
+        calibration = 1.0
+    elif vote_sum < 0.0:
+        calibration = -1.0
+
+    output: list[HeadingTopologyInterval] = []
+    for index, interval in enumerate(intervals):
+        screen_sign = _TURN_LABELS.get(interval.label)
+        world_sign = screen_sign * calibration if screen_sign is not None and calibration is not None else None
+        consistent = interval.geometry_consistent and world_sign is not None
+        observed_sign = observed_sign_by_index.get(index)
+        if observed_sign is not None and world_sign is not None:
+            consistent = consistent and observed_sign == world_sign
+        output.append(
+            replace(
+                interval,
+                geometry_consistent=consistent,
+                world_yaw_sign=world_sign,
+                geometry_observed_yaw_sign=observed_sign,
+            )
+        )
     return tuple(output)
 
 
@@ -289,7 +328,9 @@ def build_heading_topology_inputs(
     for interval in factor.intervals:
         if interval.label not in _TURN_LABELS or not interval.geometry_consistent:
             continue
-        sign = _TURN_LABELS[interval.label]
+        if interval.world_yaw_sign is None:
+            continue
+        sign = interval.world_yaw_sign
         for frame in range(interval.start_frame + 1, interval.end_frame + 1):
             if frame - 1 not in states or frame not in states:
                 continue

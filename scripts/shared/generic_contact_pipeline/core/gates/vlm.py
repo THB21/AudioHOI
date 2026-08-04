@@ -843,6 +843,55 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
             return ""
         img.save(out_path)
         return str(out_path)
+    if stage == "stage4" and query_type in SEMANTIC_QUERY_TYPES:
+        Image, ImageDraw = _pil_modules()
+        if Image is not None and ImageDraw is not None:
+            semantic_radius = int(
+                dict(dict(profile.data.get("vlm", {})).get("semantic_orientation", {})).get(
+                    "temporal_radius_frames", 1
+                )
+            )
+            selected_frames = [max(1, frame + offset) for offset in (-semantic_radius, 0, semantic_radius)]
+            original_panels = []
+            evidence_panels = []
+            for selected_frame in selected_frames:
+                original = _read_frame(profile.sample_dir, selected_frame)
+                if original is None:
+                    continue
+                evidence = original.copy()
+                _draw_mask(evidence, _mask_path(profile.sample_dir, selected_frame))
+                _draw_stage4_context(profile, evidence, selected_frame)
+                for panel in (original, evidence):
+                    _draw_label(panel, f"frame {selected_frame:03d}", (18, 24), (255, 255, 255))
+                original_panels.append(_crop_stage4_evidence(profile, original, selected_frame).resize((426, 240)))
+                evidence_panels.append(_crop_stage4_evidence(profile, evidence, selected_frame).resize((426, 240)))
+            if original_panels and len(original_panels) == len(evidence_panels):
+                label_height = 32
+                canvas = Image.new(
+                    "RGB",
+                    (426 * len(original_panels), 2 * (240 + label_height)),
+                    (245, 245, 245),
+                )
+                draw = ImageDraw.Draw(canvas)
+                draw.rectangle((0, 0, canvas.width, label_height), fill=(20, 20, 20))
+                draw.text((12, 8), "ORIGINAL RGB TEMPORAL STRIP", fill=(255, 255, 255))
+                second_label_y = 240 + label_height
+                draw.rectangle(
+                    (0, second_label_y, canvas.width, second_label_y + label_height),
+                    fill=(20, 20, 20),
+                )
+                draw.text(
+                    (12, second_label_y + 8),
+                    "TYPED EVIDENCE: MASK + RAILS + READ-ONLY CONTACT",
+                    fill=(255, 255, 255),
+                )
+                for index, panel in enumerate(original_panels):
+                    canvas.paste(panel, (index * 426, label_height))
+                for index, panel in enumerate(evidence_panels):
+                    canvas.paste(panel, (index * 426, second_label_y + label_height))
+                canvas.save(out_path)
+                return str(out_path)
+
     video = _render_video_for_stage(profile, stage)
     if stage in {"stage4", "stage5"} and query_type in {"temporal_motion_check", "constraint_reliability_check", *SEMANTIC_QUERY_TYPES} and video is not None:
         Image, ImageDraw = _pil_modules()

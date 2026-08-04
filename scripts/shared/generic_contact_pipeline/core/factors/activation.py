@@ -116,6 +116,14 @@ def _persistent_contact_state(state: FrameInteractionState) -> str:
     return "inactive"
 
 
+def _heading_topology_state(state: FrameInteractionState) -> str:
+    """Use semantic turn direction only while the supported object is moving."""
+
+    if state.motion_mode == MotionMode.SUPPORTED_STATIC:
+        return "inactive"
+    return _persistent_contact_state(state)
+
+
 def _support_state(state: FrameInteractionState) -> str:
     if state.support_contact_ids or state.contact_mode in {
         InteractionContactMode.SUPPORT,
@@ -234,11 +242,17 @@ def _policy_for_kind(kind: FactorKind) -> tuple[str, object, tuple[str, ...]]:
             _visual_state,
             ("VisibilityState", "SemanticRelationIR", "semantic_relation_ids"),
         )
-    if kind in {FactorKind.FACING_RELATION, FactorKind.HEADING_TOPOLOGY}:
+    if kind == FactorKind.FACING_RELATION:
         return (
-            "persistent_grasp_and_semantic_evidence_control_orientation_topology",
+            "persistent_grasp_and_semantic_evidence_control_facing_relation",
             _persistent_contact_state,
             ("ContactState", "ContactMode", "SemanticRelationIR", "semantic_relation_ids"),
+        )
+    if kind == FactorKind.HEADING_TOPOLOGY:
+        return (
+            "persistent_moving_grasp_and_semantic_evidence_control_heading_topology",
+            _heading_topology_state,
+            ("ContactState", "ContactMode", "MotionMode", "SemanticRelationIR", "semantic_relation_ids"),
         )
     if kind == FactorKind.AUDIO_MOTION_ENVELOPE:
         return (

@@ -239,17 +239,49 @@ cannot correct it because its free interval starts at frame 111.
 - Create: `output/suitcase_rigid_sequence_v59_full_turn/`
 - Preserve: `samples_known_object/15_suitcase_drag/results/pure_solver_no_audio_no_vlm/object_pose.csv`
 
-- [ ] Rebuild the generic rigid evidence manifest with trusted intervals
+- [x] Rebuild the generic rigid evidence manifest with trusted intervals
   `1-61,164-240`; require all evidence gates to pass before solving.
-- [ ] Run `run_rigid_feature_sequence_candidate.py` with free interval 62-163,
+- [x] Run `run_rigid_feature_sequence_candidate.py` with free interval 62-163,
   `--expand-free-interval`, the v58 pose as warm start, the same local-flow
   hysteresis, line gate ramp and jerk factors, and
   `--heading-screen-direction counterclockwise`.
-- [ ] Verify frames 1-61 and 164-240 remain textually locked; require zero
+- [x] Verify frames 1-61 and 164-240 remain textually locked; require zero
   signed heading reversals over 62-163 and preserve support penetration and
   bounded translation steps.
-- [ ] Render all 240 frames and inspect the 62-108 side-to-broad transition,
+- [x] Render all 240 frames and inspect the 62-108 side-to-broad transition,
   then compare frames 111-163 against v58 to ensure the previously approved
   face sequence is retained.
-- [ ] Keep the candidate isolated unless both hard gates and video review pass;
+- [x] Keep the candidate isolated unless both hard gates and video review pass;
   do not publish canonical output.
+
+#### v59 diagnostic and bounded v60 correction
+
+The first 62-163 solve established zero reversal but did not recover the turn
+timing: only 3.25 degrees occurred over frames 62-108, while the solver used up
+to 44.9 degrees of tilt to explain silhouette width and deferred most heading
+change until later.  The cause is evidence identity, not the signed-heading
+parameterization.  Dense local flow banks were re-seeded from an already-wrong
+pose every few frames, while the solver also applied a second exponential
+distance decay after the tracker had already encoded distance in reliability.
+
+- [x] Run a frame-61 single-anchor CoTracker diagnostic through frame 111. It
+  retains seven of eight rail/wheel measurements at frame 108 and captures the
+  two physical rails crossing in image x, providing direct turn evidence.
+- [x] Add a parity-default option to disable only the solver's extra distance
+  decay for sequence-anchor flow; retain the tracker's visibility and distance
+  reliability.
+- [x] Rebuild evidence for free interval 62-110 and lock the approved v58 pose
+  from frame 111 onward, so the early turn cannot be deferred into the later
+  face sequence.
+- [x] Solve and render isolated v60 using the frame-61 long-range rail/wheel
+  tracks, zero signed reversals and the same support/jerk factors.
+
+The v60 candidate completes a +25.262-degree support-plane turn over frames
+62-110 with no negative step beyond floating-point roundoff, and frames 1-61
+plus 111-240 are exactly equal to v58.  It compiles 315 long-range flow factors
+from eight named rail/wheel identities, has a 7.52-degree maximum rotation step,
+0.0658 m maximum translation step and 0.116 mm maximum wheel penetration.  It
+remains isolated: the optimizer reaches its evaluation limit, the existing
+upright metric peaks at 45.54 degrees during the visibly tilted pull, and the
+relative-depth rank gate is negative.  Video review therefore precedes any
+promotion.

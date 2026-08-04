@@ -296,6 +296,7 @@ def main() -> None:
     parser.add_argument("--feature-flow-weight", type=float, default=2.0)
     parser.add_argument("--feature-flow-sigma-px", type=float, default=6.0)
     parser.add_argument("--feature-flow-max-distance", type=int, default=12)
+    parser.add_argument("--feature-flow-extra-distance-decay-frames", type=float, default=8.0)
     parser.add_argument("--feature-flow-bank-switch-penalty", type=float, default=0.0)
     parser.add_argument("--line-gate-ramp-frames", type=int, default=0)
     parser.add_argument("--mask-principal-axis-sigma-rad", type=float, default=0.07)
@@ -458,9 +459,16 @@ def main() -> None:
             how="inner",
             validate="many_to_one",
         )
+        extra_distance_score = (
+            1.0
+            if args.feature_flow_extra_distance_decay_frames <= 0.0
+            else np.exp(
+                -flow_candidates.anchor_distance_frames
+                / args.feature_flow_extra_distance_decay_frames
+            )
+        )
         flow_candidates["flow_score"] = (
-            flow_candidates.reliability
-            * np.exp(-flow_candidates.anchor_distance_frames / 8.0)
+            flow_candidates.reliability * extra_distance_score
         )
         flow_observations, flow_bank_switch_count = _select_temporally_consistent_flow_banks(
             flow_candidates,
@@ -1536,6 +1544,9 @@ def main() -> None:
         "feature_flow_weight": float(args.feature_flow_weight),
         "feature_flow_sigma_px": float(args.feature_flow_sigma_px),
         "feature_flow_max_distance": int(args.feature_flow_max_distance),
+        "feature_flow_extra_distance_decay_frames": float(
+            args.feature_flow_extra_distance_decay_frames
+        ),
         "feature_flow_bank_switch_penalty": float(args.feature_flow_bank_switch_penalty),
         "feature_flow_bank_switch_count": int(flow_bank_switch_count),
         "feature_flow_tracks_sha256": (

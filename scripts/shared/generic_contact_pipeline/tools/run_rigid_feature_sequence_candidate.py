@@ -140,14 +140,19 @@ def _mask_body_boundary_distance(path: Path) -> np.ndarray:
     return cv2.distanceTransform(255 - boundary, cv2.DIST_L2, 5).astype(float)
 
 
-def _sample_projected_hull(points: np.ndarray, samples_per_edge: int = 6) -> np.ndarray:
+def _sample_projected_hull(points: np.ndarray, sample_count: int = 24) -> np.ndarray:
     hull = cv2.convexHull(np.asarray(points, dtype=np.float32)).reshape(-1, 2).astype(float)
-    samples = []
-    fractions = np.linspace(0.0, 1.0, samples_per_edge, endpoint=False)
-    for index, start in enumerate(hull):
-        end = hull[(index + 1) % len(hull)]
-        samples.extend(start[None, :] + fractions[:, None] * (end - start)[None, :])
-    return np.asarray(samples, dtype=float)
+    following = np.roll(hull, -1, axis=0)
+    edges = following - hull
+    lengths = np.linalg.norm(edges, axis=1)
+    perimeter = float(lengths.sum())
+    if perimeter <= 1e-8:
+        return np.repeat(hull[:1], sample_count, axis=0)
+    cumulative = np.concatenate(([0.0], np.cumsum(lengths)))
+    distances = np.linspace(0.0, perimeter, sample_count, endpoint=False)
+    edge_indices = np.minimum(np.searchsorted(cumulative, distances, side="right") - 1, len(hull) - 1)
+    local = (distances - cumulative[edge_indices]) / np.maximum(lengths[edge_indices], 1e-8)
+    return hull[edge_indices] + local[:, None] * edges[edge_indices]
 
 
 def _bilinear_sample(image: np.ndarray, points: np.ndarray) -> np.ndarray:
@@ -229,6 +234,7 @@ def main() -> None:
     parser.add_argument("--heading-initializer-samples", type=int, default=31)
     parser.add_argument("--heading-direction-window", type=int, default=8)
     parser.add_argument("--heading-direction-sign", type=float, choices=(-1.0, 1.0))
+    parser.add_argument("--heading-screen-direction", choices=("clockwise", "counterclockwise"))
     parser.add_argument("--heading-direction-source", default="trusted_boundary_motion")
     parser.add_argument("--heading-direction-weight", type=float, default=8.0)
     parser.add_argument("--heading-reversal-tolerance-deg", type=float, default=0.5)
@@ -242,6 +248,8 @@ def main() -> None:
     parser.add_argument("--penetration-weight", type=float, default=30.0)
     parser.add_argument("--expand-free-interval", action="store_true")
     args = parser.parse_args()
+    if args.heading_direction_sign is not None and args.heading_screen_direction is not None:
+        raise ValueError("use either heading-direction-sign or heading-screen-direction, not both")
 
     sample_dir = args.sample_dir.resolve()
     output = args.output.resolve()
@@ -498,6 +506,38 @@ def main() -> None:
         if abs(median_boundary_heading_step) < np.radians(0.1)
         else float(np.sign(median_boundary_heading_step))
     )
+    positive_support_screen_angle = 0.0
+    if args.heading_screen_direction is not None:
+        boundary_frame = args.free_start - 1
+        center_camera = initial_translations[boundary_frame]
+        axis_camera = initial_rotations[boundary_frame] @ heading_axis_for_direction
+        axis_camera -= plane_normal * float(axis_camera @ plane_normal)
+        axis_camera /= max(np.linalg.norm(axis_camera), 1e-8)
+        rotated_axis_camera = (
+            Rotation.from_rotvec(plane_normal * np.radians(1.0)).as_matrix()
+            @ axis_camera
+        )
+
+        def project_camera_point(point: np.ndarray) -> np.ndarray:
+            homogeneous = camera @ point
+            return homogeneous[:2] / max(float(homogeneous[2]), 1e-8)
+
+        center_uv = project_camera_point(center_camera)
+        vector_before = project_camera_point(center_camera + 0.2 * axis_camera) - center_uv
+        vector_after = project_camera_point(center_camera + 0.2 * rotated_axis_camera) - center_uv
+        # Image y points down; flip it before measuring ordinary screen CCW.
+        vector_before[1] *= -1.0
+        vector_after[1] *= -1.0
+        positive_support_screen_angle = float(np.arctan2(
+            vector_before[0] * vector_after[1] - vector_before[1] * vector_after[0],
+            vector_before @ vector_after,
+        ))
+        positive_appears_counterclockwise = 1.0 if positive_support_screen_angle >= 0.0 else -1.0
+        heading_direction_sign = (
+            positive_appears_counterclockwise
+            if args.heading_screen_direction == "counterclockwise"
+            else -positive_appears_counterclockwise
+        )
     if args.heading_direction_sign is not None:
         heading_direction_sign = float(args.heading_direction_sign)
     base_heading = np.unwrap(
@@ -779,6 +819,22 @@ def main() -> None:
                     predicted_direction /= max(np.linalg.norm(predicted_direction), 1e-8)
                     cross = predicted_direction[0] * direction[1] - predicted_direction[1] * direction[0]
                     add("rail_direction", frame, np.asarray([cross / 0.10]), metadata)
+                if len(projected_lines) == 2 and len(observed) == 2:
+                    predicted_separation = float(np.linalg.norm(
+                        projected_lines[0].mean(axis=0) - projected_lines[1].mean(axis=0)
+                    ))
+                    observed_separation = float(np.linalg.norm(
+                        observed[0].mean(axis=0) - observed[1].mean(axis=0)
+                    ))
+                    add(
+                        "parallel_line_bundle_separation",
+                        frame,
+                        np.asarray([(predicted_separation - observed_separation) / 3.0]),
+                        {
+                            "predicted_separation_px": predicted_separation,
+                            "observed_separation_px": observed_separation,
+                        },
+                    )
             elif frame in unassigned_lines_by_frame:
                 declaration = unassigned_lines_by_frame[frame]
                 target = np.asarray(declaration["target"], dtype=float)
@@ -796,10 +852,32 @@ def main() -> None:
                     direction_value = confidence * cross / 0.10
                     cost = float(axis_values @ axis_values + direction_value * direction_value)
                     candidates.append((cost, int(line_index), axis_values, direction_value))
-                _cost, selected_line_index, axis_values, direction_value = min(candidates, key=lambda item: item[0])
-                metadata = {"selected_candidate_index": selected_line_index, "observation_mode": "unassigned_axis"}
-                add("unassigned_rail_axis_line", frame, axis_values, metadata)
-                add("unassigned_rail_direction", frame, np.asarray([direction_value]), metadata)
+                observation_row = object_observations.loc[frame] if frame in object_observations.index else None
+                if isinstance(observation_row, pd.DataFrame):
+                    observation_row = observation_row.iloc[0]
+                fully_visible = observation_row is not None and str(observation_row.visibility) == "visible"
+                if fully_visible and len(candidates) > 1:
+                    # A single detected axis on a fully visible parallel-line
+                    # bundle is collapse evidence: both physical lines must
+                    # project to the same image line.  Choosing only the best
+                    # candidate discards the strongest side-view cue.
+                    for _cost, line_index, axis_values, direction_value in candidates:
+                        metadata = {
+                            "selected_candidate_index": line_index,
+                            "observation_mode": "visible_collapsed_parallel_bundle",
+                        }
+                        add("collapsed_parallel_bundle_axis_line", frame, axis_values, metadata)
+                        add(
+                            "collapsed_parallel_bundle_direction",
+                            frame,
+                            np.asarray([direction_value]),
+                            metadata,
+                        )
+                else:
+                    _cost, selected_line_index, axis_values, direction_value = min(candidates, key=lambda item: item[0])
+                    metadata = {"selected_candidate_index": selected_line_index, "observation_mode": "unassigned_axis"}
+                    add("unassigned_rail_axis_line", frame, axis_values, metadata)
+                    add("unassigned_rail_direction", frame, np.asarray([direction_value]), metadata)
 
             silhouette_body = body
             projected_body = _project(silhouette_body, rotation, translation, camera)
@@ -1188,6 +1266,8 @@ def main() -> None:
         "relative_depth_rank_correlation": depth_rank_correlation,
         "boundary_heading_direction_sign": heading_direction_sign,
         "heading_direction_source": args.heading_direction_source,
+        "heading_screen_direction": args.heading_screen_direction,
+        "positive_support_screen_angle_deg": float(np.degrees(positive_support_screen_angle)),
         "median_boundary_heading_step_deg": float(np.degrees(median_boundary_heading_step)),
         "heading_reversal_count": heading_reversal_count,
         "free_interval_signed_heading_change_deg": float(np.degrees(solved_heading_values[-1] - solved_heading_values[0])),

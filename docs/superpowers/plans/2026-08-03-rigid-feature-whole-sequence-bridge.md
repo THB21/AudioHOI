@@ -130,3 +130,29 @@ is 0.00377 m.  It remains an isolated, unpromoted candidate because it is an
 initializer verification run, the maximum full-SE(3) step is 9.37 degrees, and
 the legacy 18-degree upright gate incorrectly rejects the visibly tilted pull
 state.  The accepted pose hash remains unchanged.
+
+#### Superseding visual-face audit
+
+The subsequent original-frame audit rejected v45 despite its zero reversal
+count.  It had mapped screen-counterclockwise directly to support sign -1 and
+therefore selected the shortest periodic endpoint branch (-113 degrees).  That
+branch reaches an equivalent endpoint quaternion but cannot traverse the
+observed named-face sequence.  The actual sequence is `+X oblique side -> -Y
+outer broad face -> -X narrow side -> +Y handle broad face`, which maps through
+the camera projection to support sign +1 and the +246.908-degree branch.
+
+- [x] Map clockwise/counterclockwise screen semantics to support-plane sign by
+  projecting a positive one-degree support rotation through the camera.
+- [x] Add explicit projected separation for paired parallel rails.
+- [x] Treat one detected rail axis on a fully visible object as collapsed-bundle
+  evidence, requiring both physical rails to project to that axis.
+- [x] Make silhouette boundary sampling fixed-size by arc length; a changing
+  cuboid hull may no longer change the least-squares residual dimension.
+- [x] Verify v50 follows the required face sequence at frames 123, 139/142 and
+  155/160 with no signed reversal.
+
+The isolated v50 review has a +246.908-degree signed turn, zero reversals,
+0.11514 m maximum translation step, 0.000266 m maximum wheel penetration, and
+0.9651 relative-depth rank correlation.  It remains unpromoted: the optimizer
+hit its evaluation limit, maximum full-SE(3) step is 8.37 degrees, and the
+legacy upright gate still rejects the intentional tilted pull state.

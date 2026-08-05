@@ -178,6 +178,57 @@ def _visual_speed_px(primary: dict[str, str], previous: dict[str, str] | None) -
     return float(((u - pu) ** 2 + (v - pv) ** 2) ** 0.5)
 
 
+def _rigid_shape_speed_px_by_frame(
+    result_dir: Path,
+    *,
+    maximum_gap_frames: int,
+) -> tuple[dict[int, float], str]:
+    """Measure tracked rigid-shape change after removing image translation.
+
+    A supported object can rotate in place while its mask centre barely moves.
+    Frame-aligned rigid feature tracks expose that motion through a changing 2D
+    constellation.  Centring common tracks removes translation; the remaining
+    RMS displacement is spread over sparse tracker samples as px/frame.
+    """
+
+    path = result_dir / "rigid_feature_measurements.csv"
+    rows = _read_csv(path)
+    grouped: dict[int, dict[str, list[tuple[float, float, float]]]] = {}
+    for row in rows:
+        track_id = str(row.get("track_id", "")).strip()
+        if not track_id:
+            continue
+        frame = int(float(row["frame"]))
+        weight = max(1e-6, _float(row, "confidence", 1.0))
+        grouped.setdefault(frame, {}).setdefault(track_id, []).append(
+            (_float(row, "u"), _float(row, "v"), weight)
+        )
+    points: dict[int, dict[str, np.ndarray]] = {}
+    for frame, tracks in grouped.items():
+        points[frame] = {}
+        for track_id, samples in tracks.items():
+            values = np.asarray([[u, v] for u, v, _ in samples], dtype=float)
+            weights = np.asarray([weight for _, _, weight in samples], dtype=float)
+            points[frame][track_id] = np.average(values, axis=0, weights=weights)
+    speed_by_frame: dict[int, float] = {}
+    observed_frames = sorted(points)
+    for previous, frame in zip(observed_frames, observed_frames[1:]):
+        gap = frame - previous
+        if gap <= 0 or gap > maximum_gap_frames:
+            continue
+        common = sorted(set(points[previous]) & set(points[frame]))
+        if len(common) < 4:
+            continue
+        left = np.stack([points[previous][track_id] for track_id in common])
+        right = np.stack([points[frame][track_id] for track_id in common])
+        left -= np.mean(left, axis=0)
+        right -= np.mean(right, axis=0)
+        speed = float(np.sqrt(np.mean(np.sum((right - left) ** 2, axis=1))) / gap)
+        for selected in range(previous + 1, frame + 1):
+            speed_by_frame[selected] = speed
+    return speed_by_frame, str(path) if rows else ""
+
+
 def _contact_ids(
     sample_id: str,
     frame: int,
@@ -371,11 +422,17 @@ def build_interaction_timeline(
     minimum_conflict_frames = int(arbitration.get("minimum_conflict_frames", 4))
     conflict_fraction_threshold = float(arbitration.get("conflict_fraction", 0.5))
     silence_tail_hold_frames = int(arbitration.get("silence_tail_hold_frames", 4))
+    shape_motion_threshold = float(
+        arbitration.get("sustained_visual_shape_motion_px_per_frame", 0.3)
+    )
+    shape_motion_maximum_gap = int(arbitration.get("rigid_shape_maximum_gap_frames", 6))
     if (
         sustained_threshold <= 0.0
         or minimum_conflict_frames < 1
         or not 0.0 <= conflict_fraction_threshold <= 1.0
         or silence_tail_hold_frames < 0
+        or shape_motion_threshold <= 0.0
+        or shape_motion_maximum_gap < 1
     ):
         raise ValueError("invalid audio/visual arbitration thresholds")
     speed_by_frame: dict[int, float] = {}
@@ -388,6 +445,10 @@ def build_interaction_timeline(
         speed_by_frame[frame] = max(one, four)
         previous_speed_row = row
         speed_history.append(row)
+    shape_speed_by_frame, shape_speed_source = _rigid_shape_speed_px_by_frame(
+        result_dir,
+        maximum_gap_frames=shape_motion_maximum_gap,
+    )
     arbitration_by_frame: dict[int, dict[str, object]] = {}
     unique_events = {event.event_id: event for events in audio_by_frame.values() for event in events}
     for event in unique_events.values():
@@ -399,22 +460,78 @@ def build_interaction_timeline(
         strong = [value for value in speeds if value >= sustained_threshold]
         fraction = len(strong) / max(1, len(speeds))
         conflict = len(strong) >= minimum_conflict_frames and fraction >= conflict_fraction_threshold
-        record = {
+        translation_strong_frames = {
+            frame
+            for frame in range(start, end + 1)
+            if speed_by_frame.get(frame, 0.0) >= sustained_threshold
+        }
+        semantic_turn_frames = {
+            frame
+            for frame in range(start, end + 1)
+            if any(
+                relation.predicate == "turn_direction_screen"
+                and relation.label in {"clockwise", "counterclockwise"}
+                and relation.confidence >= 0.65
+                for relation in semantic_by_frame.get(frame, ())
+            )
+        }
+        shape_strong_frames = {
+            frame
+            for frame in semantic_turn_frames
+            if shape_speed_by_frame.get(frame, 0.0) >= shape_motion_threshold
+        }
+        strong_frames = translation_strong_frames | shape_strong_frames
+        local_conflict_frames: set[int] = set()
+        run: list[int] = []
+        for frame in range(start, end + 2):
+            if frame in strong_frames:
+                run.append(frame)
+                continue
+            if len(run) >= minimum_conflict_frames:
+                local_conflict_frames.update(run)
+            run = []
+        common_record = {
             "interval_id": event.event_id,
             "median_speed_px_per_frame": float(np.median(speeds)),
             "p75_speed_px_per_frame": float(np.quantile(speeds, 0.75)),
             "conflict_frame_count": len(strong),
             "valid_frame_count": len(speeds),
             "conflict_fraction": fraction,
-            "decision": (
-                "visual_motion_overrides_audio_silence"
-                if conflict
-                else "audio_silence_confirms_static"
-            ),
+            "local_conflict_frame_count": len(local_conflict_frames),
+            "local_conflict_runs_required_frames": minimum_conflict_frames,
+            "translation_conflict_frame_count": len(translation_strong_frames),
+            "rigid_shape_conflict_frame_count": len(shape_strong_frames),
+            "rigid_shape_motion_threshold_px_per_frame": shape_motion_threshold,
+            "rigid_shape_motion_source": shape_speed_source,
         }
-        tail = 0 if conflict else silence_tail_hold_frames
-        for frame in range(start, end + tail + 1):
-            arbitration_by_frame[frame] = record
+        for frame in range(start, end + 1):
+            local_conflict = conflict or frame in local_conflict_frames
+            arbitration_by_frame[frame] = {
+                **common_record,
+                "decision": (
+                    "visual_motion_overrides_audio_silence"
+                    if local_conflict
+                    else "audio_silence_confirms_static"
+                ),
+                "decision_scope": (
+                    "whole_interval"
+                    if conflict
+                    else "local_contiguous_motion_run"
+                    if frame in local_conflict_frames
+                    else "local_static_region"
+                ),
+            }
+        tail = (
+            0
+            if conflict or end in local_conflict_frames
+            else silence_tail_hold_frames
+        )
+        for frame in range(end + 1, end + tail + 1):
+            arbitration_by_frame[frame] = {
+                **common_record,
+                "decision": "audio_silence_confirms_static",
+                "decision_scope": "static_tail_hold",
+            }
     frames: list[FrameInteractionState] = []
     previous_contact_active = False
     previous_primary: dict[str, str] | None = None

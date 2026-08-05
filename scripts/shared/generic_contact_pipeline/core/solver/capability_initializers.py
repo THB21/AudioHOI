@@ -379,6 +379,13 @@ def _rigid_cuboid_feature_correspondence(request: InitializationRequest) -> Init
     masks = {item.meta.frame: item for item in request.measurements if isinstance(item, Mask2DMeasurement) and item.meta.feature.semantic_role == mask_role}
     depths = {item.meta.frame: item for item in request.measurements if isinstance(item, MetricDepthMeasurement) and item.meta.feature.semantic_role == depth_role}
     orientation_points = {item.meta.frame: item for item in request.measurements if isinstance(item, Point2DMeasurement) and item.meta.feature.semantic_role == orientation_role}
+    surface_tracks_by_frame: dict[int, list[Point2DMeasurement]] = {}
+    for item in request.measurements:
+        if (
+            isinstance(item, Point2DMeasurement)
+            and item.meta.feature.semantic_role == "rigid_surface_track"
+        ):
+            surface_tracks_by_frame.setdefault(item.meta.frame, []).append(item)
     line_measurements_by_frame: dict[int, list[Line2DMeasurement]] = {}
     for item in request.measurements:
         if isinstance(item, Line2DMeasurement):
@@ -406,10 +413,29 @@ def _rigid_cuboid_feature_correspondence(request: InitializationRequest) -> Init
     bbox_sigma = float(initializer.get("mask_bbox_sigma_px", 8.0))
     feature_sigma = float(initializer.get("orientation_feature_sigma_px", 12.0))
     line_sigma = float(initializer.get("line_axis_sigma_px", 6.0))
+    surface_track_sigma = float(initializer.get("rigid_surface_track_sigma_px", 10.0))
+    surface_track_weight = float(initializer.get("rigid_surface_track_weight", 1.0))
+    surface_track_mirror_axes = tuple(
+        int(axis) for axis in initializer.get("rigid_surface_track_mirror_axes", ())
+    )
+    depth_sigma = float(initializer.get("depth_sigma_m", 0.55))
+    depth_search_samples = int(initializer.get("depth_search_samples", 13))
     transition_rate = float(initializer.get("temporal_heading_sigma_rad_per_frame", 0.12))
     maximum_heading_rate = float(initializer.get("maximum_heading_rad_per_frame", 0.5))
-    if bbox_sigma <= 0.0 or feature_sigma <= 0.0 or line_sigma <= 0.0 or transition_rate <= 0.0 or maximum_heading_rate <= 0.0:
+    if (
+        bbox_sigma <= 0.0
+        or feature_sigma <= 0.0
+        or line_sigma <= 0.0
+        or surface_track_sigma <= 0.0
+        or surface_track_weight < 0.0
+        or any(axis not in (0, 1, 2) for axis in surface_track_mirror_axes)
+        or depth_sigma <= 0.0
+        or depth_search_samples < 3
+        or transition_rate <= 0.0
+        or maximum_heading_rate <= 0.0
+    ):
         raise ValueError("rigid cuboid initializer sigmas must be positive")
+
 
     evidence: list[tuple[int, list[tuple[float, float, np.ndarray, np.ndarray]]]] = []
     artifacts: set[str] = set()
@@ -418,58 +444,167 @@ def _rigid_cuboid_feature_correspondence(request: InitializationRequest) -> Init
         if measurement.meta.frame in request.cameras:
             artifacts.add(measurement.meta.source.artifact)
             times.setdefault(measurement.meta.frame, measurement.meta.time)
+
     for frame in frames:
         camera = request.cameras[frame]
         center, depth, mask = centers[frame], depths[frame], masks[frame]
-        target_center_camera = np.asarray(((center.u - camera.cx) * depth.depth_m / camera.fx, (center.v - camera.cy) * depth.depth_m / camera.fy, depth.depth_m))
+        target_bbox = np.asarray(mask.bbox_xyxy)
+        target_size = np.maximum(target_bbox[2:] - target_bbox[:2], 1.0)
         candidates: list[tuple[float, float, np.ndarray, np.ndarray]] = []
         for angle in heading_grid:
             rotation = base_orientation @ _axis_rotation(upright_local, float(angle))
-            translation = target_center_camera - center_points[0] @ rotation.T
-            projected = _project_rigid_points(camera, body_points, translation, rotation, 1.0)
-            predicted_bbox = np.asarray((np.min(projected[:, 0]), np.min(projected[:, 1]), np.max(projected[:, 0]), np.max(projected[:, 1])))
-            residual = (predicted_bbox - np.asarray(mask.bbox_xyxy)) / bbox_sigma
-            score = float(np.sum(residual * residual))
-            feature = orientation_points.get(frame)
-            if feature is not None:
-                predicted_feature = _project_rigid_points(camera, orientation_local, translation, rotation, 1.0)[0]
-                delta = (predicted_feature - np.asarray((feature.u, feature.v))) / feature_sigma
-                score += float(np.sum(delta * delta))
-            for line in line_measurements_by_frame.get(frame, ()):
-                local_line = np.asarray(
-                    provider_points.get(line.meta.feature.geometry_feature_id),
-                    dtype=float,
+            rotated_body = body_points @ rotation.T
+            approximate_extent = np.ptp(rotated_body[:, :2], axis=0)
+            size_depths = np.asarray(
+                (
+                    camera.fx * approximate_extent[0] / target_size[0],
+                    camera.fy * approximate_extent[1] / target_size[1],
+                ),
+                dtype=float,
+            )
+            size_depths = size_depths[np.isfinite(size_depths) & (size_depths > 1e-3)]
+            size_depth = (
+                float(np.median(size_depths))
+                if len(size_depths)
+                else float(depth.depth_m)
+            )
+            searched_depths = np.unique(
+                np.concatenate(
+                    (
+                        np.asarray((float(depth.depth_m),), dtype=float),
+                        np.linspace(
+                            max(0.1, 0.70 * size_depth),
+                            max(0.11, 1.40 * size_depth),
+                            depth_search_samples,
+                        ),
+                    )
                 )
-                if local_line.shape != (2, 3):
-                    continue
-                predicted_line = _project_rigid_points(
-                    camera,
-                    local_line,
-                    translation,
+            )
+            best_depth_hypothesis: tuple[float, np.ndarray] | None = None
+            for candidate_depth in searched_depths:
+                target_center_camera = np.asarray(
+                    (
+                        (center.u - camera.cx) * candidate_depth / camera.fx,
+                        (center.v - camera.cy) * candidate_depth / camera.fy,
+                        candidate_depth,
+                    )
+                )
+                translation = target_center_camera - center_points[0] @ rotation.T
+                projected = _project_rigid_points(
+                    camera, body_points, translation, rotation, 1.0
+                )
+                predicted_bbox = np.asarray(
+                    (
+                        np.min(projected[:, 0]),
+                        np.min(projected[:, 1]),
+                        np.max(projected[:, 0]),
+                        np.max(projected[:, 1]),
+                    )
+                )
+                residual = (predicted_bbox - target_bbox) / bbox_sigma
+                score = float(np.sum(residual * residual))
+                score += ((float(candidate_depth) - float(depth.depth_m)) / depth_sigma) ** 2
+                feature = orientation_points.get(frame)
+                if feature is not None:
+                    predicted_feature = _project_rigid_points(
+                        camera, orientation_local, translation, rotation, 1.0
+                    )[0]
+                    delta = (
+                        predicted_feature - np.asarray((feature.u, feature.v))
+                    ) / feature_sigma
+                    score += float(np.sum(delta * delta))
+                for line in line_measurements_by_frame.get(frame, ()):
+                    local_line = np.asarray(
+                        provider_points.get(line.meta.feature.geometry_feature_id),
+                        dtype=float,
+                    )
+                    if local_line.shape != (2, 3):
+                        continue
+                    predicted_line = _project_rigid_points(
+                        camera,
+                        local_line,
+                        translation,
+                        rotation,
+                        1.0,
+                    )
+                    target_start = np.asarray(line.start_uv, dtype=float)
+                    target_end = np.asarray(line.end_uv, dtype=float)
+                    target_direction = target_end - target_start
+                    target_length = float(np.linalg.norm(target_direction))
+                    if target_length <= 1e-8:
+                        continue
+                    offsets = predicted_line - target_start[None, :]
+                    signed_distance = (
+                        target_direction[0] * offsets[:, 1]
+                        - target_direction[1] * offsets[:, 0]
+                    ) / target_length
+                    confidence = (
+                        float(line.meta.confidence)
+                        if line.meta.confidence is not None
+                        else 1.0
+                    )
+                    normalized = signed_distance / line_sigma
+                    score += confidence * float(
+                        np.sum(
+                            2.0
+                            * (np.sqrt(1.0 + normalized * normalized) - 1.0)
+                        )
+                    )
+                track_scores: list[float] = []
+                for track in surface_tracks_by_frame.get(frame, ()):
+                    local_track = np.asarray(
+                        provider_points.get(track.meta.feature.geometry_feature_id),
+                        dtype=float,
+                    )
+                    if local_track.shape != (1, 3):
+                        continue
+                    local_hypotheses = [local_track]
+                    for axis in surface_track_mirror_axes:
+                        mirrored = local_track.copy()
+                        mirrored[:, axis] *= -1.0
+                        local_hypotheses.append(mirrored)
+                    target_track = np.asarray((track.u, track.v), dtype=float)
+                    normalized_hypotheses = [
+                        (
+                            _project_rigid_points(
+                                camera, hypothesis, translation, rotation, 1.0
+                            )[0]
+                            - target_track
+                        )
+                        / surface_track_sigma
+                        for hypothesis in local_hypotheses
+                    ]
+                    confidence = (
+                        float(track.meta.confidence)
+                        if track.meta.confidence is not None
+                        else 1.0
+                    )
+                    track_scores.append(
+                        confidence
+                        * min(
+                            float(
+                                2.0
+                                * (
+                                    np.sqrt(1.0 + float(normalized @ normalized))
+                                    - 1.0
+                                )
+                            )
+                            for normalized in normalized_hypotheses
+                        )
+                    )
+                if track_scores:
+                    score += surface_track_weight * float(np.mean(track_scores))
+                if best_depth_hypothesis is None or score < best_depth_hypothesis[0]:
+                    best_depth_hypothesis = (score, translation)
+            assert best_depth_hypothesis is not None
+            candidates.append(
+                (
+                    float(angle),
+                    best_depth_hypothesis[0],
+                    best_depth_hypothesis[1],
                     rotation,
-                    1.0,
                 )
-                target_start = np.asarray(line.start_uv, dtype=float)
-                target_end = np.asarray(line.end_uv, dtype=float)
-                target_direction = target_end - target_start
-                target_length = float(np.linalg.norm(target_direction))
-                if target_length <= 1e-8:
-                    continue
-                offsets = predicted_line - target_start[None, :]
-                signed_distance = (
-                    target_direction[0] * offsets[:, 1]
-                    - target_direction[1] * offsets[:, 0]
-                ) / target_length
-                confidence = (
-                    float(line.meta.confidence)
-                    if line.meta.confidence is not None
-                    else 1.0
-                )
-                normalized = signed_distance / line_sigma
-                score += confidence * float(
-                    np.sum(2.0 * (np.sqrt(1.0 + normalized * normalized) - 1.0))
-                )
-            candidates.append((float(angle), score, translation, rotation))
+            )
         candidates.sort(key=lambda item: (item[1], item[0]))
         evidence.append((frame, candidates[:candidate_count]))
 
@@ -547,7 +682,7 @@ def _rigid_cuboid_feature_correspondence(request: InitializationRequest) -> Init
     return InitializationResult(
         states_by_frame=states,
         template_rows=tuple(templates),
-        hypothesis_ledger={"initializer_kind": "rigid_cuboid_feature_correspondence", "frame_count": len(frames), "heading_hypotheses_per_frame": candidate_count, "orientation_feature_frame_count": len(orientation_points), "line_orientation_frame_count": len(line_measurements_by_frame), "line_axis_sigma_px": line_sigma, "maximum_heading_rad_per_frame": maximum_heading_rate, "selected_maximum_heading_step_rad": float(max(selected_steps, default=0.0)), "disconnected_transition_frames": disconnected_transition_frames, "selected_emission_median": float(np.median(selected_scores)), "baseline_pose_read": False, "case_dispatch_used": False, "human_state_optimized": False},
+        hypothesis_ledger={"initializer_kind": "rigid_cuboid_feature_correspondence", "frame_count": len(frames), "heading_hypotheses_per_frame": candidate_count, "orientation_feature_frame_count": len(orientation_points), "line_orientation_frame_count": len(line_measurements_by_frame), "rigid_surface_track_frame_count": len(surface_tracks_by_frame), "rigid_surface_track_sigma_px": surface_track_sigma, "rigid_surface_track_weight": surface_track_weight, "rigid_surface_track_mirror_axes": list(surface_track_mirror_axes), "line_axis_sigma_px": line_sigma, "depth_sigma_m": depth_sigma, "depth_search_samples": depth_search_samples, "depth_mode": "joint_asset_silhouette_heading_with_metric_depth_prior", "maximum_heading_rad_per_frame": maximum_heading_rate, "selected_maximum_heading_step_rad": float(max(selected_steps, default=0.0)), "disconnected_transition_frames": disconnected_transition_frames, "selected_emission_median": float(np.median(selected_scores)), "baseline_pose_read": False, "case_dispatch_used": False, "human_state_optimized": False},
         input_artifact_ids=tuple(sorted(artifacts)),
     )
 

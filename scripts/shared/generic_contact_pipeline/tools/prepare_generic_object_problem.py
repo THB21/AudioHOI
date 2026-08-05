@@ -25,6 +25,8 @@ from scripts.shared.generic_contact_pipeline.core.solver import (
     object_publication_record,
     evaluate_object_publication_gate,
     prepare_capability_object_problem,
+    repair_rotation_step_outliers,
+    smooth_adjacent_states,
     write_isolated_sequence_attempt,
     update_isolated_attempt_evidence,
 )
@@ -91,9 +93,31 @@ def main() -> None:
     if args.solve:
         if args.candidate_dir is None:
             raise SystemExit("--solve requires --candidate-dir")
+        solver_config = profile.data.get("generic_object_problem", {})
+        if not isinstance(solver_config, dict):
+            raise ValueError("generic_object_problem must be a mapping")
         result = GenericSequenceExecutor().solve(
             prepared.preparation.problem,
-            SequenceOptimizationParameters(max_function_evaluations=args.max_nfev),
+            SequenceOptimizationParameters(
+                robust_loss=str(solver_config.get("robust_loss", "soft_l1")),
+                robust_scale=float(solver_config.get("robust_scale", 1.0)),
+                max_function_evaluations=args.max_nfev,
+            ),
+        )
+        result = smooth_adjacent_states(
+            prepared.preparation.problem,
+            result,
+            translation_passes=int(
+                getattr(prepared, "adjacent_translation_smoothing_passes", 0)
+            ),
+            rotation_passes=int(
+                getattr(prepared, "adjacent_rotation_smoothing_passes", 0)
+            ),
+        )
+        result = repair_rotation_step_outliers(
+            prepared.preparation.problem,
+            result,
+            maximum_step_deg=float(getattr(prepared, "maximum_rotation_step_deg", 0.0)),
         )
         attempt_dir = write_isolated_sequence_attempt(
             args.candidate_dir / "generic_sequence_solver_attempts",

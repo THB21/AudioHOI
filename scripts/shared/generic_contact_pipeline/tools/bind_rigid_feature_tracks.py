@@ -247,12 +247,9 @@ def main() -> None:
             "no reliable external rigid pose anchor passes the configured render-mask IoU gate"
         )
     cameras = {frame: camera for frame in states_by_frame}
-    configured_anchor_frames = {
-        int(value) for value in profile.data.get("preprocess", {}).get("rigid_pose_keyframes", ())
-    }
     reliable_anchor_frames = tuple(
         sorted(
-            (frame for frame in states_by_frame if frame in configured_anchor_frames),
+            states_by_frame,
             key=lambda frame: float(selected_pose_rows[frame].get("official_render_mask_iou", 0.0)),
             reverse=True,
         )
@@ -309,6 +306,7 @@ def main() -> None:
             _sha256(pose_hypotheses) if pose_hypotheses.is_file() else None
         ),
         "anchor_pose_source": "external_megapose_selected_visual_geometry",
+        "anchor_frame_source": "provider_selected_reliable_frames",
         "anchor_pose_symmetry_resolution": "descriptor_upright_axis_preserve_external_heading_fit_body_silhouette",
         "minimum_pose_mask_iou": args.minimum_pose_mask_iou,
         "output_csv": str(repo_relative_value(args.output_csv)),

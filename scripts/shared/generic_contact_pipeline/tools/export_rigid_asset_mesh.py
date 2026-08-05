@@ -5,10 +5,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
 import trimesh
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 
 from scripts.shared.generic_contact_pipeline.components.render.scenes.generic_urdf_scene import (
     load_articraft_visuals,

@@ -175,9 +175,58 @@ def primitive_mesh(geom_el: ET.Element, root: Path) -> tuple[np.ndarray, np.ndar
     raise RuntimeError(f"Unsupported visual geometry: {ET.tostring(geom_el, encoding='unicode')}")
 
 
-def load_articraft_visuals(urdf_path: Path) -> list[dict[str, object]]:
+def load_articraft_visuals(
+    urdf_path: Path,
+    joint_positions: dict[str, float] | None = None,
+) -> list[dict[str, object]]:
     root_dir = urdf_path.parent
     robot = ET.parse(urdf_path).getroot()
+    joint_positions = joint_positions or {}
+    links = {link.get("name", ""): link for link in robot.findall("link")}
+    child_names = {
+        child.get("link", "")
+        for joint in robot.findall("joint")
+        for child in [joint.find("child")]
+        if child is not None
+    }
+    roots = sorted(name for name in links if name and name not in child_names)
+    if len(roots) != 1:
+        raise RuntimeError(f"URDF renderer requires exactly one root link, found {roots}")
+    joints_by_parent: dict[str, list[ET.Element]] = {}
+    for joint in robot.findall("joint"):
+        parent = joint.find("parent")
+        if parent is not None:
+            joints_by_parent.setdefault(parent.get("link", ""), []).append(joint)
+    link_transforms = {roots[0]: np.eye(4, dtype=float)}
+    pending = [roots[0]]
+    while pending:
+        parent_name = pending.pop(0)
+        parent_transform = link_transforms[parent_name]
+        for joint in joints_by_parent.get(parent_name, []):
+            child = joint.find("child")
+            if child is None:
+                continue
+            child_name = child.get("link", "")
+            transform = parent_transform @ origin_matrix(joint.find("origin"))
+            joint_type = joint.get("type", "fixed")
+            value = float(joint_positions.get(joint.get("name", ""), 0.0))
+            axis = parse_vec(
+                joint.find("axis").get("xyz") if joint.find("axis") is not None else None,
+                (1.0, 0.0, 0.0),
+            )
+            axis = axis / max(np.linalg.norm(axis), 1e-12)
+            motion = np.eye(4, dtype=float)
+            if joint_type == "prismatic":
+                motion[:3, 3] = value * axis
+            elif joint_type in {"revolute", "continuous"}:
+                motion[:3, :3] = Rotation.from_rotvec(value * axis).as_matrix()
+            elif joint_type != "fixed":
+                raise RuntimeError(f"Unsupported URDF joint type: {joint_type}")
+            link_transforms[child_name] = transform @ motion
+            pending.append(child_name)
+    if set(link_transforms) != set(links):
+        missing = sorted(set(links) - set(link_transforms))
+        raise RuntimeError(f"URDF contains links disconnected from the root: {missing}")
     visuals: list[dict[str, object]] = []
     for link in robot.findall("link"):
         link_name = link.get("name", "")
@@ -186,7 +235,10 @@ def load_articraft_visuals(urdf_path: Path) -> list[dict[str, object]]:
             if geom is None:
                 continue
             verts, faces = primitive_mesh(geom, root_dir)
-            verts = transform_vertices(verts, origin_matrix(visual.find("origin")))
+            verts = transform_vertices(
+                verts,
+                link_transforms[link_name] @ origin_matrix(visual.find("origin")),
+            )
             visuals.append(
                 {
                     "link": link_name,
@@ -661,6 +713,7 @@ def main() -> None:
     ap.add_argument("--pose-csv", type=Path, required=True)
     ap.add_argument("--contacts-csv", type=Path)
     ap.add_argument("--urdf", type=Path, required=True)
+    ap.add_argument("--asset-descriptor", type=Path)
     ap.add_argument("--out-root", type=Path, required=True)
     ap.add_argument("--fps", type=float, default=24.0)
     ap.add_argument("--alpha", type=float, default=0.78)
@@ -672,7 +725,14 @@ def main() -> None:
     args = ap.parse_args()
 
     rows = read_rows(args.pose_csv)
-    visuals = load_articraft_visuals(args.urdf)
+    joint_positions: dict[str, float] = {}
+    if args.asset_descriptor is not None:
+        descriptor = json.loads(args.asset_descriptor.read_text())
+        joint_positions = {
+            str(name): float(value)
+            for name, value in descriptor.get("fixed_resource_joint_state", {}).items()
+        }
+    visuals = load_articraft_visuals(args.urdf, joint_positions)
     body = build_body_geometry(args.body_model_root, read_human_result(args.sample_dir / "results/gvhmr/result.pkl"))
     visible_tracks = read_visible_line_tracks(args.sample_dir)
     K = np.array([[args.fx, 0.0, args.cx], [0.0, args.fy, args.cy], [0.0, 0.0, 1.0]], dtype=float)

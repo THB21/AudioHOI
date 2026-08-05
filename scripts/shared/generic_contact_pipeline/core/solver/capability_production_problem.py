@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Mapping, Sequence
 
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 from ..base.config import CaseProfile
 from ..base.schema import resolve_contact_artifact
@@ -176,6 +177,62 @@ def _semantic_relation_by_frame(
             if previous is None or relation.confidence > previous.confidence:
                 selected[frame] = relation
     return selected
+
+
+def _select_semantic_face_initialization_branch(
+    states: Mapping[int, Sequence[float]],
+    face_relations: Mapping[int, SemanticRelation],
+    face_normals: Mapping[str, Sequence[float]],
+    *,
+    support_normal_world: Sequence[float],
+    minimum_score_improvement: float = 0.10,
+) -> tuple[dict[int, tuple[float, ...]], Mapping[str, object]]:
+    """Let discrete face identity select between the two rigid yaw symmetry branches."""
+
+    normal = np.asarray(support_normal_world, dtype=float)
+    normal /= max(float(np.linalg.norm(normal)), 1e-12)
+    mirror = Rotation.from_rotvec(np.pi * normal)
+    base_scores: list[float] = []
+    mirror_scores: list[float] = []
+    evidence_ids: list[str] = []
+    for frame, relation in sorted(face_relations.items()):
+        if frame not in states or relation.label not in face_normals:
+            continue
+        state = np.asarray(states[frame], dtype=float)
+        view = -state[:3]
+        if np.linalg.norm(view) <= 1e-9:
+            continue
+        view /= np.linalg.norm(view)
+        local = np.asarray(face_normals[relation.label], dtype=float)
+        local /= max(float(np.linalg.norm(local)), 1e-12)
+        rotation = Rotation.from_quat([state[4], state[5], state[6], state[3]])
+        weight = float(relation.confidence)
+        base_scores.append(weight * float((rotation.apply(local)) @ view))
+        mirror_scores.append(weight * float(((mirror * rotation).apply(local)) @ view))
+        evidence_ids.append(relation.relation_id)
+    base_score = float(np.mean(base_scores)) if base_scores else 0.0
+    mirrored_score = float(np.mean(mirror_scores)) if mirror_scores else 0.0
+    choose_mirror = bool(
+        base_scores and mirrored_score >= base_score + minimum_score_improvement
+    )
+    output: dict[int, tuple[float, ...]] = {}
+    for frame, raw_state in states.items():
+        state = np.asarray(raw_state, dtype=float).copy()
+        if choose_mirror:
+            rotation = Rotation.from_quat([state[4], state[5], state[6], state[3]])
+            quaternion = (mirror * rotation).as_quat()
+            state[3:7] = [quaternion[3], quaternion[0], quaternion[1], quaternion[2]]
+        output[frame] = tuple(float(value) for value in state)
+    return output, {
+        "kind": "vlm_discrete_face_symmetry_branch_selection",
+        "candidate_count": 2,
+        "selected_branch": "upright_yaw_pi" if choose_mirror else "original",
+        "base_score": base_score,
+        "mirrored_score": mirrored_score,
+        "minimum_score_improvement": minimum_score_improvement,
+        "evidence_ids": list(dict.fromkeys(evidence_ids)),
+        "continuous_pose_from_vlm": False,
+    }
 
 
 def _visual_speed_stats_by_interval(
@@ -894,6 +951,19 @@ def prepare_capability_object_problem(
     if not isinstance(raw_config, Mapping):
         raise ValueError("case profile is missing generic_object_problem capability configuration")
     config = copy.deepcopy(dict(raw_config))
+    flags = set(profile.data.get("ablation_flags", ()))
+    vlm_evidence_enabled = "disable_vlm_semantic_evidence" not in flags
+    if not vlm_evidence_enabled:
+        raw_mask_shape = config.get("mask_shape_observations")
+        if isinstance(raw_mask_shape, Mapping):
+            mask_shape = copy.deepcopy(dict(raw_mask_shape))
+            fallback_pattern = str(mask_shape.get("fallback_artifact_pattern", ""))
+            if fallback_pattern:
+                mask_shape["artifact_pattern"] = fallback_pattern
+                mask_shape["artifact_base"] = "sample_dir"
+                mask_shape["fallback_artifact_pattern"] = ""
+            mask_shape["completed_confidence"] = None
+            config["mask_shape_observations"] = mask_shape
     if mask_artifact_bbox_policy_override is not None:
         if mask_artifact_bbox_policy_override not in {False, True, "completed_only"}:
             raise ValueError(
@@ -1186,14 +1256,17 @@ def prepare_capability_object_problem(
     facing_relation_factors: dict[str, FacingRelationFactorInput] = {}
     heading_topology_factors: dict[str, HeadingTopologyFactorInput] = {}
     audio_motion_factors: dict[str, AudioMotionEnvelopeFactorInput] = {}
-    reference_state_frames = _approved_amodal_reference_frames(
-        result_dir,
-        config.get("occluded_pose_reference"),
+    reference_state_frames = (
+        _approved_amodal_reference_frames(
+            result_dir,
+            config.get("occluded_pose_reference"),
+        )
+        if vlm_evidence_enabled
+        else ()
     )
     cameras = {frame: PinholeCamera(**profile.camera) for frame in initial_states}
     line_measurements = tuple(item for item in measurements if isinstance(item, Line2DMeasurement))
     configured_interaction_artifact = config.get("interaction_state_artifact")
-    flags = set(profile.data.get("ablation_flags", ()))
     timeline = build_interaction_timeline(
         profile.case_name,
         result_dir,
@@ -1240,19 +1313,107 @@ def prepare_capability_object_problem(
     face_relations = _semantic_relation_by_frame(
         semantic_relations, "visible_face", minimum_confidence=semantic_confidence
     )
+    side_exposure_relations = _semantic_relation_by_frame(
+        semantic_relations, "side_exposure", minimum_confidence=semantic_confidence
+    )
+    if face_relations and initializer in {
+        "axial_rigid_feature_correspondence",
+        "rigid_cuboid_feature_correspondence",
+    }:
+        initial_states, semantic_branch_ledger = _select_semantic_face_initialization_branch(
+            initial_states,
+            face_relations,
+            face_normals,
+            support_normal_world=tuple(
+                float(value)
+                for value in config.get("support_plane", {}).get(
+                    "normal_camera", (0.0, -1.0, 0.0)
+                )
+            ),
+        )
+        initializer_ledger = {
+            **initializer_ledger,
+            "semantic_face_branch_selection": semantic_branch_ledger,
+        }
+        if (
+            semantic_branch_ledger["selected_branch"] == "upright_yaw_pi"
+            and isinstance(provider, RigidFeatureGeometryProvider)
+        ):
+            mirrored_features: dict[str, Sequence[Sequence[float]]] = {}
+            mirrored_dynamic_count = 0
+            for feature_id, points in provider.feature_points_local.items():
+                values = np.asarray(points, dtype=float).copy()
+                if feature_id.startswith("track_local:"):
+                    values[:, :2] *= -1.0
+                    mirrored_dynamic_count += 1
+                mirrored_features[feature_id] = values.tolist()
+            provider = RigidFeatureGeometryProvider(
+                feature_points_local=mirrored_features,
+                scale_state_index=provider.scale_state_index,
+                periodic_feature_rules=provider.periodic_feature_rules,
+            )
+            initializer_ledger = {
+                **initializer_ledger,
+                "semantic_branch_dynamic_feature_reparameterization": {
+                    "kind": "local_upright_yaw_pi_inverse",
+                    "feature_prefix": "track_local:",
+                    "feature_count": mirrored_dynamic_count,
+                    "purpose": "preserve_visual_track_projection_across_semantic_symmetry_branch",
+                },
+            }
     face_frames = tuple(sorted(frame for frame, relation in face_relations.items() if relation.label in face_normals and frame in initial_states))
     face_factor_input = None
     if face_frames and len(face_normals) >= 2:
+        side_oblique_strength = float(semantic_config.get("side_oblique_strength", 0.35))
+        compatible_face_cosine = float(
+            semantic_config.get("compatible_face_cosine", 0.70)
+        )
+        selected_face_normals: dict[int, tuple[float, float, float]] = {}
+        incompatible_face_normals: dict[
+            int, tuple[tuple[float, float, float], ...]
+        ] = {}
+        face_confidence: dict[int, float] = {}
+        face_evidence_ids: dict[int, tuple[str, ...]] = {}
+        for frame in face_frames:
+            relation = face_relations[frame]
+            normal = np.asarray(face_normals[relation.label], dtype=float)
+            evidence_ids = [relation.relation_id]
+            confidence = relation.confidence
+            side_relation = side_exposure_relations.get(frame)
+            side_label = None if side_relation is None else side_relation.label
+            side_feature = {
+                "left_exposed": "side_left",
+                "right_exposed": "side_right",
+            }.get(side_label)
+            if side_feature in face_normals:
+                normal = normal + side_oblique_strength * np.asarray(
+                    face_normals[side_feature], dtype=float
+                )
+                evidence_ids.append(side_relation.relation_id)
+                confidence = min(confidence, side_relation.confidence)
+            normal /= max(float(np.linalg.norm(normal)), 1e-12)
+            selected_face_normals[frame] = tuple(float(value) for value in normal)
+            incompatible_face_normals[frame] = tuple(
+                tuple(float(value) for value in candidate)
+                for candidate in face_normals.values()
+                if float(
+                    normal
+                    @ (
+                        np.asarray(candidate, dtype=float)
+                        / max(float(np.linalg.norm(candidate)), 1e-12)
+                    )
+                )
+                < compatible_face_cosine
+            )
+            face_confidence[frame] = confidence
+            face_evidence_ids[frame] = tuple(evidence_ids)
         face_factor_input = FaceVisibilityFactorInput(
-            selected_face_normal_local_by_frame={frame: face_normals[face_relations[frame].label] for frame in face_frames},
-            incompatible_face_normals_local_by_frame={
-                frame: tuple(normal for label, normal in face_normals.items() if label != face_relations[frame].label)
-                for frame in face_frames
-            },
+            selected_face_normal_local_by_frame=selected_face_normals,
+            incompatible_face_normals_local_by_frame=incompatible_face_normals,
             camera_center_world_by_frame={frame: (0.0, 0.0, 0.0) for frame in face_frames},
             active_frames=face_frames,
-            confidence_by_frame={frame: face_relations[frame].confidence for frame in face_frames},
-            evidence_ids_by_frame={frame: (face_relations[frame].relation_id,) for frame in face_frames},
+            confidence_by_frame=face_confidence,
+            evidence_ids_by_frame=face_evidence_ids,
             margin=float(semantic_config.get("face_rank_margin", 0.05)),
         )
     facing_relations = _semantic_relation_by_frame(

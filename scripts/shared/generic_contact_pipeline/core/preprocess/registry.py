@@ -74,12 +74,28 @@ def _validate_audio_events(path: Path, _expected: int) -> None:
         reader = csv.DictReader(handle)
         fields = set(reader.fieldnames or ())
         rows = list(reader)
-    required = {"event", "audio_time", "audio_frame", "peak", "prominence", "audio_score"}
+    required = {
+        "event", "event_type", "audio_time", "audio_frame", "start_time_s", "end_time_s",
+        "start_frame", "end_frame", "peak", "prominence", "audio_score",
+    }
     if not required.issubset(fields):
         raise ValueError(f"audio events are missing columns: {sorted(required - fields)}")
     for row in rows:
-        if not all(np.isfinite(float(row[field])) for field in required - {"event"}):
+        numeric = required - {"event", "event_type"}
+        if not all(np.isfinite(float(row[field])) for field in numeric):
             raise ValueError("audio event contains a non-finite numeric value")
+        if int(float(row["start_frame"])) > int(float(row["end_frame"])):
+            raise ValueError("audio event interval frames are reversed")
+
+
+def _validate_audio_envelope(path: Path, expected: int) -> None:
+    rows = _csv_rows(path)
+    if len(rows) != expected:
+        raise ValueError(f"audio envelope has {len(rows)} rows; expected {expected}")
+    required = {"frame", "time_s", "rms_z", "flux_z", "hf_ratio", "motion_probability"}
+    for row in rows:
+        if not all(np.isfinite(float(row[field])) for field in required):
+            raise ValueError("audio envelope contains a non-finite numeric value")
 
 
 def _validate_object_depth_prior(path: Path, expected: int) -> None:
@@ -97,6 +113,8 @@ def _validate_rigid_pose_hypotheses(
 ) -> None:
     rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
     manifest = json.loads(manifest_path.read_text())
+    if not requested_frames:
+        requested_frames = tuple(sorted(int(frame) for frame in manifest.get("requested_frames", ())))
     successful = tuple(sorted(int(frame) for frame in manifest.get("successful_frames", ())))
     if successful != requested_frames or manifest.get("failures"):
         raise ValueError("external rigid pose provider did not complete every requested keyframe")
@@ -222,7 +240,17 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
     sam_pt_maximum_prompts = int(preprocess.get("sam_pt_maximum_prompt_points", 16))
     rigid_pose_provider = str(preprocess.get("rigid_pose_provider", "none"))
     megapose_enabled = rigid_pose_provider == "megapose_rgb"
-    megapose_keyframes = tuple(sorted({int(frame) for frame in preprocess.get("rigid_pose_keyframes", ())}))
+    raw_megapose_keyframes = preprocess.get("rigid_pose_keyframes", "auto")
+    megapose_auto_keyframes = str(raw_megapose_keyframes).lower() == "auto"
+    megapose_keyframes = (
+        ()
+        if megapose_auto_keyframes
+        else tuple(sorted({int(frame) for frame in raw_megapose_keyframes}))
+    )
+    megapose_frame_argument = "auto" if megapose_auto_keyframes else ",".join(
+        str(frame) for frame in megapose_keyframes
+    )
+    megapose_auto_frame_count = int(preprocess.get("rigid_pose_keyframe_count", 10))
     megapose_data_dir = Path(
         str(preprocess.get("megapose_data_dir", REPO / "third-party/megapose6d/local_data"))
     )
@@ -256,7 +284,8 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
         "--asset-mesh", str(rigid_asset_mesh_path),
         "--mask-dir", str(results / "segmentation/masks"),
         "--track-artifact", str(results / "tracking/rigid_point_tracks.csv"),
-        "--frames", ",".join(str(frame) for frame in megapose_keyframes),
+        "--frames", megapose_frame_argument,
+        "--auto-frame-count", str(megapose_auto_frame_count),
         "--output", str(megapose_output_path),
         "--overlay-dir", str(megapose_overlay_path),
         "--megapose-data-dir", str(megapose_data_dir),
@@ -360,6 +389,12 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
     events = ArtifactSpec(
         "audio_events", results / "events/audio_events.csv", required=not audio_disabled
     )
+    audio_envelope = ArtifactSpec(
+        "audio_envelope", results / "events/audio_envelope.csv", required=not audio_disabled
+    )
+    audio_event_manifest = ArtifactSpec(
+        "audio_event_manifest", results / "events/audio_event_manifest.json", required=not audio_disabled
+    )
     return (
         _task(
             "frame_extract", "audiohoi", (), (video,), (frames,),
@@ -438,7 +473,8 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
             _runtime_command("megapose", megapose_tool, *megapose_args),
             config={
                 "provider": rigid_pose_provider,
-                "keyframes": list(megapose_keyframes),
+                "keyframes": "auto" if megapose_auto_keyframes else list(megapose_keyframes),
+                "keyframe_count": megapose_auto_frame_count,
                 "selection": "official_render_mask_iou_with_persistent_track_visibility",
                 "accepted_pose_publication": False,
             },
@@ -497,10 +533,14 @@ def build_preprocess_tasks(profile: CaseProfile) -> tuple[PreprocessTask, ...]:
         ),
         _task(
             "audio_events", "audiohoi", ("audio_extract", "frame_extract", "cotracker", "gvhmr"),
-            (audio, frames, gvhmr, center), (events,),
+            (audio, frames, gvhmr, center), (events, audio_envelope, audio_event_manifest),
             _runtime_command("audiohoi", audio_tool, "--sample-dir", str(sample)),
-            config={"detector": "combined", "classifier": "rule"}, required=not audio_disabled,
-            validator=lambda count: _validate_audio_events(events.path, count),
+            config={"detector": "combined", "classifier": "rule", "schema_version": 2}, required=not audio_disabled,
+            validator=lambda count: (
+                _validate_audio_events(events.path, count),
+                _validate_audio_envelope(audio_envelope.path, count),
+                json.loads(audio_event_manifest.path.read_text()),
+            ),
         ),
     )
 

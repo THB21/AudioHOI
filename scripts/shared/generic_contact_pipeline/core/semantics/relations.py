@@ -11,10 +11,21 @@ from typing import Iterable, Mapping
 
 ALLOWED_LABELS: dict[str, frozenset[str]] = {
     "visible_face": frozenset(
-        {"grasp_side_wide", "opposite_wide", "side_left", "side_right", "unclear"}
+        {
+            "grasp_side_wide",
+            "grasp_side_wide_left_oblique",
+            "grasp_side_wide_right_oblique",
+            "opposite_wide",
+            "side_left",
+            "side_right",
+            "unclear",
+        }
     ),
     "facing_relation": frozenset(
         {"grasp_side_toward_human", "grasp_side_away", "side_on", "unclear"}
+    ),
+    "side_exposure": frozenset(
+        {"left_exposed", "right_exposed", "none", "unclear"}
     ),
     "turn_direction_screen": frozenset(
         {"counterclockwise", "clockwise", "stationary", "unclear"}

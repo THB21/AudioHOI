@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from dataclasses import dataclass
+from itertools import combinations
 from math import isfinite
 from typing import Mapping, Sequence
 
@@ -163,9 +164,11 @@ def bind_rigid_feature_tracks(
     """Bind arbitrary persistent image tracks to their own rigid local points.
 
     CoTracker points are surface texture observations, not semantic corners.
-    A reliable external pose is therefore used once to ray-cast each selected
-    point onto the rigid body.  Subsequent rows retain that fixed local point and
-    never relabel it as a wheel, rail, or box corner.
+    Multiple reliable external poses ray-cast the same persistent tracks onto
+    the rigid body.  Pose anchors that imply a different object-local track
+    constellation are rejected as symmetry/face-identity branches.  Each
+    retained track is assigned the medoid of its consistent local hypotheses;
+    subsequent rows never relabel it as a wheel, rail, or box corner.
     """
 
     if maximum_anchor_error_px <= 0.0:
@@ -190,34 +193,106 @@ def bind_rigid_feature_tracks(
         rows_by_frame[int(row["frame"])].append(row)
         rows_by_track[str(row["track_id"])].append(row)
 
-    ordered_anchors = tuple(dict.fromkeys(int(value) for value in reliable_anchor_frames))
-    anchor_frame = next(
-        (frame for frame in ordered_anchors if frame in states_by_frame and frame in cameras),
-        None,
+    ordered_anchors = tuple(
+        frame
+        for frame in dict.fromkeys(int(value) for value in reliable_anchor_frames)
+        if frame in states_by_frame and frame in cameras
     )
-    if anchor_frame is None:
+    if not ordered_anchors:
         raise ValueError("rigid surface binding has no usable pose anchor")
-    visible_rows = sorted(
-        (
-            row for row in rows_by_frame.get(anchor_frame, ())
-            if float(row["visible"]) >= minimum_track_visibility and float(row["confidence"]) > 0.0
-        ),
-        key=lambda row: str(row["track_id"]),
-    )
-    local_by_track: dict[str, np.ndarray] = {}
-    intersecting_rows: list[Mapping[str, object]] = []
-    for row in visible_rows:
-        local = _ray_box_local_surface_point(
-            state=states_by_frame[anchor_frame],
-            camera=cameras[anchor_frame],
-            uv=(float(row["u"]), float(row["v"])),
-            local_bounds=local_bounds,
-        )
-        if local is None:
-            rejected["anchor_ray_misses_rigid_surface"] += 1
+    local_by_anchor: dict[int, dict[str, np.ndarray]] = {}
+    visible_row_by_anchor: dict[int, dict[str, Mapping[str, object]]] = {}
+    for anchor_frame in ordered_anchors:
+        local_by_anchor[anchor_frame] = {}
+        visible_row_by_anchor[anchor_frame] = {}
+        for row in sorted(rows_by_frame.get(anchor_frame, ()), key=lambda item: str(item["track_id"])):
+            if (
+                float(row["visible"]) < minimum_track_visibility
+                or float(row["confidence"]) <= 0.0
+            ):
+                continue
+            local = _ray_box_local_surface_point(
+                state=states_by_frame[anchor_frame],
+                camera=cameras[anchor_frame],
+                uv=(float(row["u"]), float(row["v"])),
+                local_bounds=local_bounds,
+            )
+            if local is None:
+                rejected["anchor_ray_misses_rigid_surface"] += 1
+                continue
+            track_id = str(row["track_id"])
+            local_by_anchor[anchor_frame][track_id] = local
+            visible_row_by_anchor[anchor_frame][track_id] = row
+
+    # A cuboid mask can score equally well after a 90/180-degree face switch.
+    # The same persistent image tracks cannot, because their object-local
+    # constellation must remain fixed.  Use a scale-relative threshold so this
+    # gate applies to any descriptor-backed rigid body rather than one asset.
+    body_diagonal = float(np.linalg.norm(local_bounds[1] - local_bounds[0]))
+    maximum_anchor_local_error = 0.20 * body_diagonal
+    compatible_pairs: set[tuple[int, int]] = set()
+    for left, right in combinations(ordered_anchors, 2):
+        common = sorted(set(local_by_anchor[left]) & set(local_by_anchor[right]))
+        if len(common) < 4:
+            rejected["anchor_insufficient_common_tracks"] += 1
             continue
-        local_by_track[str(row["track_id"])] = local
-        intersecting_rows.append(row)
+        disagreement = np.asarray(
+            [
+                np.linalg.norm(
+                    local_by_anchor[left][track_id] - local_by_anchor[right][track_id]
+                )
+                for track_id in common
+            ],
+            dtype=float,
+        )
+        if float(np.median(disagreement)) <= maximum_anchor_local_error:
+            compatible_pairs.add((left, right))
+        else:
+            rejected["anchor_rigid_constellation_disagreement"] += 1
+
+    accepted_anchors: list[int] = []
+    for size in range(len(ordered_anchors), 1, -1):
+        for candidate in combinations(ordered_anchors, size):
+            if all(
+                (left, right) in compatible_pairs
+                for left, right in combinations(candidate, 2)
+            ):
+                accepted_anchors = list(candidate)
+                break
+        if accepted_anchors:
+            break
+    if len(accepted_anchors) < 2:
+        raise ValueError(
+            "rigid surface binding requires two consistent external pose anchors"
+        )
+    reference_anchor = accepted_anchors[0]
+    anchor_frame = reference_anchor
+    intersecting_rows: list[Mapping[str, object]] = []
+    local_by_track: dict[str, np.ndarray] = {}
+    support_by_track: dict[str, tuple[int, ...]] = {}
+    error_by_track: dict[str, float] = {}
+    for track_id, reference_row in visible_row_by_anchor[reference_anchor].items():
+        source_frames = tuple(
+            frame for frame in accepted_anchors if track_id in local_by_anchor[frame]
+        )
+        if len(source_frames) < 2:
+            rejected["track_insufficient_anchor_support"] += 1
+            continue
+        hypotheses = np.stack(
+            [local_by_anchor[frame][track_id] for frame in source_frames]
+        )
+        pairwise = np.linalg.norm(
+            hypotheses[:, None, :] - hypotheses[None, :, :], axis=2
+        )
+        local = hypotheses[int(np.argmin(np.sum(pairwise, axis=1)))]
+        local_error = float(np.median(np.linalg.norm(hypotheses - local, axis=1)))
+        if local_error > maximum_anchor_local_error:
+            rejected["track_local_constellation_disagreement"] += 1
+            continue
+        local_by_track[track_id] = local
+        support_by_track[track_id] = source_frames
+        error_by_track[track_id] = local_error
+        intersecting_rows.append(reference_row)
     selected_ids = set(
         _spatially_distributed_track_ids(intersecting_rows, maximum_track_count)
     )
@@ -235,17 +310,22 @@ def bind_rigid_feature_tracks(
                 geometry_feature_id=feature_id,
                 anchor_frame=anchor_frame,
                 anchor_error_px=0.0,
-                confidence=float(row["confidence"]),
-                source_anchor_frames=(anchor_frame,),
+                confidence=float(row["confidence"])
+                * max(0.05, 1.0 - error_by_track[track_id] / maximum_anchor_local_error),
+                source_anchor_frames=support_by_track[track_id],
                 local_xyz_m=tuple(float(value) for value in local),
             )
         )
 
     by_track = {association.track_id: association for association in associations}
     measurement_rows: list[dict[str, object]] = []
+    last_validated_anchor = max(accepted_anchors)
     for track_id, association in by_track.items():
         for row in sorted(rows_by_track[track_id], key=lambda item: int(item["frame"])):
             if float(row["visible"]) < minimum_track_visibility:
+                continue
+            if int(row["frame"]) > last_validated_anchor:
+                rejected["outside_validated_anchor_horizon"] += 1
                 continue
             if (int(row["frame"]) - association.anchor_frame) % frame_stride != 0:
                 continue
@@ -273,6 +353,6 @@ def bind_rigid_feature_tracks(
         measurement_rows=tuple(
             sorted(measurement_rows, key=lambda row: (int(row["frame"]), str(row["track_id"])))
         ),
-        reliable_anchor_frames=(anchor_frame,),
+        reliable_anchor_frames=tuple(sorted(accepted_anchors)),
         rejected_by_reason=dict(sorted(rejected.items())),
     )

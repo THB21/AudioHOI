@@ -22,7 +22,8 @@ preprocess:
   tracker_sequence_mode: persistent_online
   tracker_grid_size: 12
   rigid_pose_provider: megapose_rgb
-  rigid_pose_keyframes: [1, 80, 106, 118, 125, 127, 155, 163, 200, 226]
+  rigid_pose_keyframes: auto
+  rigid_pose_keyframe_count: 10
   rigid_feature_maximum_anchor_error_px: 18.0
   rigid_feature_minimum_track_visibility: 0.5
   rigid_feature_minimum_pose_mask_iou: 0.60
@@ -104,21 +105,23 @@ generic_object_problem:
     rotation_recovery_frames: 7
     project_rotation: false
   postsolve_smoothing:
-    translation_passes: 0
-    rotation_passes: 0
+    translation_passes: 1
+    rotation_passes: 1
     maximum_rotation_step_deg: 0.0
   robust_loss: linear
   robust_scale: 1.0
   max_function_evaluations: 160
   interaction_factors: [contact_distance, contact_relative_velocity]
   environment_factors: [support_and_penetration]
-  semantic_factors: [facing_relation, heading_topology]
+  semantic_factors: [face_visibility_inequality, facing_relation, heading_topology]
   audio_factors: [audio_motion_envelope]
   semantic_evidence:
     artifact: vlm/stage4/semantic_relations.jsonl
     minimum_confidence: 0.70
     human_reference_body_part: foot
     face_rank_margin: 0.05
+    side_oblique_strength: 0.35
+    compatible_face_cosine: 0.70
     facing_margin: 0.10
     minimum_observable_increment_rad: 0.01
     minimum_cumulative_heading_turn_rad: 0.0
@@ -207,7 +210,7 @@ factor_runtime:
     weight: 1.0
     sigma: 0.20
     sigma_unit: rank
-    source: fixed_profile_semantic_face_rank
+    source: confidence_gated_vlm_semantic_face_rank
     activation_weight_tiers: {active: 1.0, downweighted: 0.15, inactive: 0.0}
   facing_relation:
     weight: 1.5
@@ -244,7 +247,8 @@ vlm:
     asset_reference_image: articraft/records/rec_create-a-realistic-black-hard-shell-carry-on-rol_20260731_015156_616489_a9b2bd71/revisions/rev_000001/inputs/codex-clipboard-1ce19566-8e9c-4eac-9efd-4c0f2ebab0a5.png
     suppression_radius_frames: 14
     maximum_queries: 10
-    predicates: [facing_relation, turn_direction_screen, visibility, grasp_state]
+    include_terminal_window: true
+    predicates: [visible_face, side_exposure, facing_relation, turn_direction_screen, visibility, grasp_state]
 camera:
   fx: 1468.604736328125
   fy: 1468.604736328125

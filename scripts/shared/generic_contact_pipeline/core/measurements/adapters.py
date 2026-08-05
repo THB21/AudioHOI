@@ -134,7 +134,7 @@ def adapt_legacy_observation_rows(sample_id: str, rows: list[dict[str, str]], ar
             _point(out, mapped, sample_id, row, artifact, "lowest_visible_point", "object:lowest_visible", "lowest_visible_x", "lowest_visible_y", conf)
             _mask(out, mapped, sample_id, row, artifact, "object_mask", "object:body", ("bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2"), _confidence(row, "mask_conf"), "mask_area_px")
             _mask(out, mapped, sample_id, row, artifact, "object_body_mask", "object:body", ("body_bbox_x1", "body_bbox_y1", "body_bbox_x2", "body_bbox_y2"), conf)
-            semantic_visibility = row.get("vlm_visibility", "").strip().lower()
+            semantic_visibility = row.get("vlm_visibility", row.get("visibility", "")).strip().lower()
             visibility_blocks_observation = semantic_visibility in {
                 "hidden",
                 "occluded",
@@ -154,8 +154,9 @@ def adapt_legacy_observation_rows(sample_id: str, rows: list[dict[str, str]], ar
                     "unknown": "unknown",
                     "unclear": "unknown",
                 }.get(semantic_visibility, "unknown")
-                mapped.add("vlm_visibility")
-                visibility_fields = ("vlm_visibility",)
+                visibility_field = "vlm_visibility" if row.get("vlm_visibility", "").strip() else "visibility"
+                mapped.add(visibility_field)
+                visibility_fields = (visibility_field,)
             else:
                 state = {"1": "visible", "0": "occluded"}.get(row.get("handle_visible", ""), "unknown")
                 visibility_fields = ("handle_visible",)

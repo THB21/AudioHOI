@@ -97,7 +97,8 @@ def select_uncertain_windows(
 
 def forced_choice_questions(target: str) -> tuple[dict[str, object], ...]:
     questions = {
-        "visible_face": f"Which physical BODY face of the {target} is most visible in the center panel? First compare the projected rigid-body width/height ratio and visible top/bottom edges with the broad and narrow views in the asset identity reference. A visible handle or telescoping rails alone does NOT mean a broad face is visible. grasp_side_wide is the broad body face nearest the rail mounts; opposite_wide is the other broad body face; side_left/side_right are the narrow body faces as seen in the image. If the body is narrow in projection, choose a side face even when the rails remain visible above it.",
+        "visible_face": f"Which physical BODY face of the {target} is most visible in the center panel? First compare the projected rigid-body width/height ratio and visible top/bottom edges with the broad and narrow views in the asset identity reference. A visible handle or telescoping rails alone does NOT mean a broad face is visible. grasp_side_wide is the broad body face nearest the rail mounts; opposite_wide is the other broad body face; side_left/side_right are pure narrow-face views as seen in the image. Choose grasp_side_wide_left_oblique or grasp_side_wide_right_oblique when the grasp-side broad face dominates but the corresponding left or right narrow side is also visibly exposed. If the body is narrow in projection, choose a pure side face even when the rails remain visible above it.",
+        "side_exposure": f"When viewing the same {target} in the center panel, is its LEFT or RIGHT narrow body side additionally exposed beside the dominant broad face? Use body side edges, rail ordering, top edge and wheel ordering; answer none only for a truly straight-on broad-face view, and unclear when occlusion prevents a reliable distinction.",
         "facing_relation": f"How is the grasp-side wide face of the {target} oriented relative to the human in the center panel? Infer the grasp-side from the two physical rails and handle mount. Use the physical object pixels and hand-handle relation, not the dark render.",
         "turn_direction_screen": f"Read the ORIGINAL RGB temporal strip strictly from EARLIER to LATER. Which apparent yaw rotation does the same {target} follow around its upright axis as viewed by the camera? Ignore translation of its center. Track the changing order and exposure of the two broad faces, narrow faces, two rails, handle and wheel constellation, using the asset identity reference row. Choose stationary only if those orientation cues do not change, and unclear if they are insufficient.",
         "visibility": f"What is the visibility state of the same {target} in the center frame? visible means the complete rigid body outline and its expected rails/wheels are inspectable; partial means a portion is hidden or cropped; human_occluded means the missing portion is specifically behind the human. The cyan mask may itself be incomplete, so compare RGB, neighboring panels and the asset identity reference.",
@@ -271,13 +272,28 @@ def profile_uncertain_windows(profile: CaseProfile) -> list[tuple[int, int, int,
         return []
     if "disable_vlm_semantic_evidence" in set(profile.data.get("ablation_flags", ())):
         return []
-    return select_uncertain_windows(
+    windows = select_uncertain_windows(
         build_profile_uncertainty(profile),
         threshold=float(raw.get("uncertainty_threshold", 0.42)),
         radius=int(raw.get("temporal_radius_frames", 3)),
         suppression_radius=int(raw.get("suppression_radius_frames", 8)),
         maximum_queries=int(raw.get("maximum_queries", 12)),
     )
+    if bool(raw.get("include_terminal_window", False)):
+        frame_count = _frame_count(profile.sample_dir)
+        radius = int(raw.get("temporal_radius_frames", 3))
+        fps = float(dict(profile.data.get("preprocess", {})).get("fps", 30.0))
+        if frame_count > 0 and not any(start <= frame_count <= end for _, start, end, _ in windows):
+            windows.append(
+                (
+                    frame_count,
+                    max(1, frame_count - radius),
+                    frame_count,
+                    (frame_count - 1) / fps,
+                )
+            )
+            windows.sort(key=lambda value: value[0])
+    return windows
 
 
 def _sha256_file(path: Path) -> str:

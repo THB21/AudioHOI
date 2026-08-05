@@ -1151,6 +1151,8 @@ def question_for(profile: CaseProfile, query_type: str) -> tuple[str, list[str],
 
 
 def query_types_for_stage(profile: CaseProfile, stage: str) -> list[str]:
+    if "disable_vlm_semantic_evidence" in set(profile.data.get("ablation_flags", ())):
+        return []
     obj = object_vlm_profile(profile)
     policy = obj.get("vlm_query_policy")
     selected: list[str] = []
@@ -1168,8 +1170,18 @@ def query_types_for_stage(profile: CaseProfile, stage: str) -> list[str]:
         configured = {str(value) for value in semantic.get("predicates", ())}
         selected = [
             query_type for query_type in selected
-            if query_type not in PREDICATE_BY_QUERY_TYPE
-            or (semantic.get("enabled", False) and not disabled and PREDICATE_BY_QUERY_TYPE[query_type] in configured)
+            if (
+                not disabled
+                or query_type not in {AMODAL_MASK_QUERY_TYPE, INTERVAL_SELECTION_QUERY_TYPE}
+            )
+            and (
+                query_type not in PREDICATE_BY_QUERY_TYPE
+                or (
+                    semantic.get("enabled", False)
+                    and not disabled
+                    and PREDICATE_BY_QUERY_TYPE[query_type] in configured
+                )
+            )
         ]
     runtime = profile.data.get("factor_runtime")
     if stage == "stage4" and isinstance(runtime, dict):

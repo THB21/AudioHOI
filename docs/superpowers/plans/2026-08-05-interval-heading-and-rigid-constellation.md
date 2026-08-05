@@ -8,6 +8,8 @@
 
 **Evidence-driven correction (2026-08-05):** The original generic mask/depth initializer projected the fixed asset at roughly twice the observed image height (`z=1.8–2.4m`), so an 18px association gate yielded zero matches. Existing high-IoU MegaPose keyframe hypotheses (`z=3.3–4.8m`) are valid Stage 0 external observations and recover the correct projection scale without reading a final pose. Because the existing CoTracker queries are SAM-interior grid points rather than literal corners, association uses one globally unique best reliable anchor per track/feature pair instead of requiring the same imperfect pose hypothesis to win at two anchors. The 18px gate remains unchanged.
 
+**Second evidence-driven correction (2026-08-05):** The first production solve proved that a SAM-interior CoTracker point cannot be renamed as a descriptor corner/wheel/rail endpoint merely because it is close in one frame: the resulting 2D/3D correspondences were mutually inconsistent (`point p95=161.47px`, frames 111–163 rotation p95 `33.57deg`). The corrected contract assigns each selected CoTracker point its own `track_local:<track_id>` feature by ray-casting it to the descriptor body surface at one reliable anchor. MegaPose contributes translation and heading, while descriptor-declared upright/support axes remove its cuboid pitch/roll symmetry before ray-casting; otherwise almost every ray incorrectly lands on the suitcase bottom. Local XYZ is immutable across all emitted rows, the asset descriptor is not mutated with video-specific points, and production augments the provider from the typed artifact. Named rails remain line factors; four wheels remain descriptor support/visibility geometry rather than falsely identified texture tracks. The full artifact retains provenance while optimization uses at most 16 spatially distributed tracks every 3 frames.
+
 **Tech Stack:** Python 3, NumPy, SciPy, OpenCV, existing typed MeasurementIR/InteractionStateIR/factor runtime, Qwen forced-choice SemanticRelationIR, ffmpeg, YAML/JSON/CSV provenance.
 
 ---
@@ -322,7 +324,7 @@ git commit -m "feat: consume rigid feature tracks as typed measurements"
 - Modify: `scripts/shared/generic_contact_pipeline/core/solver/capability_production_problem.py`
 - Modify: `scripts/shared/generic_contact_pipeline/configs/cases/suitcase_drag.yaml`
 
-- [ ] **Step 1: Change the heading factor input contract**
+- [x] **Step 1: Change the heading factor input contract**
 
 Replace `minimum_increment_rad` with:
 
@@ -333,7 +335,7 @@ maximum_reverse_increment_rad: float = 0.02
 
 Validation requires both values nonnegative. `minimum_cumulative_turn_rad` remains `0.0` in the production profile so VLM never prescribes turn magnitude.
 
-- [ ] **Step 2: Build one cumulative residual and bounded reversal rows per interval**
+- [x] **Step 2: Build one cumulative residual and bounded reversal rows per interval**
 
 For each active calibrated interval:
 
@@ -363,7 +365,7 @@ Return:
 
 Do not emit a positive minimum increment for every frame.
 
-- [ ] **Step 3: Evaluate only wrong total sign and excessive reverse steps**
+- [x] **Step 3: Evaluate only wrong total sign and excessive reverse steps**
 
 Implement:
 
@@ -396,11 +398,11 @@ def heading_topology(
 
 This permits small local negative increments and does not determine total angle.
 
-- [ ] **Step 4: Restrict compilation to calibrated moving intervals**
+- [x] **Step 4: Restrict compilation to calibrated moving intervals**
 
 An interval is consumed only when it has a world sign, `geometry_consistent=true`, at least one reliable geometry frame, and overlapping `SUPPORTED_MOVING` plus persistent/occluded-hold grasp state. Split mixed moving/static intervals at interaction boundaries; do not propagate one VLM answer across a static section.
 
-- [ ] **Step 5: Run focused residual assertions**
+- [x] **Step 5: Run focused residual assertions**
 
 Assert that:
 
@@ -411,7 +413,7 @@ Assert that:
 
 Expected: `interval heading residual checks: PASS`.
 
-- [ ] **Step 6: Run an isolated full solve and stop if the long turn disappears**
+- [x] **Step 6: Run an isolated full solve and stop if the long turn disappears**
 
 Use the existing 80-evaluation full command. Require frames 111–163 to retain a cumulative physical turn substantially above both no-VLM and no-audio while rotation p95 falls below the `12.533 deg/frame` baseline. Do not tune weights in this step.
 
@@ -434,7 +436,7 @@ git commit -m "fix: constrain semantic heading at interval level"
 - Modify: `scripts/shared/generic_contact_pipeline/core/solver/semantic_factor_inputs.py`
 - Modify: `scripts/shared/generic_contact_pipeline/configs/cases/suitcase_drag.yaml`
 
-- [ ] **Step 1: Compute visual motion over complete audio intervals**
+- [x] **Step 1: Compute visual motion over complete audio intervals**
 
 Before `_frame_state`, compute the existing one-frame/four-frame speed trace. For every silence interval, calculate median and 75th-percentile visual speed over frames that have valid observations. Add profile fields:
 
@@ -447,7 +449,7 @@ audio_visual_arbitration:
 
 Mark a silence interval conflicting when at least four frames exceed the visual threshold and their fraction is at least 0.5.
 
-- [ ] **Step 2: Prevent conflicting silence from activating static freeze**
+- [x] **Step 2: Prevent conflicting silence from activating static freeze**
 
 Pass `silence_visual_conflict` into `_frame_state`. For support frames:
 
@@ -462,11 +464,11 @@ elif visual_moving or silence_visual_conflict:
 
 Record interval ID, median speed, conflict fraction, and the decision in provenance.
 
-- [ ] **Step 3: Keep audio factor inputs consistent with state arbitration**
+- [x] **Step 3: Keep audio factor inputs consistent with state arbitration**
 
 Set `AudioMotionInterval.visual_speed_is_low=false` for conflicting silence intervals so `build_audio_motion_inputs` omits their zero-speed residuals. Audio onset/offset and sustained-motion rows remain unchanged.
 
-- [ ] **Step 4: Verify known intervals**
+- [x] **Step 4: Verify known intervals**
 
 For the real artifact, assert that the incorrectly silent but visibly moving opening interval cannot create a long static freeze, while the final low-motion silence interval remains supported static. Print exact interval decisions; do not assert frame numbers in core code.
 
@@ -487,19 +489,19 @@ git commit -m "fix: arbitrate silence with visual motion"
 - Modify: `scripts/shared/generic_contact_pipeline/core/factors/activation.py`
 - Modify: `scripts/shared/generic_contact_pipeline/core/solver/capability_production_problem.py`
 
-- [ ] **Step 1: Derive release from typed contact continuity**
+- [x] **Step 1: Derive release from typed contact continuity**
 
 Retain an active/occluded-hold grasp only while a typed contact row remains active or a short occlusion hold is supported by previous active contact plus handle visibility loss. A semantic `released` relation may close an existing contact interval when confidence passes the fixed tier, but a semantic `active` relation may not invent contact without typed proximity.
 
-- [ ] **Step 2: Deactivate hand factors at release**
+- [x] **Step 2: Deactivate hand factors at release**
 
 Ensure `_persistent_contact_state` returns inactive for `RELEASE` and `INACTIVE`. Build `active_frames` for contact distance/relative velocity from the corrected timeline, not every legacy contact row. Record removed frames and the state transition source.
 
-- [ ] **Step 3: Preserve wheel support independently**
+- [x] **Step 3: Preserve wheel support independently**
 
 Support activation remains based on support contact IDs and descriptor support features after grasp release. Use nearest valid wheel/axle group and retain penetration protection. Hand release must not disable wheel-floor support.
 
-- [ ] **Step 4: Focused real assertions**
+- [x] **Step 4: Focused real assertions**
 
 Print every grasp transition and assert no hand factor row exists after the first confirmed release until a new typed active contact appears. Assert support factors remain active in those same frames. Expected: `release/support separation: PASS`.
 
@@ -582,3 +584,14 @@ git commit -m "feat: stabilize interval-conditioned rigid reconstruction"
 ```
 
 Do not push.
+
+## 2026-08-05 execution evidence
+
+- Rebuilt Stage-4 semantic evidence as a five-frame earlier-to-later RGB/typed strip plus a profile-declared asset identity reference. Qwen responses retain prompt, image, model, response, and SHA-256 provenance.
+- Disabled production consumption of `visible_face` for this asset after repeated Qwen answers contradicted the visible broad/narrow body aspect. The raw answers remain audit evidence. VLM cannot invent pose or contact.
+- Expanded risk coverage to frames 65–113 and 118–171. Only camera-calibrated `turn_direction_screen` and persistent-contact `facing_relation` enter the solver; VLM grasp answers remain non-authoritative conflict diagnostics.
+- Re-ran the fair 80-evaluation full candidate. Compared with the existing 80-evaluation no-VLM run, VLM increased frames 111–163 net rotation from `115.552 deg` to `118.764 deg`; rotation p95 was `9.599 deg/frame`. Projection p95 was `28.159 px` and contact p95 was `0.09145 m`, so promotion remained blocked.
+- Re-ran full at 160 evaluations only as a convergence diagnostic. The solver converged, but projection/contact stayed at `28.158 px` / `0.09145 m`. This proves the remaining fit gap is observation geometry, not iteration budget. The 160-evaluation result is not used as a fair ablation comparison.
+- Rejected an attempted point/line/mask weight increase because projection worsened to `42.796 px` and the frames 62–108 physical turn collapsed. The configuration was reverted.
+- Audio gain remains large and interpretable: frames 179–240 net rotation is about `0.01 deg` in full versus `73.681 deg` without audio; translation path is `0.0181 m` versus `0.4402 m`.
+- Rendered candidate-only full evidence at `output/suitcase_vlm_audio_refined_full_candidate_160/object_only/overlay.mp4`. Canonical output was not written; hard gates still block promotion.

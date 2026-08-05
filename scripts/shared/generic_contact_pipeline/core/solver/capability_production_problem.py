@@ -68,6 +68,60 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _augment_rigid_provider_with_local_track_points(
+    provider: object,
+    profile: CaseProfile,
+    result_dir: Path,
+) -> tuple[object, Mapping[str, object] | None]:
+    """Load per-video fixed local surface points without mutating the asset.
+
+    The binding artifact is produced in Stage 0 from an external pose anchor and
+    CoTracker observations.  Local coordinates are required to be identical for
+    every row of a track, making the added feature a rigid point rather than a
+    per-frame pose escape hatch.
+    """
+
+    if not isinstance(provider, RigidFeatureGeometryProvider):
+        return provider, None
+    dynamic: dict[str, tuple[float, float, float]] = {}
+    artifacts: list[str] = []
+    for raw_spec in profile.data.get("supplemental_measurements", ()):
+        if not isinstance(raw_spec, Mapping) or raw_spec.get("adapter") != "rigid_feature_points_v1":
+            continue
+        path = result_dir / str(raw_spec["artifact"])
+        rows = _rows(path)
+        for row in rows:
+            feature_id = str(row.get("geometry_feature_id", ""))
+            if not feature_id.startswith("track_local:"):
+                continue
+            point = tuple(float(row[f"local_{axis}"]) for axis in "xyz")
+            previous = dynamic.get(feature_id)
+            if previous is not None and not np.allclose(previous, point, atol=1e-9):
+                raise ValueError(f"rigid surface track local point changes across frames: {feature_id}")
+            dynamic[feature_id] = point
+        artifacts.append(str(path))
+    if not dynamic:
+        return provider, None
+    merged = dict(provider.feature_points_local)
+    collisions = set(merged).intersection(dynamic)
+    if collisions:
+        raise ValueError(f"dynamic rigid surface feature collides with asset feature: {sorted(collisions)}")
+    merged.update({feature_id: [point] for feature_id, point in dynamic.items()})
+    augmented = RigidFeatureGeometryProvider(
+        feature_points_local=merged,
+        scale_state_index=provider.scale_state_index,
+        periodic_feature_rules=provider.periodic_feature_rules,
+    )
+    return augmented, {
+        "schema": "rigid_local_surface_tracks_v1",
+        "feature_count": len(dynamic),
+        "feature_ids": sorted(dynamic),
+        "artifacts": artifacts,
+        "baseline_pose_read": False,
+        "human_state_optimized": False,
+    }
+
+
 def _approved_amodal_reference_frames(
     result_dir: Path,
     raw_config: object,
@@ -124,24 +178,37 @@ def _semantic_relation_by_frame(
     return selected
 
 
-def _visual_speed_low_by_interval(
+def _visual_speed_stats_by_interval(
     measurements: Sequence[object],
     start_frame: int,
     end_frame: int,
-    threshold_px_per_frame: float,
-) -> bool:
+    sustained_motion_threshold_px_per_frame: float,
+) -> Mapping[str, float | int]:
     centers = {
         item.meta.frame: np.asarray((item.u, item.v), dtype=float)
         for item in measurements
         if isinstance(item, Point2DMeasurement)
         and item.meta.feature.semantic_role == "object_center"
     }
-    speeds = [
-        float(np.linalg.norm(centers[frame] - centers[frame - 1]))
-        for frame in range(start_frame + 1, end_frame + 1)
-        if frame in centers and frame - 1 in centers
-    ]
-    return bool(speeds) and float(np.median(speeds)) <= threshold_px_per_frame
+    speeds: list[float] = []
+    for frame in range(start_frame + 1, end_frame + 1):
+        if frame not in centers:
+            continue
+        candidates = []
+        if frame - 1 in centers:
+            candidates.append(float(np.linalg.norm(centers[frame] - centers[frame - 1])))
+        if frame - 4 in centers:
+            candidates.append(float(np.linalg.norm(centers[frame] - centers[frame - 4])) / 4.0)
+        if candidates:
+            speeds.append(max(candidates))
+    strong = [value for value in speeds if value >= sustained_motion_threshold_px_per_frame]
+    return {
+        "valid_frame_count": len(speeds),
+        "median_speed_px_per_frame": float(np.median(speeds)) if speeds else float("inf"),
+        "p75_speed_px_per_frame": float(np.quantile(speeds, 0.75)) if speeds else float("inf"),
+        "sustained_motion_frame_count": len(strong),
+        "sustained_motion_fraction": len(strong) / max(1, len(speeds)),
+    }
 
 
 def _gate_feature_points_by_human_site(
@@ -922,6 +989,7 @@ def prepare_capability_object_problem(
         "baseline_pose_read": False,
         "human_state_optimized": False,
     }
+    rigid_surface_track_ledger: Mapping[str, object] | None = None
     if initializer in {"articulated_correspondence", "fixed_assembly_correspondence", "axial_rigid_feature_correspondence", "rigid_cuboid_feature_correspondence"}:
         contract = build_asset_state_contract(descriptor_path, repository_root)
         if str(contract.initializer["kind"]) != initializer:
@@ -949,6 +1017,12 @@ def prepare_capability_object_problem(
                 contact_constraints=constraints,
             )
         )
+        augmented_provider, rigid_surface_track_ledger = _augment_rigid_provider_with_local_track_points(
+            geometry_build.provider,
+            profile,
+            result_dir,
+        )
+        geometry_build = replace(geometry_build, provider=augmented_provider)
         cameras = {frame: PinholeCamera(**profile.camera) for frame in sorted(frame_times)}
         measurement_gate_ledger: dict[str, object] | None = None
         raw_measurement_gates = config.get("measurement_human_site_gates", {})
@@ -988,6 +1062,8 @@ def prepare_capability_object_problem(
             initializer_ledger["mask_shape_observations"] = mask_shape_ledger
         if measurement_gate_ledger is not None:
             initializer_ledger["measurement_human_site_gate"] = measurement_gate_ledger
+        if rigid_surface_track_ledger is not None:
+            initializer_ledger["rigid_surface_tracks"] = rigid_surface_track_ledger
     elif initializer == "observation_periodic_rigid":
         adaptation, initial_states, templates, frame_times = _periodic_seed(result_dir)
         feature_points: dict[str, list[list[float]]] = {"object:body": [[0.0, 0.0, 0.0]]}
@@ -1117,14 +1193,35 @@ def prepare_capability_object_problem(
     cameras = {frame: PinholeCamera(**profile.camera) for frame in initial_states}
     line_measurements = tuple(item for item in measurements if isinstance(item, Line2DMeasurement))
     configured_interaction_artifact = config.get("interaction_state_artifact")
+    flags = set(profile.data.get("ablation_flags", ()))
     timeline = build_interaction_timeline(
         profile.case_name,
         result_dir,
         None if not configured_interaction_artifact else result_dir / str(configured_interaction_artifact),
         environment_support_mode=str(config.get("environment_support_state", "")),
+        audio_visual_arbitration=config.get("audio_visual_arbitration", {}),
+        audio_enabled="disable_audio_events" not in flags,
+        semantic_enabled="disable_vlm_semantic_evidence" not in flags,
     )
     state_by_frame = {state.frame: state for state in timeline.frames}
-    flags = set(profile.data.get("ablation_flags", ()))
+    typed_active_contact_frames = {
+        state.frame for state in timeline.frames if state.active_contact_ids
+    }
+    removed_contact_sample_frames = sorted(
+        {sample.frame for sample in samples if sample.frame not in typed_active_contact_frames}
+    )
+    samples = tuple(
+        sample for sample in samples if sample.frame in typed_active_contact_frames
+    )
+    initializer_ledger = {
+        **initializer_ledger,
+        "contact_timeline_gate": {
+            "active_frame_count": len(typed_active_contact_frames),
+            "removed_sample_frames": removed_contact_sample_frames,
+            "source": "typed_contact_continuity_with_occluded_hold",
+            "support_independent": True,
+        },
+    }
     semantic_config = config.get("semantic_evidence", {})
     if not isinstance(semantic_config, Mapping):
         raise ValueError("semantic_evidence configuration must be a mapping")
@@ -1222,7 +1319,12 @@ def prepare_capability_object_problem(
     heading_factor_input = HeadingTopologyFactorInput(
         heading_intervals,
         support_normal_world=support_normal,
-        minimum_increment_rad=float(semantic_config.get("minimum_heading_increment_rad", 0.002)),
+        minimum_cumulative_turn_rad=float(
+            semantic_config.get("minimum_cumulative_heading_turn_rad", 0.0)
+        ),
+        maximum_reverse_increment_rad=float(
+            semantic_config.get("maximum_reverse_heading_increment_rad", 0.02)
+        ),
     ) if any(
         interval.geometry_consistent
         and interval.world_yaw_sign is not None
@@ -1233,33 +1335,54 @@ def prepare_capability_object_problem(
     if not isinstance(audio_config, Mapping):
         raise ValueError("audio_motion_evidence configuration must be a mapping")
     audio_events = () if "disable_audio_events" in flags else load_audio_events(profile.case_name, result_dir).events
-    audio_intervals = tuple(
-        AudioMotionInterval(
-            start_frame=int(event.start_frame or event.frame),
-            end_frame=int(event.end_frame or event.frame),
-            event_type=event.event_type.value,
-            confidence=float(event.confidence if event.confidence is not None else 0.5),
-            evidence_id=event.event_id,
-            visual_speed_is_low=(
-                event.event_type == AudioEventType.SILENCE
-                and _visual_speed_low_by_interval(
-                    measurements,
-                    int(event.start_frame or event.frame),
-                    int(event.end_frame or event.frame),
-                    float(audio_config.get("visual_low_speed_px_per_frame", 3.0)),
-                )
-            ),
-        )
-        for event in audio_events
-        if event.event_type in {
+    arbitration_config = config.get("audio_visual_arbitration", {})
+    if not isinstance(arbitration_config, Mapping):
+        raise ValueError("audio_visual_arbitration configuration must be a mapping")
+    sustained_threshold = float(
+        arbitration_config.get("sustained_visual_motion_px_per_frame", 1.5)
+    )
+    minimum_conflict_frames = int(arbitration_config.get("minimum_conflict_frames", 4))
+    conflict_fraction = float(arbitration_config.get("conflict_fraction", 0.5))
+    audio_intervals_list: list[AudioMotionInterval] = []
+    for event in audio_events:
+        if event.event_type not in {
             AudioEventType.SUSTAINED_MOTION,
             AudioEventType.SHORT_TUG,
             AudioEventType.MOTION_ONSET,
             AudioEventType.MOTION_OFFSET,
             AudioEventType.SEAM_CLICK,
             AudioEventType.SILENCE,
-        }
-    )
+        }:
+            continue
+        start_frame = int(event.start_frame or event.frame)
+        end_frame = int(event.end_frame or event.frame)
+        stats = _visual_speed_stats_by_interval(
+            measurements,
+            start_frame,
+            end_frame,
+            sustained_threshold,
+        )
+        silence_conflict = (
+            event.event_type == AudioEventType.SILENCE
+            and int(stats["sustained_motion_frame_count"]) >= minimum_conflict_frames
+            and float(stats["sustained_motion_fraction"]) >= conflict_fraction
+        )
+        audio_intervals_list.append(
+            AudioMotionInterval(
+                start_frame=start_frame,
+                end_frame=end_frame,
+                event_type=event.event_type.value,
+                confidence=float(event.confidence if event.confidence is not None else 0.5),
+                evidence_id=event.event_id,
+                visual_speed_is_low=(
+                    event.event_type == AudioEventType.SILENCE
+                    and not silence_conflict
+                    and float(stats["median_speed_px_per_frame"])
+                    <= float(audio_config.get("visual_low_speed_px_per_frame", 3.0))
+                ),
+            )
+        )
+    audio_intervals = tuple(audio_intervals_list)
     audio_factor_input = AudioMotionEnvelopeFactorInput(
         audio_intervals,
         support_normal_world=support_normal,

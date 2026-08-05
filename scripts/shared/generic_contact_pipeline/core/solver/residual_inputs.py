@@ -1787,7 +1787,7 @@ def build_geometry_sequence_residual_input_bundle(
             factor,
             _runtime_weights_by_frame(request, frames, base_weight),
         )
-        return payload if payload["signed_increment_rad"] else None
+        return payload if payload["cumulative_signed_turn_rad"] else None
 
     def audio_motion(request: ResidualInputRequest) -> dict[str, Any] | None:
         factor = (audio_motion_factors or {}).get(request.factor_id)
@@ -2029,9 +2029,33 @@ def build_geometry_sequence_residual_dependencies(
             if factor is None:
                 continue
             row = 0
-            for interval in factor.intervals:
-                if interval.label not in {"counterclockwise", "clockwise"} or not interval.geometry_consistent:
-                    continue
+            active_intervals = [
+                interval
+                for interval in factor.intervals
+                if interval.label in {"counterclockwise", "clockwise"}
+                and interval.geometry_consistent
+                and interval.world_yaw_sign is not None
+                and any(
+                    frame - 1 in object_states and frame in object_states
+                    for frame in range(interval.start_frame + 1, interval.end_frame + 1)
+                )
+            ]
+            for interval in active_intervals:
+                dependent_frames = tuple(
+                    sorted(
+                        {
+                            value
+                            for frame in range(interval.start_frame + 1, interval.end_frame + 1)
+                            if frame - 1 in object_states and frame in object_states
+                            for value in (frame - 1, frame)
+                        }
+                    )
+                )
+                dependencies.append(
+                    ResidualRowDependency(factor_id, row, row + 1, dependent_frames)
+                )
+                row += 1
+            for interval in active_intervals:
                 for frame in range(interval.start_frame + 1, interval.end_frame + 1):
                     if frame - 1 in object_states and frame in object_states:
                         dependencies.append(ResidualRowDependency(factor_id, row, row + 1, (frame - 1, frame)))

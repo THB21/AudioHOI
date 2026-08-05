@@ -11,6 +11,10 @@ import sys
 import tempfile
 from pathlib import Path
 
+import numpy as np
+import cv2
+from scipy.spatial.transform import Rotation
+
 REPO_ROOT = Path(__file__).resolve().parents[4]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -32,8 +36,89 @@ FIELDNAMES = (
     "semantic_role",
     "track_id",
     "confidence",
+    "local_x",
+    "local_y",
+    "local_z",
     "source_anchor_frames",
 )
+
+
+def _upright_normalized_state(
+    row: dict[str, object],
+    initializer: dict[str, object],
+    camera: PinholeCamera,
+    body_points: np.ndarray,
+    target_body_bbox: np.ndarray,
+) -> tuple[float, ...]:
+    """Resolve the common cuboid pitch/roll symmetry before surface binding."""
+
+    upright_local = np.asarray(initializer["upright_axis_local"], dtype=float)
+    upright_camera = np.asarray(initializer["preferred_upright_camera"], dtype=float)
+    heading_local = np.asarray(initializer.get("heading_axis_local", (1.0, 0.0, 0.0)), dtype=float)
+    upright_local /= np.linalg.norm(upright_local)
+    upright_camera /= np.linalg.norm(upright_camera)
+    heading_local -= upright_local * float(heading_local @ upright_local)
+    heading_local /= np.linalg.norm(heading_local)
+    side_local = np.cross(upright_local, heading_local)
+    raw_rotation = Rotation.from_quat(
+        [float(row[key]) for key in ("qx", "qy", "qz", "qw")]
+    ).as_matrix()
+    heading_camera = raw_rotation @ heading_local
+    heading_camera -= upright_camera * float(heading_camera @ upright_camera)
+    if np.linalg.norm(heading_camera) <= 1e-8:
+        heading_camera = np.asarray((1.0, 0.0, 0.0), dtype=float)
+        heading_camera -= upright_camera * float(heading_camera @ upright_camera)
+    heading_camera /= np.linalg.norm(heading_camera)
+    side_camera = np.cross(upright_camera, heading_camera)
+    corrected = (
+        np.column_stack((heading_camera, side_camera, upright_camera))
+        @ np.column_stack((heading_local, side_local, upright_local)).T
+    )
+    body_center = np.mean(body_points, axis=0)
+    target_center = 0.5 * (target_body_bbox[:2] + target_body_bbox[2:])
+    target_size = np.maximum(target_body_bbox[2:] - target_body_bbox[:2], 1.0)
+    best: tuple[float, np.ndarray] | None = None
+    for depth in np.linspace(1.0, 6.0, 501):
+        target_center_camera = np.asarray(
+            (
+                (target_center[0] - camera.cx) * depth / camera.fx,
+                (target_center[1] - camera.cy) * depth / camera.fy,
+                depth,
+            ),
+            dtype=float,
+        )
+        translation = target_center_camera - corrected @ body_center
+        world = body_points @ corrected.T + translation
+        projected = camera.project(world)
+        bbox = np.asarray(
+            (projected[:, 0].min(), projected[:, 1].min(), projected[:, 0].max(), projected[:, 1].max())
+        )
+        score = float(np.sum(((bbox - target_body_bbox) / np.tile(target_size, 2)) ** 2))
+        if best is None or score < best[0]:
+            best = (score, translation)
+    assert best is not None
+    translation = best[1]
+    qx, qy, qz, qw = Rotation.from_matrix(corrected).as_quat()
+    return (
+        float(translation[0]), float(translation[1]), float(translation[2]),
+        float(qw), float(qx), float(qy), float(qz),
+    )
+
+
+def _main_body_bbox(mask_path: Path, minimum_row_width_ratio: float = 0.45) -> np.ndarray:
+    """Exclude thin rails and retain the dense suitcase-body silhouette."""
+
+    mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
+    if mask is None:
+        raise FileNotFoundError(mask_path)
+    binary = mask > 0
+    widths = binary.sum(axis=1)
+    valid_rows = np.flatnonzero(widths >= max(1.0, minimum_row_width_ratio * widths.max()))
+    if len(valid_rows) < 2:
+        raise ValueError(f"object mask has no dense main-body rows: {mask_path}")
+    ys, xs = np.nonzero(binary[valid_rows])
+    actual_y = valid_rows[ys]
+    return np.asarray((xs.min(), actual_y.min(), xs.max(), actual_y.max()), dtype=float)
 
 
 def _sha256(path: Path) -> str:
@@ -65,6 +150,36 @@ def _atomic_csv(path: Path, rows: tuple[dict[str, object], ...]) -> None:
     except Exception:
         Path(temporary).unlink(missing_ok=True)
         raise
+
+
+def _gate_tracks_by_object_mask(
+    rows: list[dict[str, str]], mask_dir: Path, dilation_px: int = 5
+) -> tuple[list[dict[str, str]], int]:
+    """Invalidate tracker visibility when its point has left the object mask."""
+
+    kernel = np.ones((dilation_px, dilation_px), dtype=np.uint8)
+    masks: dict[int, np.ndarray] = {}
+    gated: list[dict[str, str]] = []
+    rejected = 0
+    for source in rows:
+        row = dict(source)
+        if float(row.get("visible", "1")) < 0.5:
+            gated.append(row)
+            continue
+        frame = int(row["frame"])
+        if frame not in masks:
+            mask = cv2.imread(str(mask_dir / f"{frame:05d}_mask.png"), cv2.IMREAD_GRAYSCALE)
+            if mask is None:
+                raise FileNotFoundError(mask_dir / f"{frame:05d}_mask.png")
+            masks[frame] = cv2.dilate((mask > 0).astype(np.uint8), kernel)
+        x = int(round(float(row.get("x", row.get("u", "nan")))))
+        y = int(round(float(row.get("y", row.get("v", "nan")))))
+        mask = masks[frame]
+        if not (0 <= y < mask.shape[0] and 0 <= x < mask.shape[1] and mask[y, x] > 0):
+            row["visible"] = "0"
+            rejected += 1
+        gated.append(row)
+    return gated, rejected
 
 
 def main() -> None:
@@ -111,15 +226,19 @@ def main() -> None:
                 >= args.minimum_pose_mask_iou
             ):
                 selected_pose_rows[int(row["frame"])] = row
+    initializer = dict(descriptor.get("initializer", {}))
+    camera = PinholeCamera(**profile.camera)
+    body_feature_id = str(initializer.get("body_feature_id", "object:body"))
+    body_points = np.asarray(descriptor["feature_points"][body_feature_id], dtype=float)
     states_by_frame = {
-        frame: (
-            float(row["tx_m"]),
-            float(row["ty_m"]),
-            float(row["tz_m"]),
-            float(row["qw"]),
-            float(row["qx"]),
-            float(row["qy"]),
-            float(row["qz"]),
+        frame: _upright_normalized_state(
+            row,
+            initializer,
+            camera,
+            body_points,
+            _main_body_bbox(
+                profile.sample_dir / "results/segmentation/masks" / f"{frame:05d}_mask.png"
+            ),
         )
         for frame, row in selected_pose_rows.items()
     }
@@ -127,15 +246,23 @@ def main() -> None:
         raise ValueError(
             "no reliable external rigid pose anchor passes the configured render-mask IoU gate"
         )
-    cameras = {frame: PinholeCamera(**profile.camera) for frame in states_by_frame}
+    cameras = {frame: camera for frame in states_by_frame}
     configured_anchor_frames = {
         int(value) for value in profile.data.get("preprocess", {}).get("rigid_pose_keyframes", ())
     }
     reliable_anchor_frames = tuple(
-        sorted(frame for frame in states_by_frame if frame in configured_anchor_frames)
+        sorted(
+            (frame for frame in states_by_frame if frame in configured_anchor_frames),
+            key=lambda frame: float(selected_pose_rows[frame].get("official_render_mask_iou", 0.0)),
+            reverse=True,
+        )
     )
     with args.track_artifact.open(newline="") as handle:
         track_rows = list(csv.DictReader(handle))
+    track_rows, mask_rejected_rows = _gate_tracks_by_object_mask(
+        track_rows,
+        profile.sample_dir / "results/segmentation/masks",
+    )
     binding = bind_rigid_feature_tracks(
         track_rows=track_rows,
         states_by_frame=states_by_frame,
@@ -145,6 +272,15 @@ def main() -> None:
         reliable_anchor_frames=reliable_anchor_frames,
         maximum_anchor_error_px=args.maximum_anchor_error_px,
         minimum_track_visibility=args.minimum_track_visibility,
+        surface_feature_id=str(
+            descriptor.get("initializer", {}).get("body_feature_id", "object:body")
+        ),
+        maximum_track_count=int(
+            profile.data.get("preprocess", {}).get("rigid_surface_maximum_track_count", 16)
+        ),
+        frame_stride=int(
+            profile.data.get("preprocess", {}).get("rigid_surface_track_frame_stride", 3)
+        ),
     )
     if not binding.measurement_rows:
         raise ValueError("no rigid feature tracks passed descriptor association")
@@ -173,6 +309,7 @@ def main() -> None:
             _sha256(pose_hypotheses) if pose_hypotheses.is_file() else None
         ),
         "anchor_pose_source": "external_megapose_selected_visual_geometry",
+        "anchor_pose_symmetry_resolution": "descriptor_upright_axis_preserve_external_heading_fit_body_silhouette",
         "minimum_pose_mask_iou": args.minimum_pose_mask_iou,
         "output_csv": str(repo_relative_value(args.output_csv)),
         "output_csv_sha256": _sha256(args.output_csv),
@@ -182,6 +319,14 @@ def main() -> None:
             association.geometry_feature_id for association in binding.associations
         ),
         "semantic_role_rows": dict(sorted(role_counts.items())),
+        "measurement_reliability_gate": {
+            "kind": "object_mask_membership",
+            "mask_source": str(
+                repo_relative_value(profile.sample_dir / "results/segmentation/masks")
+            ),
+            "dilation_px": 5,
+            "rejected_rows": mask_rejected_rows,
+        },
         "reliable_anchor_frames": list(binding.reliable_anchor_frames),
         "associations": [
             {
@@ -191,6 +336,7 @@ def main() -> None:
                 "anchor_error_px": association.anchor_error_px,
                 "confidence": association.confidence,
                 "source_anchor_frames": list(association.source_anchor_frames),
+                "local_xyz_m": list(association.local_xyz_m or ()),
             }
             for association in binding.associations
         ],

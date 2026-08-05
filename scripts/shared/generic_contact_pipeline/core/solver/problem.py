@@ -270,6 +270,17 @@ def build_sequence_problem_shadow(
             if isinstance(generic_problem, dict)
             else ""
         ),
+        audio_visual_arbitration=(
+            generic_problem.get("audio_visual_arbitration", {})
+            if isinstance(generic_problem, dict)
+            else {}
+        ),
+        audio_enabled=(
+            "disable_audio_events" not in set(profile.data.get("ablation_flags", ()))
+        ),
+        semantic_enabled=(
+            "disable_vlm_semantic_evidence" not in set(profile.data.get("ablation_flags", ()))
+        ),
     )
     interaction_shadow = _interaction_state_shadow(profile, result_dir, timeline)
     factor_adapted = adapt_factor_rows(profile, result_dir)

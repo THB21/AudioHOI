@@ -144,13 +144,19 @@ class HeadingTopologyInterval:
 class HeadingTopologyFactorInput:
     intervals: tuple[HeadingTopologyInterval, ...]
     support_normal_world: tuple[float, float, float] = (0.0, 1.0, 0.0)
-    minimum_increment_rad: float = 0.002
+    minimum_cumulative_turn_rad: float = 0.0
+    maximum_reverse_increment_rad: float = 0.02
     weight: float = 1.0
     sigma_rad: float = 1.0
 
     def __post_init__(self) -> None:
         _unit(self.support_normal_world, "support normal")
-        if self.minimum_increment_rad < 0 or self.weight < 0 or self.sigma_rad <= 0:
+        if (
+            self.minimum_cumulative_turn_rad < 0
+            or self.maximum_reverse_increment_rad < 0
+            or self.weight < 0
+            or self.sigma_rad <= 0
+        ):
             raise ValueError("invalid heading topology factor scale")
 
 
@@ -324,20 +330,40 @@ def build_heading_topology_inputs(
     weight_by_frame: Mapping[int, float] | None = None,
 ) -> dict[str, object]:
     normal = _unit(factor.support_normal_world, "support normal")
-    increments, signs, weights = [], [], []
+    cumulative, cumulative_weights = [], []
+    reverse, reverse_weights = [], []
     for interval in factor.intervals:
         if interval.label not in _TURN_LABELS or not interval.geometry_consistent:
             continue
         if interval.world_yaw_sign is None:
             continue
         sign = interval.world_yaw_sign
+        interval_signed_steps: list[float] = []
+        active_signed_steps: list[float] = []
+        active_weights: list[float] = []
         for frame in range(interval.start_frame + 1, interval.end_frame + 1):
             if frame - 1 not in states or frame not in states:
                 continue
-            increments.append(float(_relative_rotvec(states[frame - 1], states[frame]) @ normal))
-            signs.append(sign)
-            weights.append(float((weight_by_frame or {}).get(frame, factor.weight)) * interval.confidence)
-    return {"signed_increment_rad": increments, "target_sign": signs, "weight": weights, "minimum_increment_rad": factor.minimum_increment_rad, "sigma_rad": factor.sigma_rad}
+            signed_step = float(_relative_rotvec(states[frame - 1], states[frame]) @ normal) * sign
+            row_weight = float((weight_by_frame or {}).get(frame, factor.weight)) * interval.confidence
+            interval_signed_steps.append(signed_step)
+            reverse.append(signed_step)
+            reverse_weights.append(row_weight)
+            if row_weight > 0.0:
+                active_signed_steps.append(signed_step)
+                active_weights.append(row_weight)
+        if interval_signed_steps:
+            cumulative.append(float(np.sum(active_signed_steps)) if active_signed_steps else 0.0)
+            cumulative_weights.append(float(np.median(active_weights)) if active_weights else 0.0)
+    return {
+        "cumulative_signed_turn_rad": cumulative,
+        "reverse_signed_increment_rad": reverse,
+        "cumulative_weight": cumulative_weights,
+        "reverse_weight": reverse_weights,
+        "minimum_cumulative_turn_rad": factor.minimum_cumulative_turn_rad,
+        "maximum_reverse_increment_rad": factor.maximum_reverse_increment_rad,
+        "sigma_rad": factor.sigma_rad,
+    }
 
 
 def build_audio_motion_inputs(

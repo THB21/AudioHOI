@@ -359,6 +359,26 @@ def evaluate_stage(profile, stage: str, args: argparse.Namespace) -> dict[str, o
     out_dir = paths["vlm_dir"] / stage
     decision = fuse_stage_decision(profile.case_name, stage, results, mode="qwen_vl")
     if semantic_only:
+        if args.query_type:
+            existing_path = out_dir / "semantic_prepass_raw_results.json"
+            existing_rows: list[dict[str, object]] = []
+            if existing_path.is_file():
+                try:
+                    loaded = json.loads(existing_path.read_text())
+                    if isinstance(loaded, list):
+                        existing_rows = [dict(row) for row in loaded if isinstance(row, dict)]
+                except (OSError, json.JSONDecodeError):
+                    existing_rows = []
+            raw_rows = [
+                row for row in existing_rows
+                if str(row.get("query_type", "")) != args.query_type
+            ] + raw_rows
+            raw_rows.sort(
+                key=lambda row: (
+                    str(row.get("query_type", "")),
+                    int(float(row.get("frame", 0) or 0)),
+                )
+            )
         materialize_semantic_relation_artifacts(out_dir, raw_rows, status="qwen_semantic_prepass")
         decision.update(
             {

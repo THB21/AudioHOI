@@ -338,19 +338,28 @@ class FactorResidualEvaluator:
 
     def heading_topology(
         self,
-        signed_increment_rad: np.ndarray,
-        target_sign: np.ndarray,
+        cumulative_signed_turn_rad: np.ndarray,
+        reverse_signed_increment_rad: np.ndarray,
         *,
-        weight: float | np.ndarray,
-        minimum_increment_rad: float,
+        cumulative_weight: float | np.ndarray,
+        reverse_weight: float | np.ndarray,
+        minimum_cumulative_turn_rad: float,
+        maximum_reverse_increment_rad: float,
         sigma_rad: float,
     ) -> np.ndarray:
-        increments = np.asarray(signed_increment_rad, dtype=float).reshape(-1)
-        signs = np.asarray(target_sign, dtype=float).reshape(-1)
-        if increments.shape != signs.shape or np.any(np.abs(signs) != 1.0):
-            raise ValueError("heading topology requires matching increments and +/-1 target signs")
-        agreement = increments * signs
-        return (_row_weights(weight, len(agreement)) * _smooth_hinge(agreement, minimum_increment_rad) / float(sigma_rad)).astype(float)
+        cumulative = np.asarray(cumulative_signed_turn_rad, dtype=float).reshape(-1)
+        reverse = np.asarray(reverse_signed_increment_rad, dtype=float).reshape(-1)
+        total_residual = (
+            _row_weights(cumulative_weight, len(cumulative))
+            * np.maximum(float(minimum_cumulative_turn_rad) - cumulative, 0.0)
+            / float(sigma_rad)
+        )
+        reverse_residual = (
+            _row_weights(reverse_weight, len(reverse))
+            * np.maximum(-float(maximum_reverse_increment_rad) - reverse, 0.0)
+            / float(sigma_rad)
+        )
+        return np.concatenate((total_residual, reverse_residual)).astype(float)
 
     def audio_motion_envelope(
         self,

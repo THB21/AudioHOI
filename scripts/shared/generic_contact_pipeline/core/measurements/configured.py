@@ -59,7 +59,10 @@ def adapt_configured_supplemental_measurements(
             if not isfinite(fps) or fps <= 0.0:
                 raise ValueError("rigid feature point measurements require positive finite fps")
             seen: set[tuple[int, str]] = set()
-            fields = ("u", "v", "track_id", "geometry_feature_id")
+            fields = (
+                "u", "v", "track_id", "geometry_feature_id",
+                "local_x", "local_y", "local_z",
+            )
             for row in rows:
                 frame = int(row["frame"])
                 track_id = str(row.get("track_id", "")).strip()
@@ -73,7 +76,8 @@ def adapt_configured_supplemental_measurements(
                 seen.add(identity)
                 u, v = float(row["u"]), float(row["v"])
                 confidence = float(row["confidence"])
-                if not all(isfinite(value) for value in (u, v, confidence)):
+                local = tuple(float(row[f"local_{axis}"]) for axis in "xyz")
+                if not all(isfinite(value) for value in (u, v, confidence, *local)):
                     raise ValueError("rigid feature point coordinates and confidence must be finite")
                 if not 0.0 <= confidence <= 1.0:
                     raise ValueError("rigid feature point confidence must be within [0, 1]")

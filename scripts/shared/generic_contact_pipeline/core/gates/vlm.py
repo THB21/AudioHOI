@@ -846,12 +846,16 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
     if stage == "stage4" and query_type in SEMANTIC_QUERY_TYPES:
         Image, ImageDraw = _pil_modules()
         if Image is not None and ImageDraw is not None:
-            semantic_radius = int(
-                dict(dict(profile.data.get("vlm", {})).get("semantic_orientation", {})).get(
-                    "temporal_radius_frames", 1
-                )
+            semantic_config = dict(
+                dict(profile.data.get("vlm", {})).get("semantic_orientation", {})
             )
-            selected_frames = [max(1, frame + offset) for offset in (-semantic_radius, 0, semantic_radius)]
+            semantic_radius = int(semantic_config.get("temporal_radius_frames", 1))
+            configured_offsets = semantic_config.get("evidence_offsets_frames")
+            if isinstance(configured_offsets, (list, tuple)) and configured_offsets:
+                offsets = tuple(sorted({int(value) for value in configured_offsets}))
+            else:
+                offsets = (-2 * semantic_radius, -semantic_radius, 0, semantic_radius, 2 * semantic_radius)
+            selected_frames = list(dict.fromkeys(max(1, frame + offset) for offset in offsets))
             original_panels = []
             evidence_panels = []
             for selected_frame in selected_frames:
@@ -863,19 +867,40 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
                 _draw_stage4_context(profile, evidence, selected_frame)
                 for panel in (original, evidence):
                     _draw_label(panel, f"frame {selected_frame:03d}", (18, 24), (255, 255, 255))
-                original_panels.append(_crop_stage4_evidence(profile, original, selected_frame).resize((426, 240)))
-                evidence_panels.append(_crop_stage4_evidence(profile, evidence, selected_frame).resize((426, 240)))
+                original_panels.append(_crop_stage4_evidence(profile, original, selected_frame).resize((320, 180)))
+                evidence_panels.append(_crop_stage4_evidence(profile, evidence, selected_frame).resize((320, 180)))
             if original_panels and len(original_panels) == len(evidence_panels):
                 label_height = 32
+                panel_width, panel_height = 320, 180
+                reference_path = semantic_config.get("asset_reference_image")
+                reference = None
+                if reference_path:
+                    candidate = Path(str(reference_path))
+                    if not candidate.is_absolute():
+                        candidate = profile.sample_dir / candidate
+                    if candidate.is_file():
+                        try:
+                            reference = Image.open(candidate).convert("RGB")
+                        except Exception:
+                            reference = None
+                reference_height = 300 if reference is not None else 0
+                reference_label_height = label_height if reference is not None else 0
                 canvas = Image.new(
                     "RGB",
-                    (426 * len(original_panels), 2 * (240 + label_height)),
+                    (
+                        panel_width * len(original_panels),
+                        2 * (panel_height + label_height) + reference_height + reference_label_height,
+                    ),
                     (245, 245, 245),
                 )
                 draw = ImageDraw.Draw(canvas)
                 draw.rectangle((0, 0, canvas.width, label_height), fill=(20, 20, 20))
-                draw.text((12, 8), "ORIGINAL RGB TEMPORAL STRIP", fill=(255, 255, 255))
-                second_label_y = 240 + label_height
+                draw.text(
+                    (12, 8),
+                    "ORIGINAL RGB TEMPORAL STRIP: EARLIER  ->  LATER",
+                    fill=(255, 255, 255),
+                )
+                second_label_y = panel_height + label_height
                 draw.rectangle(
                     (0, second_label_y, canvas.width, second_label_y + label_height),
                     fill=(20, 20, 20),
@@ -886,9 +911,24 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
                     fill=(255, 255, 255),
                 )
                 for index, panel in enumerate(original_panels):
-                    canvas.paste(panel, (index * 426, label_height))
+                    canvas.paste(panel, (index * panel_width, label_height))
                 for index, panel in enumerate(evidence_panels):
-                    canvas.paste(panel, (index * 426, second_label_y + label_height))
+                    canvas.paste(panel, (index * panel_width, second_label_y + label_height))
+                if reference is not None:
+                    reference_label_y = second_label_y + label_height + panel_height
+                    draw.rectangle(
+                        (0, reference_label_y, canvas.width, reference_label_y + label_height),
+                        fill=(20, 20, 20),
+                    )
+                    draw.text(
+                        (12, reference_label_y + 8),
+                        "ASSET IDENTITY REFERENCE: BROAD / NARROW FACES, TWO RAILS, HANDLE, WHEELS",
+                        fill=(255, 255, 255),
+                    )
+                    reference.thumbnail((canvas.width, reference_height))
+                    ref_x = (canvas.width - reference.width) // 2
+                    ref_y = reference_label_y + label_height + (reference_height - reference.height) // 2
+                    canvas.paste(reference, (ref_x, ref_y))
                 canvas.save(out_path)
                 return str(out_path)
 

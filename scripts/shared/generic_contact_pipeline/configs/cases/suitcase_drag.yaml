@@ -26,6 +26,8 @@ preprocess:
   rigid_feature_maximum_anchor_error_px: 18.0
   rigid_feature_minimum_track_visibility: 0.5
   rigid_feature_minimum_pose_mask_iou: 0.60
+  rigid_surface_maximum_track_count: 16
+  rigid_surface_track_frame_stride: 3
   megapose_data_dir: third-party/megapose6d/local_data
   megapose_display: ":1"
   sam_pt_mask_refine: true
@@ -82,7 +84,7 @@ generic_object_problem:
   contact_residual_axes: [0, 1, 2]
   measurement_factors: [point_reprojection, line_reprojection, mask_silhouette, metric_depth]
   measurement_roles:
-    point_reprojection: [object_center, handle_center, rigid_body_corner, rigid_wheel_center, rigid_rail_endpoint]
+    point_reprojection: [object_center, handle_center]
     mask_silhouette: [object_body_mask]
     metric_depth: [object_center_depth]
   mask_shape_observations:
@@ -110,7 +112,7 @@ generic_object_problem:
   max_function_evaluations: 160
   interaction_factors: [contact_distance, contact_relative_velocity]
   environment_factors: [support_and_penetration]
-  semantic_factors: [face_visibility_inequality, facing_relation, heading_topology]
+  semantic_factors: [facing_relation, heading_topology]
   audio_factors: [audio_motion_envelope]
   semantic_evidence:
     artifact: vlm/stage4/semantic_relations.jsonl
@@ -119,10 +121,16 @@ generic_object_problem:
     face_rank_margin: 0.05
     facing_margin: 0.10
     minimum_observable_increment_rad: 0.01
-    minimum_heading_increment_rad: 0.002
+    minimum_cumulative_heading_turn_rad: 0.0
+    maximum_reverse_heading_increment_rad: 0.005
   audio_motion_evidence:
     visual_low_speed_px_per_frame: 3.0
     minimum_motion_m_per_frame: 0.002
+  audio_visual_arbitration:
+    sustained_visual_motion_px_per_frame: 1.5
+    minimum_conflict_frames: 4
+    conflict_fraction: 0.5
+    silence_tail_hold_frames: 4
   environment_support_state: rolling
   support_plane:
     source: gvhmr_foot_sites
@@ -208,8 +216,8 @@ factor_runtime:
     source: fixed_profile_grasp_face_to_human_bearing
     activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
   heading_topology:
-    weight: 1.2
-    sigma: 0.08
+    weight: 4.0
+    sigma: 0.05
     sigma_unit: rad
     source: fixed_profile_signed_heading_topology
     activation_weight_tiers: {active: 1.0, downweighted: 0.0, inactive: 0.0}
@@ -230,11 +238,13 @@ vlm:
     stage4: risk
   semantic_orientation:
     enabled: true
-    uncertainty_threshold: 0.30
-    temporal_radius_frames: 4
+    uncertainty_threshold: 0.24
+    temporal_radius_frames: 8
+    evidence_offsets_frames: [-16, -8, 0, 8, 16]
+    asset_reference_image: articraft/records/rec_create-a-realistic-black-hard-shell-carry-on-rol_20260731_015156_616489_a9b2bd71/revisions/rev_000001/inputs/codex-clipboard-1ce19566-8e9c-4eac-9efd-4c0f2ebab0a5.png
     suppression_radius_frames: 14
-    maximum_queries: 8
-    predicates: [visible_face, facing_relation, turn_direction_screen, visibility, grasp_state]
+    maximum_queries: 10
+    predicates: [facing_relation, turn_direction_screen, visibility, grasp_state]
 camera:
   fx: 1468.604736328125
   fy: 1468.604736328125

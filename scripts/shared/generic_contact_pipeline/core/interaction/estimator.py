@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
+from typing import Mapping
+
+import numpy as np
 
 from ..audio_events import AudioEvent, AudioEventType, load_audio_events
 from ..semantics.relations import SemanticRelation, load_semantic_relations
@@ -175,7 +178,13 @@ def _visual_speed_px(primary: dict[str, str], previous: dict[str, str] | None) -
     return float(((u - pu) ** 2 + (v - pv) ** 2) ** 0.5)
 
 
-def _contact_ids(sample_id: str, frame: int, rows: list[dict[str, str]], support: bool) -> tuple[str, ...]:
+def _contact_ids(
+    sample_id: str,
+    frame: int,
+    rows: list[dict[str, str]],
+    support: bool,
+    previous_contact_active: bool = False,
+) -> tuple[str, ...]:
     ids: list[str] = []
     for index, row in enumerate(rows):
         if support:
@@ -184,6 +193,14 @@ def _contact_ids(sample_id: str, frame: int, rows: list[dict[str, str]], support
         else:
             active = _truthy(row, "human_contact_state", "anchor_contact_state", "contact_active")
             label = row.get("contact_label", row.get("contact_part", "contact")) or "contact"
+            confidence = max(_float(row, "contact_conf", 0.0), _float(row, "anchor_score", 0.0))
+            direct_update = _truthy(row, "anchor_update") or confidence >= 0.5
+            hidden_hold = (
+                previous_contact_active
+                and _truthy(row, "keep_previous")
+                and str(row.get("visibility", "")).lower() in {"hidden", "occluded"}
+            )
+            active = active and (direct_update or hidden_hold)
         if active:
             ids.append(f"{sample_id}:{frame}:{label}:{index}")
     return tuple(ids)
@@ -214,10 +231,14 @@ def _frame_state(
     motion_row: dict[str, str] | None,
     motion_source: str,
     visual_speed_px: float,
+    audio_visual_conflict: Mapping[str, object] | None = None,
 ) -> FrameInteractionState:
     frame = int(float(primary["frame"]))
     time = _float(primary, "time")
-    active_contact_ids = _contact_ids(sample_id, frame, contacts, support=False)
+    active_contact_ids = _contact_ids(
+        sample_id, frame, contacts, support=False,
+        previous_contact_active=previous_contact_active,
+    )
     support_contact_ids = _contact_ids(sample_id, frame, contacts, support=True)
     motion_regime = str((motion_row or {}).get("motion_regime", "")).strip().lower()
     if not active_contact_ids and not support_contact_ids and motion_regime == "static_hold":
@@ -231,7 +252,11 @@ def _frame_state(
     visual_moving = visual_speed_px > 0.75
     visual_moving_strong = visual_speed_px > 3.0
     audio_conflicts: list[str] = []
-    if audio_silence and visual_moving_strong:
+    arbitration_decision = str((audio_visual_conflict or {}).get("decision", ""))
+    silence_visual_conflict = arbitration_decision == "visual_motion_overrides_audio_silence"
+    silence_confirmed_static = arbitration_decision == "audio_silence_confirms_static"
+    audio_silence = audio_silence or silence_confirmed_static
+    if audio_silence and (visual_moving_strong or silence_visual_conflict):
         audio_conflicts.append("audio_silence_conflicts_with_strong_visual_motion")
     if audio_motion and not visual_moving:
         audio_conflicts.append("audio_motion_without_visual_displacement")
@@ -249,10 +274,10 @@ def _frame_state(
         if audio_motion and visual_moving:
             contact_mode = InteractionContactMode.ROLLING
             motion_mode = MotionMode.SUPPORTED_MOVING
-        elif audio_silence and not visual_moving:
+        elif audio_silence and not silence_visual_conflict and (silence_confirmed_static or not visual_moving):
             contact_mode = InteractionContactMode.GRASP if active_contact_ids else InteractionContactMode.SUPPORT
             motion_mode = MotionMode.SUPPORTED_STATIC
-        elif visual_moving:
+        elif visual_moving or silence_visual_conflict:
             contact_mode = InteractionContactMode.ROLLING
             motion_mode = MotionMode.SUPPORTED_MOVING
         else:
@@ -312,6 +337,7 @@ def _frame_state(
             "semantic_conflicts": semantic_conflicts,
             "audio_conflicts": audio_conflicts,
             "visual_speed_px_per_frame": visual_speed_px,
+            "audio_visual_arbitration": dict(audio_visual_conflict or {}),
         },
     )
 
@@ -321,14 +347,74 @@ def build_interaction_timeline(
     result_dir: Path,
     contact_state_artifact: Path | None = None,
     environment_support_mode: str = "",
+    audio_visual_arbitration: Mapping[str, object] | None = None,
+    audio_enabled: bool = True,
+    semantic_enabled: bool = True,
 ) -> InteractionTimeline:
     if environment_support_mode not in {"", "persistent", "rolling", "sliding"}:
         raise ValueError("environment support mode must be empty, persistent, rolling, or sliding")
     primary_rows = _primary_rows(result_dir)
     contacts_by_frame, contact_source = _contact_rows_by_frame(result_dir, contact_state_artifact)
     motion_by_frame, motion_source = _motion_rows_by_frame(result_dir)
-    audio_by_frame, audio_source = _audio_events_by_frame(sample_id, result_dir)
-    semantic_by_frame, semantic_source = _semantic_relations_by_frame(result_dir)
+    audio_by_frame, audio_source = (
+        _audio_events_by_frame(sample_id, result_dir)
+        if audio_enabled
+        else ({}, "ablation:disable_audio_events")
+    )
+    semantic_by_frame, semantic_source = (
+        _semantic_relations_by_frame(result_dir)
+        if semantic_enabled
+        else ({}, "ablation:disable_vlm_semantic_evidence")
+    )
+    arbitration = dict(audio_visual_arbitration or {})
+    sustained_threshold = float(arbitration.get("sustained_visual_motion_px_per_frame", 1.5))
+    minimum_conflict_frames = int(arbitration.get("minimum_conflict_frames", 4))
+    conflict_fraction_threshold = float(arbitration.get("conflict_fraction", 0.5))
+    silence_tail_hold_frames = int(arbitration.get("silence_tail_hold_frames", 4))
+    if (
+        sustained_threshold <= 0.0
+        or minimum_conflict_frames < 1
+        or not 0.0 <= conflict_fraction_threshold <= 1.0
+        or silence_tail_hold_frames < 0
+    ):
+        raise ValueError("invalid audio/visual arbitration thresholds")
+    speed_by_frame: dict[int, float] = {}
+    speed_history: list[dict[str, str]] = []
+    previous_speed_row: dict[str, str] | None = None
+    for row in primary_rows:
+        frame = int(float(row["frame"]))
+        one = _visual_speed_px(row, previous_speed_row)
+        four = _visual_speed_px(row, speed_history[-4]) / 4.0 if len(speed_history) >= 4 else one
+        speed_by_frame[frame] = max(one, four)
+        previous_speed_row = row
+        speed_history.append(row)
+    arbitration_by_frame: dict[int, dict[str, object]] = {}
+    unique_events = {event.event_id: event for events in audio_by_frame.values() for event in events}
+    for event in unique_events.values():
+        if event.event_type != AudioEventType.SILENCE:
+            continue
+        start = int(event.start_frame or event.frame)
+        end = int(event.end_frame or event.frame)
+        speeds = [speed_by_frame[frame] for frame in range(start, end + 1) if frame in speed_by_frame]
+        strong = [value for value in speeds if value >= sustained_threshold]
+        fraction = len(strong) / max(1, len(speeds))
+        conflict = len(strong) >= minimum_conflict_frames and fraction >= conflict_fraction_threshold
+        record = {
+            "interval_id": event.event_id,
+            "median_speed_px_per_frame": float(np.median(speeds)),
+            "p75_speed_px_per_frame": float(np.quantile(speeds, 0.75)),
+            "conflict_frame_count": len(strong),
+            "valid_frame_count": len(speeds),
+            "conflict_fraction": fraction,
+            "decision": (
+                "visual_motion_overrides_audio_silence"
+                if conflict
+                else "audio_silence_confirms_static"
+            ),
+        }
+        tail = 0 if conflict else silence_tail_hold_frames
+        for frame in range(start, end + tail + 1):
+            arbitration_by_frame[frame] = record
     frames: list[FrameInteractionState] = []
     previous_contact_active = False
     previous_primary: dict[str, str] | None = None
@@ -367,9 +453,10 @@ def build_interaction_timeline(
             motion_by_frame.get(frame),
             motion_source,
             max(one_frame_speed, window_speed),
+            arbitration_by_frame.get(frame),
         )
         frames.append(state)
-        previous_contact_active = bool(state.active_contact_ids or state.support_contact_ids)
+        previous_contact_active = bool(state.active_contact_ids)
         previous_primary = primary
         primary_history.append(primary)
     timeline = InteractionTimeline(
@@ -395,6 +482,10 @@ def build_interaction_timeline(
                 1 for state in frames if state.provenance.get("audio_conflicts")
             ),
             "audio_event_source": audio_source,
+            "audio_visual_conflict_frames": sum(
+                1 for record in arbitration_by_frame.values()
+                if record["decision"] == "visual_motion_overrides_audio_silence"
+            ),
             "semantic_relation_source": semantic_source,
             "environment_support_mode": environment_support_mode,
             "final_pose_read": False,

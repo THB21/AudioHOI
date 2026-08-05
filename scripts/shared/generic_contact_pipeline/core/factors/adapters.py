@@ -482,7 +482,7 @@ def adapt_factor_rows(profile: CaseProfile, result_dir: Path) -> FactorAdaptatio
         semantic_specs = {
             "face_visibility_inequality": (FactorKind.FACE_VISIBILITY_INEQUALITY, "projected_face_rank_hinge"),
             "facing_relation": (FactorKind.FACING_RELATION, "human_bearing_face_alignment_hinge"),
-            "heading_topology": (FactorKind.HEADING_TOPOLOGY, "signed_heading_increment_hinge"),
+            "heading_topology": (FactorKind.HEADING_TOPOLOGY, "interval_heading_sign_and_reverse_hinge"),
         }
         for factor_name in sorted(semantic_factors):
             if factor_name not in semantic_specs or semantic_rows == 0:

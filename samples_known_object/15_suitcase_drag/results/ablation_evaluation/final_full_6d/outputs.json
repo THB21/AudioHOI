@@ -1,0 +1,25 @@
+{
+  "pose_csv": "output/suitcase_vlm_tail_symmetry_full/generic_object_pose_candidate.csv",
+  "urdf": "samples_known_object/15_suitcase_drag/articraft/materialized_suitcase/model.urdf",
+  "object_only": {
+    "overlay": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/object_only/overlay.mp4",
+    "overlay_preview": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/object_only/overlay_preview.png",
+    "overlay_quality": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/object_only/overlay_quality.csv",
+    "camera3d": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/object_only/camera3d.mp4",
+    "camera3d_preview": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/object_only/camera3d_preview.png",
+    "side_yz": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/object_only/side_yz.mp4",
+    "side_yz_preview": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/object_only/side_yz_preview.png"
+  },
+  "with_human": {
+    "overlay": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/with_human/overlay.mp4",
+    "overlay_preview": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/with_human/overlay_preview.png",
+    "overlay_quality": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/with_human/overlay_quality.csv",
+    "overlay_vlm_masked": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/with_human/overlay_vlm_masked.mp4",
+    "overlay_vlm_masked_preview": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/with_human/overlay_vlm_masked_preview.png",
+    "overlay_vlm_masked_quality": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/with_human/overlay_vlm_masked_quality.csv",
+    "camera3d": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/with_human/camera3d.mp4",
+    "camera3d_preview": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/with_human/camera3d_preview.png",
+    "side_yz": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/with_human/side_yz.mp4",
+    "side_yz_preview": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d/with_human/side_yz_preview.png"
+  }
+}

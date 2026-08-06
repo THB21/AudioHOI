@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "case_name": "pingpong_wall",
+  "scope": "case_specific_physics_diagnostics",
+  "supplements_unified_evaluator": "output/pingpong_unified_ablation_evaluation/ablation_table.csv",
+  "variants": {
+    "full": {
+      "pose_csv": "output/pingpong_planar_pnp_exact_grasp_recomputed_contacts/object_pose.csv",
+      "archived_pose_csv": "samples_known_object/14_pingpong_wall/results/ablation_evaluation/frozen_poses/full_object_pose.csv",
+      "pose_sha256": "0efe658382d997efb76c473253cafd7d3b7dd26e13cb1f38a2d6bda92ce2aa3c"
+    },
+    "no_vlm": {
+      "pose_csv": "output/pingpong_planar_pnp_exact_grasp_no_vlm_contacts/object_pose.csv",
+      "archived_pose_csv": "samples_known_object/14_pingpong_wall/results/ablation_evaluation/frozen_poses/no_vlm_object_pose.csv",
+      "pose_sha256": "b324579385c1d59aa76070641331e0b261606892ef315632dd7835438198261c"
+    },
+    "no_audio": {
+      "pose_csv": "output/pingpong_planar_pnp_exact_grasp_no_audio_contacts/object_pose.csv",
+      "archived_pose_csv": "samples_known_object/14_pingpong_wall/results/ablation_evaluation/frozen_poses/no_audio_object_pose.csv",
+      "pose_sha256": "32356a37871cf8418e9b6dc4aeee353e6aedf0fcc42f70fff2befdd73887448f"
+    }
+  },
+  "contact_evidence": {
+    "path": "output/pingpong_planar_pnp_exact_grasp_recomputed_contacts/rigid_face_contacts.csv",
+    "sha256": "2c0d755281542638d01cb972098c4494fc807a88c9228547f09c0da305419650"
+  },
+  "unified_table_sha256": "a53c6e75d48c0a999bfe23179d64ed249aece71f44e6f4e17c5577929e040321",
+  "metrics": {
+    "free_flight_turn_p95_deg": {"full": 21.92, "no_vlm": 93.50, "no_audio": 96.15},
+    "non_contact_turns_gt_35deg": {"full": 6, "no_vlm": 23, "no_audio": 21},
+    "interior_turn_max_157_200_deg": {"full": 4.45, "no_vlm": 176.12, "no_audio": 176.12},
+    "paddle_contact_mean_gap_mm": {"full": 0.0, "no_vlm": 0.0, "no_audio": 264.3},
+    "valid_collision_normal_reversals": {"full": "7/7", "no_vlm": "7/7", "no_audio": "1/7"}
+  }
+}

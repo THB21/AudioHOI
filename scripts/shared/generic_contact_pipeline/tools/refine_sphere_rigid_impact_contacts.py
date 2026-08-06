@@ -145,6 +145,7 @@ def _repair_unsupported_free_flight_loops(
     *,
     maximum_turn_deg: float = 35.0,
     minimum_progress_reversal: float = 0.02,
+    approved_intervals: set[tuple[int, int]] | None = None,
 ) -> tuple[pd.DataFrame, list[dict[str, object]]]:
     """Replace non-contact loops by a single smooth flight arc.
 
@@ -181,11 +182,28 @@ def _repair_unsupported_free_flight_loops(
                 cosine = float(np.clip((before @ after) / denominator, -1.0, 1.0))
                 turns.append(float(np.degrees(np.arccos(cosine))))
         maximum_observed_turn = max(turns, default=0.0)
+        peak_turn_frame = int(start + 1 + int(np.argmax(turns))) if turns else int(start)
         minimum_progress_step = float(progress_steps.min(initial=0.0))
         if (
             minimum_progress_step >= -minimum_progress_reversal
             or maximum_observed_turn <= maximum_turn_deg
         ):
+            continue
+
+        vlm_approved = approved_intervals is None or (int(start), int(stop)) in approved_intervals
+        if not vlm_approved:
+            audit.append(
+                {
+                    "start_frame": int(start),
+                    "stop_frame": int(stop),
+                    "peak_turn_frame_before": peak_turn_frame,
+                    "reason": "unsupported_free_flight_direction_reversal",
+                    "minimum_progress_step_before": minimum_progress_step,
+                    "maximum_turn_deg_before": maximum_observed_turn,
+                    "repair_applied": False,
+                    "gate": "vlm_not_approved",
+                }
+            )
             continue
 
         parameter = np.linspace(0.0, 1.0, len(points))
@@ -209,11 +227,14 @@ def _repair_unsupported_free_flight_loops(
             {
                 "start_frame": int(start),
                 "stop_frame": int(stop),
+                "peak_turn_frame_before": peak_turn_frame,
                 "reason": "unsupported_free_flight_direction_reversal",
                 "minimum_progress_step_before": minimum_progress_step,
                 "maximum_turn_deg_before": maximum_observed_turn,
                 "maximum_turn_deg_after": max(fitted_turns, default=0.0),
                 "model": "endpoint_preserving_monotonic_quadratic_arc",
+                "repair_applied": True,
+                "gate": "physics_only" if approved_intervals is None else "vlm_approved",
             }
         )
     return by_frame.reset_index(), audit
@@ -239,6 +260,11 @@ def main() -> None:
     parser.add_argument("--radius", type=float, required=True)
     parser.add_argument("--maximum-paddle-gap-px", type=float, default=35.0)
     parser.add_argument("--paddle-refractory-frames", type=int, default=18)
+    parser.add_argument(
+        "--free-flight-vlm-decisions",
+        type=Path,
+        help="Optional Qwen decision JSON. When supplied, only VLM-approved free-flight intervals are repaired.",
+    )
     args = parser.parse_args()
 
     camera = _camera(args)
@@ -388,8 +414,16 @@ def main() -> None:
     for frame, target in contact_targets.items():
         refined.loc[refined.frame.eq(frame), ["tx", "ty", "tz"]] = target
     ordered_events = sorted(set(paddle_frames) | set(wall_frames))
+    approved_intervals: set[tuple[int, int]] | None = None
+    if args.free_flight_vlm_decisions is not None:
+        decision_payload = json.loads(args.free_flight_vlm_decisions.read_text())
+        approved_intervals = {
+            (int(row["start_frame"]), int(row["stop_frame"]))
+            for row in decision_payload.get("decisions", [])
+            if bool(row.get("approved_repair", False))
+        }
     refined, free_flight_repairs = _repair_unsupported_free_flight_loops(
-        refined, ordered_events
+        refined, ordered_events, approved_intervals=approved_intervals
     )
     # The arc repair deliberately changes samples adjacent to an impact.  Put
     # those samples back into the contact-normal half spaces so smoothing a
@@ -495,6 +529,11 @@ def main() -> None:
             bool(row["impact_direction_reversal"]) for row in impact_audit
         ),
         "free_flight_repairs": free_flight_repairs,
+        "free_flight_vlm_decisions": (
+            str(args.free_flight_vlm_decisions.resolve())
+            if args.free_flight_vlm_decisions is not None
+            else None
+        ),
         "human_state_optimized": False,
         "inputs": {
             "sphere_pose_sha256": _sha256(args.sphere_pose),

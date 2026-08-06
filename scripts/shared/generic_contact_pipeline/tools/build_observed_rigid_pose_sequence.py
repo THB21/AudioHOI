@@ -152,6 +152,137 @@ def _mask_direction_reference_twist_rotations(
     return result
 
 
+def _mask_shape(values_x: np.ndarray, values_y: np.ndarray) -> np.ndarray:
+    if len(values_x) < 3:
+        return np.ones(2, dtype=float)
+    covariance = np.cov(np.column_stack((values_x, values_y)).T)
+    eigenvalues = np.linalg.eigvalsh(covariance)
+    return np.asarray(
+        (
+            (np.ptp(values_x) + 1.0) / (np.ptp(values_y) + 1.0),
+            np.sqrt(max(eigenvalues[0], 1e-6) / max(eigenvalues[1], 1e-6)),
+        ),
+        dtype=float,
+    )
+
+
+def _silhouette_twist_sequence(
+    base_rotations: list[Rotation],
+    *,
+    pivots: list[np.ndarray],
+    handle_local: np.ndarray,
+    blade_center_local: np.ndarray,
+    face_normal_local: np.ndarray,
+    half_width: float,
+    half_height: float,
+    mask_paths: list[Path],
+    camera: np.ndarray,
+    step_degrees: float,
+    temporal_weight: float,
+    maximum_step_degrees: float,
+) -> tuple[list[Rotation], np.ndarray, np.ndarray]:
+    """Resolve the one-dimensional grasp twist with silhouette shape evidence."""
+    twist_axis = blade_center_local - handle_local
+    twist_axis /= max(np.linalg.norm(twist_axis), 1e-12)
+    width_axis = np.cross(twist_axis, face_normal_local)
+    width_axis /= max(np.linalg.norm(width_axis), 1e-12)
+    theta = np.linspace(0.0, 2.0 * np.pi, 64, endpoint=False)
+    outline = (
+        blade_center_local[None, :]
+        + half_width * np.cos(theta)[:, None] * width_axis[None, :]
+        + half_height * np.sin(theta)[:, None] * twist_axis[None, :]
+    )
+    angles = np.deg2rad(
+        np.arange(-90.0, 90.0 + 0.5 * step_degrees, step_degrees)
+    )
+    frame_rotations: list[list[Rotation]] = []
+    emissions = np.empty((len(base_rotations), len(angles)), dtype=float)
+    for frame_index, (base_rotation, pivot, mask_path) in enumerate(
+        zip(base_rotations, pivots, mask_paths)
+    ):
+        mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
+        if mask is None:
+            raise FileNotFoundError(mask_path)
+        target_full = mask > 0
+        target_y, target_x = np.nonzero(target_full)
+        if len(target_x) < 64:
+            raise RuntimeError(f"Insufficient silhouette pixels in {mask_path}")
+        x0 = max(0, int(target_x.min()) - 20)
+        x1 = min(mask.shape[1] - 1, int(target_x.max()) + 20)
+        y0 = max(0, int(target_y.min()) - 20)
+        y1 = min(mask.shape[0] - 1, int(target_y.max()) + 20)
+        target = target_full[y0 : y1 + 1, x0 : x1 + 1]
+        cropped_y, cropped_x = np.nonzero(target)
+        target_shape = _mask_shape(cropped_x, cropped_y)
+        candidates: list[Rotation] = []
+        for candidate_index, angle in enumerate(angles):
+            rotation = base_rotation * Rotation.from_rotvec(twist_axis * angle)
+            translation = pivot - rotation.apply(handle_local)
+            points = rotation.apply(outline) + translation
+            projected = np.column_stack(
+                (
+                    camera[0, 0] * points[:, 0] / points[:, 2] + camera[0, 2],
+                    camera[1, 1] * points[:, 1] / points[:, 2] + camera[1, 2],
+                )
+            )
+            prediction = np.zeros(target.shape, dtype=np.uint8)
+            hull = cv2.convexHull(
+                np.rint(projected - np.asarray((x0, y0))).astype(np.int32)
+            )
+            cv2.fillConvexPoly(prediction, hull, 1)
+            intersection = int(np.logical_and(prediction, target).sum())
+            union = int(np.logical_or(prediction, target).sum())
+            iou = intersection / max(union, 1)
+            predicted_y, predicted_x = np.nonzero(prediction)
+            predicted_shape = _mask_shape(predicted_x, predicted_y)
+            shape_cost = float(
+                np.linalg.norm(
+                    np.log(
+                        np.maximum(predicted_shape, 1e-3)
+                        / np.maximum(target_shape, 1e-3)
+                    )
+                )
+            )
+            emissions[frame_index, candidate_index] = 2.0 * (1.0 - iou) + 0.45 * shape_cost
+            candidates.append(rotation)
+        frame_rotations.append(candidates)
+
+    costs = np.empty_like(emissions)
+    backpointers = np.zeros(emissions.shape, dtype=int)
+    costs[0] = emissions[0]
+    maximum_step = np.deg2rad(maximum_step_degrees)
+    for frame_index in range(1, len(base_rotations)):
+        for candidate_index, candidate in enumerate(frame_rotations[frame_index]):
+            steps = np.asarray(
+                [
+                    (previous.inv() * candidate).magnitude()
+                    for previous in frame_rotations[frame_index - 1]
+                ]
+            )
+            transition = costs[frame_index - 1] + temporal_weight * steps**2
+            transition[steps > maximum_step] = 1e9
+            previous_index = int(np.argmin(transition))
+            costs[frame_index, candidate_index] = (
+                emissions[frame_index, candidate_index] + transition[previous_index]
+            )
+            backpointers[frame_index, candidate_index] = previous_index
+    selected_indices = np.zeros(len(base_rotations), dtype=int)
+    selected_indices[-1] = int(np.argmin(costs[-1]))
+    for frame_index in range(len(base_rotations) - 1, 0, -1):
+        selected_indices[frame_index - 1] = backpointers[
+            frame_index, selected_indices[frame_index]
+        ]
+    selected = [
+        frame_rotations[frame_index][candidate_index]
+        for frame_index, candidate_index in enumerate(selected_indices)
+    ]
+    return (
+        selected,
+        np.rad2deg(angles[selected_indices]),
+        emissions[np.arange(len(base_rotations)), selected_indices],
+    )
+
+
 def _face_score(row: dict[str, object], normal_local: np.ndarray) -> float:
     transform = np.asarray(row["T_camera_object"], dtype=float)
     normal_camera = transform[:3, :3] @ normal_local
@@ -311,6 +442,16 @@ def main() -> None:
         type=float,
         help="Optional hard validator for a persistent rigid grasp trajectory.",
     )
+    parser.add_argument(
+        "--silhouette-twist",
+        action="store_true",
+        help="Resolve rotation about the grasp axis from the observed silhouette shape.",
+    )
+    parser.add_argument("--silhouette-half-width", type=float)
+    parser.add_argument("--silhouette-half-height", type=float)
+    parser.add_argument("--silhouette-twist-step-deg", type=float, default=3.0)
+    parser.add_argument("--silhouette-temporal-weight", type=float, default=2.0)
+    parser.add_argument("--silhouette-max-step-deg", type=float, default=50.0)
     parser.add_argument("--frame-count", type=int, required=True)
     parser.add_argument("--fps", type=float, required=True)
     parser.add_argument("--fx", type=float, required=True)
@@ -430,6 +571,36 @@ def main() -> None:
             camera=camera,
             face_normal_local=args.visible_face_normal,
         )
+        silhouette_twist_degrees = np.zeros(args.frame_count, dtype=float)
+        silhouette_emissions = np.full(args.frame_count, np.nan, dtype=float)
+        if args.silhouette_twist:
+            if args.silhouette_half_width is None or args.silhouette_half_height is None:
+                raise ValueError(
+                    "--silhouette-twist requires --silhouette-half-width and "
+                    "--silhouette-half-height from the geometry descriptor"
+                )
+            rotations_by_frame, silhouette_twist_degrees, silhouette_emissions = (
+                _silhouette_twist_sequence(
+                    rotations_by_frame,
+                    pivots=[
+                        hand_points[frame]
+                        for frame in range(1, args.frame_count + 1)
+                    ],
+                    handle_local=args.handle_local,
+                    blade_center_local=args.blade_center_local,
+                    face_normal_local=args.visible_face_normal,
+                    half_width=args.silhouette_half_width,
+                    half_height=args.silhouette_half_height,
+                    mask_paths=[
+                        args.mask_dir / f"{frame:05d}_mask.png"
+                        for frame in range(1, args.frame_count + 1)
+                    ],
+                    camera=camera,
+                    step_degrees=args.silhouette_twist_step_deg,
+                    temporal_weight=args.silhouette_temporal_weight,
+                    maximum_step_degrees=args.silhouette_max_step_deg,
+                )
+            )
         for index, (frame, rotation) in enumerate(
             zip(range(1, args.frame_count + 1), rotations_by_frame)
         ):
@@ -481,8 +652,17 @@ def main() -> None:
                 "grasp_active": int(args.persistent_grasp),
                 "grasp_site_id": args.grasp_site_id if args.persistent_grasp else "",
                 "grasp_gap_m": grasp_gap,
+                "silhouette_twist_deg": (
+                    float(silhouette_twist_degrees[frame - 1])
+                    if args.persistent_grasp and args.silhouette_twist
+                    else ""
+                ),
                 "source": (
-                    "megapose_semantic_branch_cotracker_persistent_grasp_sequence"
+                    (
+                        "megapose_sam2_silhouette_twist_persistent_grasp_sequence"
+                        if args.silhouette_twist
+                        else "megapose_semantic_branch_cotracker_persistent_grasp_sequence"
+                    )
                     if args.persistent_grasp
                     else "megapose_semantic_branch_cotracker_grasp_sequence"
                 ),
@@ -512,6 +692,7 @@ def main() -> None:
             "visible_face_semantic_gate",
             "temporal_rotation_continuity",
             "mask_centroid_reprojection",
+            *(["mask_silhouette_twist"] if args.silhouette_twist else []),
             (
                 "persistent_read_only_hand_to_handle_point_contact"
                 if args.persistent_grasp
@@ -522,9 +703,22 @@ def main() -> None:
         "grasp_site_id": args.grasp_site_id if args.persistent_grasp else None,
         "grasp_site_switching_allowed": False,
         "rotation_driver": (
-            "mask_direction_with_megapose_face_twist_and_read_only_hand_pivot"
+            (
+                "mask_shape_twist_with_megapose_prior_and_read_only_hand_pivot"
+                if args.silhouette_twist
+                else "mask_direction_with_megapose_face_twist_and_read_only_hand_pivot"
+            )
             if args.persistent_grasp
             else "selected_pose_hypotheses"
+        ),
+        "silhouette_twist": args.silhouette_twist,
+        "silhouette_emission": (
+            {
+                "mean": float(np.nanmean(silhouette_emissions)),
+                "p95": float(np.nanpercentile(silhouette_emissions, 95)),
+            }
+            if args.persistent_grasp and args.silhouette_twist
+            else None
         ),
         "rotation_step_deg": {
             "median": float(np.median(rotation_steps_deg)),

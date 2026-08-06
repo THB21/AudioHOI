@@ -69,106 +69,87 @@ def _hand_site_evidence(
     return pixels, points
 
 
-def _hand_frames(
-    path: Path,
-    *,
-    frame_count: int,
-    wrist_index: int,
-    finger_base_indices: tuple[int, ...],
-) -> list[Rotation]:
-    """Build a smooth camera-space hand frame without modifying human state."""
-    joints = np.asarray(np.load(path), dtype=float)
-    if joints.ndim != 3 or joints.shape[0] < frame_count or joints.shape[2] != 3:
-        raise ValueError(
-            f"hand joints must have shape (frames,joints,3), got {joints.shape}"
-        )
-    required = (wrist_index, *finger_base_indices)
-    if min(required) < 0 or max(required) >= joints.shape[1]:
-        raise ValueError(f"hand joint indices {required} exceed shape {joints.shape}")
-    selected = joints[:frame_count].copy()
-    window = min(15, frame_count if frame_count % 2 else frame_count - 1)
-    if window >= 5:
-        for joint_index in required:
-            for axis in range(3):
-                selected[:, joint_index, axis] = savgol_filter(
-                    selected[:, joint_index, axis],
-                    window_length=window,
-                    polyorder=2,
-                    mode="interp",
-                )
-    rotations: list[Rotation] = []
-    previous_matrix: np.ndarray | None = None
-    for frame in range(frame_count):
-        wrist = selected[frame, wrist_index]
-        bases = selected[frame, list(finger_base_indices)]
-        forward = np.mean(bases, axis=0) - wrist
-        lateral = bases[-1] - bases[0]
-        forward /= max(np.linalg.norm(forward), 1e-12)
-        lateral -= float(lateral @ forward) * forward
-        lateral /= max(np.linalg.norm(lateral), 1e-12)
-        normal = np.cross(lateral, forward)
-        normal /= max(np.linalg.norm(normal), 1e-12)
-        matrix = np.column_stack((lateral, forward, normal))
-        if np.linalg.det(matrix) < 0.0:
-            matrix[:, 2] *= -1.0
-        # The anatomical axes must not flip sign from frame to frame.
-        if previous_matrix is not None:
-            alternatives = (
-                matrix,
-                matrix @ np.diag((-1.0, -1.0, 1.0)),
-                matrix @ np.diag((-1.0, 1.0, -1.0)),
-                matrix @ np.diag((1.0, -1.0, -1.0)),
-            )
-            matrix = max(
-                alternatives,
-                key=lambda value: float(np.trace(previous_matrix.T @ value)),
-            )
-        rotations.append(Rotation.from_matrix(matrix))
-        previous_matrix = matrix
-    return rotations
-
-
-def _scaled_rotation(rotation: Rotation, gain: float) -> Rotation:
-    return Rotation.from_rotvec(gain * rotation.as_rotvec())
-
-
-def _bounded_mask_corrections(
-    rotations: list[Rotation],
+def _mask_direction_reference_twist_rotations(
+    reference_rotations: list[Rotation],
     *,
     pivots: list[np.ndarray],
     handle_local: np.ndarray,
     observed_local: np.ndarray,
     observed_pixels: np.ndarray,
     camera: np.ndarray,
-    maximum_degrees: float,
+    face_normal_local: np.ndarray,
 ) -> list[Rotation]:
-    correction_vectors = []
-    for rotation, pivot, pixel in zip(rotations, pivots, observed_pixels):
-        aligned = _pivot_constrained_rotation(
-            rotation,
-            pivot,
-            handle_local,
-            observed_local,
-            pixel,
-            camera,
+    """Use the mask for the grasp axis and pose evidence for its remaining twist."""
+    local_y = observed_local - handle_local
+    length = float(np.linalg.norm(local_y))
+    local_y /= max(length, 1e-12)
+    local_z = face_normal_local - float(face_normal_local @ local_y) * local_y
+    local_z /= max(np.linalg.norm(local_z), 1e-12)
+    local_x = np.cross(local_y, local_z)
+    local_x /= max(np.linalg.norm(local_x), 1e-12)
+    local_z = np.cross(local_x, local_y)
+    local_basis = np.column_stack((local_x, local_y, local_z))
+
+    result: list[Rotation] = []
+    previous_y: np.ndarray | None = None
+    previous_z: np.ndarray | None = None
+    for reference_rotation, pivot, pixel in zip(
+        reference_rotations, pivots, observed_pixels
+    ):
+        ray = np.asarray(
+            (
+                (pixel[0] - camera[0, 2]) / camera[0, 0],
+                (pixel[1] - camera[1, 2]) / camera[1, 1],
+                1.0,
+            ),
+            dtype=float,
         )
-        vector = (aligned * rotation.inv()).as_rotvec()
-        magnitude = float(np.linalg.norm(vector))
-        maximum = np.deg2rad(maximum_degrees)
-        if magnitude > maximum:
-            vector *= maximum / magnitude
-        correction_vectors.append(vector)
-    corrections = np.asarray(correction_vectors)
-    window = min(21, len(corrections) if len(corrections) % 2 else len(corrections) - 1)
-    if window >= 5:
-        for axis in range(3):
-            corrections[:, axis] = savgol_filter(
-                corrections[:, axis], window_length=window, polyorder=2, mode="interp"
-            )
-    return [
-        Rotation.from_rotvec(vector) * rotation
-        for vector, rotation in zip(corrections, rotations)
-    ]
+        a = float(ray @ ray)
+        b = -2.0 * float(ray @ pivot)
+        c = float(pivot @ pivot - length**2)
+        discriminant = b * b - 4.0 * a * c
+        candidates: list[np.ndarray] = []
+        if discriminant >= 0.0:
+            root = float(np.sqrt(discriminant))
+            for depth in ((-b - root) / (2.0 * a), (-b + root) / (2.0 * a)):
+                if depth > 1e-6:
+                    candidates.append(depth * ray - pivot)
+        if not candidates:
+            depth = max(1e-6, float(ray @ pivot) / a)
+            vector = depth * ray - pivot
+            candidates.append(length * vector / max(np.linalg.norm(vector), 1e-12))
+        reference_y = (
+            previous_y
+            if previous_y is not None
+            else reference_rotation.apply(local_y)
+        )
+        target_y = max(
+            candidates,
+            key=lambda vector: float(
+                vector @ reference_y / max(np.linalg.norm(vector), 1e-12)
+            ),
+        )
+        target_y /= max(np.linalg.norm(target_y), 1e-12)
+
+        # The projected mask fixes the blade direction.  MegaPose supplies
+        # only the remaining one-dimensional face/twist ambiguity, avoiding
+        # both an edge-on paddle and an unconstrained quaternion branch flip.
+        target_z = reference_rotation.apply(face_normal_local)
+        target_z -= float(target_z @ target_y) * target_y
+        if np.linalg.norm(target_z) < 1e-8 and previous_z is not None:
+            target_z = previous_z.copy()
+        target_z /= max(np.linalg.norm(target_z), 1e-12)
+        if previous_z is not None and float(target_z @ previous_z) < 0.0:
+            target_z *= -1.0
+        target_x = np.cross(target_y, target_z)
+        target_x /= max(np.linalg.norm(target_x), 1e-12)
+        target_z = np.cross(target_x, target_y)
+        target_z /= max(np.linalg.norm(target_z), 1e-12)
+        target_basis = np.column_stack((target_x, target_y, target_z))
+        result.append(Rotation.from_matrix(target_basis @ local_basis.T))
+        previous_y = target_y
+        previous_z = target_z
+    return result
 
 
 def _face_score(row: dict[str, object], normal_local: np.ndarray) -> float:
@@ -326,29 +307,6 @@ def main() -> None:
         help="One immutable observed human site used for the entire rigid grasp.",
     )
     parser.add_argument(
-        "--hand-joints-npy",
-        type=Path,
-        help="Optional read-only camera-space joints used to drive persistent-grasp rotation.",
-    )
-    parser.add_argument("--hand-wrist-index", type=int, default=21)
-    parser.add_argument(
-        "--hand-finger-base-indices",
-        default="40,43,46,49",
-        help="Comma-separated joint indices spanning the selected palm.",
-    )
-    parser.add_argument(
-        "--hand-rotation-gain",
-        type=float,
-        default=0.25,
-        help="Gain applied to observed hand-frame rotation relative to the initial frame.",
-    )
-    parser.add_argument(
-        "--mask-rotation-limit-deg",
-        type=float,
-        default=5.0,
-        help="Maximum smooth visual correction around the fixed grasp pivot.",
-    )
-    parser.add_argument(
         "--max-rotation-step-deg",
         type=float,
         help="Optional hard validator for a persistent rigid grasp trajectory.",
@@ -462,41 +420,15 @@ def main() -> None:
                 polyorder=2,
                 mode="interp",
             )
-        if args.hand_joints_npy is None:
-            raise RuntimeError(
-                "Persistent grasp requires --hand-joints-npy so rotation is driven by "
-                "the same observed hand rather than independently fitting each mask."
-            )
-        finger_indices = tuple(
-            int(token)
-            for token in args.hand_finger_base_indices.split(",")
-            if token.strip()
-        )
-        if len(finger_indices) < 2:
-            raise ValueError("At least two palm finger-base indices are required")
-        hand_rotations = _hand_frames(
-            args.hand_joints_npy,
-            frame_count=args.frame_count,
-            wrist_index=args.hand_wrist_index,
-            finger_base_indices=finger_indices,
-        )
-        initial_object_rotation = rotations_by_frame[0]
-        initial_hand_rotation = hand_rotations[0]
-        hand_driven_rotations = [
-            _scaled_rotation(
-                hand_rotation * initial_hand_rotation.inv(), args.hand_rotation_gain
-            )
-            * initial_object_rotation
-            for hand_rotation in hand_rotations
-        ]
-        rotations_by_frame = _bounded_mask_corrections(
-            hand_driven_rotations,
+        reference_rotations = rotations_by_frame
+        rotations_by_frame = _mask_direction_reference_twist_rotations(
+            reference_rotations,
             pivots=[hand_points[frame] for frame in range(1, args.frame_count + 1)],
             handle_local=args.handle_local,
             observed_local=args.blade_center_local,
             observed_pixels=observed_pixels_array,
             camera=camera,
-            maximum_degrees=args.mask_rotation_limit_deg,
+            face_normal_local=args.visible_face_normal,
         )
         for index, (frame, rotation) in enumerate(
             zip(range(1, args.frame_count + 1), rotations_by_frame)
@@ -590,13 +522,9 @@ def main() -> None:
         "grasp_site_id": args.grasp_site_id if args.persistent_grasp else None,
         "grasp_site_switching_allowed": False,
         "rotation_driver": (
-            "read_only_observed_hand_frame"
+            "mask_direction_with_megapose_face_twist_and_read_only_hand_pivot"
             if args.persistent_grasp
             else "selected_pose_hypotheses"
-        ),
-        "hand_rotation_gain": args.hand_rotation_gain if args.persistent_grasp else None,
-        "mask_rotation_limit_deg": (
-            args.mask_rotation_limit_deg if args.persistent_grasp else None
         ),
         "rotation_step_deg": {
             "median": float(np.median(rotation_steps_deg)),
@@ -612,9 +540,6 @@ def main() -> None:
             "hypotheses": [str(path.resolve()) for path in args.hypotheses],
             "hypotheses_sha256": [_sha256(path) for path in args.hypotheses],
             "human_sites": str(args.human_sites.resolve()) if args.human_sites else None,
-            "hand_joints_npy": (
-                str(args.hand_joints_npy.resolve()) if args.hand_joints_npy else None
-            ),
         },
         "output": str(args.output.resolve()),
         "output_sha256": _sha256(args.output),

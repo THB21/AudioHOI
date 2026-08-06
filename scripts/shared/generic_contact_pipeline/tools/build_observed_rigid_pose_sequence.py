@@ -158,6 +158,61 @@ def _mask_centroid(path: Path) -> np.ndarray | None:
     return np.asarray((float(np.median(xs)), float(np.median(ys))), dtype=float)
 
 
+def _pivot_constrained_rotation(
+    rotation: Rotation,
+    pivot_camera: np.ndarray,
+    handle_local: np.ndarray,
+    observed_local: np.ndarray,
+    observed_pixel: np.ndarray,
+    camera: np.ndarray,
+    reference_vector: np.ndarray | None = None,
+) -> Rotation:
+    current_vector = rotation.apply(observed_local - handle_local)
+    length = float(np.linalg.norm(current_vector))
+    if length < 1e-8:
+        return rotation
+    ray = np.asarray(
+        (
+            (observed_pixel[0] - camera[0, 2]) / camera[0, 0],
+            (observed_pixel[1] - camera[1, 2]) / camera[1, 1],
+            1.0,
+        ),
+        dtype=float,
+    )
+    a = float(ray @ ray)
+    b = -2.0 * float(ray @ pivot_camera)
+    c = float(pivot_camera @ pivot_camera - length**2)
+    discriminant = b * b - 4.0 * a * c
+    if discriminant >= 0.0:
+        root = float(np.sqrt(discriminant))
+        candidates = [(-b - root) / (2.0 * a), (-b + root) / (2.0 * a)]
+        positive = [value for value in candidates if value > 1e-6]
+        if positive:
+            target_candidates = [value * ray - pivot_camera for value in positive]
+            reference = current_vector if reference_vector is None else reference_vector
+            reference = reference / max(np.linalg.norm(reference), 1e-12)
+            current_direction = current_vector / max(np.linalg.norm(current_vector), 1e-12)
+
+            def continuity_score(vector: np.ndarray) -> float:
+                direction = vector / max(np.linalg.norm(vector), 1e-12)
+                return float(direction @ reference + 0.25 * direction @ current_direction)
+
+            target_vector = max(target_candidates, key=continuity_score)
+        else:
+            target_vector = current_vector
+    else:
+        closest_depth = max(1e-6, float(ray @ pivot_camera) / a)
+        closest_vector = closest_depth * ray - pivot_camera
+        if np.linalg.norm(closest_vector) < 1e-8:
+            return rotation
+        target_vector = length * closest_vector / np.linalg.norm(closest_vector)
+    target_vector *= length / max(np.linalg.norm(target_vector), 1e-12)
+    delta, _ = Rotation.align_vectors(
+        target_vector[None, :], current_vector[None, :]
+    )
+    return delta * rotation
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--hypotheses", type=Path, nargs="+", required=True)
@@ -172,6 +227,11 @@ def main() -> None:
     parser.add_argument("--visible-face-normal", type=_vector, required=True)
     parser.add_argument("--handle-local", type=_vector, required=True)
     parser.add_argument("--blade-center-local", type=_vector, required=True)
+    parser.add_argument(
+        "--persistent-grasp",
+        action="store_true",
+        help="Enforce the observed hand site and rigid handle point as the same 3D point on every frame.",
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
@@ -237,11 +297,71 @@ def main() -> None:
             translation_array[:, axis], window_length=7, polyorder=2, mode="interp"
         )
 
+    if args.persistent_grasp:
+        missing_hand_frames = [
+            frame for frame in range(1, args.frame_count + 1) if frame not in hand_points
+        ]
+        if missing_hand_frames:
+            raise RuntimeError(
+                "Persistent grasp requires a 3D observed hand site on every frame; "
+                f"missing {missing_hand_frames[:8]}"
+            )
+        observed_pixels = []
+        for frame in range(1, args.frame_count + 1):
+            centroid = _mask_centroid(args.mask_dir / f"{frame:05d}_mask.png")
+            if centroid is None:
+                raise RuntimeError(
+                    f"Persistent grasp reprojection requires a rigid observation at frame {frame}"
+                )
+            observed_pixels.append(centroid)
+        observed_pixels_array = np.asarray(observed_pixels, dtype=float)
+        for axis in range(2):
+            observed_pixels_array[:, axis] = medfilt(
+                observed_pixels_array[:, axis], kernel_size=5
+            )
+            observed_pixels_array[:, axis] = savgol_filter(
+                observed_pixels_array[:, axis],
+                window_length=7,
+                polyorder=2,
+                mode="interp",
+            )
+        constrained_rotations: list[Rotation] = []
+        previous_vector: np.ndarray | None = None
+        for index, (frame, rotation) in enumerate(
+            zip(range(1, args.frame_count + 1), rotations_by_frame)
+        ):
+            constrained = _pivot_constrained_rotation(
+                rotation,
+                hand_points[frame],
+                args.handle_local,
+                args.blade_center_local,
+                observed_pixels_array[index],
+                camera,
+                reference_vector=previous_vector,
+            )
+            constrained_rotations.append(constrained)
+            previous_vector = constrained.apply(
+                args.blade_center_local - args.handle_local
+            )
+        rotations_by_frame = constrained_rotations
+        for index, (frame, rotation) in enumerate(
+            zip(range(1, args.frame_count + 1), rotations_by_frame)
+        ):
+            translation_array[index] = (
+                hand_points[frame] - rotation.apply(args.handle_local)
+            )
+
     output_rows: list[dict[str, object]] = []
     for frame, (rotation, translation) in enumerate(
         zip(rotations_by_frame, translation_array), start=1
     ):
         qx, qy, qz, qw = rotation.as_quat()
+        handle_camera = rotation.apply(args.handle_local) + translation
+        grasp_gap = (
+            float(np.linalg.norm(handle_camera - hand_points[frame]))
+            if frame in hand_points
+            else float("nan")
+        )
         output_rows.append(
             {
                 "frame": frame,
@@ -253,7 +373,13 @@ def main() -> None:
                 "qx": float(qx),
                 "qy": float(qy),
                 "qz": float(qz),
-                "source": "megapose_semantic_branch_cotracker_grasp_sequence",
+                "grasp_active": int(args.persistent_grasp),
+                "grasp_gap_m": grasp_gap,
+                "source": (
+                    "megapose_semantic_branch_cotracker_persistent_grasp_sequence"
+                    if args.persistent_grasp
+                    else "megapose_semantic_branch_cotracker_grasp_sequence"
+                ),
             }
         )
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -280,8 +406,17 @@ def main() -> None:
             "visible_face_semantic_gate",
             "temporal_rotation_continuity",
             "mask_centroid_reprojection",
-            "read_only_human_handle_contact",
+            (
+                "persistent_read_only_hand_to_handle_point_contact"
+                if args.persistent_grasp
+                else "read_only_human_handle_contact"
+            ),
         ],
+        "persistent_grasp": args.persistent_grasp,
+        "grasp_gap_m": {
+            "maximum": float(np.nanmax([row["grasp_gap_m"] for row in output_rows])),
+            "mean": float(np.nanmean([row["grasp_gap_m"] for row in output_rows])),
+        },
         "inputs": {
             "hypotheses": [str(path.resolve()) for path in args.hypotheses],
             "hypotheses_sha256": [_sha256(path) for path in args.hypotheses],

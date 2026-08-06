@@ -420,6 +420,22 @@ def constraint_risk_intervals(profile: CaseProfile, *, maximum_window_frames: in
             for field in ("contact_active", "human_contact_state", "anchor_contact_state", "floor_contact_state")
         )
     }
+    stage4_dir = profile.result_dir / "vlm" / "stage4"
+    accepted_relation_frames = {
+        int(float(row.get("frame", "0") or 0))
+        for row in _read_rows(stage4_dir / "vlm_results.csv")
+        if row.get("query_type") == "contact_relation_check"
+        and row.get("pass_gate") == "pass"
+        and row.get("normalized_label") in {"left_hand", "right_hand", "both_hands", "left_palm", "right_palm", "both_palms"}
+    }
+    for query in _read_rows(stage4_dir / "vlm_queries.csv"):
+        representative = int(float(query.get("frame", "0") or 0))
+        if query.get("query_type") != "contact_relation_check" or representative not in accepted_relation_frames:
+            continue
+        contact_frames.update(range(
+            int(float(query.get("start_frame", representative) or representative)),
+            int(float(query.get("end_frame", representative) or representative)) + 1,
+        ))
     frames = sorted((line_frames & contact_frames) if line_frames else contact_frames)
     if not frames:
         return [(frame, frame, frame, time) for frame, time in stage_keyframes(profile, "stage4")]
@@ -438,7 +454,68 @@ def constraint_risk_intervals(profile: CaseProfile, *, maximum_window_frames: in
         window_start = interval_start
         while window_start <= interval_end:
             window_end = min(interval_end, window_start + maximum_window_frames - 1)
-            representative = (window_start + window_end) // 2
+            rows_by_frame = {_row_frame(row, 1): row for row in contact_rows}
+            representative = max(
+                range(window_start, window_end + 1),
+                key=lambda frame: _float(rows_by_frame.get(frame, {}), "active_part_distance_px") or 0.0,
+            )
+            windows.append((representative, window_start, window_end, times.get(representative, "")))
+            window_start = window_end + 1
+    return windows
+
+
+def contact_relation_risk_intervals(
+    profile: CaseProfile,
+    *,
+    maximum_window_frames: int = 24,
+) -> list[tuple[int, int, int, str]]:
+    """Select active and plausible missed-contact intervals without case dispatch."""
+
+    paths = stage_paths(profile)
+    states = _read_rows(paths["contact_state"])
+    observations = _rows_by_frame(paths["object_observations"])
+    selected: list[int] = []
+    times: dict[int, str] = {}
+    risk_by_frame: dict[int, float] = {}
+    for row in states:
+        frame = _row_frame(row, 1)
+        times[frame] = _row_time(row)
+        active = any(
+            str(row.get(field, "")).strip().lower() in {"1", "1.0", "true", "active"}
+            for field in ("human_contact_state", "anchor_contact_state")
+        )
+        gap = _float(row, "min_object_boundary_gap_px")
+        radius = _float(observations.get(frame, {}), "radius_px")
+        plausible_missed = (
+            gap is not None
+            and radius is not None
+            and gap <= max(48.0, 2.5 * radius)
+        )
+        if active or plausible_missed:
+            selected.append(frame)
+            risk_by_frame[frame] = float(gap or 0.0)
+    if not selected:
+        return [(frame, frame, frame, time) for frame, time in stage_keyframes(profile, "stage4")[:5]]
+    intervals: list[tuple[int, int]] = []
+    start = previous = selected[0]
+    for frame in selected[1:]:
+        # Preserve a bounded ambiguity gap for temporal VLM inspection.  The
+        # query decides whether contact persists; this bridge does not itself
+        # activate a solver factor.
+        if frame > previous + 6:
+            intervals.append((start, previous))
+            start = frame
+        previous = frame
+    intervals.append((start, previous))
+    windows: list[tuple[int, int, int, str]] = []
+    for interval_start, interval_end in intervals:
+        window_start = interval_start
+        while window_start <= interval_end:
+            window_end = min(interval_end, window_start + maximum_window_frames - 1)
+            representative = max(
+                range(window_start, window_end + 1),
+                key=lambda frame: risk_by_frame.get(frame, 0.0),
+            )
             windows.append((representative, window_start, window_end, times.get(representative, "")))
             window_start = window_end + 1
     return windows
@@ -995,7 +1072,7 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
                 return str(out_path)
 
     video = _render_video_for_stage(profile, stage)
-    if stage in {"stage4", "stage5"} and query_type in {"temporal_motion_check", "constraint_reliability_check", *SEMANTIC_QUERY_TYPES} and video is not None:
+    if stage in {"stage4", "stage5"} and query_type in {"contact_relation_check", "temporal_motion_check", "constraint_reliability_check", *SEMANTIC_QUERY_TYPES} and video is not None:
         Image, ImageDraw = _pil_modules()
         if Image is not None:
             frames = []
@@ -1280,6 +1357,8 @@ def build_queries(
             windows = single_identity_risk_windows(profile)
         elif query_type == "constraint_reliability_check":
             windows = constraint_risk_intervals(profile)
+        elif stage == "stage4" and query_type == "contact_relation_check":
+            windows = contact_relation_risk_intervals(profile)
         elif query_type in {AMODAL_MASK_QUERY_TYPE, INTERVAL_SELECTION_QUERY_TYPE}:
             windows = completion_intervals(profile)
         else:

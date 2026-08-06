@@ -102,6 +102,59 @@ def _contact_rows_by_frame(
     return by_frame, ";".join(sources)
 
 
+def _vlm_contact_rows_by_frame(
+    result_dir: Path,
+) -> tuple[dict[int, list[dict[str, str]]], str]:
+    """Convert accepted forced-choice relations into discrete contact state.
+
+    The VLM may select only a predefined human hand or floor relation.  It
+    never supplies metric coordinates, pose, or numeric factor weights.
+    """
+
+    stage_dir = result_dir / "vlm" / "stage4"
+    queries = _read_csv(stage_dir / "vlm_queries.csv")
+    results = _read_csv(stage_dir / "vlm_results.csv")
+    labels_by_frame = {
+        int(float(row["frame"])): str(row.get("normalized_label", ""))
+        for row in results
+        if row.get("query_type") == "contact_relation_check"
+        and row.get("pass_gate") == "pass"
+        and _truthy(row, "used_for_contact_residual")
+    }
+    by_frame: dict[int, list[dict[str, str]]] = {}
+    for query in queries:
+        if query.get("query_type") != "contact_relation_check":
+            continue
+        representative = int(float(query.get("frame", "0") or 0))
+        label = labels_by_frame.get(representative, "")
+        if label not in {"left_hand", "right_hand", "both_hands", "floor"}:
+            continue
+        start = int(float(query.get("start_frame", representative) or representative))
+        end = int(float(query.get("end_frame", representative) or representative))
+        for frame in range(start, end + 1):
+            if label == "floor":
+                row = {
+                    "frame": str(frame),
+                    "plane_support_state": "1",
+                    "support_surface_type": "vlm_confirmed_floor",
+                    "support_conf": "1.0",
+                    "source": "vlm_forced_choice_discrete_contact_relation",
+                }
+            else:
+                row = {
+                    "frame": str(frame),
+                    "human_contact_state": "1",
+                    "contact_active": "1",
+                    "contact_conf": "1.0",
+                    "anchor_update": "1",
+                    "contact_label": f"vlm_confirmed_{label}",
+                    "source": "vlm_forced_choice_discrete_contact_relation",
+                }
+            by_frame.setdefault(frame, []).append(row)
+    source = str(stage_dir / "vlm_results.csv") if by_frame else ""
+    return by_frame, source
+
+
 def _motion_rows_by_frame(result_dir: Path) -> tuple[dict[int, dict[str, str]], str]:
     path = result_dir / "motion_regime.csv"
     rows = _read_csv(path)
@@ -413,6 +466,12 @@ def build_interaction_timeline(
         contact_state_artifact,
         merge_fallback_contacts=merge_fallback_contacts,
     )
+    if semantic_enabled:
+        vlm_contacts, vlm_contact_source = _vlm_contact_rows_by_frame(result_dir)
+        for frame, rows in vlm_contacts.items():
+            contacts_by_frame.setdefault(frame, []).extend(rows)
+        if vlm_contact_source:
+            contact_source = ";".join(value for value in (contact_source, vlm_contact_source) if value)
     motion_by_frame, motion_source = _motion_rows_by_frame(result_dir)
     audio_by_frame, audio_source = (
         _audio_events_by_frame(sample_id, result_dir)

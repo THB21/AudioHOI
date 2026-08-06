@@ -754,6 +754,7 @@ def render_overlay_ball_only(
         raise RuntimeError(f"Could not open overlay base video: {base_video}")
 
     traj: list[tuple[int, int]] = []
+    trajectory_history_frames = 24
     preview_written = False
     for ball in ball_rows:
         if base_capture is None:
@@ -770,6 +771,8 @@ def render_overlay_ball_only(
             continue
         center, radius = proj
         traj.append(center)
+        if len(traj) > trajectory_history_frames:
+            del traj[:-trajectory_history_frames]
         if len(traj) >= 2:
             cv2.polylines(frame, [np.asarray(traj, dtype=np.int32)], False, (93, 126, 188), 2, cv2.LINE_AA)
         draw_ball_sprite(frame, center, radius)
@@ -821,6 +824,7 @@ def render_overlay_with_human(
 
     preview_written = False
     traj: list[tuple[int, int]] = []
+    trajectory_history_frames = 24
     for idx, ball in enumerate(ball_rows):
         frame = cv2.imread(str(frames_dir / f"{ball['frame']:05d}.png"))
         if frame is None:
@@ -855,6 +859,8 @@ def render_overlay_with_human(
         if proj is not None:
             center, radius = proj
             traj.append(center)
+            if len(traj) > trajectory_history_frames:
+                del traj[:-trajectory_history_frames]
             if len(traj) >= 2:
                 cv2.polylines(frame, [np.asarray(traj, dtype=np.int32)], False, (93, 126, 188), 2, cv2.LINE_AA)
             draw_object_sprite(frame, ball, K, object_kind, object_obs.get(int(ball["frame"])), object_proxy)

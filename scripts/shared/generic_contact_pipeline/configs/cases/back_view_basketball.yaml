@@ -25,6 +25,7 @@ generic_object_problem:
   contact_source: event_directional
   contact_event_artifact: contact_candidates_internal/contact_candidates_labeled.csv
   contact_target_feature: object:surface
+  contact_relative_velocity_target_feature: object:center
   contact_residual_axes: [0, 1, 2]
   maximum_contact_offset_m: 1.0
   depth_reference: directional_contact_interpolation
@@ -33,6 +34,7 @@ generic_object_problem:
     point_reprojection: [object_center]
     metric_depth: [object_center_depth]
   sequence_factors: [temporal_acceleration, static_freeze]
+  interaction_factors: [contact_relative_velocity]
 factor_runtime:
   point_reprojection:
     weight: 1.0
@@ -47,11 +49,17 @@ factor_runtime:
     source: measurement_ir:monocular_metric_depth_weak_prior
     activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
   contact_distance:
-    weight: 1.0
+    weight: 2.0
     sigma: 0.035
     sigma_unit: m
-    source: interaction_state:fixed_human_site_to_object_surface
+    source: interaction_state:vlm_confirmed_human_site_to_object_surface
     activation_weight_tiers: {active: 1.0, downweighted: 0.25, inactive: 0.0}
+  contact_relative_velocity:
+    weight: 1.0
+    sigma: 0.008
+    sigma_unit: m/frame
+    source: generic_vlm_confirmed_persistent_contact_comotion
+    activation_weight_tiers: {active: 1.0, downweighted: 0.35, inactive: 0.0}
   temporal_acceleration:
     weight: 1.0
     state_scales: [0.8, 0.67, 0.2]

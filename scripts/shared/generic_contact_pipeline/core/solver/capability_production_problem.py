@@ -853,6 +853,59 @@ def _directional_contact_samples_from_events(
     return tuple(samples)
 
 
+def _vlm_confirmed_surface_contact_samples(
+    result_dir: Path,
+    sites: Sequence[HumanSiteMeasurement],
+) -> tuple[WorldSpaceContactSample, ...]:
+    """Expand forced-choice Stage 4 contact relations into bounded intervals.
+
+    The VLM supplies only a discrete relation and interval.  Metric palm
+    positions remain read-only GVHMR measurements and continuous object state
+    remains entirely solver-owned.
+    """
+
+    stage_dir = result_dir / "vlm" / "stage4"
+    query_rows = _rows(stage_dir / "vlm_queries.csv")
+    result_rows = _rows(stage_dir / "vlm_results.csv")
+    labels_by_frame = {
+        int(float(row["frame"])): str(row.get("normalized_label", ""))
+        for row in result_rows
+        if row.get("query_type") == "contact_relation_check"
+        and row.get("pass_gate") == "pass"
+    }
+    sites_by_key = {
+        (site.frame, site.site.body_part, site.site.side): site for site in sites
+    }
+    samples: list[WorldSpaceContactSample] = []
+    for query in query_rows:
+        if query.get("query_type") != "contact_relation_check":
+            continue
+        representative = int(float(query.get("frame", "0") or 0))
+        label = labels_by_frame.get(representative, "")
+        sides = (
+            ("left", "right") if label in {"both_hands", "both_palms"}
+            else ("left",) if label in {"left_hand", "left_palm"}
+            else ("right",) if label in {"right_hand", "right_palm"}
+            else ()
+        )
+        start = int(float(query.get("start_frame", representative) or representative))
+        end = int(float(query.get("end_frame", representative) or representative))
+        for frame in range(start, end + 1):
+            for side in sides:
+                site = sites_by_key.get((frame, "hand", side))
+                if site is None:
+                    continue
+                samples.append(WorldSpaceContactSample(
+                    frame,
+                    site.xyz_m,
+                    "object:surface",
+                    None,
+                    site.confidence,
+                    contact_track_id=f"vlm_confirmed:human:hand:{side}->object:surface",
+                ))
+    return tuple(samples)
+
+
 def _directional_anchor_depth_reference(
     frames: Sequence[int],
     samples: Sequence[WorldSpaceContactSample],
@@ -1232,6 +1285,10 @@ def prepare_capability_object_problem(
                 else float(config["maximum_contact_offset_m"])
             ),
         )
+        samples = tuple(samples) + _vlm_confirmed_surface_contact_samples(
+            result_dir,
+            gvhmr_sites.measurements,
+        )
     depth_targets: dict[int, float] | None = None
     if config.get("depth_reference") == "directional_contact_interpolation":
         depth_targets = _directional_anchor_depth_reference(sorted(initial_states), samples)
@@ -1278,9 +1335,15 @@ def prepare_capability_object_problem(
         merge_fallback_contacts=not bool(config.get("interaction_state_exclusive", False)),
     )
     state_by_frame = {state.frame: state for state in timeline.frames}
-    typed_active_contact_frames = {
+    timeline_active_contact_frames = {
         state.frame for state in timeline.frames if state.active_contact_ids
     }
+    vlm_confirmed_contact_frames = {
+        sample.frame
+        for sample in samples
+        if (sample.contact_track_id or "").startswith("vlm_confirmed:")
+    }
+    typed_active_contact_frames = timeline_active_contact_frames | vlm_confirmed_contact_frames
     removed_contact_sample_frames = sorted(
         {sample.frame for sample in samples if sample.frame not in typed_active_contact_frames}
     )
@@ -1291,8 +1354,10 @@ def prepare_capability_object_problem(
         **initializer_ledger,
         "contact_timeline_gate": {
             "active_frame_count": len(typed_active_contact_frames),
+            "timeline_active_frame_count": len(timeline_active_contact_frames),
+            "vlm_confirmed_active_frame_count": len(vlm_confirmed_contact_frames),
             "removed_sample_frames": removed_contact_sample_frames,
-            "source": "typed_contact_continuity_with_occluded_hold",
+            "source": "typed_contact_continuity_with_occluded_hold+vlm_confirmed_discrete_relation",
             "support_independent": True,
         },
     }
@@ -1565,9 +1630,18 @@ def prepare_capability_object_problem(
                 residual_axes=tuple(int(axis) for axis in config.get("contact_residual_axes", (0, 1, 2))),
             )
         elif residual_ref == "shadow_residual::contact_relative_velocity":
+            relative_velocity_feature = config.get("contact_relative_velocity_target_feature")
+            relative_velocity_samples = (
+                tuple(
+                    replace(sample, object_feature_id=str(relative_velocity_feature))
+                    for sample in samples
+                )
+                if relative_velocity_feature
+                else samples
+            )
             contact_relative_velocity_factors[factor_id] = ContactFactorInput(
                 provider,
-                samples,
+                relative_velocity_samples,
                 None,
                 residual_axes=tuple(int(axis) for axis in config.get("contact_residual_axes", (0, 1, 2))),
             )

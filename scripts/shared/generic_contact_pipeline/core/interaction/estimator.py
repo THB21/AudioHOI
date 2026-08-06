@@ -68,15 +68,17 @@ def _primary_rows(result_dir: Path) -> list[dict[str, str]]:
 def _contact_rows_by_frame(
     result_dir: Path,
     contact_state_artifact: Path | None = None,
+    merge_fallback_contacts: bool = True,
 ) -> tuple[dict[int, list[dict[str, str]]], str]:
-    candidates = tuple(
-        path.resolve()
-        for path in (
-        contact_state_artifact,
+    configured = () if contact_state_artifact is None else (contact_state_artifact,)
+    fallback = (
         result_dir / "contact_state_frames.csv",
         result_dir / "object_contact_points.csv",
         result_dir / "stage4_generic_refine/object_contact_points_vlm_gated.csv",
-        )
+    )
+    candidates = tuple(
+        path.resolve()
+        for path in configured + (fallback if merge_fallback_contacts else ())
         if path is not None
     )
     # Contact is multi-edge state: human/object grasp evidence and
@@ -401,11 +403,16 @@ def build_interaction_timeline(
     audio_visual_arbitration: Mapping[str, object] | None = None,
     audio_enabled: bool = True,
     semantic_enabled: bool = True,
+    merge_fallback_contacts: bool = True,
 ) -> InteractionTimeline:
     if environment_support_mode not in {"", "persistent", "rolling", "sliding"}:
         raise ValueError("environment support mode must be empty, persistent, rolling, or sliding")
     primary_rows = _primary_rows(result_dir)
-    contacts_by_frame, contact_source = _contact_rows_by_frame(result_dir, contact_state_artifact)
+    contacts_by_frame, contact_source = _contact_rows_by_frame(
+        result_dir,
+        contact_state_artifact,
+        merge_fallback_contacts=merge_fallback_contacts,
+    )
     motion_by_frame, motion_source = _motion_rows_by_frame(result_dir)
     audio_by_frame, audio_source = (
         _audio_events_by_frame(sample_id, result_dir)

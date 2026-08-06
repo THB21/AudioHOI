@@ -57,15 +57,28 @@ def build(profile: CaseProfile) -> dict[str, object]:
     center_by_frame = _by_frame(read_csv(center_traj_csv))
     points_by_frame = _by_frame(read_csv(points_csv)) if points_csv.exists() else {}
     depth_by_frame = _by_frame(read_csv(depth_csv))
+    identity_selection_path = profile.result_dir / "sphere_identity_selection.csv"
+    identity_by_frame = _by_frame(read_csv(identity_selection_path)) if identity_selection_path.exists() else {}
+    single_identity_enabled = bool(
+        dict(dict(profile.data.get("vlm", {})).get("single_identity", {})).get("enabled", False)
+    )
     rows = []
     for fr in sorted(ball_by_frame):
         ball = ball_by_frame.get(fr, {})
         center = center_by_frame.get(fr, {})
         points = points_by_frame.get(fr, {})
         depth = depth_by_frame.get(fr, {})
-        center_u = _pick(center.get("ball_center_x"), center.get("center_x"), ball.get("ball_center_x"), depth.get("u"))
-        center_v = _pick(center.get("ball_center_y"), center.get("center_y"), ball.get("ball_center_y"), depth.get("v"))
-        radius_px = _pick(depth.get("radius_px"), ball.get("radius"), default=0.0)
+        identity = identity_by_frame.get(fr, {})
+        if single_identity_enabled and not identity_by_frame:
+            # Without the discrete identity gate, ambiguous multi-component
+            # masks remain the vision-only observation. Persistent tracking is
+            # an alternative hypothesis, not an implicit oracle.
+            center_u = _pick(ball.get("ball_center_x"), center.get("ball_center_x"), center.get("center_x"), depth.get("u"))
+            center_v = _pick(ball.get("ball_center_y"), center.get("ball_center_y"), center.get("center_y"), depth.get("v"))
+        else:
+            center_u = _pick(identity.get("u"), center.get("ball_center_x"), center.get("center_x"), ball.get("ball_center_x"), depth.get("u"))
+            center_v = _pick(identity.get("v"), center.get("ball_center_y"), center.get("center_y"), ball.get("ball_center_y"), depth.get("v"))
+        radius_px = _pick(identity.get("radius_px"), depth.get("radius_px"), ball.get("radius"), default=0.0)
         bottom_v = _pick(points.get("bottom_y"), default=center_v + radius_px)
         z = _pick(depth.get("da3_depth_smooth"), depth.get("da3_depth_raw"), default=1.0)
         obs_conf = "1.000000" if ball else "0.000000"
@@ -80,7 +93,7 @@ def build(profile: CaseProfile) -> dict[str, object]:
                 "ref_v_smooth": f"{center_v:.3f}",
                 "ref_u_fit": f"{center_u:.3f}",
                 "ref_v_fit": f"{center_v:.3f}",
-                "ref_source": center.get("source", "cotracker_center_trajectory"),
+                "ref_source": identity.get("selection_source", center.get("source", "cotracker_center_trajectory")),
                 "ref_type": "center",
                 "support_u": f"{center_u:.3f}",
                 "support_v": f"{bottom_v:.3f}",
@@ -129,10 +142,11 @@ def build(profile: CaseProfile) -> dict[str, object]:
         "center_source": str(center_traj_csv),
         "points_source": str(points_csv) if points_csv.exists() else "",
         "depth_source": str(depth_csv),
+        "identity_selection_source": str(identity_selection_path) if identity_selection_path.exists() else "",
         "object_observations": str(out),
         "local_points": "none_for_center_proxy",
         "rows": len(rows),
-        "policy": "generic mask/object center/radius + optional CoTracker/object bottom + DA3 depth only; contact fields are owned by Stage2",
+        "policy": "generic one-entity identity selection when present, otherwise mask/object center/radius + CoTracker + DA3; contact fields are owned by Stage2",
     }
     write_json(paths["stage1_metrics"], metrics)
     return metrics

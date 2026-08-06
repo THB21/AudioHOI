@@ -877,8 +877,13 @@ def build_sequence_static_freeze_residual_inputs(
     residual_frames: list[int] = []
     for frame in frames[1:]:
         anchor = interval_anchor.get(frame)
-        if anchor is None or anchor not in states_by_frame:
-            raise ValueError(f"static-freeze factor {factor_id} has no interval anchor for frame {frame}")
+        # Production plans may omit fully inactive activation intervals. Keep
+        # deterministic zero rows for those frames by anchoring the state to
+        # itself; their runtime weight is zero, and no freeze is introduced.
+        if anchor is None:
+            anchor = frame
+        if anchor not in states_by_frame:
+            raise ValueError(f"static-freeze factor {factor_id} has invalid interval anchor {anchor} for frame {frame}")
         current.append(_numeric_vector(states_by_frame[frame], "static-freeze current state"))
         anchors.append(_numeric_vector(states_by_frame[anchor], "static-freeze anchor state"))
         residual_frames.append(frame)

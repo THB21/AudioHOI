@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "entity_count": 1,
+  "frame_count": 240,
+  "vlm_decision_count": 13,
+  "vlm_accepted_count": 7,
+  "vlm_hard_rejected_count": 6,
+  "hard_rejected_or_fallback_frames": [
+    36,
+    140,
+    142,
+    225,
+    226,
+    228
+  ],
+  "maximum_track_distance_px": 24.0,
+  "policy": "VLM selects one discrete identity candidate; persistent-track continuity is a hard validator",
+  "output": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/sphere_identity_selection.csv"
+}

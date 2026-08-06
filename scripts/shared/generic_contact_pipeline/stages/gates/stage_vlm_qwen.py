@@ -21,6 +21,7 @@ from scripts.shared.generic_contact_pipeline.core.gates.vlm import (  # noqa: E4
     QUERY_FIELDS,
     RESULT_FIELDS,
     STAGE_QUERY_TYPES,
+    SINGLE_IDENTITY_QUERY_TYPE,
     build_queries,
     fuse_stage_decision,
     write_aggregate,
@@ -77,6 +78,9 @@ Return ONLY compact JSON:
 
 
 PASS_LABELS = {
+    SINGLE_IDENTITY_QUERY_TYPE: {
+        "candidate_a", "candidate_b", "candidate_c", "candidate_d", "occluded_or_blurred"
+    },
     "target_mask_check": {"yes", "partially"},
     "keypart_identity_check": "non_background_unclear",
     "keypart_visibility_check": {"visible", "partially_visible"},
@@ -225,6 +229,8 @@ def pass_gate(query_type: str, label: str) -> str:
 
 
 def repair_action(query_type: str, gate: str, label: str) -> str:
+    if query_type == SINGLE_IDENTITY_QUERY_TYPE:
+        return "select_identity_candidate" if label.startswith("candidate_") else "keep_previous_anchor"
     if query_type == AMODAL_MASK_QUERY_TYPE:
         return "use_mask_fallback" if gate == "pass" else "unclear_no_update"
     if query_type == "constraint_reliability_check":
@@ -273,7 +279,7 @@ def result_row(query: dict[str, str], label: str, gate: str, action: str) -> dic
         "repair_action": action,
         "used_for_anchor_update": "1"
         if gate == "pass"
-        and query.get("query_type") in {"keypart_identity_check", "keypart_visibility_check", "track_stability_check", "anchor_update_check"}
+        and query.get("query_type") in {"keypart_identity_check", "single_entity_identity_check", "keypart_visibility_check", "track_stability_check", "anchor_update_check"}
         else "0",
         "used_for_contact_residual": "1" if gate == "pass" and query.get("query_type") == "contact_relation_check" else "0",
         "used_for_report": "1",

@@ -217,7 +217,9 @@ def run(profile: CaseProfile) -> dict[str, object]:
         repository_root=REPO,
         body_models_root=REPO / "third-party/GVHMR/inputs/checkpoints/body_models",
         factor_arbitration_mode="auto",
-        mask_artifact_bbox_policy_override=False,
+        mask_artifact_bbox_policy_override=(
+            False if isinstance(config.get("mask_shape_observations"), dict) else None
+        ),
     )
     preparation_record = capability_object_problem_preparation_record(prepared)
     write_json(candidate_dir / "generic_problem_preparation.json", preparation_record)

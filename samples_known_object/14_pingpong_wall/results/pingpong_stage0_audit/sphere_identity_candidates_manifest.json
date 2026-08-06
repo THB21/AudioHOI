@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "entity_count": 1,
+  "entity_id": "target_sphere",
+  "candidate_rows": 255,
+  "frame_count": 240,
+  "ambiguous_frames": [
+    34,
+    36,
+    139,
+    140,
+    141,
+    142,
+    144,
+    145,
+    146,
+    147,
+    225,
+    226,
+    228
+  ],
+  "ambiguous_frame_count": 13,
+  "source_counts": {
+    "persistent_track_plus_mask": 234,
+    "persistent_track_hypothesis": 6,
+    "disconnected_mask_component": 15
+  },
+  "selection_performed": false,
+  "baseline_pose_read": false,
+  "human_state_optimized": false,
+  "policy": "multiple visual hypotheses for exactly one physical sphere entity",
+  "output": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/sphere_identity_candidates.csv"
+}

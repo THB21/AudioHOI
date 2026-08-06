@@ -1275,6 +1275,7 @@ def prepare_capability_object_problem(
         audio_visual_arbitration=config.get("audio_visual_arbitration", {}),
         audio_enabled="disable_audio_events" not in flags,
         semantic_enabled="disable_vlm_semantic_evidence" not in flags,
+        merge_fallback_contacts=not bool(config.get("interaction_state_exclusive", False)),
     )
     state_by_frame = {state.frame: state for state in timeline.frames}
     typed_active_contact_frames = {

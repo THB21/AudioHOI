@@ -7,6 +7,8 @@ import subprocess
 from pathlib import Path
 from typing import Any, Iterable
 
+import numpy as np
+
 from ..base.config import CaseProfile
 from ..semantics.hoi_profile import profile_choices_for_vlm
 from ..base.io import read_csv, write_csv, write_json
@@ -71,10 +73,11 @@ GATE_PASS = "pass"
 GATE_REJECT = "reject"
 GATE_UNCLEAR = "unclear"
 GATE_NOT_EVALUATED = "not_evaluated"
+SINGLE_IDENTITY_QUERY_TYPE = "single_entity_identity_check"
 
 STAGE_QUERY_TYPES = {
     "stage0": ["target_mask_check"],
-    "stage1": ["keypart_identity_check", "track_stability_check"],
+    "stage1": ["keypart_identity_check", "track_stability_check", SINGLE_IDENTITY_QUERY_TYPE],
     "stage2": ["contact_relation_check", "keypart_visibility_check"],
     "stage3": ["overlay_alignment_check"],
     "stage4": ["anchor_update_check", "contact_relation_check", "overlay_alignment_check", "temporal_motion_check", "constraint_reliability_check", AMODAL_MASK_QUERY_TYPE, INTERVAL_SELECTION_QUERY_TYPE, *SEMANTIC_QUERY_TYPES],
@@ -355,6 +358,21 @@ def stage_keyframes(profile: CaseProfile, stage: str) -> list[tuple[int, str]]:
     frames = _unique_limited((_row_frame(row, 1) for row in chosen_rows), 5)
     by_frame = {_row_frame(row, 1): _row_time(row) for row in rows}
     return [(fr, by_frame.get(fr, "")) for fr in frames]
+
+
+def single_identity_risk_windows(profile: CaseProfile) -> list[tuple[int, int, int, str]]:
+    """Return only frames with competing observations for one physical entity."""
+
+    path = profile.result_dir / "sphere_identity_candidates.csv"
+    rows = _read_rows(path)
+    times: dict[int, str] = {}
+    frames: set[int] = set()
+    for row in rows:
+        frame = _row_frame(row, 1)
+        times.setdefault(frame, _row_time(row))
+        if row.get("ambiguous") == "1":
+            frames.add(frame)
+    return [(frame, max(1, frame - 2), frame + 2, times.get(frame, "")) for frame in sorted(frames)]
 
 
 def temporal_risk_keyframes(profile: CaseProfile, stage: str, *, limit: int = 80) -> list[tuple[int, str]]:
@@ -837,6 +855,50 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"frame{frame:05d}_{query_type}.png"
     img: Any | None
+    if query_type == SINGLE_IDENTITY_QUERY_TYPE:
+        Image, ImageDraw = _pil_modules()
+        if Image is None or ImageDraw is None:
+            return ""
+        rows = _read_rows(profile.result_dir / "sphere_identity_candidates.csv")
+        by_frame: dict[int, list[dict[str, str]]] = {}
+        for row in rows:
+            by_frame.setdefault(_row_frame(row, 1), []).append(row)
+        selected_frames = list(range(max(1, frame - 2), frame + 3))
+        all_candidates = [row for selected_frame in selected_frames for row in by_frame.get(selected_frame, [])]
+        if not all_candidates:
+            return ""
+        center_u = float(np.mean([float(row["u"]) for row in all_candidates]))
+        center_v = float(np.mean([float(row["v"]) for row in all_candidates]))
+        reference = _read_frame(profile.sample_dir, frame)
+        if reference is None:
+            return ""
+        crop_w, crop_h = min(640, reference.width), min(420, reference.height)
+        left = max(0, min(int(round(center_u - crop_w / 2)), reference.width - crop_w))
+        top = max(0, min(int(round(center_v - crop_h / 2)), reference.height - crop_h))
+        panels = []
+        for selected_frame in selected_frames:
+            panel = _read_frame(profile.sample_dir, selected_frame)
+            if panel is None:
+                continue
+            candidates = by_frame.get(selected_frame, [])
+            for index, row in enumerate(candidates):
+                label = row.get("candidate_id", f"candidate_{index}").replace("candidate_", "").upper()
+                color = ((0, 255, 255), (255, 80, 80), (80, 255, 80), (255, 80, 255))[index % 4]
+                if selected_frame == frame or index == 0:
+                    shown_label = label if selected_frame == frame else "trajectory context"
+                    _draw_circle(panel, _float(row, "u"), _float(row, "v"), max(10.0, _float(row, "radius_px") or 10.0), shown_label, color)
+            panel = panel.crop((left, top, left + crop_w, top + crop_h)).resize((448, 252))
+            _draw_label(panel, f"frame {selected_frame:03d}" + (" TARGET" if selected_frame == frame else ""), (16, 22), (255, 255, 255))
+            panels.append(panel)
+        if not panels:
+            return ""
+        canvas = Image.new("RGB", (448 * len(panels), 292), (20, 20, 20))
+        draw = ImageDraw.Draw(canvas)
+        draw.text((12, 8), "EARLIER -> TARGET -> LATER. Choose one continuing physical ball; copies/streaks are artifacts.", fill=(255, 255, 255))
+        for index, panel in enumerate(panels):
+            canvas.paste(panel, (448 * index, 40))
+        canvas.save(out_path)
+        return str(out_path)
     if stage == "stage7" or query_type == "loss_diagnostic_check":
         img = _loss_plot_evidence(profile, frame, query_type)
         if img is None:
@@ -1064,6 +1126,12 @@ def question_for(profile: CaseProfile, query_type: str) -> tuple[str, list[str],
     parts = list(obj["parts"])  # type: ignore[arg-type]
     contacts = list(obj["contacts"])  # type: ignore[arg-type]
     stable_refs = list(obj["stable_refs"])  # type: ignore[arg-type]
+    if query_type == SINGLE_IDENTITY_QUERY_TYPE:
+        return (
+            "The generated video may show duplicated white balls or motion-blur streaks. In the TARGET frame, which labeled candidate is the one physical ball that continues the same trajectory from earlier frames into later frames? A real ball may reverse only at a visible paddle or wall contact. Select occluded_or_blurred only if no labeled candidate is the physical ball. Do not treat multiple rendered copies as multiple entities.",
+            ["candidate_a", "candidate_b", "candidate_c", "candidate_d", "occluded_or_blurred", "unclear"],
+            "five_frame_single_entity_candidate_strip",
+        )
     if query_type in PREDICATE_BY_QUERY_TYPE:
         spec = question_for_query_type(target, query_type)
         return (
@@ -1164,6 +1232,9 @@ def query_types_for_stage(profile: CaseProfile, stage: str) -> list[str]:
                 selected = out
     if not selected:
         selected = list(STAGE_QUERY_TYPES.get(stage, []))
+    single_identity = dict(dict(profile.data.get("vlm", {})).get("single_identity", {}))
+    if not single_identity.get("enabled", False):
+        selected = [value for value in selected if value != SINGLE_IDENTITY_QUERY_TYPE]
     if stage == "stage4":
         semantic = dict(dict(profile.data.get("vlm", {})).get("semantic_orientation", {}))
         disabled = "disable_vlm_semantic_evidence" in set(profile.data.get("ablation_flags", ()))
@@ -1205,6 +1276,8 @@ def build_queries(
             continue
         if query_type in PREDICATE_BY_QUERY_TYPE:
             windows = profile_uncertain_windows(profile)
+        elif query_type == SINGLE_IDENTITY_QUERY_TYPE:
+            windows = single_identity_risk_windows(profile)
         elif query_type == "constraint_reliability_check":
             windows = constraint_risk_intervals(profile)
         elif query_type in {AMODAL_MASK_QUERY_TYPE, INTERVAL_SELECTION_QUERY_TYPE}:

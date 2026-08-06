@@ -281,6 +281,11 @@ def build_sequence_problem_shadow(
         semantic_enabled=(
             "disable_vlm_semantic_evidence" not in set(profile.data.get("ablation_flags", ()))
         ),
+        merge_fallback_contacts=not bool(
+            generic_problem.get("interaction_state_exclusive", False)
+            if isinstance(generic_problem, dict)
+            else False
+        ),
     )
     interaction_shadow = _interaction_state_shadow(profile, result_dir, timeline)
     factor_adapted = adapt_factor_rows(profile, result_dir)

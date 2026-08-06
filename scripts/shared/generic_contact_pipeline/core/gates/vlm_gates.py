@@ -46,6 +46,7 @@ def gate_row_from_result(row: dict[str, str]) -> dict[str, object]:
 
     allow_anchor = gate == GATE_PASS and qtype in {
         "keypart_identity_check",
+        "single_entity_identity_check",
         "track_stability_check",
         "keypart_visibility_check",
         "anchor_update_check",
@@ -139,7 +140,7 @@ def disabled_contact_frames(profile: CaseProfile, stage: str = "stage2") -> set[
 def disabled_anchor_frames(profile: CaseProfile, stage: str = "stage1") -> set[int]:
     frames: set[int] = set()
     for row in _read_stage_gates(profile, stage):
-        if row.get("query_type") not in {"keypart_identity_check", "track_stability_check", "keypart_visibility_check", "anchor_update_check"}:
+        if row.get("query_type") not in {"keypart_identity_check", "single_entity_identity_check", "track_stability_check", "keypart_visibility_check", "anchor_update_check"}:
             continue
         if row.get("is_effective") != "1":
             continue

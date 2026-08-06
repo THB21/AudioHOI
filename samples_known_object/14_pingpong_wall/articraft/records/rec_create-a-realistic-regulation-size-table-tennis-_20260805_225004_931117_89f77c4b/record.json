@@ -1,0 +1,52 @@
+{
+  "schema_version": 3,
+  "record_id": "rec_create-a-realistic-regulation-size-table-tennis-_20260805_225004_931117_89f77c4b",
+  "created_at": "2026-08-05T22:50:04Z",
+  "updated_at": "2026-08-05T22:57:12Z",
+  "rating": null,
+  "secondary_rating": null,
+  "author": "Yixin Yang",
+  "rated_by": null,
+  "secondary_rated_by": null,
+  "kind": "generated_model",
+  "prompt_kind": "single_prompt",
+  "category_slug": null,
+  "source": {
+    "run_id": "run_20260805_225004_931117_89f77c4b",
+    "prompt_index": null
+  },
+  "sdk_package": "sdk",
+  "provider": "codex-cli",
+  "model_id": "gpt-5.6-sol",
+  "label": "audiohoi_pingpong_paddle_rigid_reference",
+  "tags": [
+    "audiohoi",
+    "pingpong",
+    "rigid-tool"
+  ],
+  "category_title": null,
+  "display": {
+    "title": "audiohoi_pingpong_paddle_rigid_reference",
+    "prompt_preview": "Create a realistic regulation-size table-tennis paddle matching the supplied front, edge-side, and rear reference sheet. It is a single fixed rigid tool with..."
+  },
+  "artifacts": {
+    "prompt_txt": "revisions/rev_000001/prompt.txt",
+    "prompt_series_json": null,
+    "model_py": "revisions/rev_000001/model.py",
+    "provenance_json": "revisions/rev_000001/provenance.json",
+    "cost_json": null,
+    "inputs_dir": "revisions/rev_000001/inputs",
+    "traces_dir": "revisions/rev_000001/traces"
+  },
+  "hashes": {
+    "prompt_sha256": "0fe00fa09010adc070c129e930716c21973f9bdaa832af531465a43e0b88144d",
+    "model_py_sha256": "65eee0dd21de444ec6cbe0bee0da7b48bcb60182f02fd9e4571db3cbfa7e7e65"
+  },
+  "active_revision_id": "rev_000001",
+  "lineage": {
+    "origin_record_id": "rec_create-a-realistic-regulation-size-table-tennis-_20260805_225004_931117_89f77c4b",
+    "parent_record_id": null,
+    "parent_revision_id": null,
+    "edit_mode": "root"
+  }
+}

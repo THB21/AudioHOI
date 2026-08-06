@@ -32,7 +32,7 @@ Run the held-out `14_pingpong_wall` sample from Stage 0 through the generic obje
    - Render the reconstructed sphere and Articraft paddle together in overlay and camera-space 3D.
    - Verify unique ball identity, rigid paddle geometry, paddle-hand continuity and ball/paddle event proximity.
    - The joint overlay, local camera-space 3D view and full rigid-mesh impact audit are complete.
-6. **pending — Commit the correction locally**
+6. **completed — Commit the correction locally**
    - Commit only source/config/manifest changes and compact accepted evidence; do not push unless separately authorized.
 
 ## Produced files

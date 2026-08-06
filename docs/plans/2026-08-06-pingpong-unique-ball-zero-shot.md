@@ -21,18 +21,18 @@ Run the held-out `14_pingpong_wall` sample from Stage 0 through the generic obje
 2. **completed — Add generic single-identity observation arbitration**
    - Represent multiple sphere detections as candidates for one entity.
    - Compile temporal, event-order, visibility and VLM identity gates into candidate selection.
-3. **completed — Reconstruct the observed rigid paddle**
+3. **in progress — Reconstruct the observed rigid paddle**
    - Materialize the approved Articraft paddle as a second object entity with a per-frame rigid pose.
    - Use paddle image evidence as the primary observation and read-only GVHMR wrist evidence only as an initialization/occlusion aid.
    - Joint audio/motion events remain typed alternately as paddle-face and practice-wall impacts; they gate timing only and deliberately do not invent metric contact XYZ.
 4. **completed — Run ablations and full generic solver**
    - Preserve pure solver/no-audio/no-VLM pose CSVs.
    - Run full audio+VLM trajectory and produce provenance ledgers.
-5. **completed — Render and audit the two-object result**
+5. **in progress — Render and audit the two-object result**
    - Render the reconstructed sphere and Articraft paddle together in overlay and camera-space 3D.
    - Verify unique ball identity, rigid paddle geometry, paddle-hand continuity and ball/paddle event proximity.
    - The joint overlay, local camera-space 3D view and full rigid-mesh impact audit are complete.
-6. **completed — Commit the correction locally**
+6. **pending — Commit the correction locally**
    - Commit only source/config/manifest changes and compact accepted evidence; do not push unless separately authorized.
 
 ## Produced files
@@ -56,6 +56,8 @@ Run the held-out `14_pingpong_wall` sample from Stage 0 through the generic obje
 - `samples_known_object/14_pingpong_wall/results/renders/pingpong_rigid_contact_articraft_solid/ball/camera3d.mp4` — final solid Articraft paddle and metric-radius sphere 3D view
 - `output/pingpong_mask_direction_megapose_twist_candidate/paddle_pose.csv` — observed-rigid paddle pose with an immutable `right_hand` pivot, SAM2 direction constraint and MegaPose face-twist constraint
 - `output/pingpong_mask_direction_megapose_twist_candidate/articraft_solid/object_only/overlay.mp4` — corrected Articraft paddle overlay without the rejected double-paddle offset
+- `output/pingpong_cotracker_planar_pnp_production_candidate/paddle_pose.csv` — isolated MegaPose-initialized planar-PnP candidate using persistent CoTracker surface correspondences and right-hand handle reprojection
+- `output/pingpong_cotracker_planar_pnp_candidate/articraft_solid/object_only/overlay.mp4` — current endpoint-review overlay; not yet canonical
 
 ## Execution notes
 
@@ -70,5 +72,7 @@ Run the held-out `14_pingpong_wall` sample from Stage 0 through the generic obje
 - 2026-08-06: contact correction — joint audio peaks, sphere-to-paddle-mask proximity and a refractory gate identified seven actual paddle impacts at frames 17, 47, 74, 117, 151, 200 and 233. The generated clip contains seven apparent paddle/wall cycles despite requesting five in the generation prompt; the reconstruction follows the observed video rather than the requested count.
 - 2026-08-06: each paddle impact now targets the closest surface of the actual Articraft paddle mesh, has zero sphere-surface gap, approaches before impact and separates after impact. An earlier analytic ellipse approximation was rejected after it showed up to 9 mm disagreement at the real mesh rim. The paddle remains anchored by MegaPose/SAM2/CoTracker/read-only hand evidence; contact refinement changes only the sphere trajectory and does not move human or paddle state to manufacture contact.
 - 2026-08-06: final-render correction — the solver still consumes the Articraft-derived collision mesh, while final overlay and camera-space 3D now consume the original Articraft URDF visual components and materials. The previous sparse mesh wireframe is no longer the accepted visual output; the red rubber, black rubber, blade wood and handle are rendered as solid components, and the ball is drawn with its metric 20 mm radius.
-- 2026-08-06: persistent-grasp correction — the prior observed-rigid builder used the right palm only as weak depth/image evidence and allowed a 160+ mean handle gap of about 0.23 m. Two exact-pivot revisions were rejected: independently fitting each mask produced quaternion/twist flips, while over-regularizing rotation produced a visible double-paddle offset (38 px at frame 240). The current candidate fixes `grasp_site_id=right_hand` for all 240 frames and forbids hand switching; SAM2 fixes the palm-to-blade image direction, MegaPose fixes only the remaining face/twist ambiguity, and the read-only right hand fixes the 3D pivot. Maximum grasp gap remains numerical zero. Blade-center reprojection is 2.98 px mean / 8.29 px p95 and 2.58 px at frame 240. Human state remains read-only.
+- 2026-08-06: persistent-grasp correction — the prior observed-rigid builder used the right palm only as weak depth/image evidence and allowed a 160+ mean handle gap of about 0.23 m. Two exact-pivot revisions were rejected: independently fitting each mask produced quaternion/twist flips, while over-regularizing rotation produced a visible double-paddle offset (38 px at frame 240). The audited exact-pivot candidate fixed `grasp_site_id=right_hand` for all 240 frames and forbade hand switching, but its numerical-zero 3D gap was later shown to be incompatible with the known-size paddle projection because GVHMR hand depth is uncertain. Human state remained read-only and the exact-depth constraint was not promoted.
 - 2026-08-06: handle-ambiguity correction — review showed that SAM2 segmented only the blade in thin-edge frames and omitted the occluded handle; all 26 CoTracker queries were consequently blade-only. Low-confidence MegaPose twist (for example IoU 0.158 near frame 63) could therefore rotate a correctly tracked thin edge into a broad face while still satisfying the center factor. The generic rigid builder now supports a one-dimensional `mask_silhouette_twist` factor: the immutable right-hand pivot and SAM2 centroid fix the grasp axis, while a temporally regularized silhouette-shape search chooses the remaining rotation from the mask width/aspect evidence. This resolves the ambiguity without asking VLM for a continuous quaternion; VLM remains appropriate only for a discrete red-face/black-face or handle-end semantic choice.
+- 2026-08-06: endpoint root-cause correction — the exact 3D hand pivot above was rejected after review of frames 71, 96 and 161. At each swing endpoint the palm occludes part of the blade, so a visible-only SAM2 mask is not an amodal scale/depth observation. More importantly, the read-only GVHMR hand depth differs from the known-size paddle depth by roughly 0.3–0.7 m; treating it as zero-variance 3D truth systematically enlarged the overlay and pulled the twist away from the tracked blade.
+- 2026-08-06: generic planar-track candidate — 24 blade tracks were lifted into asset-local coordinates from the reliable frame-2 MegaPose pose and then consumed as per-frame planar PnP correspondences. The front-red-face semantic normal and temporal continuity select the planar ambiguity, the right hand supplies a strong handle reprojection term, and frames without enough tracks are interpolated. This is a geometry-capability path rather than a ping-pong branch. It recovers 236/240 PnP frames with track reprojection 2.79 px median / 5.28 px p95; rotation step is 5.15° median / 13.44° p95 / 17.22° maximum. Endpoint review now shows broad red face at frame 71, true thin edge at frame 96 and broad red face at frame 161. Canonical paddle and ball-contact outputs remain unchanged pending full-video approval.

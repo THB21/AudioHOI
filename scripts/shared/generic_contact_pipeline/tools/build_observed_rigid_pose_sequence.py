@@ -16,6 +16,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import trimesh
 from scipy.spatial.transform import Rotation, Slerp
 from scipy.signal import medfilt, savgol_filter
 
@@ -67,6 +68,262 @@ def _hand_site_evidence(
                 points[frame] = point
                 pixels[frame] = _project(point, camera)
     return pixels, points
+
+
+def _point_track_rows(path: Path) -> dict[int, list[dict[str, object]]]:
+    grouped: dict[int, list[dict[str, object]]] = {}
+    with path.open(newline="") as stream:
+        for row in csv.DictReader(stream):
+            parsed: dict[str, object] = dict(row)
+            parsed["frame"] = int(row["frame"])
+            parsed["x"] = float(row["x"])
+            parsed["y"] = float(row["y"])
+            parsed["visible"] = float(row.get("visible", 1.0))
+            parsed["confidence"] = float(row.get("confidence", 1.0))
+            grouped.setdefault(int(parsed["frame"]), []).append(parsed)
+    return grouped
+
+
+def _reference_surface_points(
+    rows: list[dict[str, object]],
+    *,
+    reference_transform: np.ndarray,
+    camera: np.ndarray,
+    plane_point_local: np.ndarray,
+    plane_normal_local: np.ndarray,
+    local_bounds_min: np.ndarray,
+    local_bounds_max: np.ndarray,
+) -> dict[str, np.ndarray]:
+    """Lift tracked reference pixels onto a known local planar surface."""
+    rotation = reference_transform[:3, :3]
+    translation = reference_transform[:3, 3]
+    normal = plane_normal_local / max(np.linalg.norm(plane_normal_local), 1e-12)
+    result: dict[str, np.ndarray] = {}
+    for row in rows:
+        if float(row["visible"]) <= 0.5 or float(row["confidence"]) <= 0.5:
+            continue
+        ray = np.asarray(
+            (
+                (float(row["x"]) - camera[0, 2]) / camera[0, 0],
+                (float(row["y"]) - camera[1, 2]) / camera[1, 1],
+                1.0,
+            ),
+            dtype=float,
+        )
+        local_ray = rotation.T @ ray
+        denominator = float(normal @ local_ray)
+        if abs(denominator) < 1e-8:
+            continue
+        depth = float(
+            normal @ (rotation.T @ translation + plane_point_local) / denominator
+        )
+        if depth <= 1e-6:
+            continue
+        local = rotation.T @ (depth * ray - translation)
+        if np.all(local >= local_bounds_min) and np.all(local <= local_bounds_max):
+            result[str(row["track_id"])] = local
+    return result
+
+
+def _smooth_rotation_sequence(rotations: list[Rotation], window: int = 7) -> list[Rotation]:
+    quaternions = np.asarray([rotation.as_quat() for rotation in rotations])
+    for index in range(1, len(quaternions)):
+        if float(quaternions[index] @ quaternions[index - 1]) < 0.0:
+            quaternions[index] *= -1.0
+    for component in range(4):
+        quaternions[:, component] = savgol_filter(
+            quaternions[:, component], window_length=window, polyorder=2, mode="interp"
+        )
+    quaternions /= np.linalg.norm(quaternions, axis=1, keepdims=True)
+    return list(Rotation.from_quat(quaternions))
+
+
+def _tracked_planar_pnp_sequence(
+    tracks_by_frame: dict[int, list[dict[str, object]]],
+    *,
+    frame_count: int,
+    reference_frame: int,
+    reference_transform: np.ndarray,
+    camera: np.ndarray,
+    plane_point_local: np.ndarray,
+    plane_normal_local: np.ndarray,
+    local_bounds_min: np.ndarray,
+    local_bounds_max: np.ndarray,
+    handle_local: np.ndarray,
+    hand_pixels: dict[int, np.ndarray],
+    minimum_tracks: int,
+    minimum_confidence: float,
+    handle_reprojection_repeats: int,
+) -> tuple[list[Rotation], np.ndarray, dict[str, object]]:
+    """Recover a planar rigid pose sequence from persistent 2D correspondences.
+
+    MegaPose supplies one metric reference pose, persistent point tracks supply
+    per-frame projective motion, and the observed hand selects the grasped
+    handle branch in image space. Human 3D depth remains a soft observation.
+    """
+    if reference_frame not in tracks_by_frame:
+        raise ValueError(f"Missing point tracks at reference frame {reference_frame}")
+    local_points = _reference_surface_points(
+        tracks_by_frame[reference_frame],
+        reference_transform=reference_transform,
+        camera=camera,
+        plane_point_local=plane_point_local,
+        plane_normal_local=plane_normal_local,
+        local_bounds_min=local_bounds_min,
+        local_bounds_max=local_bounds_max,
+    )
+    if len(local_points) < minimum_tracks:
+        raise RuntimeError(
+            f"Only {len(local_points)} reference surface tracks survived; "
+            f"need {minimum_tracks}"
+        )
+
+    rotations: list[Rotation | None] = [None] * frame_count
+    translations: list[np.ndarray | None] = [None] * frame_count
+    track_counts = np.zeros(frame_count, dtype=int)
+    reprojection_errors = np.full(frame_count, np.nan, dtype=float)
+    handle_errors = np.full(frame_count, np.nan, dtype=float)
+    previous = Rotation.from_matrix(reference_transform[:3, :3])
+    normal = plane_normal_local / max(np.linalg.norm(plane_normal_local), 1e-12)
+    for frame in range(1, frame_count + 1):
+        usable = [
+            row
+            for row in tracks_by_frame.get(frame, [])
+            if str(row["track_id"]) in local_points
+            and float(row["visible"]) > 0.5
+            and float(row["confidence"]) >= minimum_confidence
+        ]
+        track_counts[frame - 1] = len(usable)
+        if len(usable) < minimum_tracks:
+            continue
+        object_points = np.asarray(
+            [local_points[str(row["track_id"])] for row in usable], dtype=float
+        )
+        image_points = np.asarray(
+            [[float(row["x"]), float(row["y"])] for row in usable], dtype=float
+        )
+        fitted_object_points = object_points
+        fitted_image_points = image_points
+        hand_pixel = hand_pixels.get(frame)
+        if hand_pixel is not None and handle_reprojection_repeats > 0:
+            fitted_object_points = np.vstack(
+                (
+                    fitted_object_points,
+                    np.repeat(
+                        handle_local[None, :], handle_reprojection_repeats, axis=0
+                    ),
+                )
+            )
+            fitted_image_points = np.vstack(
+                (
+                    fitted_image_points,
+                    np.repeat(
+                        hand_pixel[None, :], handle_reprojection_repeats, axis=0
+                    ),
+                )
+            )
+        ok, rotation_vectors, translation_vectors, _ = cv2.solvePnPGeneric(
+            fitted_object_points,
+            fitted_image_points,
+            camera,
+            None,
+            flags=cv2.SOLVEPNP_IPPE,
+        )
+        if not ok or not len(rotation_vectors):
+            continue
+        candidates: list[tuple[float, Rotation, np.ndarray, float, float]] = []
+        for rotation_vector, translation_vector in zip(
+            rotation_vectors, translation_vectors
+        ):
+            rotation = Rotation.from_rotvec(rotation_vector.reshape(3))
+            translation = translation_vector.reshape(3)
+            projected, _ = cv2.projectPoints(
+                object_points,
+                rotation_vector,
+                translation_vector,
+                camera,
+                None,
+            )
+            reprojection = float(
+                np.median(
+                    np.linalg.norm(projected[:, 0, :] - image_points, axis=1)
+                )
+            )
+            handle_error = 0.0
+            if hand_pixel is not None:
+                handle_camera = rotation.apply(handle_local) + translation
+                handle_error = float(
+                    np.linalg.norm(_project(handle_camera, camera) - hand_pixel)
+                )
+            toward_camera = -translation / max(np.linalg.norm(translation), 1e-12)
+            face_score = float(rotation.apply(normal) @ toward_camera)
+            step = float((previous.inv() * rotation).magnitude())
+            score = (
+                reprojection
+                + 0.05 * handle_error
+                + 20.0 * max(0.0, -face_score) ** 2
+                + 3.0 * step
+            )
+            candidates.append(
+                (score, rotation, translation, reprojection, handle_error)
+            )
+        _, rotation, translation, reprojection, handle_error = min(
+            candidates, key=lambda value: value[0]
+        )
+        rotations[frame - 1] = rotation
+        translations[frame - 1] = translation
+        reprojection_errors[frame - 1] = reprojection
+        handle_errors[frame - 1] = handle_error
+        previous = rotation
+
+    valid = np.asarray(
+        [index for index, rotation in enumerate(rotations) if rotation is not None],
+        dtype=int,
+    )
+    if len(valid) < 2:
+        raise RuntimeError("Planar PnP produced fewer than two valid frames")
+    interpolator = Slerp(
+        valid.astype(float),
+        Rotation.concatenate([rotations[index] for index in valid]),
+    )
+    for index in range(frame_count):
+        if rotations[index] is None:
+            query = float(np.clip(index, valid[0], valid[-1]))
+            rotations[index] = interpolator([query])[0]
+    translation_array = np.empty((frame_count, 3), dtype=float)
+    for axis in range(3):
+        values = np.asarray(
+            [
+                translations[index][axis]
+                if translations[index] is not None
+                else np.nan
+                for index in range(frame_count)
+            ],
+            dtype=float,
+        )
+        values = np.interp(np.arange(frame_count), valid, values[valid])
+        translation_array[:, axis] = savgol_filter(
+            values, window_length=7, polyorder=2, mode="interp"
+        )
+    final_rotations = _smooth_rotation_sequence(
+        [rotation for rotation in rotations if rotation is not None]
+    )
+    metrics = {
+        "reference_frame": reference_frame,
+        "reference_local_track_count": len(local_points),
+        "minimum_frame_track_count": int(track_counts.min()),
+        "median_frame_track_count": float(np.median(track_counts)),
+        "valid_pnp_frame_count": int(len(valid)),
+        "track_reprojection_error_px": {
+            "median": float(np.nanmedian(reprojection_errors)),
+            "p95": float(np.nanpercentile(reprojection_errors, 95)),
+        },
+        "handle_reprojection_error_px": {
+            "median": float(np.nanmedian(handle_errors)),
+            "p95": float(np.nanpercentile(handle_errors, 95)),
+        },
+    }
+    return final_rotations, translation_array, metrics
 
 
 def _mask_direction_reference_twist_rotations(
@@ -180,18 +437,22 @@ def _silhouette_twist_sequence(
     step_degrees: float,
     temporal_weight: float,
     maximum_step_degrees: float,
+    silhouette_points_local: np.ndarray | None = None,
 ) -> tuple[list[Rotation], np.ndarray, np.ndarray]:
     """Resolve the one-dimensional grasp twist with silhouette shape evidence."""
     twist_axis = blade_center_local - handle_local
     twist_axis /= max(np.linalg.norm(twist_axis), 1e-12)
     width_axis = np.cross(twist_axis, face_normal_local)
     width_axis /= max(np.linalg.norm(width_axis), 1e-12)
-    theta = np.linspace(0.0, 2.0 * np.pi, 64, endpoint=False)
-    outline = (
-        blade_center_local[None, :]
-        + half_width * np.cos(theta)[:, None] * width_axis[None, :]
-        + half_height * np.sin(theta)[:, None] * twist_axis[None, :]
-    )
+    if silhouette_points_local is None:
+        theta = np.linspace(0.0, 2.0 * np.pi, 64, endpoint=False)
+        outline = (
+            blade_center_local[None, :]
+            + half_width * np.cos(theta)[:, None] * width_axis[None, :]
+            + half_height * np.sin(theta)[:, None] * twist_axis[None, :]
+        )
+    else:
+        outline = np.asarray(silhouette_points_local, dtype=float)
     angles = np.deg2rad(
         np.arange(-90.0, 90.0 + 0.5 * step_degrees, step_degrees)
     )
@@ -203,7 +464,7 @@ def _silhouette_twist_sequence(
         mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
         if mask is None:
             raise FileNotFoundError(mask_path)
-        target_full = mask > 0
+        target_full = _largest_mask_component(mask)
         target_y, target_x = np.nonzero(target_full)
         if len(target_x) < 64:
             raise RuntimeError(f"Insufficient silhouette pixels in {mask_path}")
@@ -362,11 +623,23 @@ def _select_branch(
     return [grouped[frame][candidate_index] for frame, candidate_index in zip(frames, selected_indices)]
 
 
+def _largest_mask_component(mask: np.ndarray) -> np.ndarray:
+    binary = (mask > 0).astype(np.uint8)
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(binary, 8)
+    if count <= 1:
+        return binary.astype(bool)
+    valid = [index for index in range(1, count) if int(stats[index, 4]) >= 64]
+    if not valid:
+        valid = list(range(1, count))
+    selected = max(valid, key=lambda index: int(stats[index, 4]))
+    return labels == selected
+
+
 def _mask_centroid(path: Path) -> np.ndarray | None:
     mask = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
     if mask is None:
         return None
-    ys, xs = np.nonzero(mask > 0)
+    ys, xs = np.nonzero(_largest_mask_component(mask))
     if len(xs) < 64:
         return None
     return np.asarray((float(np.median(xs)), float(np.median(ys))), dtype=float)
@@ -449,9 +722,37 @@ def main() -> None:
     )
     parser.add_argument("--silhouette-half-width", type=float)
     parser.add_argument("--silhouette-half-height", type=float)
+    parser.add_argument("--silhouette-mesh", type=Path)
+    parser.add_argument(
+        "--silhouette-mesh-units", choices=("m", "mm"), default="m"
+    )
+    parser.add_argument(
+        "--silhouette-local-y-min",
+        type=float,
+        help="Optional local-Y cutoff selecting the observed semantic part from the mesh.",
+    )
     parser.add_argument("--silhouette-twist-step-deg", type=float, default=3.0)
     parser.add_argument("--silhouette-temporal-weight", type=float, default=2.0)
     parser.add_argument("--silhouette-max-step-deg", type=float, default=50.0)
+    parser.add_argument(
+        "--minimum-orientation-anchor-iou",
+        type=float,
+        default=0.0,
+        help="Exclude lower-IoU pose hypotheses from rotation anchoring while retaining their audit rows.",
+    )
+    parser.add_argument(
+        "--point-tracks",
+        type=Path,
+        help="Persistent rigid surface tracks used for generic planar PnP.",
+    )
+    parser.add_argument("--track-reference-frame", type=int)
+    parser.add_argument("--track-plane-point-local", type=_vector)
+    parser.add_argument("--track-plane-normal-local", type=_vector)
+    parser.add_argument("--track-local-bounds-min", type=_vector)
+    parser.add_argument("--track-local-bounds-max", type=_vector)
+    parser.add_argument("--minimum-pnp-tracks", type=int, default=6)
+    parser.add_argument("--minimum-track-confidence", type=float, default=0.5)
+    parser.add_argument("--handle-reprojection-repeats", type=int, default=4)
     parser.add_argument("--frame-count", type=int, required=True)
     parser.add_argument("--fps", type=float, required=True)
     parser.add_argument("--fx", type=float, required=True)
@@ -468,6 +769,25 @@ def main() -> None:
     )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+
+    if args.point_tracks is not None and args.silhouette_twist:
+        raise ValueError(
+            "Planar point-track PnP and mask silhouette twist are alternative "
+            "rotation drivers; select only one"
+        )
+    track_args = (
+        args.track_reference_frame,
+        args.track_plane_point_local,
+        args.track_plane_normal_local,
+        args.track_local_bounds_min,
+        args.track_local_bounds_max,
+    )
+    if args.point_tracks is not None and any(value is None for value in track_args):
+        raise ValueError(
+            "--point-tracks requires --track-reference-frame, "
+            "--track-plane-point-local, --track-plane-normal-local, "
+            "--track-local-bounds-min and --track-local-bounds-max"
+        )
 
     camera = np.asarray(((args.fx, 0.0, args.cx), (0.0, args.fy, args.cy), (0.0, 0.0, 1.0)))
     grouped: dict[int, list[dict[str, object]]] = {}
@@ -488,52 +808,117 @@ def main() -> None:
     )
     anchor_frames = np.asarray([int(row["frame"]) for row in selected], dtype=float)
     anchor_translations = np.asarray([_translation(row) for row in selected])
-    anchor_rotations = Rotation.concatenate([_rotation(row) for row in selected])
-    rotation_interpolator = Slerp(anchor_frames, anchor_rotations)
-
-    rotations_by_frame: list[Rotation] = []
-    translations_by_frame: list[np.ndarray] = []
-    for frame in range(1, args.frame_count + 1):
-        query = float(np.clip(frame, anchor_frames[0], anchor_frames[-1]))
-        rotation = rotation_interpolator([query])[0]
-        translation = np.asarray(
-            [np.interp(query, anchor_frames, anchor_translations[:, axis]) for axis in range(3)],
-            dtype=float,
+    orientation_anchors = [
+        row
+        for row in selected
+        if float(row.get("official_render_mask_iou", 0.0))
+        >= args.minimum_orientation_anchor_iou
+    ]
+    if len(orientation_anchors) < 2:
+        raise RuntimeError(
+            "At least two reliable orientation anchors are required; "
+            f"got {len(orientation_anchors)} at IoU >= "
+            f"{args.minimum_orientation_anchor_iou:.3f}"
         )
-        if frame in hand_points:
-            rotated_handle = rotation.apply(args.handle_local)
-            grasp_consistent_z = hand_points[frame][2] - rotated_handle[2]
-            translation[2] = 0.85 * grasp_consistent_z + 0.15 * translation[2]
-        blade_camera = rotation.apply(args.blade_center_local) + translation
-        centroid = _mask_centroid(args.mask_dir / f"{frame:05d}_mask.png")
-        if centroid is not None and blade_camera[2] > 1e-6:
-            target_xy = np.asarray(
-                (
-                    (centroid[0] - args.cx) * blade_camera[2] / args.fx,
-                    (centroid[1] - args.cy) * blade_camera[2] / args.fy,
-                )
+    orientation_frames = np.asarray(
+        [int(row["frame"]) for row in orientation_anchors], dtype=float
+    )
+    orientation_rotations = Rotation.concatenate(
+        [_rotation(row) for row in orientation_anchors]
+    )
+    rotation_interpolator = Slerp(orientation_frames, orientation_rotations)
+
+    track_pnp_metrics: dict[str, object] | None = None
+    if args.point_tracks is not None:
+        reference_rows = [
+            row
+            for row in selected
+            if int(row["frame"]) == args.track_reference_frame
+        ]
+        if len(reference_rows) != 1:
+            raise RuntimeError(
+                "Track reference frame must resolve to exactly one selected "
+                f"MegaPose row; got {len(reference_rows)}"
             )
-            translation[:2] += target_xy - blade_camera[:2]
-        # The hand is evidence for a continuously held handle, but remains
-        # read-only and receives only a bounded image-plane correction.
-        if frame in hands:
-            handle_camera = rotation.apply(args.handle_local) + translation
-            handle_uv = _project(handle_camera, camera)
-            delta_uv = np.clip(hands[frame] - handle_uv, -18.0, 18.0)
-            translation[0] += 0.12 * delta_uv[0] * handle_camera[2] / args.fx
-            translation[1] += 0.12 * delta_uv[1] * handle_camera[2] / args.fy
-        rotations_by_frame.append(rotation)
-        translations_by_frame.append(translation)
-
-    # Reject single-frame mask jumps while retaining the real forehand swing.
-    translation_array = np.asarray(translations_by_frame)
-    for axis in range(3):
-        translation_array[:, axis] = medfilt(translation_array[:, axis], kernel_size=5)
-        translation_array[:, axis] = savgol_filter(
-            translation_array[:, axis], window_length=7, polyorder=2, mode="interp"
+        rotations_by_frame, translation_array, track_pnp_metrics = (
+            _tracked_planar_pnp_sequence(
+                _point_track_rows(args.point_tracks),
+                frame_count=args.frame_count,
+                reference_frame=args.track_reference_frame,
+                reference_transform=np.asarray(
+                    reference_rows[0]["T_camera_object"], dtype=float
+                ),
+                camera=camera,
+                plane_point_local=args.track_plane_point_local,
+                plane_normal_local=args.track_plane_normal_local,
+                local_bounds_min=args.track_local_bounds_min,
+                local_bounds_max=args.track_local_bounds_max,
+                handle_local=args.handle_local,
+                hand_pixels=hands,
+                minimum_tracks=args.minimum_pnp_tracks,
+                minimum_confidence=args.minimum_track_confidence,
+                handle_reprojection_repeats=args.handle_reprojection_repeats,
+            )
         )
+    else:
+        rotations_by_frame = []
+        translations_by_frame: list[np.ndarray] = []
+        for frame in range(1, args.frame_count + 1):
+            query = float(np.clip(frame, anchor_frames[0], anchor_frames[-1]))
+            rotation_query = float(
+                np.clip(frame, orientation_frames[0], orientation_frames[-1])
+            )
+            rotation = rotation_interpolator([rotation_query])[0]
+            translation = np.asarray(
+                [
+                    np.interp(query, anchor_frames, anchor_translations[:, axis])
+                    for axis in range(3)
+                ],
+                dtype=float,
+            )
+            if frame in hand_points:
+                rotated_handle = rotation.apply(args.handle_local)
+                grasp_consistent_z = hand_points[frame][2] - rotated_handle[2]
+                translation[2] = 0.85 * grasp_consistent_z + 0.15 * translation[2]
+            blade_camera = rotation.apply(args.blade_center_local) + translation
+            centroid = _mask_centroid(args.mask_dir / f"{frame:05d}_mask.png")
+            if centroid is not None and blade_camera[2] > 1e-6:
+                target_xy = np.asarray(
+                    (
+                        (centroid[0] - args.cx) * blade_camera[2] / args.fx,
+                        (centroid[1] - args.cy) * blade_camera[2] / args.fy,
+                    )
+                )
+                translation[:2] += target_xy - blade_camera[:2]
+            # The hand is evidence for a continuously held handle, but remains
+            # read-only and receives only a bounded image-plane correction.
+            if frame in hands:
+                handle_camera = rotation.apply(args.handle_local) + translation
+                handle_uv = _project(handle_camera, camera)
+                delta_uv = np.clip(hands[frame] - handle_uv, -18.0, 18.0)
+                translation[0] += (
+                    0.12 * delta_uv[0] * handle_camera[2] / args.fx
+                )
+                translation[1] += (
+                    0.12 * delta_uv[1] * handle_camera[2] / args.fy
+                )
+            rotations_by_frame.append(rotation)
+            translations_by_frame.append(translation)
 
-    if args.persistent_grasp:
+        # Reject single-frame mask jumps while retaining the real forehand swing.
+        translation_array = np.asarray(translations_by_frame)
+        for axis in range(3):
+            translation_array[:, axis] = medfilt(
+                translation_array[:, axis], kernel_size=5
+            )
+            translation_array[:, axis] = savgol_filter(
+                translation_array[:, axis],
+                window_length=7,
+                polyorder=2,
+                mode="interp",
+            )
+
+    if args.persistent_grasp and args.point_tracks is None:
         missing_hand_frames = [
             frame for frame in range(1, args.frame_count + 1) if frame not in hand_points
         ]
@@ -579,6 +964,24 @@ def main() -> None:
                     "--silhouette-twist requires --silhouette-half-width and "
                     "--silhouette-half-height from the geometry descriptor"
                 )
+            silhouette_points_local = None
+            if args.silhouette_mesh is not None:
+                mesh = trimesh.load(args.silhouette_mesh, process=False)
+                silhouette_points_local = np.asarray(mesh.vertices, dtype=float)
+                if args.silhouette_mesh_units == "mm":
+                    silhouette_points_local /= 1000.0
+                if args.silhouette_local_y_min is not None:
+                    silhouette_points_local = silhouette_points_local[
+                        silhouette_points_local[:, 1] >= args.silhouette_local_y_min
+                    ]
+                if len(silhouette_points_local) < 16:
+                    raise ValueError("Silhouette mesh selection has fewer than 16 vertices")
+                silhouette_points_local = np.asarray(
+                    trimesh.Trimesh(
+                        vertices=silhouette_points_local, process=False
+                    ).convex_hull.vertices,
+                    dtype=float,
+                )
             rotations_by_frame, silhouette_twist_degrees, silhouette_emissions = (
                 _silhouette_twist_sequence(
                     rotations_by_frame,
@@ -599,6 +1002,7 @@ def main() -> None:
                     step_degrees=args.silhouette_twist_step_deg,
                     temporal_weight=args.silhouette_temporal_weight,
                     maximum_step_degrees=args.silhouette_max_step_deg,
+                    silhouette_points_local=silhouette_points_local,
                 )
             )
         for index, (frame, rotation) in enumerate(
@@ -638,6 +1042,11 @@ def main() -> None:
             if frame in hand_points
             else float("nan")
         )
+        handle_reprojection_error = (
+            float(np.linalg.norm(_project(handle_camera, camera) - hands[frame]))
+            if frame in hands
+            else float("nan")
+        )
         output_rows.append(
             {
                 "frame": frame,
@@ -652,13 +1061,16 @@ def main() -> None:
                 "grasp_active": int(args.persistent_grasp),
                 "grasp_site_id": args.grasp_site_id if args.persistent_grasp else "",
                 "grasp_gap_m": grasp_gap,
+                "handle_reprojection_error_px": handle_reprojection_error,
                 "silhouette_twist_deg": (
                     float(silhouette_twist_degrees[frame - 1])
                     if args.persistent_grasp and args.silhouette_twist
                     else ""
                 ),
                 "source": (
-                    (
+                    "megapose_cotracker_planar_pnp_persistent_grasp_sequence"
+                    if args.point_tracks is not None
+                    else (
                         "megapose_sam2_silhouette_twist_persistent_grasp_sequence"
                         if args.silhouette_twist
                         else "megapose_semantic_branch_cotracker_persistent_grasp_sequence"
@@ -684,6 +1096,7 @@ def main() -> None:
                 "hypothesis_rank": int(row["hypothesis_rank"]),
                 "render_mask_iou": float(row.get("official_render_mask_iou", 0.0)),
                 "visible_face_score": _face_score(row, args.visible_face_normal),
+                "orientation_anchor_active": bool(row in orientation_anchors),
             }
             for row in selected
         ],
@@ -691,10 +1104,16 @@ def main() -> None:
             "megapose_pose_hypothesis",
             "visible_face_semantic_gate",
             "temporal_rotation_continuity",
-            "mask_centroid_reprojection",
+            *(
+                ["persistent_surface_track_planar_pnp"]
+                if args.point_tracks is not None
+                else ["mask_centroid_reprojection"]
+            ),
             *(["mask_silhouette_twist"] if args.silhouette_twist else []),
             (
-                "persistent_read_only_hand_to_handle_point_contact"
+                "persistent_read_only_hand_to_handle_reprojection"
+                if args.point_tracks is not None
+                else "persistent_read_only_hand_to_handle_point_contact"
                 if args.persistent_grasp
                 else "read_only_human_handle_contact"
             ),
@@ -703,7 +1122,9 @@ def main() -> None:
         "grasp_site_id": args.grasp_site_id if args.persistent_grasp else None,
         "grasp_site_switching_allowed": False,
         "rotation_driver": (
-            (
+            "megapose_initialized_cotracker_planar_pnp"
+            if args.point_tracks is not None
+            else (
                 "mask_shape_twist_with_megapose_prior_and_read_only_hand_pivot"
                 if args.silhouette_twist
                 else "mask_direction_with_megapose_face_twist_and_read_only_hand_pivot"
@@ -712,6 +1133,20 @@ def main() -> None:
             else "selected_pose_hypotheses"
         ),
         "silhouette_twist": args.silhouette_twist,
+        "track_planar_pnp": track_pnp_metrics,
+        "minimum_orientation_anchor_iou": args.minimum_orientation_anchor_iou,
+        "orientation_anchor_frames": [int(row["frame"]) for row in orientation_anchors],
+        "silhouette_geometry": (
+            {
+                "mesh": str(args.silhouette_mesh.resolve())
+                if args.silhouette_mesh
+                else None,
+                "mesh_units": args.silhouette_mesh_units,
+                "local_y_min": args.silhouette_local_y_min,
+            }
+            if args.silhouette_twist
+            else None
+        ),
         "silhouette_emission": (
             {
                 "mean": float(np.nanmean(silhouette_emissions)),
@@ -730,10 +1165,28 @@ def main() -> None:
             "maximum": float(np.nanmax([row["grasp_gap_m"] for row in output_rows])),
             "mean": float(np.nanmean([row["grasp_gap_m"] for row in output_rows])),
         },
+        "handle_reprojection_error_px": {
+            "maximum": float(
+                np.nanmax(
+                    [row["handle_reprojection_error_px"] for row in output_rows]
+                )
+            ),
+            "mean": float(
+                np.nanmean(
+                    [row["handle_reprojection_error_px"] for row in output_rows]
+                )
+            ),
+        },
         "inputs": {
             "hypotheses": [str(path.resolve()) for path in args.hypotheses],
             "hypotheses_sha256": [_sha256(path) for path in args.hypotheses],
             "human_sites": str(args.human_sites.resolve()) if args.human_sites else None,
+            "point_tracks": str(args.point_tracks.resolve())
+            if args.point_tracks
+            else None,
+            "point_tracks_sha256": _sha256(args.point_tracks)
+            if args.point_tracks
+            else None,
         },
         "output": str(args.output.resolve()),
         "output_sha256": _sha256(args.output),

@@ -50,12 +50,26 @@ def _runner_hash(command: tuple[str, ...]) -> str:
     return "external_command"
 
 
-def _output_paths(task: PreprocessTask) -> dict[str, str]:
-    return {artifact.artifact_id: str(artifact.path) for artifact in task.outputs}
+def _output_paths(
+    task: PreprocessTask,
+    output_ids: set[str] | None = None,
+) -> dict[str, str]:
+    return {
+        artifact.artifact_id: str(artifact.path)
+        for artifact in task.outputs
+        if output_ids is None or artifact.artifact_id in output_ids
+    }
 
 
-def _output_kinds(task: PreprocessTask) -> dict[str, str]:
-    return {artifact.artifact_id: artifact.kind for artifact in task.outputs}
+def _output_kinds(
+    task: PreprocessTask,
+    output_ids: set[str] | None = None,
+) -> dict[str, str]:
+    return {
+        artifact.artifact_id: artifact.kind
+        for artifact in task.outputs
+        if output_ids is None or artifact.artifact_id in output_ids
+    }
 
 
 def _safe_output_hashes(task: PreprocessTask) -> dict[str, str]:
@@ -87,6 +101,11 @@ def _record(
     stderr_tail: str = "",
     error: str = "",
 ) -> TaskExecutionRecord:
+    recorded_output_ids = (
+        set(output_hashes)
+        if status in {"generated", "reused"}
+        else None
+    )
     return TaskExecutionRecord(
         task_id=task.task_id,
         status=status,
@@ -95,8 +114,8 @@ def _record(
         command=command,
         cache_key=cache_key,
         input_hashes=dict(input_hashes),
-        output_paths=_output_paths(task),
-        output_kinds=_output_kinds(task),
+        output_paths=_output_paths(task, recorded_output_ids),
+        output_kinds=_output_kinds(task, recorded_output_ids),
         output_hashes=dict(output_hashes),
         started_at=started_at,
         completed_at=completed_at,

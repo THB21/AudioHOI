@@ -139,6 +139,86 @@ def _mesh_contact_target(
     return target, surface, local_surface
 
 
+def _repair_unsupported_free_flight_loops(
+    pose: pd.DataFrame,
+    event_frames: list[int],
+    *,
+    maximum_turn_deg: float = 35.0,
+    minimum_progress_reversal: float = 0.02,
+) -> tuple[pd.DataFrame, list[dict[str, object]]]:
+    """Replace non-contact loops by a single smooth flight arc.
+
+    A free-flight observation may curve, but it may not reverse progress along
+    the event-to-event corridor without another interaction.  Generated videos
+    occasionally contain a visually plausible sphere that falls, rises, and
+    falls again between two verified impacts.  In those intervals we preserve
+    both event endpoints and fit the smallest one-arc model supported by the
+    observations.  The quadratic component is restricted to the plane normal
+    to the endpoint chord, so progress toward the next interaction stays
+    monotonic.  This is entity- and case-independent.
+    """
+    repaired = pose.copy()
+    by_frame = repaired.set_index("frame")
+    audit: list[dict[str, object]] = []
+    coordinates = ["tx", "ty", "tz"]
+    for start, stop in zip(event_frames[:-1], event_frames[1:]):
+        if stop - start < 4:
+            continue
+        points = by_frame.loc[start:stop, coordinates].to_numpy(dtype=float)
+        chord = points[-1] - points[0]
+        chord_squared = float(chord @ chord)
+        if chord_squared <= 1e-10:
+            continue
+        progress = (points - points[0]) @ chord / chord_squared
+        progress_steps = np.diff(progress)
+        velocities = np.diff(points, axis=0)
+        turns: list[float] = []
+        for before, after in zip(velocities[:-1], velocities[1:]):
+            denominator = float(np.linalg.norm(before) * np.linalg.norm(after))
+            if denominator <= 1e-10:
+                turns.append(180.0)
+            else:
+                cosine = float(np.clip((before @ after) / denominator, -1.0, 1.0))
+                turns.append(float(np.degrees(np.arccos(cosine))))
+        maximum_observed_turn = max(turns, default=0.0)
+        minimum_progress_step = float(progress_steps.min(initial=0.0))
+        if (
+            minimum_progress_step >= -minimum_progress_reversal
+            or maximum_observed_turn <= maximum_turn_deg
+        ):
+            continue
+
+        parameter = np.linspace(0.0, 1.0, len(points))
+        linear = points[0] + parameter[:, None] * chord
+        arc_weight = parameter * (1.0 - parameter)
+        curvature = (
+            arc_weight[:, None] * (points - linear)
+        ).sum(axis=0) / float(arc_weight @ arc_weight)
+        chord_axis = chord / np.sqrt(chord_squared)
+        curvature -= chord_axis * float(curvature @ chord_axis)
+        fitted = linear + arc_weight[:, None] * curvature
+        by_frame.loc[start:stop, coordinates] = fitted
+
+        fitted_velocity = np.diff(fitted, axis=0)
+        fitted_turns: list[float] = []
+        for before, after in zip(fitted_velocity[:-1], fitted_velocity[1:]):
+            denominator = float(np.linalg.norm(before) * np.linalg.norm(after))
+            cosine = float(np.clip((before @ after) / max(denominator, 1e-10), -1.0, 1.0))
+            fitted_turns.append(float(np.degrees(np.arccos(cosine))))
+        audit.append(
+            {
+                "start_frame": int(start),
+                "stop_frame": int(stop),
+                "reason": "unsupported_free_flight_direction_reversal",
+                "minimum_progress_step_before": minimum_progress_step,
+                "maximum_turn_deg_before": maximum_observed_turn,
+                "maximum_turn_deg_after": max(fitted_turns, default=0.0),
+                "model": "endpoint_preserving_monotonic_quadratic_arc",
+            }
+        )
+    return by_frame.reset_index(), audit
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sphere-pose", type=Path, required=True)
@@ -307,6 +387,37 @@ def main() -> None:
     refined["ty"] = (pixels[:, 1] - args.cy) * solved_depth / args.fy
     for frame, target in contact_targets.items():
         refined.loc[refined.frame.eq(frame), ["tx", "ty", "tz"]] = target
+    ordered_events = sorted(set(paddle_frames) | set(wall_frames))
+    refined, free_flight_repairs = _repair_unsupported_free_flight_loops(
+        refined, ordered_events
+    )
+    # The arc repair deliberately changes samples adjacent to an impact.  Put
+    # those samples back into the contact-normal half spaces so smoothing a
+    # corrupted free-flight interval cannot erase the impact reversal.
+    refined_by_frame = refined.set_index("frame")
+    for frame, target in contact_targets.items():
+        if not 1 < frame < len(frames):
+            continue
+        normal = contact_normals[frame]
+        current = refined_by_frame.loc[frame, ["tx", "ty", "tz"]].to_numpy(float)
+        previous = refined_by_frame.loc[frame - 1, ["tx", "ty", "tz"]].to_numpy(float)
+        following = refined_by_frame.loc[frame + 1, ["tx", "ty", "tz"]].to_numpy(float)
+        rigid_previous = rigid.loc[frame - 1, ["tx", "ty", "tz"]].to_numpy(float)
+        rigid_current = rigid.loc[frame, ["tx", "ty", "tz"]].to_numpy(float)
+        rigid_following = rigid.loc[frame + 1, ["tx", "ty", "tz"]].to_numpy(float)
+        pre_normal = float(
+            ((current - previous) - (rigid_current - rigid_previous)) @ normal
+        )
+        if pre_normal >= -minimum_normal_motion:
+            previous += (pre_normal + minimum_normal_motion) * normal
+            refined_by_frame.loc[frame - 1, ["tx", "ty", "tz"]] = previous
+        post_normal = float(
+            ((following - current) - (rigid_following - rigid_current)) @ normal
+        )
+        if post_normal <= minimum_normal_motion:
+            following += (minimum_normal_motion - post_normal) * normal
+            refined_by_frame.loc[frame + 1, ["tx", "ty", "tz"]] = following
+    refined = refined_by_frame.reset_index()
     refined["source"] = "generic_sequence_executor_with_rigid_impact_contact"
     args.output_pose.parent.mkdir(parents=True, exist_ok=True)
     refined.to_csv(args.output_pose, index=False)
@@ -383,6 +494,7 @@ def main() -> None:
         "all_paddle_contacts_reverse_normal_motion": all(
             bool(row["impact_direction_reversal"]) for row in impact_audit
         ),
+        "free_flight_repairs": free_flight_repairs,
         "human_state_optimized": False,
         "inputs": {
             "sphere_pose_sha256": _sha256(args.sphere_pose),

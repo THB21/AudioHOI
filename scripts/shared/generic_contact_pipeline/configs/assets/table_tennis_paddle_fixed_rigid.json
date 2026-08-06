@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "geometry_id": "asset:articraft_table_tennis_paddle_fixed_rigid",
+  "geometry_kind": "rigid_mesh",
+  "resource_path": "samples_known_object/14_pingpong_wall/articraft/cache/record_materialization/rec_create-a-realistic-regulation-size-table-tennis-_20260805_225004_931117_89f77c4b/model.urdf",
+  "articraft_record_id": "rec_create-a-realistic-regulation-size-table-tennis-_20260805_225004_931117_89f77c4b",
+  "articraft_record_manifest": "samples_known_object/14_pingpong_wall/articraft/records_manifest.jsonl",
+  "fixed_resource_joint_state": {},
+  "semantic_parts": ["blade", "front_red_face", "rear_black_face", "handle"],
+  "contact_coordinate": "local_xyz",
+  "state_contract": {
+    "spec_id": "rigid6:observed_tool",
+    "state_model": "rigid_root_se3",
+    "dofs": [
+      {
+        "dof_id": "root.translation",
+        "kind": "translation",
+        "fields": ["tx", "ty", "tz"]
+      },
+      {
+        "dof_id": "root.rotation",
+        "kind": "rotation_so3",
+        "fields": ["qw", "qx", "qy", "qz"]
+      }
+    ]
+  },
+  "feature_points": {
+    "object:center": [[0.0, 0.0, 0.0]],
+    "object:blade_center": [[0.0, 0.050, 0.0]],
+    "object:handle_grasp": [[0.0, -0.075, 0.0]],
+    "object:handle_end": [[0.0, -0.130, 0.0]],
+    "object:blade_left": [[-0.075, 0.050, 0.0]],
+    "object:blade_right": [[0.075, 0.050, 0.0]],
+    "object:blade_crown": [[0.0, 0.130, 0.0]]
+  },
+  "semantic_orientation_features": {
+    "front_red_face": {
+      "normal_local": [0.0, 0.0, 1.0]
+    },
+    "rear_black_face": {
+      "normal_local": [0.0, 0.0, -1.0]
+    },
+    "thin_edge": {
+      "normal_local": [1.0, 0.0, 0.0]
+    },
+    "handle_axis_local": [0.0, 1.0, 0.0],
+    "blade_width_axis_local": [1.0, 0.0, 0.0]
+  },
+  "contact_visibility_features": {
+    "handle": "object:handle_grasp",
+    "paddle_face": "object:blade_center"
+  },
+  "contact_feature_overrides": {
+    "handle": "object:handle_grasp",
+    "paddle_face": "object:blade_center"
+  },
+  "interaction_feature_frames": {
+    "object:handle_grasp": {
+      "facing_axis_local": [0.0, 1.0, 0.0],
+      "relation": "persistent_grasp_to_observed_right_hand"
+    }
+  }
+}

@@ -21,16 +21,18 @@ Run the held-out `14_pingpong_wall` sample from Stage 0 through the generic obje
 2. **completed — Add generic single-identity observation arbitration**
    - Represent multiple sphere detections as candidates for one entity.
    - Compile temporal, event-order, visibility and VLM identity gates into candidate selection.
-3. **completed for the object-only run — Build observed paddle and wall evidence**
-   - Keep the approved Articraft paddle descriptor as an observed rigid-tool asset; do not create a second optimized object state.
-   - The approved paddle remains an observed rigid tool. Joint audio/motion events are typed alternately as paddle-face and practice-wall impacts; they gate timing only and deliberately do not invent metric contact XYZ.
+3. **completed — Reconstruct the observed rigid paddle**
+   - Materialize the approved Articraft paddle as a second object entity with a per-frame rigid pose.
+   - Use paddle image evidence as the primary observation and read-only GVHMR wrist evidence only as an initialization/occlusion aid.
+   - Joint audio/motion events remain typed alternately as paddle-face and practice-wall impacts; they gate timing only and deliberately do not invent metric contact XYZ.
 4. **completed — Run ablations and full generic solver**
    - Preserve pure solver/no-audio/no-VLM pose CSVs.
    - Run full audio+VLM trajectory and produce provenance ledgers.
-5. **completed — Render and audit the object result**
-   - Render overlay and 3D object trajectory.
-   - Verify unique identity, continuity and scale; audit paddle/wall event classes without inventing metric contact XYZ.
-6. **completed — Commit locally**
+5. **completed — Render and audit the two-object result**
+   - Render the reconstructed sphere and Articraft paddle together in overlay and camera-space 3D.
+   - Verify unique ball identity, rigid paddle geometry, paddle-hand continuity and ball/paddle event proximity.
+   - The joint overlay, local camera-space 3D view and full rigid-mesh impact audit are complete.
+6. **pending — Commit the correction locally**
    - Commit only source/config/manifest changes and compact accepted evidence; do not push unless separately authorized.
 
 ## Produced files
@@ -42,6 +44,14 @@ Run the held-out `14_pingpong_wall` sample from Stage 0 through the generic obje
 - `samples_known_object/14_pingpong_wall/results/pingpong_no_vlm/ablation_pose.csv` — blocked, uncorrected no-VLM pose-only ablation
 - `samples_known_object/14_pingpong_wall/results/renders/pingpong_stage0_audit/object_only/overlay.mp4` — final full object overlay
 - `output/pingpong_full_review/final_duplicate_windows_sheet_v2.jpg` — frames 36, 139–147 and 225–228 duplicate-window audit
+- `scripts/shared/generic_contact_pipeline/configs/assets/table_tennis_paddle_fixed_rigid.json` — fixed-rigid mesh, semantic faces and handle feature contract
+- `samples_known_object/14_pingpong_wall/articraft/megapose/fixed_rigid_asset_mm.ply` — MegaPose provider mesh in millimetres
+- `samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/paddle_observed/megapose/rigid_pose_hypotheses.jsonl` — 50 hypotheses at 10 automatically selected visible keyframes
+- `samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/paddle_observed/paddle_pose.csv` — 240-frame observed-rigid SE(3) trajectory
+- `output/pingpong_rigid_contact_candidate/object_pose.csv` — sphere trajectory with rigid-face impact constraints
+- `output/pingpong_rigid_contact_candidate/rigid_face_contacts.csv` — per-impact surface point, gap and relative-normal-motion audit
+- `samples_known_object/14_pingpong_wall/results/renders/pingpong_rigid_contact_candidate/ball/overlay.mp4` — current ball+paddle object overlay candidate
+- `samples_known_object/14_pingpong_wall/results/renders/pingpong_rigid_contact_candidate/ball/camera3d.mp4` — joint sphere and observed-rigid paddle camera-space 3D view
 
 ## Execution notes
 
@@ -50,3 +60,8 @@ Run the held-out `14_pingpong_wall` sample from Stage 0 through the generic obje
 - 2026-08-06: Stage 0 found 13 ambiguous/multi-candidate frames. The full run keeps one sphere entity and VLM makes a discrete candidate decision under a 24 px persistent-track hard validator. The no-VLM candidate is blocked by the production hard gate.
 - 2026-08-06: 26 raw audio peaks were reduced to the declared 10 impacts by a generic audio-peak plus visual-direction-change gate. The resulting typed timeline contains 10 impact states and no inherited floor/rolling state.
 - 2026-08-06: full Stage 4 passed with objective 162.38 versus 184.33 for no-audio. In duplicate windows, full reprojection error is 0.42 px mean / 1.50 px p95, while no-VLM is 92.58 px mean / 178.25 px p95.
+- 2026-08-06: correction after review — the first accepted render reconstructed only the ball. The Articraft paddle was present only as an asset/semantic entity, so paddle pose reconstruction and the two-object render were reopened and are required before this case is complete.
+- 2026-08-06: paddle correction — SAM2 produced 240 paddle-face masks, CoTracker produced 26 persistent rigid points per frame, and MegaPose produced five hypotheses at each of ten automatically selected keyframes. A generic observed-rigid sequence builder selected the red-face-consistent branch, used the read-only right hand as bounded handle/depth evidence, and published a separate 240-frame `paddle_pose.csv`; no human state was optimized.
+- 2026-08-06: robust translation filtering reduced paddle translation-step p95 from 0.318 m/frame to 0.116 m/frame. The current two-object overlay and camera-space 3D view contain the reconstructed Articraft paddle and the unique-ball full trajectory.
+- 2026-08-06: contact correction — joint audio peaks, sphere-to-paddle-mask proximity and a refractory gate identified seven actual paddle impacts at frames 17, 47, 74, 117, 151, 200 and 233. The generated clip contains seven apparent paddle/wall cycles despite requesting five in the generation prompt; the reconstruction follows the observed video rather than the requested count.
+- 2026-08-06: each paddle impact now targets the closest surface of the actual Articraft paddle mesh, has zero sphere-surface gap, approaches before impact and separates after impact. An earlier analytic ellipse approximation was rejected after it showed up to 9 mm disagreement at the real mesh rim. The paddle remains anchored by MegaPose/SAM2/CoTracker/read-only hand evidence; contact refinement changes only the sphere trajectory and does not move human or paddle state to manufacture contact.

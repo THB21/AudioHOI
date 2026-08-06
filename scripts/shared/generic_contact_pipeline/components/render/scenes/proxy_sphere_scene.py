@@ -26,8 +26,11 @@ import torch
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+from mpl_toolkits.mplot3d.art3d import Line3DCollection
 
 import smplx
+import trimesh
+from scipy.spatial.transform import Rotation
 
 THIS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = THIS_DIR.parents[5]
@@ -197,6 +200,47 @@ def read_ball_pose(path: Path) -> list[dict[str, float]]:
     for row in rows:
         row["default_human_part"] = detected_human_part
     return rows
+
+
+def read_rigid_wireframe(
+    pose_path: Path | None,
+    mesh_path: Path | None,
+    mesh_units: str,
+    frames: list[int],
+    maximum_edges: int = 500,
+) -> tuple[np.ndarray | None, np.ndarray | None]:
+    if pose_path is None or mesh_path is None:
+        return None, None
+    pose_by_frame: dict[int, dict[str, str]] = {}
+    with pose_path.open(newline="") as stream:
+        pose_by_frame = {int(row["frame"]): row for row in csv.DictReader(stream)}
+    missing = [frame for frame in frames if frame not in pose_by_frame]
+    if missing:
+        raise RuntimeError(f"Rigid pose is missing frames: {missing[:8]}")
+
+    mesh = trimesh.load_mesh(mesh_path, process=False)
+    if isinstance(mesh, trimesh.Scene):
+        mesh = trimesh.util.concatenate(tuple(mesh.geometry.values()))
+    vertices = np.asarray(mesh.vertices, dtype=float)
+    if mesh_units == "mm":
+        vertices *= 0.001
+    edges = np.asarray(mesh.edges_unique, dtype=int)
+    if len(edges) > maximum_edges:
+        indices = np.linspace(0, len(edges) - 1, maximum_edges, dtype=int)
+        edges = edges[indices]
+    used_vertices, inverse = np.unique(edges.reshape(-1), return_inverse=True)
+    vertices = vertices[used_vertices]
+    edges = inverse.reshape(-1, 2)
+
+    transformed = []
+    for frame in frames:
+        row = pose_by_frame[frame]
+        rotation = Rotation.from_quat(
+            [float(row["qx"]), float(row["qy"]), float(row["qz"]), float(row["qw"])]
+        )
+        translation = np.asarray([row["tx"], row["ty"], row["tz"]], dtype=float)
+        transformed.append(rotation.apply(vertices) + translation)
+    return np.asarray(transformed, dtype=float), edges
 
 
 def read_object_observations(path: Path) -> dict[int, dict[str, str]]:
@@ -657,6 +701,7 @@ def render_overlay_ball_only(
     video_codec: str,
     h264_encoder: str,
     object_proxy: dict[str, object] | None = None,
+    base_video: Path | None = None,
 ) -> tuple[Path, Path]:
     frames_dir = sample_dir / "frames"
     first = cv2.imread(str(frames_dir / "00001.png"))
@@ -667,11 +712,19 @@ def render_overlay_ball_only(
     mp4_path = out_dir / "overlay.mp4"
     png_path = out_dir / "overlay_preview.png"
     writer, writer_path = make_video_writer(mp4_path, fps, (w, h), video_codec)
+    base_capture = cv2.VideoCapture(str(base_video)) if base_video is not None else None
+    if base_capture is not None and not base_capture.isOpened():
+        raise RuntimeError(f"Could not open overlay base video: {base_video}")
 
     traj: list[tuple[int, int]] = []
     preview_written = False
     for ball in ball_rows:
-        frame = cv2.imread(str(frames_dir / f"{ball['frame']:05d}.png"))
+        if base_capture is None:
+            frame = cv2.imread(str(frames_dir / f"{ball['frame']:05d}.png"))
+        else:
+            ok, frame = base_capture.read()
+            if not ok:
+                frame = None
         if frame is None:
             continue
         proj = project_ball(ball, K)
@@ -699,6 +752,8 @@ def render_overlay_ball_only(
             preview_written = True
 
     writer.release()
+    if base_capture is not None:
+        base_capture.release()
     mp4_path = finalize_video_file(writer_path, mp4_path, video_codec, h264_encoder)
     return png_path, mp4_path
 
@@ -823,6 +878,8 @@ def render_camera3d(
     video_codec: str,
     h264_encoder: str,
     object_proxy: dict[str, object] | None = None,
+    rigid_vertices_cam: np.ndarray | None = None,
+    rigid_edges: np.ndarray | None = None,
 ) -> tuple[Path, Path]:
     mp4_path = out_dir / "camera3d.mp4"
     png_path = out_dir / "camera3d_preview.png"
@@ -831,6 +888,8 @@ def render_camera3d(
     ball_xyz_cam = np.asarray([[r["x"], r["y"], r["z"]] for r in ball_rows], dtype=np.float32)
     ball_xyz = cam_to_worldlike(ball_xyz_cam)
     all_pts = [ball_xyz]
+    if rigid_vertices_cam is not None:
+        all_pts.append(cam_to_worldlike(rigid_vertices_cam.reshape(-1, 3)))
     if with_human and sampled_vertices is not None:
         all_pts.append(cam_to_worldlike(sampled_vertices.reshape(-1, 3)))
     all_pts = np.concatenate(all_pts, axis=0)
@@ -857,13 +916,54 @@ def render_camera3d(
         ax.view_init(elev=18, azim=-62)
         ax.grid(True, alpha=0.18)
 
-        ax.plot(ball_xyz[:, 0], ball_xyz[:, 2], ball_xyz[:, 1], color="#d1d7e1", linewidth=1.2, alpha=0.55)
-        ax.plot(ball_xyz[: idx + 1, 0], ball_xyz[: idx + 1, 2], ball_xyz[: idx + 1, 1], color="#4c72b0", linewidth=2.4, alpha=0.95)
+        if rigid_vertices_cam is not None:
+            rigid_focus = cam_to_worldlike(rigid_vertices_cam[idx])
+            focus = np.concatenate((rigid_focus, ball_xyz[idx : idx + 1]), axis=0)
+
+            def focused_limits(values: np.ndarray, minimum_span: float = 0.42) -> tuple[float, float]:
+                low = float(values.min())
+                high = float(values.max())
+                center = 0.5 * (low + high)
+                span = max(minimum_span, 1.45 * (high - low))
+                return center - 0.5 * span, center + 0.5 * span
+
+            ax.set_xlim(*focused_limits(focus[:, 0]))
+            ax.set_ylim(*focused_limits(focus[:, 2]))
+            ax.set_zlim(*focused_limits(focus[:, 1]))
+
+        if rigid_vertices_cam is None:
+            ax.plot(ball_xyz[:, 0], ball_xyz[:, 2], ball_xyz[:, 1], color="#d1d7e1", linewidth=1.2, alpha=0.55)
+            ax.plot(ball_xyz[: idx + 1, 0], ball_xyz[: idx + 1, 2], ball_xyz[: idx + 1, 1], color="#4c72b0", linewidth=2.4, alpha=0.95)
+        else:
+            history_start = max(0, idx - 7)
+            ax.plot(
+                ball_xyz[history_start : idx + 1, 0],
+                ball_xyz[history_start : idx + 1, 2],
+                ball_xyz[history_start : idx + 1, 1],
+                color="#8b98aa",
+                linewidth=1.4,
+                alpha=0.38,
+            )
         ball_now = ball_xyz[idx]
         if object_kind == "mug":
             draw_mug_3d(ax, ball_xyz_cam[idx], object_obs.get(int(ball["frame"])), object_proxy=object_proxy)
         else:
             ax.scatter([ball_now[0]], [ball_now[2]], [ball_now[1]], s=180, color="#db7a20", edgecolors="#1f1f1f", linewidths=1.0, depthshade=False)
+
+        if rigid_vertices_cam is not None and rigid_edges is not None:
+            rigid_now = cam_to_worldlike(rigid_vertices_cam[idx])
+            segments = rigid_now[rigid_edges]
+            plotted_segments = np.stack(
+                (segments[:, :, 0], segments[:, :, 2], segments[:, :, 1]), axis=2
+            )
+            ax.add_collection3d(
+                Line3DCollection(
+                    plotted_segments,
+                    colors="#b82020",
+                    linewidths=1.15,
+                    alpha=0.90,
+                )
+            )
 
         if with_human and sampled_vertices is not None and joints is not None:
             verts = cam_to_worldlike(sampled_vertices[idx])
@@ -1035,6 +1135,14 @@ def main() -> None:
     parser.add_argument("--vertex-stride", type=int, default=12)
     parser.add_argument("--with-human", action="store_true")
     parser.add_argument(
+        "--overlay-base-video",
+        type=Path,
+        help="Optional pre-rendered object overlay used as the background for sphere composition.",
+    )
+    parser.add_argument("--rigid-pose-csv", type=Path)
+    parser.add_argument("--rigid-mesh", type=Path)
+    parser.add_argument("--rigid-mesh-units", choices=("m", "mm"), default="m")
+    parser.add_argument(
         "--video-codec",
         choices=["h264", "mp4v"],
         default="h264",
@@ -1058,6 +1166,12 @@ def main() -> None:
 
     ball_csv = args.ball_csv or (results_dir / "pose6d_object_proxy_anchor_refined" / "object_pose6d_sharedcam_contactphase_trajectory.csv")
     ball_rows = read_ball_pose(ball_csv)
+    rigid_vertices_cam, rigid_edges = read_rigid_wireframe(
+        args.rigid_pose_csv,
+        args.rigid_mesh,
+        args.rigid_mesh_units,
+        [int(row["frame"]) for row in ball_rows],
+    )
     object_obs = read_object_observations(results_dir / "object_observations" / "object_observations.csv")
     object_kind = infer_object_kind(sample_dir, object_obs)
     object_proxy = read_object_proxy(sample_dir)
@@ -1067,10 +1181,10 @@ def main() -> None:
 
     # Ball-only outputs always get written.
     ball_overlay_png, ball_overlay_mp4 = render_overlay_ball_only(
-        sample_dir, ball_rows, human["K_fullimg"][0], ball_out, object_kind, object_obs, args.fps, args.video_codec, h264_encoder, object_proxy
+        sample_dir, ball_rows, human["K_fullimg"][0], ball_out, object_kind, object_obs, args.fps, args.video_codec, h264_encoder, object_proxy, args.overlay_base_video
     )
     ball_cam3d_png, ball_cam3d_mp4 = render_camera3d(
-        ball_rows, None, None, ball_out, object_kind, object_obs, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder, object_proxy=object_proxy
+        ball_rows, None, None, ball_out, object_kind, object_obs, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder, object_proxy=object_proxy, rigid_vertices_cam=rigid_vertices_cam, rigid_edges=rigid_edges
     )
     ball_side_png, ball_side_mp4 = render_side_yz(
         ball_rows, None, None, ball_out, object_kind, object_obs, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder, object_proxy=object_proxy
@@ -1113,6 +1227,8 @@ def main() -> None:
             video_codec=args.video_codec,
             h264_encoder=h264_encoder,
             object_proxy=object_proxy,
+            rigid_vertices_cam=rigid_vertices_cam,
+            rigid_edges=rigid_edges,
         )
         human_side_png, human_side_mp4 = render_side_yz(
             ball_rows,

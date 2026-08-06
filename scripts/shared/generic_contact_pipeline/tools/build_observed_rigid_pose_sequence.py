@@ -50,8 +50,8 @@ def _project(point: np.ndarray, camera: np.ndarray) -> np.ndarray:
     )
 
 
-def _right_hand_evidence(
-    path: Path | None, camera: np.ndarray
+def _hand_site_evidence(
+    path: Path | None, camera: np.ndarray, site_id: str
 ) -> tuple[dict[int, np.ndarray], dict[int, np.ndarray]]:
     if path is None:
         return {}, {}
@@ -59,7 +59,7 @@ def _right_hand_evidence(
     points: dict[int, np.ndarray] = {}
     with path.open(newline="") as stream:
         for row in csv.DictReader(stream):
-            if row.get("site_id") != "right_hand":
+            if row.get("site_id") != site_id:
                 continue
             point = np.asarray([row["x_m"], row["y_m"], row["z_m"]], dtype=float)
             if point[2] > 1e-6:
@@ -67,6 +67,108 @@ def _right_hand_evidence(
                 points[frame] = point
                 pixels[frame] = _project(point, camera)
     return pixels, points
+
+
+def _hand_frames(
+    path: Path,
+    *,
+    frame_count: int,
+    wrist_index: int,
+    finger_base_indices: tuple[int, ...],
+) -> list[Rotation]:
+    """Build a smooth camera-space hand frame without modifying human state."""
+    joints = np.asarray(np.load(path), dtype=float)
+    if joints.ndim != 3 or joints.shape[0] < frame_count or joints.shape[2] != 3:
+        raise ValueError(
+            f"hand joints must have shape (frames,joints,3), got {joints.shape}"
+        )
+    required = (wrist_index, *finger_base_indices)
+    if min(required) < 0 or max(required) >= joints.shape[1]:
+        raise ValueError(f"hand joint indices {required} exceed shape {joints.shape}")
+    selected = joints[:frame_count].copy()
+    window = min(15, frame_count if frame_count % 2 else frame_count - 1)
+    if window >= 5:
+        for joint_index in required:
+            for axis in range(3):
+                selected[:, joint_index, axis] = savgol_filter(
+                    selected[:, joint_index, axis],
+                    window_length=window,
+                    polyorder=2,
+                    mode="interp",
+                )
+    rotations: list[Rotation] = []
+    previous_matrix: np.ndarray | None = None
+    for frame in range(frame_count):
+        wrist = selected[frame, wrist_index]
+        bases = selected[frame, list(finger_base_indices)]
+        forward = np.mean(bases, axis=0) - wrist
+        lateral = bases[-1] - bases[0]
+        forward /= max(np.linalg.norm(forward), 1e-12)
+        lateral -= float(lateral @ forward) * forward
+        lateral /= max(np.linalg.norm(lateral), 1e-12)
+        normal = np.cross(lateral, forward)
+        normal /= max(np.linalg.norm(normal), 1e-12)
+        matrix = np.column_stack((lateral, forward, normal))
+        if np.linalg.det(matrix) < 0.0:
+            matrix[:, 2] *= -1.0
+        # The anatomical axes must not flip sign from frame to frame.
+        if previous_matrix is not None:
+            alternatives = (
+                matrix,
+                matrix @ np.diag((-1.0, -1.0, 1.0)),
+                matrix @ np.diag((-1.0, 1.0, -1.0)),
+                matrix @ np.diag((1.0, -1.0, -1.0)),
+            )
+            matrix = max(
+                alternatives,
+                key=lambda value: float(np.trace(previous_matrix.T @ value)),
+            )
+        rotations.append(Rotation.from_matrix(matrix))
+        previous_matrix = matrix
+    return rotations
+
+
+def _scaled_rotation(rotation: Rotation, gain: float) -> Rotation:
+    return Rotation.from_rotvec(gain * rotation.as_rotvec())
+
+
+def _bounded_mask_corrections(
+    rotations: list[Rotation],
+    *,
+    pivots: list[np.ndarray],
+    handle_local: np.ndarray,
+    observed_local: np.ndarray,
+    observed_pixels: np.ndarray,
+    camera: np.ndarray,
+    maximum_degrees: float,
+) -> list[Rotation]:
+    correction_vectors = []
+    for rotation, pivot, pixel in zip(rotations, pivots, observed_pixels):
+        aligned = _pivot_constrained_rotation(
+            rotation,
+            pivot,
+            handle_local,
+            observed_local,
+            pixel,
+            camera,
+        )
+        vector = (aligned * rotation.inv()).as_rotvec()
+        magnitude = float(np.linalg.norm(vector))
+        maximum = np.deg2rad(maximum_degrees)
+        if magnitude > maximum:
+            vector *= maximum / magnitude
+        correction_vectors.append(vector)
+    corrections = np.asarray(correction_vectors)
+    window = min(21, len(corrections) if len(corrections) % 2 else len(corrections) - 1)
+    if window >= 5:
+        for axis in range(3):
+            corrections[:, axis] = savgol_filter(
+                corrections[:, axis], window_length=window, polyorder=2, mode="interp"
+            )
+    return [
+        Rotation.from_rotvec(vector) * rotation
+        for vector, rotation in zip(corrections, rotations)
+    ]
 
 
 def _face_score(row: dict[str, object], normal_local: np.ndarray) -> float:
@@ -218,6 +320,39 @@ def main() -> None:
     parser.add_argument("--hypotheses", type=Path, nargs="+", required=True)
     parser.add_argument("--mask-dir", type=Path, required=True)
     parser.add_argument("--human-sites", type=Path)
+    parser.add_argument(
+        "--grasp-site-id",
+        default="right_hand",
+        help="One immutable observed human site used for the entire rigid grasp.",
+    )
+    parser.add_argument(
+        "--hand-joints-npy",
+        type=Path,
+        help="Optional read-only camera-space joints used to drive persistent-grasp rotation.",
+    )
+    parser.add_argument("--hand-wrist-index", type=int, default=21)
+    parser.add_argument(
+        "--hand-finger-base-indices",
+        default="40,43,46,49",
+        help="Comma-separated joint indices spanning the selected palm.",
+    )
+    parser.add_argument(
+        "--hand-rotation-gain",
+        type=float,
+        default=0.25,
+        help="Gain applied to observed hand-frame rotation relative to the initial frame.",
+    )
+    parser.add_argument(
+        "--mask-rotation-limit-deg",
+        type=float,
+        default=5.0,
+        help="Maximum smooth visual correction around the fixed grasp pivot.",
+    )
+    parser.add_argument(
+        "--max-rotation-step-deg",
+        type=float,
+        help="Optional hard validator for a persistent rigid grasp trajectory.",
+    )
     parser.add_argument("--frame-count", type=int, required=True)
     parser.add_argument("--fps", type=float, required=True)
     parser.add_argument("--fx", type=float, required=True)
@@ -242,7 +377,9 @@ def main() -> None:
             for line in stream:
                 row = json.loads(line)
                 grouped.setdefault(int(row["frame"]), []).append(row)
-    hands, hand_points = _right_hand_evidence(args.human_sites, camera)
+    hands, hand_points = _hand_site_evidence(
+        args.human_sites, camera, args.grasp_site_id
+    )
     selected = _select_branch(
         grouped,
         face_normal=args.visible_face_normal,
@@ -325,31 +462,67 @@ def main() -> None:
                 polyorder=2,
                 mode="interp",
             )
-        constrained_rotations: list[Rotation] = []
-        previous_vector: np.ndarray | None = None
-        for index, (frame, rotation) in enumerate(
-            zip(range(1, args.frame_count + 1), rotations_by_frame)
-        ):
-            constrained = _pivot_constrained_rotation(
-                rotation,
-                hand_points[frame],
-                args.handle_local,
-                args.blade_center_local,
-                observed_pixels_array[index],
-                camera,
-                reference_vector=previous_vector,
+        if args.hand_joints_npy is None:
+            raise RuntimeError(
+                "Persistent grasp requires --hand-joints-npy so rotation is driven by "
+                "the same observed hand rather than independently fitting each mask."
             )
-            constrained_rotations.append(constrained)
-            previous_vector = constrained.apply(
-                args.blade_center_local - args.handle_local
+        finger_indices = tuple(
+            int(token)
+            for token in args.hand_finger_base_indices.split(",")
+            if token.strip()
+        )
+        if len(finger_indices) < 2:
+            raise ValueError("At least two palm finger-base indices are required")
+        hand_rotations = _hand_frames(
+            args.hand_joints_npy,
+            frame_count=args.frame_count,
+            wrist_index=args.hand_wrist_index,
+            finger_base_indices=finger_indices,
+        )
+        initial_object_rotation = rotations_by_frame[0]
+        initial_hand_rotation = hand_rotations[0]
+        hand_driven_rotations = [
+            _scaled_rotation(
+                hand_rotation * initial_hand_rotation.inv(), args.hand_rotation_gain
             )
-        rotations_by_frame = constrained_rotations
+            * initial_object_rotation
+            for hand_rotation in hand_rotations
+        ]
+        rotations_by_frame = _bounded_mask_corrections(
+            hand_driven_rotations,
+            pivots=[hand_points[frame] for frame in range(1, args.frame_count + 1)],
+            handle_local=args.handle_local,
+            observed_local=args.blade_center_local,
+            observed_pixels=observed_pixels_array,
+            camera=camera,
+            maximum_degrees=args.mask_rotation_limit_deg,
+        )
         for index, (frame, rotation) in enumerate(
             zip(range(1, args.frame_count + 1), rotations_by_frame)
         ):
             translation_array[index] = (
                 hand_points[frame] - rotation.apply(args.handle_local)
             )
+
+    rotation_steps_deg = np.rad2deg(
+        np.asarray(
+            [
+                (left.inv() * right).magnitude()
+                for left, right in zip(rotations_by_frame[:-1], rotations_by_frame[1:])
+            ]
+        )
+    )
+    if (
+        args.max_rotation_step_deg is not None
+        and len(rotation_steps_deg)
+        and float(np.max(rotation_steps_deg)) > args.max_rotation_step_deg
+    ):
+        raise RuntimeError(
+            "Rigid grasp rotation-step validator failed: "
+            f"{float(np.max(rotation_steps_deg)):.3f} > "
+            f"{args.max_rotation_step_deg:.3f} deg/frame"
+        )
 
     output_rows: list[dict[str, object]] = []
     for frame, (rotation, translation) in enumerate(
@@ -374,6 +547,7 @@ def main() -> None:
                 "qy": float(qy),
                 "qz": float(qz),
                 "grasp_active": int(args.persistent_grasp),
+                "grasp_site_id": args.grasp_site_id if args.persistent_grasp else "",
                 "grasp_gap_m": grasp_gap,
                 "source": (
                     "megapose_semantic_branch_cotracker_persistent_grasp_sequence"
@@ -413,6 +587,23 @@ def main() -> None:
             ),
         ],
         "persistent_grasp": args.persistent_grasp,
+        "grasp_site_id": args.grasp_site_id if args.persistent_grasp else None,
+        "grasp_site_switching_allowed": False,
+        "rotation_driver": (
+            "read_only_observed_hand_frame"
+            if args.persistent_grasp
+            else "selected_pose_hypotheses"
+        ),
+        "hand_rotation_gain": args.hand_rotation_gain if args.persistent_grasp else None,
+        "mask_rotation_limit_deg": (
+            args.mask_rotation_limit_deg if args.persistent_grasp else None
+        ),
+        "rotation_step_deg": {
+            "median": float(np.median(rotation_steps_deg)),
+            "p95": float(np.percentile(rotation_steps_deg, 95)),
+            "maximum": float(np.max(rotation_steps_deg)),
+            "hard_limit": args.max_rotation_step_deg,
+        },
         "grasp_gap_m": {
             "maximum": float(np.nanmax([row["grasp_gap_m"] for row in output_rows])),
             "mean": float(np.nanmean([row["grasp_gap_m"] for row in output_rows])),
@@ -421,6 +612,9 @@ def main() -> None:
             "hypotheses": [str(path.resolve()) for path in args.hypotheses],
             "hypotheses_sha256": [_sha256(path) for path in args.hypotheses],
             "human_sites": str(args.human_sites.resolve()) if args.human_sites else None,
+            "hand_joints_npy": (
+                str(args.hand_joints_npy.resolve()) if args.hand_joints_npy else None
+            ),
         },
         "output": str(args.output.resolve()),
         "output_sha256": _sha256(args.output),

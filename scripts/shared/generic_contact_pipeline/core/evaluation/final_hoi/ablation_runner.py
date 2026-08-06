@@ -332,13 +332,14 @@ def _causal_ablation_status(row: dict[str, Any], delta: dict[str, Any]) -> dict[
     intervention_valid = row.get("method_status") == "ok"
     if method == "no_audio":
         intervention_valid = intervention_valid and str(row.get("audio")) == "False"
-    elif method == "no_vlm_llm":
+    elif method in {"no_vlm", "no_vlm_llm"}:
         intervention_valid = (
             intervention_valid
             and str(row.get("vlm")) == "none"
-            and str(row.get("llm")) == "none"
             and str(row.get("gate_impact_status")) == "disabled_by_ablation"
         )
+        if method == "no_vlm_llm":
+            intervention_valid = intervention_valid and str(row.get("llm")) == "none"
 
     mechanism_fields = [
         "delta_gate_event_count",
@@ -411,11 +412,17 @@ def _registry_rows(profiles: list[CaseProfile], variants: list[MethodVariant]) -
     return rows
 
 
-def _write_report(output_dir: Path, rows: list[dict[str, Any]], deltas: list[dict[str, Any]]) -> Path:
+def _write_report(
+    output_dir: Path,
+    rows: list[dict[str, Any]],
+    deltas: list[dict[str, Any]],
+    *,
+    baseline_method: str,
+) -> Path:
     ok_rows = [row for row in rows if row.get("method_status") == "ok"]
     missing_rows = [row for row in rows if row.get("method_status") != "ok"]
-    same_pose = sum(1 for row in ok_rows if str(row.get("same_pose_as_baseline")) == "True" and row.get("method") != "full_audio_vlm_llm")
-    same_metrics = sum(1 for row in ok_rows if str(row.get("metrics_identical_to_baseline")) == "True" and row.get("method") != "full_audio_vlm_llm")
+    same_pose = sum(1 for row in ok_rows if str(row.get("same_pose_as_baseline")) == "True" and row.get("method") != baseline_method)
+    same_metrics = sum(1 for row in ok_rows if str(row.get("metrics_identical_to_baseline")) == "True" and row.get("method") != baseline_method)
     lines = [
         "# Ablation Evaluation Report",
         "",
@@ -479,7 +486,7 @@ def _write_report(output_dir: Path, rows: list[dict[str, Any]], deltas: list[dic
             "",
             "## Focused Ablation Deltas",
             "",
-            "`delta = method - full_audio_vlm_llm`. For error-like metrics, positive is worse. For recall-like metrics, negative is worse.",
+            f"`delta = method - {baseline_method}`. For error-like metrics, positive is worse. For recall-like metrics, negative is worse.",
             "",
             "| case | method | intervention valid | mechanism changed | outcome changed | interpretation | Δ contact proxy | Δ overlay | Δ high-speed recall | Δ oversmooth | Δ gate events | Δ gate active | Δ reweight frames | Δ pose delta max | Δ anchor updates |",
             "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
@@ -547,6 +554,7 @@ def run_ablation_evaluation(
     output_dir: Path,
     allow_same_result_debug: bool = False,
     require_existing: bool = False,
+    baseline_method: str = "full_audio_vlm_llm",
 ) -> dict[str, Any]:
     validate_method_result_mapping(
         profiles,
@@ -555,12 +563,15 @@ def run_ablation_evaluation(
         require_existing=require_existing,
     )
     output_dir.mkdir(parents=True, exist_ok=True)
-    rows = _annotate_effectiveness([_row(profile, variant) for profile in profiles for variant in variants])
+    rows = _annotate_effectiveness(
+        [_row(profile, variant) for profile in profiles for variant in variants],
+        baseline_method=baseline_method,
+    )
     table = write_rows(output_dir / "ablation_table.csv", rows, ABLATION_FIELDS)
-    deltas = _delta_rows(rows)
+    deltas = _delta_rows(rows, baseline_method=baseline_method)
     delta_table = write_rows(output_dir / "ablation_delta_table.csv", deltas)
     registry_table = write_rows(output_dir / "ablation_method_registry.csv", _registry_rows(profiles, variants), REGISTRY_FIELDS)
-    report = _write_report(output_dir, rows, deltas)
+    report = _write_report(output_dir, rows, deltas, baseline_method=baseline_method)
     manifest = {
         "rows": len(rows),
         "delta_rows": len(deltas),
@@ -569,8 +580,9 @@ def run_ablation_evaluation(
         "registry_table": str(registry_table),
         "report": str(report),
         "missing_results": sum(1 for row in rows if row.get("method_status") == "missing_result"),
-        "identical_pose_rows": sum(1 for row in rows if row.get("method") != "full_audio_vlm_llm" and str(row.get("same_pose_as_baseline")) == "True"),
-        "identical_metric_rows": sum(1 for row in rows if row.get("method") != "full_audio_vlm_llm" and str(row.get("metrics_identical_to_baseline")) == "True"),
+        "baseline_method": baseline_method,
+        "identical_pose_rows": sum(1 for row in rows if row.get("method") != baseline_method and str(row.get("same_pose_as_baseline")) == "True"),
+        "identical_metric_rows": sum(1 for row in rows if row.get("method") != baseline_method and str(row.get("metrics_identical_to_baseline")) == "True"),
     }
     write_json(
         output_dir / "ablation_method_registry_manifest.json",

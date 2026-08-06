@@ -31,6 +31,17 @@ class EvaluationPaths:
             value = source.get(key)
             return Path(value) if value else fallback
 
+        # Object-stage ablations may intentionally carry different event
+        # streams (for example, the no-audio variant).  Prefer the event
+        # contract materialized beside that variant before falling back to the
+        # legacy sample-level human/audio result.
+        local_audio_contacts = profile.result_dir / "audio_contact_events.csv"
+        default_audio_contacts = (
+            local_audio_contacts
+            if local_audio_contacts.exists()
+            else profile.sample_dir / "results" / "human_audio_semantics" / "contact_records.csv"
+        )
+
         return cls(
             sample_dir=profile.sample_dir,
             result_dir=profile.result_dir,
@@ -44,7 +55,7 @@ class EvaluationPaths:
             contact_points_csv=source_path("contact_points_csv", profile.result_dir / "object_contact_points.csv"),
             audio_contact_csv=source_path(
                 "audio_contact_csv",
-                profile.sample_dir / "results" / "human_audio_semantics" / "contact_records.csv",
+                default_audio_contacts,
             ),
             anchor_state_csv=source_path("anchor_state_csv", profile.result_dir / "anchor_state.csv"),
             observed_mask_dirs=tuple(

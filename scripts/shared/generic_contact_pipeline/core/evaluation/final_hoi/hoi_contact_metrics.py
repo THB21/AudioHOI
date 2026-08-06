@@ -133,6 +133,7 @@ def _candidate_to_pair(row: dict[str, str], anchor: dict[str, str]) -> dict[str,
         if observed
         else "inactive"
     )
+    expected = _truth(row.get("expected_contact")) or _truth(row.get("expected")) or observed or persistent
     return {
         "frame": str(_frame_int(row)),
         "time": row.get("time", anchor.get("time", "")),
@@ -140,7 +141,7 @@ def _candidate_to_pair(row: dict[str, str], anchor: dict[str, str]) -> dict[str,
         "human_side": human_side,
         "object_part": object_part,
         "object_local_id": row.get("object_local_id", ""),
-        "expected": int(observed or persistent),
+        "expected": int(expected),
         "observed": int(observed),
         "persistent": int(persistent),
         "rel_static": int(local_s_drift is not None and local_s_drift <= 0.05 and persistent),
@@ -228,12 +229,21 @@ def compute_hoi_contact_metrics(paths: EvaluationPaths) -> MetricBlock:
     anchor_drifts = [f(row.get("local_s_drift")) for row in pair_rows if _truth(row.get("observed"))]
     observed_rows = [row for row in pair_rows if _truth(row.get("observed"))]
     persistent_rows = [row for row in pair_rows if _truth(row.get("persistent"))]
+    expected_rows = [row for row in pair_rows if _truth(row.get("expected"))]
+    pair_gaps_m = [abs(value) for row in expected_rows if (value := f(row.get("surface_gap_m"))) is not None]
     contact_gap = f(hoi.get("contact_gap_mm"))
+    contact_gap_source = "final_hoi_aggregate"
+    if contact_gap is None and pair_gaps_m:
+        contact_gap = float(sum(pair_gaps_m) / len(pair_gaps_m) * 1000.0)
+        contact_gap_source = "object_or_hoi_contact_pairs_mean_surface_gap"
+    contact_frame_ratio = f(hoi.get("contact_frame_ratio"))
+    if contact_frame_ratio is None and expected_rows:
+        contact_frame_ratio = sum(_truth(row.get("observed")) for row in expected_rows) / len(expected_rows)
     metrics: dict[str, Any] = {
-        "contact_frame_ratio": f(hoi.get("contact_frame_ratio")),
+        "contact_frame_ratio": contact_frame_ratio,
         "contact_gap_mm": contact_gap,
         "contact_proxy": contact_proxy_from_gap(contact_gap),
-        "contact_proxy_source": "contact_gap_mm_exp_decay_sigma_50" if contact_gap is not None else "missing_contact_gap_mm",
+        "contact_proxy_source": f"{contact_gap_source}:contact_gap_mm_exp_decay_sigma_50" if contact_gap is not None else "missing_contact_gap_mm",
         "part_correct_ratio": f(hoi.get("part_correct_ratio")),
         "contact_ratio_audio_windows": f(hoi.get("contact_ratio_audio_windows")),
         "grasp_stability_mm": f(hoi.get("grasp_stability_mm")),

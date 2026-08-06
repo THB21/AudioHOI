@@ -477,14 +477,12 @@ def _pose_by_frame(paths: EvaluationPaths) -> dict[int, dict[str, str]]:
 
 
 def _projected_radius(paths: EvaluationPaths, row: dict[str, str]) -> float | None:
-    radius = f(row.get("radius_proj_px"), f(row.get("radius_obs_px"), f(row.get("radius_px"))))
-    if radius is not None and radius > 0:
-        return radius
     radius_m = f(row.get("radius_m"))
     depth_m = f(row.get("tz"), f(row.get("z")))
-    if radius_m is None or depth_m is None or radius_m <= 0 or depth_m <= 1e-6:
-        return None
-    return float(paths.camera.get("fx", DEFAULT_CAMERA["fx"])) * radius_m / depth_m
+    if radius_m is not None and depth_m is not None and radius_m > 0 and depth_m > 1e-6:
+        return float(paths.camera.get("fx", DEFAULT_CAMERA["fx"])) * radius_m / depth_m
+    radius = f(row.get("radius_proj_px"), f(row.get("radius_obs_px"), f(row.get("radius_px"))))
+    return radius if radius is not None and radius > 0 else None
 
 
 def _generate_mask_from_pose(paths: EvaluationPaths, row: dict[str, str], observed_shape: Mask) -> Mask | None:
@@ -564,21 +562,28 @@ def _generate_evaluation_render_masks(paths: EvaluationPaths, observed_masks: di
     proxy_generated = 0
     full_geometry_generated = 0
     visuals_cache: dict[str, object] = {}
-    urdf_available = _resolve_urdf(paths) is not None
+    # A sample may contain auxiliary observed-entity assets (for example the
+    # ping-pong paddle) next to an optimized sphere.  Do not infer the target
+    # geometry by blindly taking the first URDF in the sample directory.
+    sphere_proxy = any(f(row.get("radius_m")) is not None for row in pose_rows.values())
+    urdf_available = not sphere_proxy and _resolve_urdf(paths) is not None
     for frame, observed_path in sorted(observed_masks.items()):
-        if frame in rendered_masks:
+        if frame in rendered_masks and not sphere_proxy:
             try:
                 rendered_masks[frame].relative_to(paths.evaluation_dir / "render_masks")
-                if not urdf_available:
-                    continue
             except ValueError:
+                # A renderer-produced mask is an independent hard artifact and
+                # must not be replaced by the evaluator proxy.
                 continue
+            # Evaluation-generated masks are a cache of the current pose, not
+            # independent evidence.  Always regenerate them so a changed pose
+            # cannot leave a mixed old/new mask set behind.
         row = pose_rows.get(frame)
         if row is None:
             continue
         observed_array = _read_mask_array(observed_path)
         if observed_array is not None:
-            rendered_full = _render_urdf_mask_array(paths, row, observed_array, visuals_cache)
+            rendered_full = _render_urdf_mask_array(paths, row, observed_array, visuals_cache) if urdf_available else None
             if rendered_full is not None:
                 target = out_dir / f"{frame:05d}_mask.pgm"
                 _write_mask_array_pgm(target, rendered_full)

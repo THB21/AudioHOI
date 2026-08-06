@@ -39,6 +39,7 @@ def main() -> None:
     ap.add_argument("--methods", nargs="+", default=DEFAULT_METHODS)
     ap.add_argument("--method-result", action="append", default=[], metavar="METHOD=RESULT_NAME")
     ap.add_argument("--output-dir", default="final_result/evaluation/ablation")
+    ap.add_argument("--baseline-method", default="full_audio_vlm_llm")
     ap.add_argument("--allow-same-result-debug", action="store_true")
     ap.add_argument("--require-existing", action="store_true")
     args = ap.parse_args()
@@ -72,6 +73,7 @@ def main() -> None:
         output_dir=Path(args.output_dir),
         allow_same_result_debug=args.allow_same_result_debug,
         require_existing=args.require_existing,
+        baseline_method=args.baseline_method,
     )
     print(f"[ablation-eval] rows={result['rows']} missing={result['missing_results']} table={result['table']}")
 

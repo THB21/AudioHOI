@@ -12,7 +12,7 @@ from .hoi_contact_metrics import compute_hoi_contact_metrics
 from .object_6d_metrics import compute_object_6d_metrics
 from .overlay_metrics import compute_overlay_metrics
 from .part_metrics import compute_part_metrics
-from .penetration_floating_metrics import compute_penetration_floating_metrics
+from .penetration_floating_metrics import compute_penetration_floating_metrics, tradeoff_score
 from .schemas import EvaluationPaths
 from .temporal_audio_metrics import compute_temporal_audio_metrics
 from .temporal_plausibility_metrics import compute_temporal_plausibility_metrics
@@ -122,6 +122,15 @@ def run_unified_final_evaluation(profile: CaseProfile, *, run_qa: bool = True) -
         metrics.update(block.metrics)
         artifacts.update({f"{block.name}.{key}": value for key, value in block.artifacts.items()})
         warnings.extend(block.warnings)
+    # Object-only evaluations can provide a typed object/tool contact gap
+    # without a downstream human-geometry penetration artifact.  Preserve the
+    # repository's existing tradeoff formula instead of silently omitting the
+    # physical score in that case.
+    if metrics.get("tradeoff_score") is None and metrics.get("contact_gap_mm") is not None:
+        metrics["tradeoff_score"] = tradeoff_score(
+            metrics.get("contact_gap_mm"),
+            metrics.get("penetration_depth_mean_mm"),
+        )
     try:
         if not run_qa:
             raise RuntimeError("qa_skipped_for_manifest_backed_final_result")

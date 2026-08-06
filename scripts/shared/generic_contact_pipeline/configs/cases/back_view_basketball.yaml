@@ -6,6 +6,12 @@ geometry_asset_descriptor: scripts/shared/generic_contact_pipeline/configs/asset
 sphere:
   radius_m: 0.12
 observation_model: mask_track_center
+supplemental_measurements:
+  - adapter: external_pose_translation_v1
+    artifact: ../megapose/rigid_pose_hypotheses.jsonl
+    minimum_render_mask_iou: 0.70
+    minimum_visible_tracks: 16
+    depth_sigma_m: 0.08
 contact_policy: hand_floor
 pose_model: translation3
 generic_object_problem:
@@ -18,8 +24,8 @@ generic_object_problem:
   contact_state_artifact: contact_state_frames.csv
   contact_source: event_directional
   contact_event_artifact: contact_candidates_internal/contact_candidates_labeled.csv
-  contact_target_feature: object:center
-  contact_residual_axes: [2]
+  contact_target_feature: object:surface
+  contact_residual_axes: [0, 1, 2]
   maximum_contact_offset_m: 1.0
   depth_reference: directional_contact_interpolation
   measurement_factors: [point_reprojection, metric_depth]
@@ -69,12 +75,18 @@ preprocess:
   segmenter_model: facebook/sam2.1-hiera-tiny
   tracker: cotracker3_offline
   tracker_query_source: sam2_mask_center
+  tracker_sequence_mode: persistent_online
+  tracker_grid_size: 12
+  tracker_resize_width: 640
+  rigid_pose_provider: megapose_rgb
+  rigid_pose_keyframes: auto
+  rigid_pose_keyframe_count: 16
   da3_chunk_size: 16
   da3_process_res: 504
 vlm:
   target: basketball
   parts: [ball_center, ball_boundary, ball_bottom, background, unclear]
-  contacts: [left_hand, right_hand, floor, body, nothing_nearby, unclear]
+  contacts: [left_hand, right_hand, both_hands, floor, body, nothing_nearby, unclear]
   stable_refs: [center, bottom_support, boundary_point, unclear]
   frame_policy:
     stage1: all

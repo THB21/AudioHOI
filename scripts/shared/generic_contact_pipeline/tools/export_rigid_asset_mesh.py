@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export a fixed-state URDF visual assembly as one provider-neutral mesh."""
+"""Export provider-neutral rigid meshes from URDF or primitive descriptors."""
 from __future__ import annotations
 
 import argparse
@@ -36,6 +36,43 @@ def export_fixed_mesh(
     *, descriptor_path: Path, output_path: Path, minimum_vertices: int = 4096
 ) -> dict[str, object]:
     descriptor = json.loads(descriptor_path.read_text())
+    geometry_kind = str(descriptor.get("geometry_kind", "")).strip().lower()
+    if geometry_kind == "sphere":
+        radius_m = float(descriptor["radius_m"])
+        subdivisions = 2
+        mesh = trimesh.creation.icosphere(subdivisions=subdivisions, radius=radius_m * 1000.0)
+        while len(mesh.vertices) < minimum_vertices:
+            subdivisions += 1
+            mesh = trimesh.creation.icosphere(
+                subdivisions=subdivisions, radius=radius_m * 1000.0
+            )
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        mesh.export(output_path)
+        bounds_mm = np.asarray(mesh.bounds, dtype=float)
+        record = {
+            "schema_version": 1,
+            "geometry_provider_contract": "primitive_rigid_mesh_mm",
+            "geometry_kind": "sphere",
+            "asset_descriptor": str(descriptor_path),
+            "asset_descriptor_sha256": file_sha256(descriptor_path),
+            "source_units": "m",
+            "output_units": "mm",
+            "scale": 1000.0,
+            "radius_m": radius_m,
+            "output_mesh": str(output_path),
+            "output_mesh_sha256": file_sha256(output_path),
+            "vertex_count": int(len(mesh.vertices)),
+            "face_count": int(len(mesh.faces)),
+            "minimum_vertices": minimum_vertices,
+            "subdivision_passes": subdivisions,
+            "bounds_mm": bounds_mm.tolist(),
+            "extents_mm": (bounds_mm[1] - bounds_mm[0]).tolist(),
+            "visuals": [{"primitive": "sphere", "radius_m": radius_m}],
+        }
+        sidecar = output_path.with_suffix(output_path.suffix + ".json")
+        sidecar.write_text(json.dumps(record, indent=2) + "\n")
+        return {**record, "sidecar": str(sidecar)}
+
     urdf_path = resolve_repo_path(str(descriptor["resource_path"]))
     fixed_joint_state = {
         str(name): float(value)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import csv
+import json
 from dataclasses import dataclass
 from math import isfinite
 from pathlib import Path
@@ -10,7 +11,7 @@ from typing import Mapping
 from ..base.config import CaseProfile
 from ..base.io import repo_relative_value
 from .adapters import adapt_legacy_observation_rows
-from .types import CoordinateFrame, FeatureRef, Line2DMeasurement, Measurement, MeasurementMeta, Point2DMeasurement, SourceRef, Unit
+from .types import CoordinateFrame, FeatureRef, Line2DMeasurement, Measurement, MeasurementMeta, MetricDepthMeasurement, Point2DMeasurement, SourceRef, Unit
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,65 @@ def adapt_configured_supplemental_measurements(
             raise ValueError("supplemental measurement entries must be mappings")
         adapter = str(spec.get("adapter", ""))
         path = result_dir / str(spec["artifact"])
+        if adapter == "external_pose_translation_v1":
+            rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+            source_path = str(repo_relative_value(path.resolve()))
+            sources.append(source_path)
+            camera = profile.data.get("camera", {})
+            fx, fy = float(camera["fx"]), float(camera["fy"])
+            cx, cy = float(camera["cx"]), float(camera["cy"])
+            fps = float(spec.get("fps", profile.data.get("preprocess", {}).get("fps", 30.0)))
+            minimum_iou = float(spec.get("minimum_render_mask_iou", 0.65))
+            minimum_tracks = int(spec.get("minimum_visible_tracks", 16))
+            accepted_statuses = {
+                str(value) for value in spec.get(
+                    "accepted_provider_statuses", ("reliable_visible_keyframe",)
+                )
+            }
+            fields = (
+                "tx_m", "ty_m", "tz_m", "official_render_mask_iou",
+                "persistent_visible_track_count", "selected_by_visual_geometry",
+            )
+            for row in rows:
+                if not bool(row.get("selected_by_visual_geometry", False)):
+                    continue
+                if str(row.get("provider_status", "")) not in accepted_statuses:
+                    continue
+                iou = float(row.get("official_render_mask_iou", 0.0))
+                visible_tracks = int(row.get("persistent_visible_track_count", 0))
+                if iou < minimum_iou or visible_tracks < minimum_tracks:
+                    continue
+                frame = int(row["frame"])
+                tx, ty, tz = (float(row[f"t{axis}_m"]) for axis in "xyz")
+                if not all(isfinite(value) for value in (tx, ty, tz)) or tz <= 0.0:
+                    raise ValueError("external pose translation must be finite and in front of camera")
+                confidence = min(1.0, max(0.0, iou))
+                time = (frame - 1) / fps
+                point_meta = MeasurementMeta(
+                    measurement_id=f"{profile.case_name}:{frame}:external_pose_translation:point",
+                    sample_id=profile.case_name,
+                    frame=frame,
+                    time=time,
+                    feature=FeatureRef("object_center", "object:center"),
+                    coordinate_frame=CoordinateFrame.IMAGE_PIXELS,
+                    unit=Unit.PIXEL,
+                    confidence=confidence,
+                    source=SourceRef(source_path, fields, adapter),
+                )
+                depth_meta = MeasurementMeta(
+                    measurement_id=f"{profile.case_name}:{frame}:external_pose_translation:depth",
+                    sample_id=profile.case_name,
+                    frame=frame,
+                    time=time,
+                    feature=FeatureRef("object_center_depth", "object:center"),
+                    coordinate_frame=CoordinateFrame.CAMERA_METERS,
+                    unit=Unit.METER,
+                    confidence=confidence,
+                    source=SourceRef(source_path, fields, adapter),
+                )
+                measurements.append(Point2DMeasurement(point_meta, fx * tx / tz + cx, fy * ty / tz + cy))
+                measurements.append(MetricDepthMeasurement(depth_meta, tz, sigma_m=float(spec.get("depth_sigma_m", 0.08))))
+            continue
         if adapter == "legacy_observation_v1":
             with path.open(newline="") as handle:
                 rows = list(csv.DictReader(handle))

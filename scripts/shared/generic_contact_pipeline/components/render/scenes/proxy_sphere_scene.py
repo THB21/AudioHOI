@@ -26,11 +26,13 @@ import torch
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from mpl_toolkits.mplot3d.art3d import Line3DCollection
+from mpl_toolkits.mplot3d.art3d import Line3DCollection, Poly3DCollection
 
 import smplx
 import trimesh
 from scipy.spatial.transform import Rotation
+
+import generic_urdf_scene as generic_urdf
 
 THIS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = THIS_DIR.parents[5]
@@ -241,6 +243,41 @@ def read_rigid_wireframe(
         translation = np.asarray([row["tx"], row["ty"], row["tz"]], dtype=float)
         transformed.append(rotation.apply(vertices) + translation)
     return np.asarray(transformed, dtype=float), edges
+
+
+def read_rigid_solid_visuals(
+    urdf_path: Path | None,
+    descriptor_path: Path | None,
+) -> list[dict[str, object]] | None:
+    if urdf_path is None:
+        return None
+    joint_positions: dict[str, float] = {}
+    if descriptor_path is not None:
+        descriptor = json.loads(descriptor_path.read_text())
+        joint_positions = {
+            str(name): float(value)
+            for name, value in descriptor.get("fixed_resource_joint_state", {}).items()
+        }
+    visuals = generic_urdf.load_articraft_visuals(urdf_path, joint_positions)
+    solid_visuals: list[dict[str, object]] = []
+    for visual in visuals:
+        mesh = trimesh.Trimesh(
+            vertices=np.asarray(visual["vertices"], dtype=float),
+            faces=np.asarray(visual["faces"], dtype=np.int32),
+            process=False,
+        ).convex_hull
+        if len(mesh.faces) > 1200:
+            mesh = mesh.bounding_box_oriented
+        bgr = tuple(int(value) for value in visual.get("color", (60, 140, 210)))
+        solid_visuals.append(
+            {
+                "name": visual.get("name", ""),
+                "vertices": np.asarray(mesh.vertices, dtype=float),
+                "faces": np.asarray(mesh.faces, dtype=np.int32),
+                "color_rgb": (bgr[2] / 255.0, bgr[1] / 255.0, bgr[0] / 255.0),
+            }
+        )
+    return solid_visuals
 
 
 def read_object_observations(path: Path) -> dict[int, dict[str, str]]:
@@ -880,6 +917,8 @@ def render_camera3d(
     object_proxy: dict[str, object] | None = None,
     rigid_vertices_cam: np.ndarray | None = None,
     rigid_edges: np.ndarray | None = None,
+    rigid_solid_visuals: list[dict[str, object]] | None = None,
+    rigid_pose_rows: list[dict[str, str]] | None = None,
 ) -> tuple[Path, Path]:
     mp4_path = out_dir / "camera3d.mp4"
     png_path = out_dir / "camera3d_preview.png"
@@ -948,9 +987,58 @@ def render_camera3d(
         if object_kind == "mug":
             draw_mug_3d(ax, ball_xyz_cam[idx], object_obs.get(int(ball["frame"])), object_proxy=object_proxy)
         else:
-            ax.scatter([ball_now[0]], [ball_now[2]], [ball_now[1]], s=180, color="#db7a20", edgecolors="#1f1f1f", linewidths=1.0, depthshade=False)
+            sphere_u = np.linspace(0.0, 2.0 * np.pi, 18)
+            sphere_v = np.linspace(0.0, np.pi, 10)
+            sphere_radius = float(ball.get("r", BALL_RADIUS_M))
+            sphere_x = ball_now[0] + sphere_radius * np.outer(
+                np.cos(sphere_u), np.sin(sphere_v)
+            )
+            sphere_depth = ball_now[2] + sphere_radius * np.outer(
+                np.sin(sphere_u), np.sin(sphere_v)
+            )
+            sphere_up = ball_now[1] + sphere_radius * np.outer(
+                np.ones_like(sphere_u), np.cos(sphere_v)
+            )
+            ax.plot_surface(
+                sphere_x,
+                sphere_depth,
+                sphere_up,
+                color="#db7a20",
+                edgecolor="#6b3510",
+                linewidth=0.18,
+                alpha=0.98,
+                shade=True,
+            )
 
-        if rigid_vertices_cam is not None and rigid_edges is not None:
+        if rigid_solid_visuals is not None and rigid_pose_rows is not None:
+            pose_row = rigid_pose_rows[idx]
+            rotation = Rotation.from_quat(
+                [
+                    float(pose_row["qx"]),
+                    float(pose_row["qy"]),
+                    float(pose_row["qz"]),
+                    float(pose_row["qw"]),
+                ]
+            )
+            translation = np.asarray(
+                [pose_row["tx"], pose_row["ty"], pose_row["tz"]], dtype=float
+            )
+            for visual in rigid_solid_visuals:
+                local_vertices = np.asarray(visual["vertices"], dtype=float)
+                cam_vertices = rotation.apply(local_vertices) + translation
+                world_vertices = cam_to_worldlike(cam_vertices)
+                faces = np.asarray(visual["faces"], dtype=np.int32)
+                triangles = world_vertices[faces][:, :, [0, 2, 1]]
+                ax.add_collection3d(
+                    Poly3DCollection(
+                        triangles,
+                        facecolor=visual["color_rgb"],
+                        edgecolor="#352a22",
+                        linewidths=0.16,
+                        alpha=0.94,
+                    )
+                )
+        elif rigid_vertices_cam is not None and rigid_edges is not None:
             rigid_now = cam_to_worldlike(rigid_vertices_cam[idx])
             segments = rigid_now[rigid_edges]
             plotted_segments = np.stack(
@@ -1142,6 +1230,8 @@ def main() -> None:
     parser.add_argument("--rigid-pose-csv", type=Path)
     parser.add_argument("--rigid-mesh", type=Path)
     parser.add_argument("--rigid-mesh-units", choices=("m", "mm"), default="m")
+    parser.add_argument("--rigid-urdf", type=Path)
+    parser.add_argument("--rigid-asset-descriptor", type=Path)
     parser.add_argument(
         "--video-codec",
         choices=["h264", "mp4v"],
@@ -1172,6 +1262,17 @@ def main() -> None:
         args.rigid_mesh_units,
         [int(row["frame"]) for row in ball_rows],
     )
+    rigid_solid_visuals = read_rigid_solid_visuals(
+        args.rigid_urdf,
+        args.rigid_asset_descriptor,
+    )
+    rigid_pose_rows = None
+    if args.rigid_pose_csv is not None:
+        with args.rigid_pose_csv.open(newline="") as stream:
+            pose_by_frame = {
+                int(row["frame"]): row for row in csv.DictReader(stream)
+            }
+        rigid_pose_rows = [pose_by_frame[int(row["frame"])] for row in ball_rows]
     object_obs = read_object_observations(results_dir / "object_observations" / "object_observations.csv")
     object_kind = infer_object_kind(sample_dir, object_obs)
     object_proxy = read_object_proxy(sample_dir)
@@ -1184,7 +1285,7 @@ def main() -> None:
         sample_dir, ball_rows, human["K_fullimg"][0], ball_out, object_kind, object_obs, args.fps, args.video_codec, h264_encoder, object_proxy, args.overlay_base_video
     )
     ball_cam3d_png, ball_cam3d_mp4 = render_camera3d(
-        ball_rows, None, None, ball_out, object_kind, object_obs, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder, object_proxy=object_proxy, rigid_vertices_cam=rigid_vertices_cam, rigid_edges=rigid_edges
+        ball_rows, None, None, ball_out, object_kind, object_obs, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder, object_proxy=object_proxy, rigid_vertices_cam=rigid_vertices_cam, rigid_edges=rigid_edges, rigid_solid_visuals=rigid_solid_visuals, rigid_pose_rows=rigid_pose_rows
     )
     ball_side_png, ball_side_mp4 = render_side_yz(
         ball_rows, None, None, ball_out, object_kind, object_obs, args.fps, args.width, args.height, with_human=False, video_codec=args.video_codec, h264_encoder=h264_encoder, object_proxy=object_proxy
@@ -1229,6 +1330,8 @@ def main() -> None:
             object_proxy=object_proxy,
             rigid_vertices_cam=rigid_vertices_cam,
             rigid_edges=rigid_edges,
+            rigid_solid_visuals=rigid_solid_visuals,
+            rigid_pose_rows=rigid_pose_rows,
         )
         human_side_png, human_side_mp4 = render_side_yz(
             ball_rows,

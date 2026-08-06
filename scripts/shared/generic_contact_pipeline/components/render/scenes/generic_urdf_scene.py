@@ -492,19 +492,31 @@ def draw_overlay(
         img = cv2.imread(str(frame_path(sample, fr)), cv2.IMREAD_COLOR)
         overlay = img.copy()
         render_mask = np.zeros(img.shape[:2], dtype=np.uint8)
-        for mesh in visual_meshes(row, visuals):
+        frame_meshes = visual_meshes(row, visuals)
+        frame_meshes.sort(
+            key=lambda mesh: float(np.nanmean(np.asarray(mesh["cam"], dtype=float)[:, 2])),
+            reverse=True,
+        )
+        for mesh in frame_meshes:
             uv, valid = project(np.asarray(mesh["cam"], dtype=float), K)
             faces = np.asarray(mesh["faces"], dtype=np.int32)
             color = tuple(int(c) for c in mesh.get("color", (60, 140, 210)))
-            for face in faces[:: max(1, len(faces) // 180)]:
-                if not np.all(valid[face]):
-                    continue
-                pts = np.round(uv[face]).astype(np.int32)
-                if np.any(pts[:, 0] < -50) or np.any(pts[:, 0] > w + 50) or np.any(pts[:, 1] < -50) or np.any(pts[:, 1] > h + 50):
-                    continue
-                cv2.fillConvexPoly(overlay, pts, color)
-                cv2.fillConvexPoly(render_mask, pts, 255)
-                cv2.polylines(overlay, [pts], True, (20, 40, 60), 1, cv2.LINE_AA)
+            valid_uv = uv[valid]
+            if len(faces) > 5000 and len(valid_uv) >= 3:
+                hull = cv2.convexHull(np.round(valid_uv).astype(np.int32))
+                cv2.fillConvexPoly(overlay, hull, color)
+                cv2.fillConvexPoly(render_mask, hull, 255)
+                cv2.polylines(overlay, [hull], True, (20, 30, 40), 1, cv2.LINE_AA)
+            else:
+                for face in faces[:: max(1, len(faces) // 360)]:
+                    if not np.all(valid[face]):
+                        continue
+                    pts = np.round(uv[face]).astype(np.int32)
+                    if np.any(pts[:, 0] < -50) or np.any(pts[:, 0] > w + 50) or np.any(pts[:, 1] < -50) or np.any(pts[:, 1] > h + 50):
+                        continue
+                    cv2.fillConvexPoly(overlay, pts, color)
+                    cv2.fillConvexPoly(render_mask, pts, 255)
+                    cv2.polylines(overlay, [pts], True, (20, 40, 60), 1, cv2.LINE_AA)
         img_base = img
         object_mask = None
         line_track = None
@@ -722,6 +734,11 @@ def main() -> None:
     ap.add_argument("--cx", type=float, default=640.0)
     ap.add_argument("--cy", type=float, default=360.0)
     ap.add_argument("--body-model-root", type=Path, default=Path("third-party/GVHMR/inputs/checkpoints/body_models"))
+    ap.add_argument(
+        "--object-only",
+        action="store_true",
+        help="Render only the object outputs without loading or drawing the read-only human result.",
+    )
     args = ap.parse_args()
 
     rows = read_rows(args.pose_csv)
@@ -733,7 +750,12 @@ def main() -> None:
             for name, value in descriptor.get("fixed_resource_joint_state", {}).items()
         }
     visuals = load_articraft_visuals(args.urdf, joint_positions)
-    body = build_body_geometry(args.body_model_root, read_human_result(args.sample_dir / "results/gvhmr/result.pkl"))
+    body = None
+    if not args.object_only:
+        body = build_body_geometry(
+            args.body_model_root,
+            read_human_result(args.sample_dir / "results/gvhmr/result.pkl"),
+        )
     visible_tracks = read_visible_line_tracks(args.sample_dir)
     K = np.array([[args.fx, 0.0, args.cx], [0.0, args.fy, args.cy], [0.0, 0.0, 1.0]], dtype=float)
     object_dir = args.out_root / "object_only"
@@ -742,34 +764,46 @@ def main() -> None:
     outputs["object_only"].update(draw_overlay(args.sample_dir, rows, visuals, object_dir / "overlay.mp4", args.fps, K, args.alpha))
     outputs["object_only"].update(render_3d(rows, visuals, object_dir / "camera3d.mp4", args.fps))
     outputs["object_only"].update(render_3d(rows, visuals, object_dir / "side_yz.mp4", args.fps, side_yz=True))
-    outputs["with_human"].update(
-        draw_overlay(
-            args.sample_dir,
-            rows,
-            visuals,
-            human_dir / "overlay.mp4",
-            args.fps,
-            K,
-            args.alpha,
-            human_joints=body.get("joints") if body is not None else None,
+    if not args.object_only:
+        outputs["with_human"].update(
+            draw_overlay(
+                args.sample_dir,
+                rows,
+                visuals,
+                human_dir / "overlay.mp4",
+                args.fps,
+                K,
+                args.alpha,
+                human_joints=body.get("joints") if body is not None else None,
+            )
         )
-    )
-    outputs["with_human"].update(
-        draw_overlay(
-            args.sample_dir,
-            rows,
-            visuals,
-            human_dir / "overlay_vlm_masked.mp4",
-            args.fps,
-            K,
-            args.alpha,
-            respect_human_occlusion=True,
-            clip_to_visible_object=True,
-            line_clip_tracks=visible_tracks,
+        outputs["with_human"].update(
+            draw_overlay(
+                args.sample_dir,
+                rows,
+                visuals,
+                human_dir / "overlay_vlm_masked.mp4",
+                args.fps,
+                K,
+                args.alpha,
+                respect_human_occlusion=True,
+                clip_to_visible_object=True,
+                line_clip_tracks=visible_tracks,
+            )
         )
-    )
-    outputs["with_human"].update(render_3d(rows, visuals, human_dir / "camera3d.mp4", args.fps, body=body))
-    outputs["with_human"].update(render_3d(rows, visuals, human_dir / "side_yz.mp4", args.fps, side_yz=True, body=body))
+        outputs["with_human"].update(
+            render_3d(rows, visuals, human_dir / "camera3d.mp4", args.fps, body=body)
+        )
+        outputs["with_human"].update(
+            render_3d(
+                rows,
+                visuals,
+                human_dir / "side_yz.mp4",
+                args.fps,
+                side_yz=True,
+                body=body,
+            )
+        )
     args.out_root.mkdir(parents=True, exist_ok=True)
     (args.out_root / "outputs.json").write_text(json.dumps(outputs, indent=2) + "\n")
     print(json.dumps(outputs, indent=2))

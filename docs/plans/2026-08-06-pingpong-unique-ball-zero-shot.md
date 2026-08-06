@@ -52,6 +52,8 @@ Run the held-out `14_pingpong_wall` sample from Stage 0 through the generic obje
 - `output/pingpong_rigid_contact_candidate/rigid_face_contacts.csv` — per-impact surface point, gap and relative-normal-motion audit
 - `samples_known_object/14_pingpong_wall/results/renders/pingpong_rigid_contact_candidate/ball/overlay.mp4` — current ball+paddle object overlay candidate
 - `samples_known_object/14_pingpong_wall/results/renders/pingpong_rigid_contact_candidate/ball/camera3d.mp4` — joint sphere and observed-rigid paddle camera-space 3D view
+- `samples_known_object/14_pingpong_wall/results/renders/pingpong_rigid_contact_articraft_solid/ball/overlay.mp4` — final joint overlay using the Articraft URDF visual materials
+- `samples_known_object/14_pingpong_wall/results/renders/pingpong_rigid_contact_articraft_solid/ball/camera3d.mp4` — final solid Articraft paddle and metric-radius sphere 3D view
 
 ## Execution notes
 
@@ -65,3 +67,4 @@ Run the held-out `14_pingpong_wall` sample from Stage 0 through the generic obje
 - 2026-08-06: robust translation filtering reduced paddle translation-step p95 from 0.318 m/frame to 0.116 m/frame. The current two-object overlay and camera-space 3D view contain the reconstructed Articraft paddle and the unique-ball full trajectory.
 - 2026-08-06: contact correction — joint audio peaks, sphere-to-paddle-mask proximity and a refractory gate identified seven actual paddle impacts at frames 17, 47, 74, 117, 151, 200 and 233. The generated clip contains seven apparent paddle/wall cycles despite requesting five in the generation prompt; the reconstruction follows the observed video rather than the requested count.
 - 2026-08-06: each paddle impact now targets the closest surface of the actual Articraft paddle mesh, has zero sphere-surface gap, approaches before impact and separates after impact. An earlier analytic ellipse approximation was rejected after it showed up to 9 mm disagreement at the real mesh rim. The paddle remains anchored by MegaPose/SAM2/CoTracker/read-only hand evidence; contact refinement changes only the sphere trajectory and does not move human or paddle state to manufacture contact.
+- 2026-08-06: final-render correction — the solver still consumes the Articraft-derived collision mesh, while final overlay and camera-space 3D now consume the original Articraft URDF visual components and materials. The previous sparse mesh wireframe is no longer the accepted visual output; the red rubber, black rubber, blade wood and handle are rendered as solid components, and the ball is drawn with its metric 20 mm radius.

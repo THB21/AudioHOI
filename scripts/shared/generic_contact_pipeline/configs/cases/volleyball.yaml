@@ -1,0 +1,112 @@
+case_name: volleyball
+sample_dir: samples_known_object/13_volleyball
+object_family: dynamic_ball
+geometry_model: sphere_proxy
+geometry_asset_descriptor: scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json
+sphere:
+  radius_m: 0.105
+observation_model: mask_track_center
+supplemental_measurements:
+  - adapter: external_pose_translation_v1
+    artifact: ../megapose/rigid_pose_hypotheses.jsonl
+    minimum_render_mask_iou: 0.65
+    minimum_visible_tracks: 12
+    depth_sigma_m: 0.08
+contact_policy: hand_floor
+pose_model: translation3
+generic_object_problem:
+  initializer: point_depth
+  initializer_artifacts:
+    - object_observations.csv
+    - contact_state_frames.csv
+    - contact_candidates_internal/contact_candidates_labeled.csv
+  contact_artifact: object_contact_points.csv
+  contact_state_artifact: contact_state_frames.csv
+  contact_source: event_directional
+  contact_event_artifact: contact_candidates_internal/contact_candidates_labeled.csv
+  contact_target_feature: object:surface
+  vlm_contact_interval_mode: event_peak
+  vlm_contact_half_window_frames: 1
+  vlm_contact_requires_audio_timing: true
+  vlm_contact_site_mode: all_hands_if_any_hand
+  vlm_contact_use_image_rays: false
+  vlm_contact_depth_mode: shared_site_median
+  contact_residual_axes: [0, 1, 2]
+  maximum_contact_offset_m: 1.0
+  depth_reference: directional_contact_interpolation
+  measurement_factors: [point_reprojection, metric_depth]
+  measurement_roles:
+    point_reprojection: [object_center]
+    metric_depth: [object_center_depth]
+  sequence_factors: [temporal_acceleration]
+  max_function_evaluations: 300
+factor_runtime:
+  point_reprojection:
+    weight: 1.0
+    sigma: 5.0
+    sigma_unit: px
+    source: measurement_ir:center_and_support_pixel_uncertainty
+    activation_weight_tiers: {active: 1.0, downweighted: 0.20, inactive: 0.0}
+  metric_depth:
+    weight: 0.245
+    sigma: 0.35
+    sigma_unit: m
+    source: measurement_ir:monocular_metric_depth_weak_prior
+    activation_weight_tiers: {active: 1.0, downweighted: 0.20, inactive: 0.0}
+  contact_distance:
+    weight: 1.5
+    sigma: 0.035
+    sigma_unit: m
+    source: interaction_state:vlm_confirmed_two_hand_to_sphere_surface
+    activation_weight_tiers: {active: 1.0, downweighted: 0.20, inactive: 0.0}
+  temporal_acceleration:
+    weight: 1.0
+    state_scales: [0.8, 0.67, 0.2]
+    source: sequence_translation_optimizer:impact_gated_second_difference
+    activation_weight_tiers: {active: 1.0, downweighted: 0.05, inactive: 0.0}
+refinement_policy:
+  - generic_sphere_sequence
+  - backproject_xy
+render_backend: proxy_sphere
+result_name: volleyball_pure_solver
+preprocess:
+  fps: 24.0
+  static_camera: true
+  detector_model: IDEA-Research/grounding-dino-tiny
+  detector_text: yellow and blue volleyball.
+  first_frame_box: 535,15,625,110
+  segmenter_model: facebook/sam2.1-hiera-tiny
+  tracker: cotracker3_offline
+  tracker_query_source: sam2_mask_center
+  tracker_sequence_mode: persistent_online
+  tracker_grid_size: 12
+  tracker_resize_width: 640
+  rigid_pose_provider: megapose_rgb
+  rigid_pose_keyframes: auto
+  rigid_pose_keyframe_count: 16
+  da3_chunk_size: 16
+  da3_process_res: 504
+vlm:
+  target: single yellow and blue volleyball
+  parts: [ball_center, ball_boundary, ball_bottom, background, unclear]
+  contacts: [left_hand, right_hand, both_hands, no_contact, body, unclear]
+  stable_refs: [center, boundary_point, same_ball_from_previous_frame, unclear]
+  frame_policy:
+    stage1: risk
+    stage2: risk
+    stage4: risk
+  single_identity:
+    enabled: true
+    entity_id: volleyball
+    maximum_entities: 1
+    prefer_visible_mask: true
+    interpolate_missing_mask_max_frames: 16
+audio:
+  expected_event_order: [hand_impact]
+  event_count:
+    hand_impact: 5
+camera:
+  fx: 1468.604736328125
+  fy: 1468.604736328125
+  cx: 640.0
+  cy: 360.0

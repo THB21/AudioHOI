@@ -854,6 +854,7 @@ def _directional_contact_samples_from_events(
 
 
 def _vlm_confirmed_surface_contact_samples(
+    profile: CaseProfile,
     result_dir: Path,
     sites: Sequence[HumanSiteMeasurement],
 ) -> tuple[WorldSpaceContactSample, ...]:
@@ -876,32 +877,76 @@ def _vlm_confirmed_surface_contact_samples(
     sites_by_key = {
         (site.frame, site.site.body_part, site.site.side): site for site in sites
     }
+    shared_hand_depth_by_frame = {
+        frame: float(np.median([
+            site.xyz_m[2]
+            for side in ("left", "right")
+            if (site := sites_by_key.get((frame, "hand", side))) is not None
+        ]))
+        for frame in {site.frame for site in sites}
+        if any(sites_by_key.get((frame, "hand", side)) is not None for side in ("left", "right"))
+    }
     samples: list[WorldSpaceContactSample] = []
+    contact_config = dict(profile.data.get("generic_object_problem", {}))
+    interval_mode = str(contact_config.get("vlm_contact_interval_mode", "persistent"))
+    half_window = max(0, int(contact_config.get("vlm_contact_half_window_frames", 0)))
+    use_image_rays = bool(contact_config.get("vlm_contact_use_image_rays", False))
+    contact_depth_mode = str(contact_config.get("vlm_contact_depth_mode", "measured_site"))
+    camera = PinholeCamera(**profile.camera)
+    intrinsics = (camera.fx, camera.fy, camera.cx, camera.cy)
     for query in query_rows:
         if query.get("query_type") != "contact_relation_check":
             continue
         representative = int(float(query.get("frame", "0") or 0))
         label = labels_by_frame.get(representative, "")
+        site_mode = str(contact_config.get("vlm_contact_site_mode", "label_selected"))
+        any_hand = label in {
+            "left_hand", "right_hand", "both_hands",
+            "left_palm", "right_palm", "both_palms",
+        }
         sides = (
-            ("left", "right") if label in {"both_hands", "both_palms"}
+            ("left", "right") if site_mode == "all_hands_if_any_hand" and any_hand
+            else ("left", "right") if label in {"both_hands", "both_palms"}
             else ("left",) if label in {"left_hand", "left_palm"}
             else ("right",) if label in {"right_hand", "right_palm"}
             else ()
         )
         start = int(float(query.get("start_frame", representative) or representative))
         end = int(float(query.get("end_frame", representative) or representative))
+        if interval_mode == "event_peak":
+            start = max(start, representative - half_window)
+            end = min(end, representative + half_window)
         for frame in range(start, end + 1):
             for side in sides:
                 site = sites_by_key.get((frame, "hand", side))
                 if site is None:
                     continue
+                source_uv = None
+                camera_intrinsics = None
+                source_xyz = site.xyz_m
+                if contact_depth_mode == "shared_site_median":
+                    shared_z = shared_hand_depth_by_frame.get(frame, site.xyz_m[2])
+                    source_xyz = (
+                        site.xyz_m[0] * shared_z / site.xyz_m[2],
+                        site.xyz_m[1] * shared_z / site.xyz_m[2],
+                        shared_z,
+                    )
+                if use_image_rays:
+                    x, y, z = site.xyz_m
+                    source_uv = (
+                        camera.fx * x / z + camera.cx,
+                        camera.fy * y / z + camera.cy,
+                    )
+                    camera_intrinsics = intrinsics
                 samples.append(WorldSpaceContactSample(
                     frame,
-                    site.xyz_m,
+                    source_xyz,
                     "object:surface",
                     None,
                     site.confidence,
                     contact_track_id=f"vlm_confirmed:human:hand:{side}->object:surface",
+                    source_uv_px=source_uv,
+                    camera_intrinsics=camera_intrinsics,
                 ))
     return tuple(samples)
 
@@ -1286,6 +1331,7 @@ def prepare_capability_object_problem(
             ),
         )
         samples = tuple(samples) + _vlm_confirmed_surface_contact_samples(
+            profile,
             result_dir,
             gvhmr_sites.measurements,
         )

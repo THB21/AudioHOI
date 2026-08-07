@@ -59,9 +59,34 @@ def build(profile: CaseProfile) -> dict[str, object]:
     depth_by_frame = _by_frame(read_csv(depth_csv))
     identity_selection_path = profile.result_dir / "sphere_identity_selection.csv"
     identity_by_frame = _by_frame(read_csv(identity_selection_path)) if identity_selection_path.exists() else {}
-    single_identity_enabled = bool(
-        dict(dict(profile.data.get("vlm", {})).get("single_identity", {})).get("enabled", False)
+    identity_config = dict(dict(profile.data.get("vlm", {})).get("single_identity", {}))
+    single_identity_enabled = bool(identity_config.get("enabled", False)) and (
+        "disable_vlm_semantic_evidence" not in set(profile.data.get("ablation_flags", ()))
     )
+    prefer_visible_mask = single_identity_enabled and bool(identity_config.get("prefer_visible_mask", False))
+    maximum_gap = max(0, int(identity_config.get("interpolate_missing_mask_max_frames", 0)))
+    visible_mask_centers = {
+        frame: (_pick(row.get("ball_center_x")), _pick(row.get("ball_center_y")))
+        for frame, row in ball_by_frame.items()
+        if row.get("ball_center_x") not in {"", None} and row.get("ball_center_y") not in {"", None}
+    }
+
+    def interpolated_mask_center(frame: int) -> tuple[float, float] | None:
+        if frame in visible_mask_centers:
+            return visible_mask_centers[frame]
+        if maximum_gap <= 0:
+            return None
+        previous = max((value for value in visible_mask_centers if value < frame), default=None)
+        following = min((value for value in visible_mask_centers if value > frame), default=None)
+        if previous is None or following is None or following - previous - 1 > maximum_gap:
+            return None
+        alpha = (frame - previous) / (following - previous)
+        p0 = visible_mask_centers[previous]
+        p1 = visible_mask_centers[following]
+        return (
+            (1.0 - alpha) * p0[0] + alpha * p1[0],
+            (1.0 - alpha) * p0[1] + alpha * p1[1],
+        )
     rows = []
     for fr in sorted(ball_by_frame):
         ball = ball_by_frame.get(fr, {})
@@ -69,7 +94,10 @@ def build(profile: CaseProfile) -> dict[str, object]:
         points = points_by_frame.get(fr, {})
         depth = depth_by_frame.get(fr, {})
         identity = identity_by_frame.get(fr, {})
-        if single_identity_enabled and not identity_by_frame:
+        mask_center = interpolated_mask_center(fr) if prefer_visible_mask and not identity_by_frame else None
+        if mask_center is not None:
+            center_u, center_v = mask_center
+        elif single_identity_enabled and not identity_by_frame:
             # Without the discrete identity gate, ambiguous multi-component
             # masks remain the vision-only observation. Persistent tracking is
             # an alternative hypothesis, not an implicit oracle.
@@ -93,7 +121,13 @@ def build(profile: CaseProfile) -> dict[str, object]:
                 "ref_v_smooth": f"{center_v:.3f}",
                 "ref_u_fit": f"{center_u:.3f}",
                 "ref_v_fit": f"{center_v:.3f}",
-                "ref_source": identity.get("selection_source", center.get("source", "cotracker_center_trajectory")),
+                "ref_source": (
+                    "vlm_single_identity_visible_mask"
+                    if mask_center is not None and fr in visible_mask_centers
+                    else "vlm_single_identity_mask_gap_interpolation"
+                    if mask_center is not None
+                    else identity.get("selection_source", center.get("source", "cotracker_center_trajectory"))
+                ),
                 "ref_type": "center",
                 "support_u": f"{center_u:.3f}",
                 "support_v": f"{bottom_v:.3f}",

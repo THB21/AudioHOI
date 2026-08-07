@@ -496,6 +496,55 @@ def contact_relation_risk_intervals(
             risk_by_frame[frame] = float(gap or 0.0)
     if not selected:
         return [(frame, frame, frame, time) for frame, time in stage_keyframes(profile, "stage4")[:5]]
+    contact_config = dict(profile.data.get("generic_object_problem", {}))
+    if str(contact_config.get("vlm_contact_interval_mode", "persistent")) == "event_peak":
+        # Brief impacts must be queried independently.  A long proximity run
+        # can contain several releases and re-contacts; merging it into one
+        # interval incorrectly turns the VLM label into persistent grasp.
+        local_minima = [
+            frame
+            for frame in selected
+            if all(
+                risk_by_frame.get(frame, float("inf"))
+                <= risk_by_frame.get(neighbor, float("inf"))
+                for neighbor in range(frame - 2, frame + 3)
+                if neighbor in risk_by_frame
+            )
+        ]
+        # Non-maximum suppression keeps one closest-hand hypothesis per brief
+        # event while preserving distinct rapid contacts.
+        minima: list[int] = []
+        for frame in sorted(local_minima, key=lambda value: risk_by_frame[value]):
+            if all(abs(frame - kept) > 6 for kept in minima):
+                minima.append(frame)
+        minima.sort()
+
+        # Audio supplies timing only: snap a visually plausible minimum to a
+        # nearby impulse, but never create a contact without visual proximity.
+        audio_path = profile.sample_dir / "results" / "events" / "audio_events.csv"
+        impulse_frames = sorted({
+            int(float(row.get("peak_frame") or row.get("frame") or row.get("start_frame") or 0))
+            for row in _read_rows(audio_path)
+            if str(row.get("event_type", "")) in {"impact", "hand_impact", "seam_click"}
+        })
+        snapped: list[int] = []
+        audio_disabled = "disable_audio_events" in set(profile.data.get("ablation_flags", ()))
+        require_audio = bool(contact_config.get("vlm_contact_requires_audio_timing", False)) and not audio_disabled
+        for frame in minima:
+            nearby = [candidate for candidate in impulse_frames if abs(candidate - frame) <= 4]
+            if require_audio and not nearby:
+                continue
+            snapped.append(min(nearby, key=lambda candidate: abs(candidate - frame)) if nearby else frame)
+        half_window = max(0, int(contact_config.get("vlm_contact_half_window_frames", 0)))
+        return [
+            (
+                frame,
+                max(min(selected), frame - half_window),
+                min(max(selected), frame + half_window),
+                times.get(frame, ""),
+            )
+            for frame in sorted(set(snapped))
+        ]
     intervals: list[tuple[int, int]] = []
     start = previous = selected[0]
     for frame in selected[1:]:
@@ -514,7 +563,11 @@ def contact_relation_risk_intervals(
             window_end = min(interval_end, window_start + maximum_window_frames - 1)
             representative = max(
                 range(window_start, window_end + 1),
-                key=lambda frame: risk_by_frame.get(frame, 0.0),
+                # A contact-relation query must show the most plausible
+                # contact frame.  Selecting the largest boundary gap asks the
+                # VLM about the least relevant frame and can turn a brief
+                # impact into a falsely persistent contact interval.
+                key=lambda frame: -risk_by_frame.get(frame, float("inf")),
             )
             windows.append((representative, window_start, window_end, times.get(representative, "")))
             window_start = window_end + 1

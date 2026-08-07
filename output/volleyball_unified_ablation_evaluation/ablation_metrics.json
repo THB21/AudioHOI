@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "metric_contract": "shared_visible_sam2_mask_and_generic_stage4_hard_metrics",
+  "rows": [
+    {
+      "variant": "full",
+      "publication_status": "accepted",
+      "visible_mask_error_mean_px": 0.9664137524165606,
+      "visible_mask_error_p95_px": 4.114646216067632,
+      "identity_interval_145_180_error_p95_px": 0.04228544519528192,
+      "contact_gap_p95_mm": 77.06719127734162,
+      "contact_gap_max_mm": 91.05130532548493,
+      "trajectory_acceleration_p95_m_per_frame2": 0.07505880452784787,
+      "trajectory_jerk_p95_m_per_frame3": 0.12099981865629976,
+      "vlm_contact_event_count": 10,
+      "contact_audio_nearest_error_mean_frames": 0.0
+    },
+    {
+      "variant": "no_audio",
+      "publication_status": "candidate_blocked",
+      "visible_mask_error_mean_px": 0.9672020657837374,
+      "visible_mask_error_p95_px": 4.100345477235047,
+      "identity_interval_145_180_error_p95_px": 0.043105179628660964,
+      "contact_gap_p95_mm": 84.56561002621356,
+      "contact_gap_max_mm": 91.07133490401569,
+      "trajectory_acceleration_p95_m_per_frame2": 0.07112375933328889,
+      "trajectory_jerk_p95_m_per_frame3": 0.11830218511750236,
+      "vlm_contact_event_count": 10,
+      "contact_audio_nearest_error_mean_frames": 0.0
+    },
+    {
+      "variant": "no_vlm",
+      "publication_status": "candidate_blocked",
+      "visible_mask_error_mean_px": 78.17347612432016,
+      "visible_mask_error_p95_px": 569.1432815645186,
+      "identity_interval_145_180_error_p95_px": 704.1423903126183,
+      "contact_gap_p95_mm": 141.11437700648315,
+      "contact_gap_max_mm": 141.11437700648315,
+      "trajectory_acceleration_p95_m_per_frame2": 0.12573959414108832,
+      "trajectory_jerk_p95_m_per_frame3": 0.2006662206939578,
+      "vlm_contact_event_count": 0,
+      "contact_audio_nearest_error_mean_frames": null
+    }
+  ],
+  "provenance": {
+    "full": {
+      "pose": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_full/ablation_pose.csv",
+      "pose_sha256": "ccf0769b5f6238cca4c9ac4a6a7b455402bbe590265b6dc7c952b3258f3284cc",
+      "hard_metrics": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_full/generic_sequence_solver_attempts/generic-solve-c2485c09d61b/hard_metrics.json"
+    },
+    "no_audio": {
+      "pose": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_no_audio/ablation_pose.csv",
+      "pose_sha256": "8c3b9c489adffcdd679f1c6595c9952095599506412922c75b101486d9eebdce",
+      "hard_metrics": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_no_audio/generic_sequence_solver_attempts/generic-solve-1e446144186b/hard_metrics.json"
+    },
+    "no_vlm": {
+      "pose": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_no_vlm/ablation_pose.csv",
+      "pose_sha256": "c79aefaa184579eda342e440dc37168e6523a657c9679d15761b300d108ba83b",
+      "hard_metrics": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_no_vlm/generic_sequence_solver_attempts/generic-solve-60880a17b15f/hard_metrics.json"
+    }
+  }
+}

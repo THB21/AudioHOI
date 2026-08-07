@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import hashlib
 import json
 import math
@@ -9,7 +10,7 @@ from typing import Any
 from ...base.config import CaseProfile
 from .ablation_registry import MethodVariant, resolve_variant_profile, validate_method_result_mapping
 from .summary_writer import run_unified_final_evaluation
-from .utils import write_json, write_rows
+from .utils import load_json, write_json, write_rows
 
 
 ABLATION_FIELDS = [
@@ -127,6 +128,20 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _variant_pose_path(result_dir: Path) -> Path | None:
+    """Select an accepted pose or an explicitly retained blocked-ablation pose."""
+
+    accepted = result_dir / "object_pose.csv"
+    publication_path = result_dir / "generic_object_publication.json"
+    publication = load_json(publication_path) if publication_path.exists() else {}
+    if accepted.exists() and publication.get("status") in {None, "", "accepted"}:
+        return accepted
+    blocked = result_dir / "ablation_pose.csv"
+    if blocked.exists():
+        return blocked
+    return accepted if accepted.exists() else None
+
+
 def _load_pipeline_manifest(result_dir: Path) -> dict[str, Any]:
     path = result_dir / "pipeline_manifest.json"
     if not path.exists():
@@ -202,7 +217,8 @@ def _row(profile: CaseProfile, variant: MethodVariant) -> dict[str, Any]:
         "llm": variant.llm or "",
         "ablation_flags": "|".join(variant.ablation_flags),
     }
-    if not result_dir.exists() or not (result_dir / "object_pose.csv").exists():
+    pose_path = _variant_pose_path(result_dir) if result_dir.exists() else None
+    if pose_path is None:
         return {
             **base,
             "method_status": "missing_result",
@@ -217,10 +233,17 @@ def _row(profile: CaseProfile, variant: MethodVariant) -> dict[str, Any]:
         return {
             **base,
             "method_status": "invalid_manifest",
-            "pose_sha256": _sha256(result_dir / "object_pose.csv"),
+            "pose_sha256": _sha256(pose_path),
             **manifest_audit,
         }
-    summary = run_unified_final_evaluation(vprofile, run_qa=False)
+    evaluation_profile = vprofile
+    if pose_path.name != "object_pose.csv":
+        data = deepcopy(vprofile.data)
+        source = dict(data.get("evaluation_source", {}))
+        source["object_pose_csv"] = str(pose_path)
+        data["evaluation_source"] = source
+        evaluation_profile = CaseProfile(data)
+    summary = run_unified_final_evaluation(evaluation_profile, run_qa=False)
     metrics = summary["metrics"]
     if (variant.vlm or "").lower() == "none" and (variant.llm or "").lower() == "none":
         metrics = {
@@ -236,7 +259,7 @@ def _row(profile: CaseProfile, variant: MethodVariant) -> dict[str, Any]:
     return {
         **base,
         "method_status": "ok",
-        "pose_sha256": _sha256(result_dir / "object_pose.csv"),
+        "pose_sha256": _sha256(pose_path),
         **manifest_audit,
         **{field: metrics.get(field, "") for field in ABLATION_FIELDS if field not in fixed_fields},
     }
@@ -522,9 +545,9 @@ def _write_report(
             "## Current Interpretation",
             "",
             "- `no_audio` tests whether audio timing/contact evidence changes the optimizer while VLM+LLM remain enabled.",
-            "- `no_vlm_llm` tests whether the VLM+LLM gate/audit path changes the result while audio remains enabled.",
+            "- `no_vlm`/`no_vlm_llm` tests whether the configured VLM semantic gate path changes the result while audio remains enabled.",
             "- If contact proxy and overlay remain unchanged but gate/pose/temporal deltas change, the current hard metrics are too coarse to show visual improvement and the gate-impact metrics should be used as the evidence.",
-            "- If a future `no_vlm_llm` row has zero pose/temporal delta, inspect `intervention_valid`, `mechanism_changed`, and `outcome_changed` before blaming the model or the evaluator.",
+            "- If a future VLM-off row has zero pose/temporal delta, inspect `intervention_valid`, `mechanism_changed`, and `outcome_changed` before blaming the model or the evaluator.",
         ]
     )
     path = output_dir / "ablation_report.md"

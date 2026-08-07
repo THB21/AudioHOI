@@ -71,3 +71,13 @@ and skeleton visualization. Human pose is never optimized.
   contact gap P95: 141.11 mm.
 - Unified ablation outputs:
   `output/volleyball_unified_ablation_evaluation/ablation_metrics.{csv,json}`.
+- Repository-standard final-evaluation ablation outputs are under
+  `output/volleyball_unified_ablation_evaluation/official/`. They compare real
+  Full, No-audio and No-VLM pose files and pass the manifest intervention audit.
+- The official Full overlay score is 0.6974, versus 0.6991 for No-audio and
+  0.4305 for No-VLM. Full improves the unified contact gap over No-audio by
+  88.80 mm and over No-VLM by 46.31 mm.
+- All three official rows currently fail `final_pass`: Full still reports
+  23 contact intervals / 69 contact-pair rows and a 268.70 mm aggregate gap.
+  This is a contact-timeline overactivation gap; the 77.40 mm Stage-4 trusted
+  contact P95 must not be presented as the repository-wide final contact metric.

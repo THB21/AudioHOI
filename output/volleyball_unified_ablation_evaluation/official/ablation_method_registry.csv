@@ -1,0 +1,4 @@
+case,method,result_name,result_dir,result_exists,audio,vlm,llm,ablation_flags,actual_vlm_mode,actual_llm_mode,actual_ablation_flags,method_manifest_valid,method_manifest_mismatch_reason
+volleyball,full,volleyball_full,samples_known_object/13_volleyball/results/volleyball_full,True,True,qwen,none,,qwen,none,,True,
+volleyball,no_audio,volleyball_no_audio,samples_known_object/13_volleyball/results/volleyball_no_audio,True,False,qwen,none,disable_audio_events,qwen,none,disable_audio_events,True,
+volleyball,no_vlm,volleyball_no_vlm,samples_known_object/13_volleyball/results/volleyball_no_vlm,True,True,none,none,disable_vlm_semantic_evidence,none,none,disable_vlm_semantic_evidence,True,

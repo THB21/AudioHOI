@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import numpy as np
+
 from ....core.base.config import CaseProfile
 from ....core.base.io import read_csv, write_csv, write_json
 from ....core.base.schema import stage_paths
@@ -31,6 +33,60 @@ def _pick(*values: object, default: float = 0.0) -> float:
         except Exception:
             continue
     return default
+
+
+def _accepted_offscreen_intervals(profile: CaseProfile) -> list[tuple[int, int]]:
+    """Read only VLM-confirmed out-of-frame visibility windows."""
+
+    stage_dir = profile.result_dir / "vlm" / "stage1"
+    queries_path = stage_dir / "vlm_queries.csv"
+    results_path = stage_dir / "vlm_results.csv"
+    if not queries_path.exists() or not results_path.exists():
+        return []
+    accepted = {
+        int(float(row.get("frame", "-1") or -1))
+        for row in read_csv(results_path)
+        if row.get("query_type") == "keypart_visibility_check"
+        and row.get("normalized_label") == "out_of_frame"
+        and row.get("pass_gate") == "pass"
+    }
+    intervals: list[tuple[int, int]] = []
+    for row in read_csv(queries_path):
+        try:
+            representative = int(float(row.get("frame", "-1") or -1))
+            start = int(float(row.get("start_frame", representative) or representative))
+            end = int(float(row.get("end_frame", representative) or representative))
+        except Exception:
+            continue
+        if row.get("query_type") == "keypart_visibility_check" and representative in accepted:
+            intervals.append((start, end))
+    return intervals
+
+
+def _projected_ballistic_gap_centers(
+    visible_centers: dict[int, tuple[float, float]],
+    intervals: list[tuple[int, int]],
+    *,
+    support_frames: int,
+) -> dict[int, tuple[float, float]]:
+    """Fit constant-acceleration image trajectories without image clipping."""
+
+    out: dict[int, tuple[float, float]] = {}
+    for start, end in intervals:
+        before = sorted((frame for frame in visible_centers if frame < start), reverse=True)[:support_frames]
+        after = sorted(frame for frame in visible_centers if frame > end)[:support_frames]
+        support = sorted(before + after)
+        if len(before) < 2 or len(after) < 2 or len(support) < 5:
+            continue
+        degree = 2
+        frame_values = np.asarray(support, dtype=np.float64)
+        u_values = np.asarray([visible_centers[frame][0] for frame in support], dtype=np.float64)
+        v_values = np.asarray([visible_centers[frame][1] for frame in support], dtype=np.float64)
+        u_coeff = np.polyfit(frame_values, u_values, degree)
+        v_coeff = np.polyfit(frame_values, v_values, degree)
+        for frame in range(start, end + 1):
+            out[frame] = (float(np.polyval(u_coeff, frame)), float(np.polyval(v_coeff, frame)))
+    return out
 
 
 def build(profile: CaseProfile) -> dict[str, object]:
@@ -65,11 +121,18 @@ def build(profile: CaseProfile) -> dict[str, object]:
     )
     prefer_visible_mask = single_identity_enabled and bool(identity_config.get("prefer_visible_mask", False))
     maximum_gap = max(0, int(identity_config.get("interpolate_missing_mask_max_frames", 0)))
+    offscreen_intervals = _accepted_offscreen_intervals(profile) if single_identity_enabled else []
+    ballistic_support_frames = max(2, int(identity_config.get("projected_ballistic_support_frames", 5)))
     visible_mask_centers = {
         frame: (_pick(row.get("ball_center_x")), _pick(row.get("ball_center_y")))
         for frame, row in ball_by_frame.items()
         if row.get("ball_center_x") not in {"", None} and row.get("ball_center_y") not in {"", None}
     }
+    projected_ballistic_centers = _projected_ballistic_gap_centers(
+        visible_mask_centers,
+        offscreen_intervals,
+        support_frames=ballistic_support_frames,
+    )
 
     def interpolated_mask_center(frame: int) -> tuple[float, float] | None:
         if frame in visible_mask_centers:
@@ -94,7 +157,14 @@ def build(profile: CaseProfile) -> dict[str, object]:
         points = points_by_frame.get(fr, {})
         depth = depth_by_frame.get(fr, {})
         identity = identity_by_frame.get(fr, {})
-        mask_center = interpolated_mask_center(fr) if prefer_visible_mask and not identity_by_frame else None
+        ballistic_center = projected_ballistic_centers.get(fr)
+        mask_center = (
+            ballistic_center
+            if ballistic_center is not None
+            else interpolated_mask_center(fr)
+            if prefer_visible_mask and not identity_by_frame
+            else None
+        )
         if mask_center is not None:
             center_u, center_v = mask_center
         elif single_identity_enabled and not identity_by_frame:
@@ -109,7 +179,8 @@ def build(profile: CaseProfile) -> dict[str, object]:
         radius_px = _pick(identity.get("radius_px"), depth.get("radius_px"), ball.get("radius"), default=0.0)
         bottom_v = _pick(points.get("bottom_y"), default=center_v + radius_px)
         z = _pick(depth.get("da3_depth_smooth"), depth.get("da3_depth_raw"), default=1.0)
-        obs_conf = "1.000000" if ball else "0.000000"
+        is_offscreen = ballistic_center is not None
+        obs_conf = "0.650000" if is_offscreen else "1.000000" if ball else "0.000000"
         proxy_conf = "1.000000" if center.get("source") else "0.750000"
         rows.append(
             {
@@ -122,7 +193,9 @@ def build(profile: CaseProfile) -> dict[str, object]:
                 "ref_u_fit": f"{center_u:.3f}",
                 "ref_v_fit": f"{center_v:.3f}",
                 "ref_source": (
-                    "vlm_single_identity_visible_mask"
+                    "vlm_out_of_frame_projected_ballistic"
+                    if is_offscreen
+                    else "vlm_single_identity_visible_mask"
                     if mask_center is not None and fr in visible_mask_centers
                     else "vlm_single_identity_mask_gap_interpolation"
                     if mask_center is not None
@@ -141,11 +214,14 @@ def build(profile: CaseProfile) -> dict[str, object]:
                 "object_ref_depth_m": f"{z:.6f}",
                 "contact_proxy_depth_m": "",
                 "contact_depth_offset_m": "",
-                "ref_conf": "1.000000",
+                "ref_conf": "0.650000" if is_offscreen else "1.000000",
                 "support_conf": "0.000000",
                 "contact_conf": "0.000000",
                 "depth_conf": "1.000000",
                 "observation_conf": obs_conf,
+                "visible_fraction": "0.000000" if is_offscreen else "1.000000",
+                "occlusion_state": "absent" if is_offscreen else "visible",
+                "vlm_visibility": "out_of_frame" if is_offscreen else "visible",
                 "proxy_conf": proxy_conf,
                 "proxy_jitter_px": "0.000000",
                 "support_jitter_px": "0.000000",
@@ -180,7 +256,9 @@ def build(profile: CaseProfile) -> dict[str, object]:
         "object_observations": str(out),
         "local_points": "none_for_center_proxy",
         "rows": len(rows),
-        "policy": "generic one-entity identity selection when present, otherwise mask/object center/radius + CoTracker + DA3; contact fields are owned by Stage2",
+        "vlm_confirmed_offscreen_intervals": [list(value) for value in offscreen_intervals],
+        "projected_ballistic_rows": len(projected_ballistic_centers),
+        "policy": "generic one-entity identity selection when present; VLM-confirmed out-of-frame gaps use unclipped projected-ballistic continuation; other gaps retain mask/track fallback; contact fields are owned by Stage2",
     }
     write_json(paths["stage1_metrics"], metrics)
     return metrics

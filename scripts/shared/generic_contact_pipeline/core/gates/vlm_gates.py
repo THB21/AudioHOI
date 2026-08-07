@@ -51,6 +51,9 @@ def gate_row_from_result(row: dict[str, str]) -> dict[str, object]:
         "keypart_visibility_check",
         "anchor_update_check",
     }
+    if qtype == "keypart_visibility_check" and row.get("normalized_label") == "out_of_frame":
+        # An absent object supplies a discrete motion-mode gate, not a visual anchor.
+        allow_anchor = False
     allow_contact = gate == GATE_PASS and qtype == "contact_relation_check"
     allow_pose_refine = gate == GATE_PASS or (qtype == "overlay_alignment_check" and action == "allow_small_se3_refine")
 

@@ -12,6 +12,7 @@ and skeleton visualization. Human pose is never optimized.
 | 5 | Produce six standard Stage 5 videos | done |
 | 6 | Freeze No-audio and No-VLM poses | done |
 | 7 | Run unified evaluator and write ablation summary | done |
+| 8 | Replace boundary-sticking mask-gap interpolation with VLM-gated off-screen physics | done |
 
 ## Required Full render contract
 
@@ -38,7 +39,7 @@ and skeleton visualization. Human pose is never optimized.
 
 - 240 frames, static 1280x720 camera at 24 fps.
 - SAM2 mask is present on 208 frames; empty intervals correspond to the ball
-  leaving the top of frame or the generated sequence temporarily omitting it.
+  leaving the top/left of frame.
 - Persistent CoTracker publishes 101 sphere points per frame.
 - MegaPose completed 16 automatically selected keyframes.
 - DA3, GVHMR and audio artifacts are complete.
@@ -46,12 +47,19 @@ and skeleton visualization. Human pose is never optimized.
 ## Final result
 
 - Full is accepted by the generic Stage 4 publisher.
-- Shared visible-mask error P95: 4.11 px.
+- Qwen classifies all four missing-mask intervals (18--26, 73--85, 140--144,
+  159--163) as `out_of_frame` with 0.98 confidence.
+- These intervals are represented as `visibility=absent`; the projected
+  constant-acceleration trajectory is not clipped to image bounds.
+- 31/32 missing-mask frames project outside the image; only one transition
+  frame remains just inside the boundary. No-audio has the same 31/32 result,
+  confirming that this is VLM/physics behavior rather than audio behavior.
+- Shared visible-mask error P95: 4.10 px.
 - VLM identity-recovery interval 145--180 error P95: 0.04 px.
-- Two-palm sphere contact gap P95: 77.07 mm.
+- Two-palm sphere contact gap P95: 77.20 mm.
 - No-audio and No-VLM are intentionally retained as blocked candidates in
   `ablation_pose.csv`; neither overwrites canonical `object_pose.csv`.
-- No-audio contact gap P95: 84.57 mm.
+- No-audio contact gap P95: 85.50 mm.
 - No-VLM visible-mask error P95: 569.14 px; identity interval P95: 704.14 px;
   contact gap P95: 141.11 mm.
 - Unified ablation outputs:

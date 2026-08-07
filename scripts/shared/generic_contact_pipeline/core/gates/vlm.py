@@ -77,7 +77,7 @@ SINGLE_IDENTITY_QUERY_TYPE = "single_entity_identity_check"
 
 STAGE_QUERY_TYPES = {
     "stage0": ["target_mask_check"],
-    "stage1": ["keypart_identity_check", "track_stability_check", SINGLE_IDENTITY_QUERY_TYPE],
+    "stage1": ["keypart_identity_check", "track_stability_check", "keypart_visibility_check", SINGLE_IDENTITY_QUERY_TYPE],
     "stage2": ["contact_relation_check", "keypart_visibility_check"],
     "stage3": ["overlay_alignment_check"],
     "stage4": ["anchor_update_check", "contact_relation_check", "overlay_alignment_check", "temporal_motion_check", "constraint_reliability_check", AMODAL_MASK_QUERY_TYPE, INTERVAL_SELECTION_QUERY_TYPE, *SEMANTIC_QUERY_TYPES],
@@ -101,6 +101,7 @@ COMMON_REPAIR_ACTIONS = [
     "keep_stable_candidate",
     "select_occlusion_challenger",
     "reject_candidate_pair",
+    "propagate_projected_ballistic_trajectory",
 ]
 
 
@@ -373,6 +374,52 @@ def single_identity_risk_windows(profile: CaseProfile) -> list[tuple[int, int, i
         if row.get("ambiguous") == "1":
             frames.add(frame)
     return [(frame, max(1, frame - 2), frame + 2, times.get(frame, "")) for frame in sorted(frames)]
+
+
+def missing_observation_risk_windows(profile: CaseProfile) -> list[tuple[int, int, int, str]]:
+    """Return bracketed mask gaps that require a visibility-state decision."""
+
+    config = dict(dict(profile.data.get("vlm", {})).get("single_identity", {}))
+    if not config.get("offscreen_physics_enabled", False):
+        return []
+    maximum_gap = max(1, int(config.get("interpolate_missing_mask_max_frames", 0)))
+    tracking_dir = profile.sample_dir / "results" / "tracking"
+    path = tracking_dir / "object_trajectory.csv"
+    if not path.exists():
+        path = tracking_dir / "ball_trajectory.csv"
+    rows = _read_rows(path)
+    if not rows:
+        return []
+
+    def has_center(row: dict[str, str]) -> bool:
+        u = row.get("ball_center_x", row.get("object_center_x", row.get("center_x", "")))
+        v = row.get("ball_center_y", row.get("object_center_y", row.get("center_y", "")))
+        return u not in {"", None} and v not in {"", None}
+
+    by_frame = {_row_frame(row, 1): row for row in rows}
+    ordered = sorted(by_frame)
+    windows: list[tuple[int, int, int, str]] = []
+    index = 0
+    while index < len(ordered):
+        frame = ordered[index]
+        if has_center(by_frame[frame]):
+            index += 1
+            continue
+        start = frame
+        end = frame
+        index += 1
+        while index < len(ordered) and ordered[index] == end + 1 and not has_center(by_frame[ordered[index]]):
+            end = ordered[index]
+            index += 1
+        if end - start + 1 > maximum_gap:
+            continue
+        previous = by_frame.get(start - 1)
+        following = by_frame.get(end + 1)
+        if previous is None or following is None or not has_center(previous) or not has_center(following):
+            continue
+        representative = (start + end) // 2
+        windows.append((representative, start, end, _row_time(by_frame.get(representative, previous))))
+    return windows
 
 
 def temporal_risk_keyframes(profile: CaseProfile, stage: str, *, limit: int = 80) -> list[tuple[int, str]]:
@@ -1187,6 +1234,47 @@ def materialize_evidence(profile: CaseProfile, stage: str, frame: int, query_typ
     return str(out_path)
 
 
+def materialize_visibility_gap_evidence(
+    profile: CaseProfile,
+    stage: str,
+    frame: int,
+    start: int,
+    end: int,
+) -> str:
+    """Render before/gap/after evidence without inventing an in-frame object."""
+
+    Image, ImageDraw = _pil_modules()
+    if Image is None or ImageDraw is None:
+        return ""
+    paths = stage_paths(profile)
+    out_path = paths["vlm_dir"] / stage / "evidence" / f"frame{frame:05d}_keypart_visibility_check.png"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    selected = list(dict.fromkeys([max(1, start - 2), max(1, start - 1), frame, end + 1, end + 2]))
+    panels = []
+    for selected_frame in selected:
+        panel = _read_frame(profile.sample_dir, selected_frame)
+        if panel is None:
+            continue
+        _draw_mask(panel, _mask_path(profile.sample_dir, selected_frame))
+        state = "MISSING TARGET" if start <= selected_frame <= end else "VISIBLE CONTEXT"
+        _draw_label(panel, f"frame {selected_frame:03d} {state}", (18, 24), (255, 255, 255))
+        panel = panel.resize((384, 216))
+        panels.append(panel)
+    if not panels:
+        return ""
+    canvas = Image.new("RGB", (384 * len(panels), 258), (20, 20, 20))
+    draw = ImageDraw.Draw(canvas)
+    draw.text(
+        (12, 8),
+        "BEFORE -> MISSING INTERVAL -> AFTER. Decide whether the same object leaves the image, is occluded, or is merely missed.",
+        fill=(255, 255, 255),
+    )
+    for index, panel in enumerate(panels):
+        canvas.paste(panel, (384 * index, 42))
+    canvas.save(out_path)
+    return str(out_path)
+
+
 def _materialize_interval_candidate_evidence(
     profile: CaseProfile,
     *,
@@ -1279,9 +1367,9 @@ def question_for(profile: CaseProfile, query_type: str) -> tuple[str, list[str],
         return (f"Which {target} part is highlighted?", parts, "semantic_part_overlay")
     if query_type == "keypart_visibility_check":
         return (
-            f"Is the highlighted key {target} part visible in this frame?",
-            ["visible", "partially_visible", "hidden", "occluded_by_human", "unclear"],
-            "visibility_crop_or_overlay",
+            f"Across the BEFORE, MISSING, and AFTER panels, what happened to the same {target} during the missing interval? Choose out_of_frame when its physically continuous path crosses beyond the image boundary; choose occluded_by_human only when the person blocks it; choose detection_failure when it should remain visible inside the image but the mask is absent.",
+            ["visible", "partially_visible", "out_of_frame", "occluded_by_human", "detection_failure", "unclear"],
+            "before_missing_after_visibility_strip",
         )
     if query_type == "track_stability_check":
         return (
@@ -1408,6 +1496,8 @@ def build_queries(
             windows = profile_uncertain_windows(profile)
         elif query_type == SINGLE_IDENTITY_QUERY_TYPE:
             windows = single_identity_risk_windows(profile)
+        elif stage == "stage1" and query_type == "keypart_visibility_check":
+            windows = missing_observation_risk_windows(profile)
         elif query_type == "constraint_reliability_check":
             windows = constraint_risk_intervals(profile)
         elif stage == "stage4" and query_type == "contact_relation_check":
@@ -1433,6 +1523,14 @@ def build_queries(
                     frame=frame,
                     start=start_frame,
                     end=end_frame,
+                )
+            elif stage == "stage1" and query_type == "keypart_visibility_check" and start_frame != end_frame:
+                evidence_path = materialize_visibility_gap_evidence(
+                    profile,
+                    stage,
+                    frame,
+                    start_frame,
+                    end_frame,
                 )
             else:
                 evidence_path = render_reference(profile, stage, frame, query_type)

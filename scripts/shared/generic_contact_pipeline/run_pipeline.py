@@ -257,7 +257,9 @@ def _generic_mainline_manifest(profile) -> dict[str, object]:
 def _refresh_generic_mainline_after_vlm(profile, stage_name: str, result: dict[str, object]) -> dict[str, object]:
     refreshed = dict(result)
     paths = stage_paths(profile)
-    if stage_name == "stage2":
+    if stage_name == "stage1":
+        refreshed = observation.build(profile)
+    elif stage_name == "stage2":
         refreshed["generic_contact_anchor_mainline"] = contact_anchor.build(profile)
         write_json(paths["stage2_metrics"], refreshed)
     elif stage_name == "stage4":

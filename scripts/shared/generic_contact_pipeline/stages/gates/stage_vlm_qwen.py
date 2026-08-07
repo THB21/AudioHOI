@@ -83,7 +83,7 @@ PASS_LABELS = {
     },
     "target_mask_check": {"yes", "partially"},
     "keypart_identity_check": "non_background_unclear",
-    "keypart_visibility_check": {"visible", "partially_visible"},
+    "keypart_visibility_check": {"visible", "partially_visible", "out_of_frame"},
     "track_stability_check": {"stable"},
     "contact_relation_check": "non_none_unclear",
     "overlay_alignment_check": {"aligned"},
@@ -233,6 +233,8 @@ def repair_action(query_type: str, gate: str, label: str) -> str:
         return "select_identity_candidate" if label.startswith("candidate_") else "keep_previous_anchor"
     if query_type == AMODAL_MASK_QUERY_TYPE:
         return "use_mask_fallback" if gate == "pass" else "unclear_no_update"
+    if query_type == "keypart_visibility_check" and label == "out_of_frame":
+        return "propagate_projected_ballistic_trajectory"
     if query_type == "constraint_reliability_check":
         if label == "both_consistent":
             return "accept_candidate"
@@ -279,6 +281,7 @@ def result_row(query: dict[str, str], label: str, gate: str, action: str) -> dic
         "repair_action": action,
         "used_for_anchor_update": "1"
         if gate == "pass"
+        and label != "out_of_frame"
         and query.get("query_type") in {"keypart_identity_check", "single_entity_identity_check", "keypart_visibility_check", "track_stability_check", "anchor_update_check"}
         else "0",
         "used_for_contact_residual": "1" if gate == "pass" and query.get("query_type") == "contact_relation_check" else "0",

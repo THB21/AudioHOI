@@ -39,10 +39,16 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
 
+    trajectory_rows = rows(args.sample_dir / "results/tracking/object_trajectory.csv")
     visible = {
         int(row["frame"]): (float(row["ball_center_x"]), float(row["ball_center_y"]))
-        for row in rows(args.sample_dir / "results/tracking/object_trajectory.csv")
+        for row in trajectory_rows
         if row.get("ball_center_x") and row.get("ball_center_y")
+    }
+    missing_frames = {
+        int(row["frame"])
+        for row in trajectory_rows
+        if not row.get("ball_center_x") or not row.get("ball_center_y")
     }
     audio_frames = sorted({
         int(float(row.get("peak_frame") or row.get("frame") or row.get("start_frame") or 0))
@@ -54,17 +60,33 @@ def main() -> None:
     for value in args.variant:
         name, raw_dir = value.split("=", 1)
         result_dir = Path(raw_dir)
-        pose_path = result_dir / "ablation_pose.csv"
+        publication = json.loads((result_dir / "generic_object_publication.json").read_text())
+        pose_path = (
+            result_dir / "object_pose.csv"
+            if publication.get("status") == "accepted"
+            else result_dir / "ablation_pose.csv"
+        )
         pose_rows = rows(pose_path)
         xyz = np.asarray([[float(row[key]) for key in ("tx", "ty", "tz")] for row in pose_rows])
         errors: list[float] = []
         identity_interval_errors: list[float] = []
+        missing_projected_outside = 0
+        missing_boundary_sticking = 0
+        image_width = 2.0 * args.cx
+        image_height = 2.0 * args.cy
         for row, point in zip(pose_rows, xyz):
             frame = int(row["frame"])
-            if frame not in visible or point[2] <= 1e-6:
+            if point[2] <= 1e-6:
                 continue
             u = args.fx * point[0] / point[2] + args.cx
             v = args.fy * point[1] / point[2] + args.cy
+            if frame in missing_frames:
+                outside = u < 0.0 or u >= image_width or v < 0.0 or v >= image_height
+                missing_projected_outside += int(outside)
+                if not outside and min(u, image_width - u, v, image_height - v) <= 12.0:
+                    missing_boundary_sticking += 1
+            if frame not in visible:
+                continue
             error = float(np.hypot(u - visible[frame][0], v - visible[frame][1]))
             errors.append(error)
             if 145 <= frame <= 180:
@@ -76,7 +98,6 @@ def main() -> None:
             key=lambda path: path.stat().st_mtime,
         )
         hard = json.loads((attempt_dirs[-1] / "hard_metrics.json").read_text())["metrics"]
-        publication = json.loads((result_dir / "generic_object_publication.json").read_text())
         vlm_results = result_dir / "vlm/stage4/vlm_results.csv"
         contacts = [
             int(float(row["frame"]))
@@ -92,6 +113,9 @@ def main() -> None:
             "visible_mask_error_mean_px": float(np.mean(errors)),
             "visible_mask_error_p95_px": percentile(errors, 95),
             "identity_interval_145_180_error_p95_px": percentile(identity_interval_errors, 95),
+            "missing_mask_frame_count": len(missing_frames),
+            "missing_mask_projected_center_outside_count": missing_projected_outside,
+            "missing_mask_boundary_sticking_count": missing_boundary_sticking,
             "contact_gap_p95_mm": float(hard["contact_gap_p95_m"]) * 1000.0,
             "contact_gap_max_mm": float(hard["contact_gap_max_m"]) * 1000.0,
             "trajectory_acceleration_p95_m_per_frame2": percentile(np.linalg.norm(acceleration, axis=1).tolist(), 95),

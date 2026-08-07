@@ -102,6 +102,7 @@ vlm:
     prefer_visible_mask: true
     interpolate_missing_mask_max_frames: 16
     offscreen_physics_enabled: true
+    offscreen_floor_impact_enabled: true
     projected_ballistic_support_frames: 5
 audio:
   expected_event_order: [hand_impact]

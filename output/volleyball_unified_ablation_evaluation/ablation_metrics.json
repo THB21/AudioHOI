@@ -5,18 +5,21 @@
     {
       "variant": "Full",
       "publication_status": "accepted",
-      "visible_mask_error_mean_px": 0.9574441391431284,
-      "visible_mask_error_p95_px": 4.100583635962929,
-      "identity_interval_145_180_error_p95_px": 0.03599061892405762,
+      "visible_mask_error_mean_px": 0.9661749036254549,
+      "visible_mask_error_p95_px": 4.1147379070202295,
+      "identity_interval_145_180_error_p95_px": 0.0076491297236946434,
       "missing_mask_frame_count": 32,
       "missing_mask_projected_center_outside_count": 31,
       "missing_mask_boundary_sticking_count": 1,
-      "contact_gap_p95_mm": 77.19681831538287,
-      "contact_gap_max_mm": 89.32015742148383,
-      "trajectory_acceleration_p95_m_per_frame2": 0.07188611928932637,
-      "trajectory_jerk_p95_m_per_frame3": 0.1159073412224634,
+      "contact_gap_p95_mm": 77.39747400758918,
+      "contact_gap_max_mm": 91.05120897295619,
+      "trajectory_acceleration_p95_m_per_frame2": 0.08456156488646595,
+      "trajectory_jerk_p95_m_per_frame3": 0.1128790206126424,
       "vlm_contact_event_count": 10,
-      "contact_audio_nearest_error_mean_frames": 0.0
+      "contact_audio_nearest_error_mean_frames": 0.0,
+      "offscreen_floor_contact_frames": "162",
+      "offscreen_floor_bottom_error_px": 5.194033996349617,
+      "offscreen_unexplained_down_to_up_reversal_count": 0
     },
     {
       "variant": "No-audio",
@@ -32,7 +35,10 @@
       "trajectory_acceleration_p95_m_per_frame2": 0.07231530852110947,
       "trajectory_jerk_p95_m_per_frame3": 0.11690638605885624,
       "vlm_contact_event_count": 10,
-      "contact_audio_nearest_error_mean_frames": 0.0
+      "contact_audio_nearest_error_mean_frames": 0.0,
+      "offscreen_floor_contact_frames": "159",
+      "offscreen_floor_bottom_error_px": 227.85327881566513,
+      "offscreen_unexplained_down_to_up_reversal_count": 1
     },
     {
       "variant": "No-VLM",
@@ -48,14 +54,17 @@
       "trajectory_acceleration_p95_m_per_frame2": 0.12573959414108832,
       "trajectory_jerk_p95_m_per_frame3": 0.2006662206939578,
       "vlm_contact_event_count": 0,
-      "contact_audio_nearest_error_mean_frames": null
+      "contact_audio_nearest_error_mean_frames": null,
+      "offscreen_floor_contact_frames": "",
+      "offscreen_floor_bottom_error_px": null,
+      "offscreen_unexplained_down_to_up_reversal_count": 3
     }
   ],
   "provenance": {
     "Full": {
       "pose": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_full/object_pose.csv",
-      "pose_sha256": "d60c9348859394221648169dcaeac16970afc81af270540b0391a67f4816b6ec",
-      "hard_metrics": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_full/generic_sequence_solver_attempts/generic-solve-177479bfbd32/hard_metrics.json"
+      "pose_sha256": "28cec689d1b8195247e8f24abbdf984691b615fd8ab11c9b57bc81704d2c779b",
+      "hard_metrics": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_full/generic_sequence_solver_attempts/generic-solve-0f61bae2cbd9/hard_metrics.json"
     },
     "No-audio": {
       "pose": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_no_audio/ablation_pose.csv",

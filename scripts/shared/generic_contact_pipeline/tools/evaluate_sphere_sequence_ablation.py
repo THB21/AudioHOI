@@ -68,6 +68,7 @@ def main() -> None:
         )
         pose_rows = rows(pose_path)
         xyz = np.asarray([[float(row[key]) for key in ("tx", "ty", "tz")] for row in pose_rows])
+        pose_index_by_frame = {int(row["frame"]): index for index, row in enumerate(pose_rows)}
         errors: list[float] = []
         identity_interval_errors: list[float] = []
         missing_projected_outside = 0
@@ -93,6 +94,44 @@ def main() -> None:
                 identity_interval_errors.append(error)
         acceleration = np.diff(xyz, n=2, axis=0)
         jerk = np.diff(xyz, n=3, axis=0)
+        projected_v = args.fy * xyz[:, 1] / xyz[:, 2] + args.cy
+        projected_radius = args.fx * float(pose_rows[0].get("radius_m") or 0.0) / xyz[:, 2]
+        support_path = result_dir / "support_geometry.json"
+        floor_v = None
+        if support_path.exists():
+            floor_v = float(json.loads(support_path.read_text()).get("floor_v", "nan"))
+            if not np.isfinite(floor_v):
+                floor_v = None
+        contact_events_path = result_dir / "contact_events.csv"
+        floor_contact_frames = []
+        if contact_events_path.exists():
+            floor_contact_frames = sorted({
+                int(float(row["frame"]))
+                for row in rows(contact_events_path)
+                if row.get("target") in {"floor", "unknown_plane"}
+                or row.get("contact_type") in {"plane_support_contact_event", "floor_contact_event"}
+            })
+        offscreen_floor_contacts = [frame for frame in floor_contact_frames if frame in missing_frames]
+        floor_bottom_errors = [
+            abs(float(
+                projected_v[pose_index_by_frame[frame]]
+                + projected_radius[pose_index_by_frame[frame]]
+                - floor_v
+            ))
+            for frame in offscreen_floor_contacts
+            if floor_v is not None and frame in pose_index_by_frame
+        ]
+        vertical_velocity = np.diff(projected_v)
+        reversal_frames = {
+            int(pose_rows[index]["frame"])
+            for index in range(1, len(vertical_velocity))
+            if vertical_velocity[index - 1] > 0.0 and vertical_velocity[index] < 0.0
+            and int(pose_rows[index]["frame"]) in missing_frames
+        }
+        unsupported_reversals = [
+            frame for frame in reversal_frames
+            if not any(abs(frame - event) <= 1 for event in floor_contact_frames)
+        ]
         attempt_dirs = sorted(
             (result_dir / "generic_sequence_solver_attempts").glob("*"),
             key=lambda path: path.stat().st_mtime,
@@ -122,6 +161,9 @@ def main() -> None:
             "trajectory_jerk_p95_m_per_frame3": percentile(np.linalg.norm(jerk, axis=1).tolist(), 95),
             "vlm_contact_event_count": len(contacts),
             "contact_audio_nearest_error_mean_frames": float(np.mean(timing)) if timing else None,
+            "offscreen_floor_contact_frames": ";".join(map(str, offscreen_floor_contacts)),
+            "offscreen_floor_bottom_error_px": percentile(floor_bottom_errors, 95),
+            "offscreen_unexplained_down_to_up_reversal_count": len(unsupported_reversals),
         })
         provenance[name] = {
             "pose": str(pose_path.resolve()),

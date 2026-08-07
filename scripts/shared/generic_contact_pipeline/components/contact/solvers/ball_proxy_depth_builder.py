@@ -526,6 +526,22 @@ def build_proxy_depth(
         contact_ud, contact_vd = map_to_depth_uv(contact_u, contact_v, video_hw, depth_map.shape[:2])
         object_depth_raw, ref_depth_conf = sample_depth_at_uv(depth_map, ref_ud, ref_vd)
         contact_depth, contact_depth_conf = sample_depth_at_uv(depth_map, contact_ud, contact_vd)
+        visibility = str(row.get("vlm_visibility", row.get("occlusion_state", ""))).strip().lower()
+        if visibility in {"out_of_frame", "absent"}:
+            # An out-of-frame projection cannot be sampled from the depth map,
+            # but it remains a valid physical state.  Keep the trajectory
+            # frame-complete with its Stage-1 temporal depth prior.
+            fallback_depth = parse_scalar(
+                row.get("object_ref_depth_m", row.get("object_depth_smooth", "")),
+                math.nan,
+            )
+            if np.isfinite(fallback_depth):
+                if not np.isfinite(object_depth_raw):
+                    object_depth_raw = fallback_depth
+                    ref_depth_conf = min(float(ref_conf), 0.35)
+                if not np.isfinite(contact_depth):
+                    contact_depth = fallback_depth
+                    contact_depth_conf = min(float(ref_conf), 0.35)
         if not np.isfinite(object_depth_raw) or not np.isfinite(contact_depth):
             continue
         rows.append(

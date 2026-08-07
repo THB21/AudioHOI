@@ -13,6 +13,7 @@ and skeleton visualization. Human pose is never optimized.
 | 6 | Freeze No-audio and No-VLM poses | done |
 | 7 | Run unified evaluator and write ablation summary | done |
 | 8 | Replace boundary-sticking mask-gap interpolation with VLM-gated off-screen physics | done |
+| 9 | Reconstruct the audio-confirmed off-screen floor impact | done |
 
 ## Required Full render contract
 
@@ -54,6 +55,12 @@ and skeleton visualization. Human pose is never optimized.
 - 31/32 missing-mask frames project outside the image; only one transition
   frame remains just inside the boundary. No-audio has the same 31/32 result,
   confirming that this is VLM/physics behavior rather than audio behavior.
+- The 159--163 interval is no longer a mid-air turnaround. VLM marks it as
+  out-of-frame, the strongest audio impulse localizes a floor impact at frame
+  162, and the complete sphere radius places its bottom on the inferred floor.
+- The Full projected sphere-bottom error at the off-screen impact is 5.19 px
+  after continuous optimization. No-audio selects frame 159 and misses the
+  floor by 227.85 px; No-VLM produces no off-screen floor contact.
 - Shared visible-mask error P95: 4.10 px.
 - VLM identity-recovery interval 145--180 error P95: 0.04 px.
 - Two-palm sphere contact gap P95: 77.20 mm.

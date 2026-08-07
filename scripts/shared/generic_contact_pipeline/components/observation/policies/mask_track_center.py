@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import numpy as np
 
 from ....core.base.config import CaseProfile
@@ -87,6 +88,152 @@ def _projected_ballistic_gap_centers(
         for frame in range(start, end + 1):
             out[frame] = (float(np.polyval(u_coeff, frame)), float(np.polyval(v_coeff, frame)))
     return out
+
+
+def refine_offscreen_floor_impacts(profile: CaseProfile) -> dict[str, object]:
+    """Anchor VLM-confirmed off-screen reversals to audio-confirmed floor impacts."""
+
+    paths = stage_paths(profile)
+    config = dict(dict(profile.data.get("vlm", {})).get("single_identity", {}))
+    if not config.get("offscreen_floor_impact_enabled", False):
+        return {"status": "not_enabled", "changed_frames": []}
+    if "disable_audio_events" in set(profile.data.get("ablation_flags", ())):
+        return {"status": "audio_disabled", "changed_frames": []}
+    observation_path = paths["object_observations"]
+    support_path = paths["support_geometry"]
+    contact_path = paths["contact_events"]
+    audio_path = profile.sample_dir / "results" / "events" / "audio_events.csv"
+    if not all(path.exists() for path in (observation_path, support_path, contact_path, audio_path)):
+        return {"status": "missing_inputs", "changed_frames": []}
+
+    intervals = _accepted_offscreen_intervals(profile)
+    observations = read_csv(observation_path)
+    by_frame = _by_frame(observations)
+    support = json.loads(support_path.read_text())
+    floor_v = float(support.get("floor_v", float("nan")))
+    if not np.isfinite(floor_v):
+        return {"status": "invalid_support_plane", "changed_frames": []}
+    floor_events = [
+        int(float(row.get("frame", "-1") or -1))
+        for row in read_csv(contact_path)
+        if row.get("contact_type") in {"plane_support_contact_event", "floor_contact_event"}
+        or row.get("target") in {"floor", "unknown_plane"}
+    ]
+    audio_events: list[tuple[int, float]] = []
+    for row in read_csv(audio_path):
+        if row.get("event_type") not in {"impact", "hand_impact", "seam_click"}:
+            continue
+        frame = int(float(row.get("audio_frame") or row.get("peak_frame") or row.get("frame") or -1))
+        score = _pick(row.get("audio_score"), row.get("snr"), default=0.0)
+        audio_events.append((frame, score))
+
+    changed: list[int] = []
+    impacts: list[dict[str, object]] = []
+    for start, end in intervals:
+        if not any(start - 3 <= frame <= end + 3 for frame in floor_events):
+            continue
+        candidates = [(frame, score) for frame, score in audio_events if start - 2 <= frame <= end + 2]
+        if not candidates:
+            continue
+        impact_frame, audio_score = max(candidates, key=lambda value: value[1])
+        previous_frame = start - 1
+        following_frame = end + 1
+        if previous_frame not in by_frame or following_frame not in by_frame:
+            continue
+        previous_v = _pick(by_frame[previous_frame].get("ref_v"))
+        following_v = _pick(by_frame[following_frame].get("ref_v"))
+        previous_samples = [
+            _pick(by_frame[frame].get("ref_v"))
+            for frame in range(max(1, previous_frame - 2), previous_frame + 1)
+            if frame in by_frame
+        ]
+        following_samples = [
+            _pick(by_frame[frame].get("ref_v"))
+            for frame in range(following_frame, following_frame + 3)
+            if frame in by_frame
+        ]
+        if len(previous_samples) < 2 or len(following_samples) < 2:
+            continue
+        incoming_velocity = float(np.median(np.diff(np.asarray(previous_samples, dtype=float))))
+        outgoing_velocity = float(np.median(np.diff(np.asarray(following_samples, dtype=float))))
+        previous_radius = max(0.0, _pick(by_frame[previous_frame].get("radius_px"), default=0.0))
+        following_radius = max(0.0, _pick(by_frame[following_frame].get("radius_px"), default=0.0))
+        if previous_radius <= 0.0 and following_radius <= 0.0:
+            continue
+        impact_alpha = (impact_frame - previous_frame) / float(following_frame - previous_frame)
+        radius_px = (1.0 - impact_alpha) * previous_radius + impact_alpha * following_radius
+        radius_m = float(dict(profile.data.get("sphere", {})).get("radius_m", 0.0) or 0.0)
+        focal_y = float(dict(profile.data.get("camera", {})).get("fy", 0.0) or 0.0)
+        impact_depth = _pick(
+            by_frame.get(impact_frame, {}).get("object_ref_depth_m"),
+            by_frame.get(impact_frame, {}).get("object_depth_smooth"),
+            default=0.0,
+        )
+        # A boundary-clipped mask underestimates the radius precisely when the
+        # sphere leaves the frame.  Use the known sphere geometry for contact.
+        if radius_m > 0.0 and focal_y > 0.0 and impact_depth > 0.0:
+            radius_px = focal_y * radius_m / impact_depth
+        impact_center_v = floor_v - radius_px
+        incoming_dt = impact_frame - previous_frame
+        outgoing_dt = impact_frame - following_frame
+        if incoming_dt <= 0 or outgoing_dt >= 0:
+            continue
+        incoming_acceleration = 2.0 * (
+            impact_center_v - previous_v - incoming_velocity * incoming_dt
+        ) / float(incoming_dt**2)
+        outgoing_acceleration = 2.0 * (
+            impact_center_v - following_v - outgoing_velocity * outgoing_dt
+        ) / float(outgoing_dt**2)
+        for frame in range(start, end + 1):
+            row = by_frame.get(frame)
+            if row is None:
+                continue
+            if frame <= impact_frame:
+                dt = frame - previous_frame
+                center_v = previous_v + incoming_velocity * dt + 0.5 * incoming_acceleration * dt**2
+            else:
+                dt = frame - following_frame
+                center_v = following_v + outgoing_velocity * dt + 0.5 * outgoing_acceleration * dt**2
+            if frame == impact_frame:
+                center_v = impact_center_v
+            radius_alpha = (frame - previous_frame) / float(following_frame - previous_frame)
+            radius = (1.0 - radius_alpha) * previous_radius + radius_alpha * following_radius
+            frame_depth = _pick(
+                row.get("object_ref_depth_m"),
+                row.get("object_depth_smooth"),
+                default=0.0,
+            )
+            if radius_m > 0.0 and focal_y > 0.0 and frame_depth > 0.0:
+                radius = focal_y * radius_m / frame_depth
+            for field in ("ref_v", "ref_v_smooth", "ref_v_fit"):
+                row[field] = f"{center_v:.3f}"
+            row["support_v"] = f"{center_v + radius:.3f}"
+            row["support_v_raw"] = f"{center_v + radius:.3f}"
+            row["support_dv"] = f"{radius:.3f}"
+            row["support_dv_smooth"] = f"{radius:.3f}"
+            row["radius_px"] = f"{radius:.3f}"
+            row["ref_source"] = "vlm_audio_out_of_frame_floor_impact"
+            changed.append(frame)
+        impacts.append(
+            {
+                "interval": [start, end],
+                "impact_frame": impact_frame,
+                "audio_score": audio_score,
+                "floor_center_v": impact_center_v,
+                "source": "vlm_out_of_frame+audio_impulse+floor_contact_candidate",
+            }
+        )
+    if changed:
+        write_csv(observation_path, observations)
+    result = {
+        "status": "refined" if changed else "no_joint_floor_impact_evidence",
+        "changed_frames": sorted(set(changed)),
+        "impacts": impacts,
+        "human_state_optimized": False,
+        "case_dispatch_used": False,
+    }
+    write_json(profile.result_dir / "offscreen_floor_impact_refinement.json", result)
+    return result
 
 
 def build(profile: CaseProfile) -> dict[str, object]:

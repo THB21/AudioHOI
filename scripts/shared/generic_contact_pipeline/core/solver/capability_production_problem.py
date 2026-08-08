@@ -1019,6 +1019,8 @@ class CapabilityObjectProblemPreparation:
     measurement_count: int
     contact_constraint_count: int
     factor_arbitration: FactorArbitrationLedger
+    contact_samples: tuple[WorldSpaceContactSample, ...] = ()
+    geometry_provider: object | None = None
     evidence_consumption: tuple[Mapping[str, object], ...] = ()
     contact_facing_projection: ContactFacingFactorInput | None = None
     bounded_gap_smoothing_frames: tuple[int, ...] = ()
@@ -1330,11 +1332,35 @@ def prepare_capability_object_problem(
                 else float(config["maximum_contact_offset_m"])
             ),
         )
-        samples = tuple(samples) + _vlm_confirmed_surface_contact_samples(
+        vlm_contact_samples = _vlm_confirmed_surface_contact_samples(
             profile,
             result_dir,
             gvhmr_sites.measurements,
         )
+        # Brief impact contacts have no persistent physical anchor.  Once a
+        # forced-choice relation has been accepted, its bounded interval is
+        # the authoritative semantic contact timeline; the wider Stage 2
+        # proximity runs remain candidate provenance only.  This prevents a
+        # candidate window (or a left/right nearest-hand flicker) from being
+        # reported and solved as continuous grasp.  In no-VLM runs the raw
+        # event candidates remain the only available evidence.
+        if (
+            str(config.get("vlm_contact_interval_mode", "persistent")) == "event_peak"
+            and vlm_contact_samples
+        ):
+            samples = vlm_contact_samples
+            initializer_ledger = {
+                **initializer_ledger,
+                "contact_semantic_arbitration": {
+                    "mode": "vlm_bounded_event_intervals_authoritative",
+                    "candidate_event_sample_count": len(contact_events),
+                    "selected_sample_count": len(vlm_contact_samples),
+                    "case_dispatch_used": False,
+                    "human_state_optimized": False,
+                },
+            }
+        else:
+            samples = tuple(samples) + vlm_contact_samples
     depth_targets: dict[int, float] | None = None
     if config.get("depth_reference") == "directional_contact_interpolation":
         depth_targets = _directional_anchor_depth_reference(sorted(initial_states), samples)
@@ -2010,6 +2036,8 @@ def prepare_capability_object_problem(
         measurement_count=len(measurements),
         contact_constraint_count=len(constraints),
         factor_arbitration=factor_arbitration,
+        contact_samples=tuple(samples),
+        geometry_provider=provider,
         evidence_consumption=tuple(evidence_consumption),
         contact_facing_projection=next(iter(contact_facing_factors.values()), None),
         bounded_gap_smoothing_frames=reference_state_frames,

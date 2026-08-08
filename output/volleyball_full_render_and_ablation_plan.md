@@ -15,6 +15,24 @@ and skeleton visualization. Human pose is never optimized.
 | 8 | Replace boundary-sticking mask-gap interpolation with VLM-gated off-screen physics | done |
 | 9 | Reconstruct the audio-confirmed off-screen floor impact | done |
 
+## Unified-contact cleanup (2026-08-08)
+
+Goal: remove contact-timeline overactivation using shared audio/visual/VLM
+evidence gates, then rerun the repository-standard ablation evaluator.
+
+| Step | Deliverable | Status |
+|---|---|---|
+| U1 | Audit the 23 published intervals against audio, VLM and palm/ball proximity | done |
+| U2 | Fix the generic contact-event arbitration without case-name branching | done |
+| U3 | Rerun Full Stage 4--5 and regenerate the six standard videos | done |
+| U4 | Rerun official Full/No-audio/No-VLM metrics and update reports | done |
+| U5 | Commit the verified object-only change without pushing | done (`42b401b4`) |
+
+Exit conditions: evidence-confirmed bounded hand-contact episodes plus one
+off-screen floor impact; no unsupported direction reversal; the Full unified
+contact metric uses only contacts actually consumed by the solver; visible-mask
+and off-screen trajectory regressions remain within the frozen values above.
+
 ## Required Full render contract
 
 - object_only/overlay.mp4
@@ -77,7 +95,18 @@ and skeleton visualization. Human pose is never optimized.
 - The official Full overlay score is 0.6974, versus 0.6991 for No-audio and
   0.4305 for No-VLM. Full improves the unified contact gap over No-audio by
   88.80 mm and over No-VLM by 46.31 mm.
-- All three official rows currently fail `final_pass`: Full still reports
-  23 contact intervals / 69 contact-pair rows and a 268.70 mm aggregate gap.
-  This is a contact-timeline overactivation gap; the 77.40 mm Stage-4 trusted
-  contact P95 must not be presented as the repository-wide final contact metric.
+- Stage 4 now publishes `object_contact_points.csv` from the world-space contact
+  samples actually consumed by the generic solver. Stage 2 proximity windows
+  remain candidate provenance and are no longer scored as observed contacts.
+- Full official unified contact gap: 22.51 mm; contact proxy: 0.63745; overlay
+  IoU: 0.70507; tradeoff score: 0.79841; `final_pass=True`.
+- Frozen No-audio pose, evaluated under the same consumed-contact contract:
+  contact gap 22.38 mm; overlay IoU 0.69906; `final_pass=True`. Audio's main
+  gain is therefore not hand-contact distance: it localizes the off-screen
+  floor impact (frame 162, 5.73 px floor error versus frame 159 and 227.85 px
+  without audio) and removes one unexplained down-to-up reversal.
+- Frozen No-VLM pose: contact gap 141.11 mm; contact proxy 0.05947; overlay IoU
+  0.43054; tradeoff 0.24386; `final_pass=False`.
+- Specialized physical metrics remain: Full contact P95 77.59 mm, No-audio
+  85.50 mm, No-VLM 141.11 mm. The difference from the official mean gap is the
+  statistic and interval contract, not a different pose.

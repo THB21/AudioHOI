@@ -25,9 +25,9 @@ This report compares real result directories. It does not reuse one result under
 
 | case | method | status | result | audio | VLM | LLM | flags | same pose | same metrics | contact proxy | overlay IoU | overlay source | gate status | gate source | gate events | gates active | reweight | pose delta max | final pass |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| volleyball | full | ok | volleyball_full | True | qwen | none |  | True | True | 0.005 | 0.697 | generated_eval_proxy_render_mask_iou | partial:missing_optimizer_decisions|missing_physical_smooth_residuals|missing_object_pose_pre_smooth | frame_timeline | 25 | 25 | 0 |  | False |
-| volleyball | no_audio | ok | volleyball_no_audio | False | qwen | none | disable_audio_events | False | False | 0.001 | 0.699 | generated_eval_proxy_render_mask_iou | partial:missing_optimizer_decisions|missing_physical_smooth_residuals|missing_object_pose_pre_smooth | stage_audit_fallback | 13 | 0 | 0 |  | False |
-| volleyball | no_vlm | ok | volleyball_no_vlm | True | none | none | disable_vlm_semantic_evidence | False | False | 0.002 | 0.431 | generated_eval_proxy_render_mask_iou | disabled_by_ablation | disabled_by_ablation | 0 | 0 | 0 |  | False |
+| volleyball | full | ok | volleyball_full | True | qwen | none |  | True | True | 0.637 | 0.705 | generated_eval_proxy_render_mask_iou | partial:missing_optimizer_decisions|missing_physical_smooth_residuals|missing_object_pose_pre_smooth | frame_timeline | 25 | 25 | 0 |  | True |
+| volleyball | no_audio | ok | volleyball_no_audio | False | qwen | none | disable_audio_events | False | False | 0.639 | 0.699 | generated_eval_proxy_render_mask_iou | partial:missing_optimizer_decisions|missing_physical_smooth_residuals|missing_object_pose_pre_smooth | stage_audit_fallback | 13 | 0 | 0 |  | True |
+| volleyball | no_vlm | ok | volleyball_no_vlm | True | none | none | disable_vlm_semantic_evidence | False | False | 0.059 | 0.431 | generated_eval_proxy_render_mask_iou | disabled_by_ablation | disabled_by_ablation | 0 | 0 | 0 |  | False |
 
 ## Focused Ablation Deltas
 
@@ -35,8 +35,8 @@ This report compares real result directories. It does not reuse one result under
 
 | case | method | intervention valid | mechanism changed | outcome changed | interpretation | Δ contact proxy | Δ overlay | Δ high-speed recall | Δ oversmooth | Δ gate events | Δ gate active | Δ reweight frames | Δ pose delta max | Δ anchor updates |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| volleyball | no_audio | True | True | True | measurable_downstream_effect | -0.004 | 0.002 |  |  | -12 | -25 | 0 |  | -50 |
-| volleyball | no_vlm | True | True | True | measurable_downstream_effect | -0.003 | -0.267 |  |  | -25 | -25 | 0 |  | -6 |
+| volleyball | no_audio | True | True | True | measurable_downstream_effect | 0.002 | -0.006 |  |  | -12 | -25 | 0 |  | -50 |
+| volleyball | no_vlm | True | True | True | measurable_downstream_effect | -0.578 | -0.275 |  |  | -25 | -25 | 0 |  | -6 |
 
 ## Current Interpretation
 

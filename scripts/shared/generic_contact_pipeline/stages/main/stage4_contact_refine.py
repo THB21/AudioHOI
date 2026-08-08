@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+import math
+import numpy as np
+
 from ...core.base.config import CaseProfile
 from ...core.base.io import REPO, write_csv, write_json
 from ...core.base.schema import stage_paths
@@ -92,6 +95,76 @@ def _write_multimodal_factor_ledgers(profile, prepared, solve_result, candidate_
     audio_rows = [record for record in consumption if record.get("evidence_kind") == "audio_event" and record.get("factor_id")]
     write_csv(candidate_dir / "semantic_factor_residuals.csv", semantic_rows)
     write_csv(candidate_dir / "audio_factor_residuals.csv", audio_rows)
+
+
+def _write_consumed_contact_points(profile, prepared, solve_result) -> str | None:
+    """Publish the contact rows actually consumed by the generic solver.
+
+    Stage 2 contact windows are proposals.  The final HOI evaluator must not
+    reinterpret every proposal frame as an observed contact, so Stage 4 writes
+    a compact contract from the post-arbitration world-space samples.  Human
+    sites remain read-only measurements; only object state is solved.
+    """
+
+    samples = tuple(getattr(prepared, "contact_samples", ()))
+    provider = getattr(prepared, "geometry_provider", None)
+    if not samples or provider is None:
+        return None
+    states = dict(zip(solve_result.frames, solve_result.states))
+    camera = profile.camera
+    selected: dict[tuple[int, str, str], object] = {}
+    for sample in samples:
+        track = str(sample.contact_track_id or "")
+        side = "left" if ":left" in track else "right" if ":right" in track else ""
+        key = (int(sample.frame), side, str(sample.object_feature_id or "object:surface"))
+        previous = selected.get(key)
+        previous_conf = -1.0 if previous is None or previous.confidence is None else float(previous.confidence)
+        confidence = 1.0 if sample.confidence is None else float(sample.confidence)
+        if previous is None or confidence > previous_conf:
+            selected[key] = sample
+    rows = []
+    for (frame, side, feature_id), sample in sorted(selected.items()):
+        state = states.get(frame)
+        if state is None:
+            continue
+        source = np.asarray(sample.source_xyz_m, dtype=float) + np.asarray(
+            sample.source_offset_xyz_m, dtype=float
+        )
+        target = np.asarray(provider.contact_point_world(state, feature_id, source), dtype=float)
+        if sample.source_uv_px is not None and sample.camera_intrinsics is not None:
+            u, v = sample.source_uv_px
+            fx, fy, cx, cy = sample.camera_intrinsics
+            z = float(target[2])
+            source = np.asarray(((u - cx) * z / fx, (v - cy) * z / fy, z), dtype=float)
+            target = np.asarray(provider.contact_point_world(state, feature_id, source), dtype=float)
+        gap = float(np.linalg.norm(source - target))
+        if not math.isfinite(gap):
+            continue
+        z = float(source[2])
+        contact_u = ""
+        contact_v = ""
+        if z > 1e-8:
+            contact_u = float(camera["fx"]) * float(source[0]) / z + float(camera["cx"])
+            contact_v = float(camera["fy"]) * float(source[1]) / z + float(camera["cy"])
+        rows.append({
+            "frame": frame,
+            "time": f"{(frame - 1) / float(profile.data.get('preprocess', {}).get('fps', 30.0)):.6f}",
+            "contact_active": 1,
+            "expected_contact": 1,
+            "human_part": "hand",
+            "human_side": side,
+            "object_part": "surface",
+            "object_local_id": feature_id,
+            "contact_u": contact_u,
+            "contact_v": contact_v,
+            "contact_depth_offset_m": gap,
+            "contact_conf": 1.0 if sample.confidence is None else float(sample.confidence),
+            "anchor_score": 1.0 if (sample.contact_track_id or "").startswith("vlm_confirmed:") else 0.5,
+            "source": sample.contact_track_id or "generic_solver_consumed_contact_sample",
+        })
+    if not rows:
+        return None
+    return str(write_csv(stage_paths(profile)["object_contact_points"], rows))
 
 
 def _quaternion_groups(prepared: object) -> tuple[tuple[int, int, int, int], ...]:
@@ -328,6 +401,11 @@ def run(profile: CaseProfile) -> dict[str, object]:
         accepted_result_dir=result_dir,
         gate=gate,
     )
+    consumed_contact_points = _write_consumed_contact_points(
+        profile,
+        prepared,
+        solve_result,
+    )
     candidate_vlm_evidence: dict[str, object] = {}
     if publication.candidate_path is not None:
         candidate_vlm_evidence = render_candidate_overlay_evidence(
@@ -349,6 +427,7 @@ def run(profile: CaseProfile) -> dict[str, object]:
             "interval_selection": (
                 composition.provenance if composition is not None else {"status": "not_applicable"}
             ),
+            "consumed_contact_points": consumed_contact_points,
         }
     )
     write_json(result_dir / "generic_object_publication.json", publication_record)
@@ -382,6 +461,7 @@ def run(profile: CaseProfile) -> dict[str, object]:
         "interval_selection": (
             composition.provenance if composition is not None else {"status": "not_applicable"}
         ),
+        "consumed_contact_points": consumed_contact_points,
     }
     write_json(stage_paths(profile)["stage4_metrics"], metrics)
     return metrics

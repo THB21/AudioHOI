@@ -3,26 +3,26 @@
   "metric_contract": "shared_visible_sam2_mask_and_generic_stage4_hard_metrics",
   "rows": [
     {
-      "variant": "Full",
+      "variant": "full",
       "publication_status": "accepted",
-      "visible_mask_error_mean_px": 0.9661749036254549,
-      "visible_mask_error_p95_px": 4.1147379070202295,
-      "identity_interval_145_180_error_p95_px": 0.0076491297236946434,
+      "visible_mask_error_mean_px": 0.9535263227188311,
+      "visible_mask_error_p95_px": 4.100257440963886,
+      "identity_interval_145_180_error_p95_px": 0.007720989367814948,
       "missing_mask_frame_count": 32,
       "missing_mask_projected_center_outside_count": 31,
       "missing_mask_boundary_sticking_count": 1,
-      "contact_gap_p95_mm": 77.39747400758918,
-      "contact_gap_max_mm": 91.05120897295619,
-      "trajectory_acceleration_p95_m_per_frame2": 0.08456156488646595,
-      "trajectory_jerk_p95_m_per_frame3": 0.1128790206126424,
+      "contact_gap_p95_mm": 77.59063954924488,
+      "contact_gap_max_mm": 91.07174869483694,
+      "trajectory_acceleration_p95_m_per_frame2": 0.0721037640212118,
+      "trajectory_jerk_p95_m_per_frame3": 0.108930435189272,
       "vlm_contact_event_count": 10,
       "contact_audio_nearest_error_mean_frames": 0.0,
       "offscreen_floor_contact_frames": "162",
-      "offscreen_floor_bottom_error_px": 5.194033996349617,
+      "offscreen_floor_bottom_error_px": 5.73223774107737,
       "offscreen_unexplained_down_to_up_reversal_count": 0
     },
     {
-      "variant": "No-audio",
+      "variant": "no_audio",
       "publication_status": "candidate_blocked",
       "visible_mask_error_mean_px": 0.9636738779336399,
       "visible_mask_error_p95_px": 4.100589616543439,
@@ -41,7 +41,7 @@
       "offscreen_unexplained_down_to_up_reversal_count": 1
     },
     {
-      "variant": "No-VLM",
+      "variant": "no_vlm",
       "publication_status": "candidate_blocked",
       "visible_mask_error_mean_px": 78.17347612432016,
       "visible_mask_error_p95_px": 569.1432815645186,
@@ -61,17 +61,17 @@
     }
   ],
   "provenance": {
-    "Full": {
+    "full": {
       "pose": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_full/object_pose.csv",
-      "pose_sha256": "28cec689d1b8195247e8f24abbdf984691b615fd8ab11c9b57bc81704d2c779b",
-      "hard_metrics": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_full/generic_sequence_solver_attempts/generic-solve-0f61bae2cbd9/hard_metrics.json"
+      "pose_sha256": "c354df4019c3a7eb7e3cdf7a8a3a10c31b734840b7413da2084acfe5aba76078",
+      "hard_metrics": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_full/generic_sequence_solver_attempts/generic-solve-50f9c3e2cdf3/hard_metrics.json"
     },
-    "No-audio": {
+    "no_audio": {
       "pose": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_no_audio/ablation_pose.csv",
       "pose_sha256": "92b5d81050797beaec083e951170b8280cf14d9b882465c85001ed7d691682a1",
       "hard_metrics": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_no_audio/generic_sequence_solver_attempts/generic-solve-51bd418cbd31/hard_metrics.json"
     },
-    "No-VLM": {
+    "no_vlm": {
       "pose": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_no_vlm/ablation_pose.csv",
       "pose_sha256": "c79aefaa184579eda342e440dc37168e6523a657c9679d15761b300d108ba83b",
       "hard_metrics": "/mnt/hdd/AudioHOI-object-stage0-solver-integration/samples_known_object/13_volleyball/results/volleyball_no_vlm/generic_sequence_solver_attempts/generic-solve-60880a17b15f/hard_metrics.json"

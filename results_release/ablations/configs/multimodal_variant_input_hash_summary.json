@@ -1,0 +1,25 @@
+{
+  "cases": {
+    "back_view_basketball": {
+      "all_audited_artifacts_equal_to_full": false,
+      "all_audited_artifacts_present": true,
+      "paper_use": "available_variant_comparison"
+    },
+    "pingpong_wall": {
+      "all_audited_artifacts_equal_to_full": false,
+      "all_audited_artifacts_present": true,
+      "paper_use": "available_variant_comparison"
+    },
+    "suitcase_drag": {
+      "all_audited_artifacts_equal_to_full": false,
+      "all_audited_artifacts_present": false,
+      "paper_use": "available_variant_comparison"
+    },
+    "volleyball": {
+      "all_audited_artifacts_equal_to_full": false,
+      "all_audited_artifacts_present": true,
+      "paper_use": "available_variant_comparison"
+    }
+  },
+  "schema_version": 1
+}

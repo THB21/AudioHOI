@@ -1,0 +1,6 @@
+variant,audio_enabled,vlm_enabled,description
+full,true,true,Audio timing and bounded VLM semantic gates enabled
+no_audio,false,true,VLM semantic gates enabled without audio timing
+no_vlm,true,false,Audio timing enabled without VLM semantic gates
+vision_only,false,false,Visual and geometric solver without audio or VLM
+

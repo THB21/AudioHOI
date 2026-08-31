@@ -1,0 +1,11 @@
+case,config,sample_metadata,geometry_assets
+basketball,scripts/shared/generic_contact_pipeline/configs/cases/basketball.yaml,samples_known_object/01_basketball/metadata.json,scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json
+football,scripts/shared/generic_contact_pipeline/configs/cases/football.yaml,samples_known_object/10_football/metadata.json,scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json
+mug,scripts/shared/generic_contact_pipeline/configs/cases/mug.yaml,samples_known_object/02_mug/metadata.json,assets/object_meshes/mug.glb
+chair,scripts/shared/generic_contact_pipeline/configs/cases/chair.yaml,samples_known_object/05_chair/metadata.json,samples_known_object/05_chair/articraft/generated_record/rec_fork-6911e934-oldtopology-rearup-stretcherlevel-pass_20260619_1056/model.urdf
+stick,scripts/shared/generic_contact_pipeline/configs/cases/stick.yaml,samples_known_object/11_stick/metadata.json,assets/object_meshes/stick.glb
+back_view_basketball,scripts/shared/generic_contact_pipeline/configs/cases/back_view_basketball.yaml,samples_known_object/12_back_view_basketball/metadata.json,scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json
+volleyball,scripts/shared/generic_contact_pipeline/configs/cases/volleyball.yaml,samples_known_object/13_volleyball/metadata.json,scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json
+pingpong,scripts/shared/generic_contact_pipeline/configs/cases/pingpong_wall.yaml,samples_known_object/14_pingpong_wall/metadata.json,scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json;samples_known_object/14_pingpong_wall/articraft/records/rec_create-a-realistic-regulation-size-table-tennis-_20260805_225004_931117_89f77c4b/revisions/rev_000001/model.py
+suitcase,scripts/shared/generic_contact_pipeline/configs/cases/suitcase_drag.yaml,samples_known_object/15_suitcase_drag/metadata.json,samples_known_object/15_suitcase_drag/articraft/materialized_suitcase/model.urdf
+

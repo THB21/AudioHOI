@@ -30,6 +30,22 @@ The latest known final object result name is:
 benchmark_vlm_qwen
 ```
 
+## Versioned Results
+
+The compact nine-case trajectories, unified metrics, Audio/VLM ablations,
+object-factor removals, and provenance manifests are published under
+results_release/. Validate them from the repository root with:
+
+    python scripts/release/validate_results_release.py
+
+Large input and inspection videos are kept out of the compact numeric bundle
+and are distributed through the results-v1 GitHub release:
+
+https://github.com/THB21/AudioHOI/releases/tag/results-v1
+
+Paper LaTeX, PDFs, BibTeX, and paper figures are maintained separately and are
+not part of this code repository.
+
 ## Runtime Environment Map
 
 Do not rely on the currently activated shell Python for pipeline work. Use the

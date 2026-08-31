@@ -1,0 +1,23 @@
+metric,unit,better_direction,definition
+overlay_hard_score,score,higher,Rendered/observed object-mask agreement; proxy or full mesh source recorded separately.
+overlay_mask_coverage,ratio,higher,Fraction of observed mask covered by the rendered object.
+contact_gap_mm,mm,lower,Mean intended human/object or object/environment surface gap.
+contact_proxy,score,higher,Exponential proxy derived from contact gap with 50 mm scale.
+tradeoff_score,score,higher,Joint contact-gap and penetration trade-off score.
+penetration_frame_ratio,ratio,lower,Fraction of frames with detected penetration.
+penetration_depth_mean_mm,mm,lower,Mean penetration depth on penetrating frames.
+penetration_depth_max_mm,mm,lower,Maximum penetration depth.
+translation_acceleration_mean,m/frame^2,lower,Mean second finite difference of object translation.
+translation_spike_count,count,lower,Translation acceleration excursions above the robust sequence threshold.
+rotation_spike_count,count,lower,Rotation acceleration excursions above the robust sequence threshold.
+non_event_spike_count,count,lower,Motion spikes not aligned with accepted audio/contact events.
+high_speed_recall,ratio,higher,Fraction of annotated/derived high-speed windows whose motion is preserved.
+oversmooth_rate,ratio,lower,Fraction of high-speed windows suppressed by the reconstructed trajectory.
+free_flight_turn_p95,deg,lower,Ping-pong free-flight direction-change P95 outside contacts.
+valid_collision_normal_reversals,count,higher,Accepted impacts with physically valid velocity-normal reversal.
+visible_mask_error_p95_px,px,lower,Volleyball visible-frame mask/center error P95.
+missing_mask_boundary_sticking_count,count,lower,Out-of-frame frames incorrectly clamped to the image boundary.
+offscreen_floor_bottom_error_px,px,lower,Volleyball projected off-screen floor-contact consistency error.
+handle_broad_face_margin,score,higher,Suitcase semantic margin for the handle-side broad face.
+translation_path_179_240,m,lower,Suitcase tail-interval translation path used for audio stop/motion analysis.
+net_rotation_drift_179_240,deg,lower,Suitcase tail-interval net orientation drift.

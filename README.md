@@ -2,9 +2,9 @@
 
 Audio-conditioned 4D human-object interaction reconstruction from monocular video.
 
-This branch keeps the original object-centric generic pipeline from
-`vlm-gated-mainline` and integrates Tom's human/audio/HOI layer on top of it.
-The intended mental model is:
+This repository combines object reconstruction, human reconstruction, audio
+processing, contact refinement, HOI evaluation, and full-scene rendering. The
+intended workflow is:
 
 ```text
 video + case config
@@ -21,8 +21,8 @@ trajectory as input; it does not replace the object solver.
 
 - Canonical branch: `main`
 - Base object pipeline: `vlm-gated-mainline`
-- Integrated layer: Tom's `origin/tom` human modeling, audio events, body-side
-  contact refinement, HOI metrics, and final full-scene renders.
+- Integrated components: human modeling, audio events, body-side contact
+  refinement, HOI metrics, and final full-scene renders.
 
 The latest known final object result name is:
 
@@ -317,8 +317,8 @@ source for whether VLM/LLM evidence exists.
 
 ## Human / Audio / HOI Layer
 
-Tom's integrated layer is a post-object-solver layer. It uses the object result
-as read-only input, then reconstructs/refines the human side.
+This section documents the inputs and outputs used for human reconstruction,
+audio processing, contact refinement, HOI evaluation, and full-scene rendering.
 
 Input:
 

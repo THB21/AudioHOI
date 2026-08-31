@@ -1,6 +1,6 @@
 # Final Evaluation Design EN
 
-This document defines the next final-product evaluation protocol for AudioHOI. It is based on the current `benchmark_vlm_qwen` outputs, Tom's human/audio/HOI results, the meeting transcript, and the HOI-PAGE-style part-level evaluation perspective.
+This document defines the next final-product evaluation protocol for AudioHOI. It is based on the current `benchmark_vlm_qwen` outputs, the human/audio/HOI results, the meeting transcript, and the HOI-PAGE-style part-level evaluation perspective.
 
 The current complete final-result evaluation scope contains two ball cases only:
 
@@ -280,7 +280,7 @@ anchor_state.csv:
   contact_persistent, anchor_update_allowed, pose_anchor_allowed, anchor_action.
 
 hoi_interaction_metrics.json:
-  Tom's aggregate human/audio/HOI metrics, such as contact_frame_ratio, contact_gap_mm, and part_correct_ratio.
+  Aggregate human/audio/HOI metrics, such as contact_frame_ratio, contact_gap_mm, and part_correct_ratio.
 ```
 
 `hoi_contact_pairs.csv` is now the standard part-pair audit table. If an object family does not expose stable/observed local coordinates, `contact_anchor_drift_mean` remains blank. That means the evidence is missing, not that the contact is proven stable.
@@ -532,9 +532,9 @@ high_speed_recall,contact_ratio_audio_windows,accel_at_events,accel_in_flight,
 vlm_overlay_judge,vlm_contact_judge,llm_failure_stage,final_pass
 ```
 
-## 11. Current Tom outputs
+## 11. Current human/audio/HOI outputs
 
-Tom's `hoi_summary` already provides:
+The current `hoi_summary` already provides:
 
 - penetration frame ratio and max depth;
 - contact frame ratio and contact gap;
@@ -548,7 +548,7 @@ The next implementation should merge these into the unified final evaluator rath
 
 ### 11.1 Current handoff artifact gap and TODO
 
-Tom's results are not disconnected from the upstream object/contact/audio pipeline. The checked artifacts show:
+The current results are connected to the upstream object/contact/audio pipeline. The checked artifacts show:
 
 - `pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv`
   keeps the final object SE3 trajectory, support proxy, contact frame, and audio-contact frame fields;
@@ -562,7 +562,7 @@ However, these artifacts are still not enough for the final evaluator to compute
 | --- | --- | --- |
 | `anchor_drift` | Basketball/football `anchor_state.csv` contains anchor gates, but `stable_local_x/y/z/s` and `observed_local_x/y/z/s` are empty. Ball cases currently use surface-gap / center-depth anchors rather than mug/stick-style object-local stable grasp points. | `final_anchor_state.csv` |
 | `static_tail_drift` | The final result does not mark which interval should be static. Basketball/football also may not have a semantically valid static tail, so the evaluator must not automatically treat the last frames as static. | `final_motion_intervals.csv` |
-| `floating_rate` / support gap | Tom final HOI metrics include penetration and contact surface distance, but not final 3D object-to-floor/support-surface gap. Pipeline traces have 2D/proxy fields such as `support_gap_px/floor_v`, but those must not be presented as final 3D floating hard metrics. | `final_support_state.csv` |
+| `floating_rate` / support gap | Final HOI metrics include penetration and contact surface distance, but not final 3D object-to-floor/support-surface gap. Pipeline traces have 2D/proxy fields such as `support_gap_px/floor_v`, but those must not be presented as final 3D floating hard metrics. | `final_support_state.csv` |
 
 Therefore the human-readable table moves these fields into Evidence Notes instead of displaying `n/a` in the main cells. This is not simply an unfinished run; it is a final-result handoff contract gap.
 

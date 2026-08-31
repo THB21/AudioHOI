@@ -13,7 +13,7 @@ scripts/shared/generic_contact_pipeline/core/evaluation/vlm_trace.py
 scripts/shared/generic_contact_pipeline/core/evaluation/llm_csv_audit.py
 ```
 
-Tom HOI / human layer:
+HOI / human layer:
 
 ```text
 scripts/shared/evaluation/compute_hoi_interaction_metrics.py
@@ -502,7 +502,7 @@ final_result/evaluation/final_evaluation_summary_manifest.json
 
 1. Implement `schemas.py` and path resolver.
 2. Move current object final evaluator metrics into `object_6d_metrics.py`.
-3. Import Tom `hoi_summary` fields as a first version of HOI metrics.
+3. Import `hoi_summary` fields as a first version of HOI metrics.
 4. Add hard overlay metrics; keep VLM overlay only as secondary judge.
 5. Add penetration/floating tradeoff score.
 6. Add temporal/audio metrics from pose and audio/contact windows.

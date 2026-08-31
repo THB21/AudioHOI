@@ -25,7 +25,7 @@ Implemented first pass:
 
 Current implemented scope:
 
-1. Merge object SE3 metrics, hard overlay metrics, Tom HOI contact/penetration metrics, and audio-aware temporal fields into `evaluation/final_evaluation_summary.json`.
+1. Merge object SE3 metrics, hard overlay metrics, HOI contact/penetration metrics, and audio-aware temporal fields into `evaluation/final_evaluation_summary.json`.
 2. Write cross-case `final_result/evaluation/final_evaluation_detailed.csv`.
    - current complete final-result scope is basketball and football only;
    - mug/chair/stick are excluded from the final-result table until their final videos and paired object/human/contact/gate artifacts are complete and frame-aligned.
@@ -43,7 +43,7 @@ Current implemented scope:
    - `evaluation/hoi_contact_pairs.csv`
    - `evaluation/hoi_contact_intervals.csv`
    - `evaluation/hoi_contact_metrics.csv`
-   These are built from `object_contact_points.csv` / `contact_candidates.csv` plus `anchor_state.csv`, with Tom's `hoi_interaction_metrics.json` kept as the aggregate summary. `contact_proxy` is derived from `contact_gap_mm` as `exp(-contact_gap_mm / 50)`, so higher is better and the raw gap remains visible.
+   These are built from `object_contact_points.csv` / `contact_candidates.csv` plus `anchor_state.csv`, with `hoi_interaction_metrics.json` kept as the aggregate summary. `contact_proxy` is derived from `contact_gap_mm` as `exp(-contact_gap_mm / 50)`, so higher is better and the raw gap remains visible.
 7. Export part-coverage artifacts:
    - `evaluation/human_parts.csv`
    - `evaluation/object_parts.csv`

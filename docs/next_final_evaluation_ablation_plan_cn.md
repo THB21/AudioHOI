@@ -760,7 +760,7 @@ scripts/shared/generic_contact_pipeline/core/evaluation/
 - `benchmark.py`
 - `vlm_trace.py`
 
-Tom layer 已有：
+现有的人体、音频与 HOI 层包括：
 
 - `scripts/shared/evaluation/compute_hoi_interaction_metrics.py`
 - `scripts/shared/human_ball/contact/object_geometry.py`

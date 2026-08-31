@@ -1,7 +1,7 @@
-# Human-side results (Tom, 2026-07-08)
+# Human-side results (2026-07-08)
 
-Bridged from samples/ (identical video, md5-verified). Naming: `human_<dir>` = Tom's
-human-modeling stack; `benchmark_vlm_qwen` etc. = Yixin's object pipeline (read-only).
+Bridged from samples/ (identical video, md5-verified). `human_<dir>` contains
+human-modeling outputs. `benchmark_vlm_qwen` contains object-pipeline outputs.
 
 - human_hands/            HaMeR MANO fingers + stitched SMPL-X params
 - human_depth/            DA3 metric depth affine-aligned to GVHMR

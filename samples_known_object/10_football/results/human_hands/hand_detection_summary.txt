@@ -5,4 +5,4 @@ crop_scale: 0.28
 rescale_factor: 2.0
 smooth_sigma: 1.5
 device: cuda
-hamer_checkpoint: /home/tom/Desktop/AudioHOI/scripts/third-party/hamer/_DATA/hamer_ckpts/checkpoints/hamer.ckpt
+hamer_checkpoint: scripts/third-party/hamer/_DATA/hamer_ckpts/checkpoints/hamer.ckpt

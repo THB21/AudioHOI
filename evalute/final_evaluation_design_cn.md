@@ -3,7 +3,7 @@
 本文档定义 AudioHOI 下一版最终成品评估协议。它结合三类信息：
 
 1. 当前 `benchmark_vlm_qwen` 五个 object 的最终产物；
-2. Tom human/audio/HOI layer 的最终数据与 `hoi_summary`；
+2. human/audio/HOI layer 的最终数据与 `hoi_summary`；
 3. 会议转写里的要求：能直接算的 metric 必须直接算，VLM 只用于 perceptual / ambiguous check；评估要能证明 audio、vision、contact、penetration、smoothness 等 constraints 的实际贡献。
 
 当前已输出完整 final-result evaluation 的范围只包括两个球类：
@@ -63,7 +63,7 @@ HOI-PAGE 的关键思想是 part-level affordance：先把 object 分成语义�
 samples_known_object/<case>/results/benchmark_vlm_qwen/
 ```
 
-Tom human/HOI 目录：
+human/HOI 目录：
 
 ```text
 samples_known_object/<case>/results/gvhmr or human_gvhmr
@@ -293,7 +293,7 @@ anchor_state.csv:
   提供 contact_persistent、anchor_update_allowed、pose_anchor_allowed、anchor_action。
 
 hoi_interaction_metrics.json:
-  提供 Tom human/audio/HOI 层的 aggregate metrics，例如 contact_frame_ratio、contact_gap_mm、part_correct_ratio。
+  提供 human/audio/HOI 层的 aggregate metrics，例如 contact_frame_ratio、contact_gap_mm、part_correct_ratio。
 ```
 
 当前 `hoi_contact_pairs.csv` 是标准 part-pair 审计表，不再只保留一个 contact scalar。若某些 object family 没有 stable/observed local coordinate，`contact_anchor_drift_mean` 会留空；这代表当前 artifact 缺失对应证据，而不是接触一定稳定。
@@ -653,7 +653,7 @@ contact_ratio_audio_windows,accel_at_events,accel_in_flight,
 vlm_overlay_judge,vlm_contact_judge,llm_failure_stage,final_pass
 ```
 
-## 11. 当前 Tom 结果如何进入评估
+## 11. 当前 human/audio/HOI 结果如何进入评估
 
 当前已有 `samples_known_object/hoi_interaction_evaluation/hoi_summary.md`，里面有：
 
@@ -673,7 +673,7 @@ vlm_overlay_judge,vlm_contact_judge,llm_failure_stage,final_pass
 
 ```text
 object-level final_evaluator
-+ Tom HOI interaction metrics
++ HOI interaction metrics
 + new overlay hard metrics
 + new ablation delta metrics
 = final_evaluation_detailed.csv
@@ -681,7 +681,7 @@ object-level final_evaluator
 
 ### 11.1 当前 handoff artifact 缺口与 TODO
 
-Tom 的结果不是没有接上前面的 object/contact/audio pipeline。当前 checked artifact 显示：
+当前结果已连接前面的 object/contact/audio pipeline。checked artifact 显示：
 
 - `pose6d_object_proxy_anchor_refined/object_pose6d_sharedcam_contactphase_trajectory.csv`
   保留了最终 object SE3、support proxy、contact frame、audio contact frame 等字段；
@@ -695,7 +695,7 @@ Tom 的结果不是没有接上前面的 object/contact/audio pipeline。当前 
 | --- | --- | --- |
 | `anchor_drift` | basketball/football 的 `anchor_state.csv` 有 anchor gate，但 `stable_local_x/y/z/s` 和 `observed_local_x/y/z/s` 为空。球类当前使用 surface-gap / center-depth anchor，不是 mug/stick 那种 object-local stable grasp point。 | `final_anchor_state.csv` |
 | `static_tail_drift` | final result 没有标注哪一段应该静止。basketball/football 也不一定有明确静止尾段，不能自动把最后几帧当 static tail。 | `final_motion_intervals.csv` |
-| `floating_rate` / support gap | Tom final HOI 有 penetration/contact surface distance，但没有 final 3D object-to-floor/support surface gap。pipeline trace 有 `support_gap_px/floor_v` 等 2D/proxy 字段，但不能冒充 final 3D floating hard metric。 | `final_support_state.csv` |
+| `floating_rate` / support gap | final HOI 有 penetration/contact surface distance，但没有 final 3D object-to-floor/support surface gap。pipeline trace 有 `support_gap_px/floor_v` 等 2D/proxy 字段，但不能冒充 final 3D floating hard metric。 | `final_support_state.csv` |
 
 因此当前人读表把这些项放在 Evidence Notes，而不是在主表里显示 `n/a`。这不是“没跑完”，而是 final-result handoff contract 还没把 evaluator 需要的三类证据物化出来。
 

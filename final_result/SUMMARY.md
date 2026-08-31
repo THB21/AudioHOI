@@ -1,7 +1,7 @@
 # AudioHOI — Status Report
 
 Audio-conditioned 4D human–object interaction reconstruction from monocular (generated) video.
-Current state on branch `tom`. Samples: **basketball**, **football** (`samples/`), **mug**
+Current state on branch `main`. Samples: **basketball**, **football** (`samples/`), **mug**
 (`samples_known_object/`).
 
 ---

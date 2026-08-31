@@ -108,6 +108,11 @@ def main(argv: list[str] | None = None) -> None:
                         help="object-local long axis (stick: x, verified by reprojection)")
     parser.add_argument("--object-mesh-path", type=str, default=None,
                         help="URDF-frame GLB for --object-type mesh_sdf (bake_urdf_to_glb --keep-origin)")
+    parser.add_argument("--audio-records-csv", type=str, default=None,
+                        help="L_rest for Stage C: contact_records.csv (VLM-gated). Its sustained keep_grasp/"
+                             "direct_contact intervals mark the body as IN CONTACT over the whole grab->release "
+                             "window, so the body maintains the grasp where the per-frame geometric probe misses "
+                             "(e.g. grabbing/releasing a chair — no impulse, so nothing else flags contact).")
     parser.add_argument("--use-part-verts", action="store_true",
                         help="clear penetration on dense SMPL-X part VERTICES (hand/foot flesh, "
                              "not just 21 skeleton points) — needed for true zero-penetration")
@@ -129,12 +134,33 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--w-temp", type=float, default=4.0)
     parser.add_argument("--steps", type=int, default=200)
     parser.add_argument("--lr", type=float, default=0.01)
+    parser.add_argument("--free-finger-dof", dest="free_finger_dof", action="store_true", default=True,
+                        help="[default ON] optimize the MANO finger pose on the involved hand's work-item frames so "
+                             "the fingers CURL to the object surface (hand kept close via --hand-arm-stiff, fingers "
+                             "capped by --max-finger-deg, ~0 contact gap). Generalizes to any object via the object SDF.")
+    parser.add_argument("--no-free-finger-dof", dest="free_finger_dof", action="store_false",
+                        help="disable finger-DoF: correct hand contacts by moving the whole arm chain only (legacy)")
+    parser.add_argument("--w-finger-prior", type=float, default=None,
+                        help="stay-close prior on the finger delta (keeps fingers near the HaMeR pose); default = 0.15*--w-prior")
+    parser.add_argument("--freeze-hand-arm", dest="freeze_hand_arm", action="store_true", default=False,
+                        help="with --free-finger-dof, FREEZE the hand's arm chain so only fingers move (strict). "
+                             "Default: the hand arm also moves but is kept minimal by its stay-close prior, and "
+                             "the fingers adjust on top — capped to a realistic range by --max-finger-deg.")
+    parser.add_argument("--max-finger-deg", type=float, default=25.0,
+                        help="realistic per-joint cap on finger motion (smooth tanh clamp) so fingers curl onto the "
+                             "object without unnatural over-bending")
+    parser.add_argument("--hand-arm-stiff", type=float, default=8.0,
+                        help="with --free-finger-dof, stiffness multiplier on the hand's arm prior so the hand moves "
+                             "only minimally (stays close) while the cheap, capped fingers are the primary mover")
+    parser.add_argument("--out-dir", type=Path, default=None,
+                        help="override the output directory (default results/contact_refine) — "
+                             "lets experiments write elsewhere without clobbering the sample's refine")
     args = parser.parse_args(argv)
 
     results_dir = args.sample_dir / "results"
     traj_csv = args.trajectory_csv or (
         results_dir / "pose6d_sharedcam_contactphase_depthv3" / "ball_pose6d_sharedcam_contactphase_trajectory.csv")
-    out_dir = results_dir / "contact_refine"
+    out_dir = args.out_dir or (results_dir / "contact_refine")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     params, has_hands = load_params(results_dir)
@@ -165,6 +191,39 @@ def main(argv: list[str] | None = None) -> None:
             part = "+".join(f"{s}_hand" for s in str(r["depth_anchor_sides"]).split("+")
                             if s in ("left", "right"))
         active_part[i] = part
+
+    # L_rest for Stage C: extend contact across sustained keep_grasp/direct_contact intervals
+    # from the (VLM-gated) audio records, so the body maintains the grasp through the whole
+    # grab->release window where the per-frame geometric probe flags nothing (chair/mug/stick).
+    if args.audio_records_csv:
+        with Path(args.audio_records_csv).open() as _f:
+            recs = list(csv.DictReader(_f))
+        intervals: dict[int, dict] = {}
+        for rr in recs:
+            if not int(float(rr.get("relevant", 1) or 0)):
+                continue
+            iid = int(float(rr.get("interval_id", -1) or -1))
+            state = str(rr.get("contact_state", "") or "")
+            ent = str(rr.get("stable_entity", rr.get("target_entity", "")) or "")
+            if iid < 0 or state not in ("direct_contact", "keep_grasp") or ent not in (
+                    "left_hand", "right_hand", "left_foot", "right_foot"):
+                continue
+            fr = int(float(rr.get("refined_frame", rr.get("frame", 0)) or 0))
+            d = intervals.setdefault(iid, {"lo": fr, "hi": fr, "part": ent})
+            d["lo"] = min(d["lo"], fr)
+            d["hi"] = max(d["hi"], fr)
+            d["part"] = ent
+        n_added = 0
+        for d in intervals.values():
+            for fr in range(d["lo"], d["hi"] + 1):
+                i = fr - 1
+                if 0 <= i < n:
+                    if not contact_flag[i]:
+                        n_added += 1
+                    contact_flag[i] = True
+                    if not active_part[i]:
+                        active_part[i] = d["part"]
+        print(f"L_rest Stage C: {len(intervals)} sustained interval(s) -> +{n_added} held contact frames")
     valid = geom.valid
 
     # part set: skeleton points (default) or dense mesh vertices (--use-part-verts)
@@ -198,17 +257,28 @@ def main(argv: list[str] | None = None) -> None:
         transl=torch.from_numpy(params["transl"]).to(device),
         return_verts=use_verts,
     )
+    free_fingers = bool(args.free_finger_dof) and has_hands
+    hand0_l = hand0_r = None
     if has_hands:
-        fixed["left_hand_pose"] = torch.from_numpy(params["left_hand_pose"].astype(np.float32)).to(device)
-        fixed["right_hand_pose"] = torch.from_numpy(params["right_hand_pose"].astype(np.float32)).to(device)
+        hand0_l = torch.from_numpy(params["left_hand_pose"].astype(np.float32)).to(device)
+        hand0_r = torch.from_numpy(params["right_hand_pose"].astype(np.float32)).to(device)
+        if not free_fingers:
+            fixed["left_hand_pose"] = hand0_l
+            fixed["right_hand_pose"] = hand0_r
 
-    def forward(body_pose: torch.Tensor) -> dict[str, torch.Tensor]:
-        out = model(body_pose=body_pose, **fixed)
+    def forward(body_pose: torch.Tensor, lhp: torch.Tensor | None = None,
+                rhp: torch.Tensor | None = None) -> dict[str, torch.Tensor]:
+        kw = dict(fixed)
+        if lhp is not None:
+            kw["left_hand_pose"] = lhp
+        if rhp is not None:
+            kw["right_hand_pose"] = rhp
+        out = model(body_pose=body_pose, **kw)
         src = out.vertices if use_verts else out.joints
         return part_point_dists(src, geom, part_ids)
 
     with torch.no_grad():
-        dists0 = forward(body0)
+        dists0 = forward(body0, hand0_l if free_fingers else None, hand0_r if free_fingers else None)
 
     clearance = radius + args.pen_margin_m + args.point_margin_m
     touch_target = radius + args.touch_offset_m
@@ -235,11 +305,42 @@ def main(argv: list[str] | None = None) -> None:
     for name, i in pen_pairs + touch_pairs:
         for j in range(max(0, i - args.halo_frames), min(n, i + args.halo_frames + 1)):
             frame_mask[j] = True
+            # In finger-DoF mode the HAND is kept still and strict: its arm chain
+            # (collar/shoulder/elbow/wrist) is frozen so the correction comes ONLY from the
+            # fingers curling. Feet have no fingers, so they still use their leg chain.
+            if free_fingers and name in ("left_hand", "right_hand") and args.freeze_hand_arm:
+                continue
             for s in chain_slots[name]:
                 mask[j, 3 * s: 3 * s + 3] = 1.0
 
     delta = torch.zeros(n, 63, device=device, requires_grad=True)
-    opt = torch.optim.Adam([delta], lr=args.lr)
+    opt_params = [delta]
+    dhand_l = dhand_r = hand_mask_l = hand_mask_r = None
+    # fingers are cheaper to move than the arm (0.15x the arm prior by default) so the optimizer
+    # CURLS the fingers onto the object surface instead of swinging the whole hand rigidly
+    w_finger_prior = (0.15 * args.w_prior) if args.w_finger_prior is None else args.w_finger_prior
+    finger_cap = float(np.deg2rad(max(args.max_finger_deg, 1e-3)))  # realistic per-joint finger cap (tanh)
+    # per-slot arm prior: in finger mode stiffen the HAND arm so it stays close and the cheap,
+    # capped fingers become the primary mover (the arm still moves a little for palm-deep frames).
+    prior_w = torch.full((n, 63), float(args.w_prior), device=device)
+    if free_fingers and not args.freeze_hand_arm:
+        for name in ("left_hand", "right_hand"):
+            for s in chain_slots[name]:
+                prior_w[:, 3 * s: 3 * s + 3] *= float(args.hand_arm_stiff)
+    if free_fingers:
+        # per-frame free finger DoF, active only on the involved hand's work-item frames (+halo)
+        dhand_l = torch.zeros(n, 45, device=device, requires_grad=True)
+        dhand_r = torch.zeros(n, 45, device=device, requires_grad=True)
+        hand_mask_l = torch.zeros(n, 1, device=device)
+        hand_mask_r = torch.zeros(n, 1, device=device)
+        for name, i in pen_pairs + touch_pairs:
+            if name not in ("left_hand", "right_hand"):
+                continue
+            hm = hand_mask_l if name == "left_hand" else hand_mask_r
+            for j in range(max(0, i - args.halo_frames), min(n, i + args.halo_frames + 1)):
+                hm[j] = 1.0
+        opt_params += [dhand_l, dhand_r]
+    opt = torch.optim.Adam(opt_params, lr=args.lr)
     touch_idx = {name: torch.tensor([i for p, i in touch_pairs if p == name], dtype=torch.long, device=device)
                  for name in parts_list}
     # the hinge must be LIVE on every valid frame (not just initially-penetrating
@@ -250,8 +351,18 @@ def main(argv: list[str] | None = None) -> None:
     for _ in range(args.steps):
         opt.zero_grad()
         d_eff = delta * mask
-        dists = forward(body0 + d_eff)
-        loss = args.w_prior * (d_eff ** 2).sum() + args.w_temp * ((d_eff[1:] - d_eff[:-1]) ** 2).sum()
+        if free_fingers:
+            # smooth tanh clamp to a realistic per-joint range (no unnatural over-bending)
+            dl = finger_cap * torch.tanh((dhand_l * hand_mask_l) / finger_cap)
+            dr = finger_cap * torch.tanh((dhand_r * hand_mask_r) / finger_cap)
+            dists = forward(body0 + d_eff, hand0_l + dl, hand0_r + dr)
+        else:
+            dists = forward(body0 + d_eff)
+        loss = (prior_w * d_eff ** 2).sum() + args.w_temp * ((d_eff[1:] - d_eff[:-1]) ** 2).sum()
+        if free_fingers:
+            # stay-close prior + temporal smoothness on the finger delta (fingers curl only a little)
+            loss = loss + w_finger_prior * ((dl ** 2).sum() + (dr ** 2).sum())
+            loss = loss + args.w_temp * (((dl[1:] - dl[:-1]) ** 2).sum() + ((dr[1:] - dr[:-1]) ** 2).sum())
         for name in parts_list:
             # every point of the part must clear; 1 mm overshoot because the
             # prior/hinge equilibrium otherwise parks a hair inside
@@ -265,7 +376,17 @@ def main(argv: list[str] | None = None) -> None:
 
     with torch.no_grad():
         d_eff = (delta * mask).detach()
-        dists1 = forward(body0 + d_eff)
+        hand1_l = hand1_r = None
+        if free_fingers:
+            dl = (finger_cap * torch.tanh((dhand_l * hand_mask_l) / finger_cap)).detach()
+            dr = (finger_cap * torch.tanh((dhand_r * hand_mask_r) / finger_cap)).detach()
+            dists1 = forward(body0 + d_eff, hand0_l + dl, hand0_r + dr)
+            hand1_l = (hand0_l + dl).cpu().numpy().astype(np.float32)
+            hand1_r = (hand0_r + dr).cpu().numpy().astype(np.float32)
+            finger_delta_deg = float(torch.rad2deg(torch.cat([dl, dr]).abs().max()))
+        else:
+            dists1 = forward(body0 + d_eff)
+            finger_delta_deg = 0.0
         body1 = (body0 + d_eff).cpu().numpy().astype(np.float32)
 
     report = []
@@ -282,6 +403,9 @@ def main(argv: list[str] | None = None) -> None:
 
     out_params = {k: v for k, v in params.items()}
     out_params["body_pose"] = body1
+    if free_fingers:
+        out_params["left_hand_pose"] = hand1_l
+        out_params["right_hand_pose"] = hand1_r
     out_params["source_trajectory"] = str(traj_csv)
     out_pkl = out_dir / "contact_refined_smplx_params.pkl"
     with out_pkl.open("wb") as f:
@@ -294,8 +418,9 @@ def main(argv: list[str] | None = None) -> None:
 
     n_pen_fixed = sum(1 for r in report if r["kind"] == "penetration" and float(r["dist_after_m"]) >= float(r["radius_m"]))
     n_pen = sum(1 for r in report if r["kind"] == "penetration")
+    mode = f"finger-DoF free (max finger delta {finger_delta_deg:.1f} deg)" if free_fingers else "arm-chain only"
     print(f"refined {len(set(i for _, i in pen_pairs + touch_pairs))} frames "
-          f"({n_pen} penetrations, {n_pen_fixed} cleared; {len(touch_pairs)} touch targets)")
+          f"({n_pen} penetrations, {n_pen_fixed} cleared; {len(touch_pairs)} touch targets) [{mode}]")
     print(f"refined_params: {out_pkl}")
     print(f"report: {report_csv}")
 

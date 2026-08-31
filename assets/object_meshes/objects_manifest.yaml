@@ -1,0 +1,64 @@
+# Canonical object geometry registry (gap B3, docs/pipeline_gaps_analysis.md).
+#
+# WHY THIS EXISTS: on 2026-07-13 the chair was found to have been evaluated against the
+# WRONG mesh for a whole campaign — `chair.glb` (procedural, CENTERED origin,
+# z in [-0.42, 0.42]) instead of `chair_yixin.glb` (baked URDF, FLOOR origin,
+# z in [0.005, 0.787]) — while its SE3 poses live in the floor-origin URDF frame.
+# Result: a phantom 34 cm grasp gap / "hand never touches" in every affected row
+# (C2_IMPROVEMENT.md iter 11b). This manifest is the single source of truth binding
+# each case's pose CSV convention to the mesh that matches it. Every evaluator,
+# renderer, and solver that takes a mesh for these cases should read (or at least
+# agree with) this file.
+#
+# frame conventions:
+#   urdf_floor_origin : mesh local frame = teammate URDF frame (z up from floor plane);
+#                       REQUIRED for benchmark_vlm_qwen/object_pose.csv SE3 poses;
+#                       render with --keep-mesh-origin, native metric scale.
+#   centered          : mesh recentred on bbox centroid; ONLY for radius-fit proxy
+#                       placement (translation-only ball trajectories).
+
+basketball:
+  pose_source: samples/.../pose6d_sharedcam_contactphase*/ball_..._trajectory.csv (ours, translation-only)
+  eval_geometry: {object_type: sphere}            # radius_m column in the CSV (0.12)
+  render_mesh: assets/object_meshes/basketball.glb  # centered, radius-fit
+  frame: centered
+
+football:
+  pose_source: samples/.../pose6d_sharedcam_contactphase*/ball_..._trajectory.csv (ours, translation-only)
+  eval_geometry: {object_type: sphere}            # radius_m column in the CSV (0.11)
+  render_mesh: assets/object_meshes/football.glb
+  frame: centered
+
+mug:
+  pose_source: samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose.csv (teammate SE3)
+  eval_geometry: {object_type: sphere, object_radius_m: 0.048}  # proxy; real mug mesh TODO
+  render_mesh: assets/object_meshes/mug_yixin.glb   # base-origin: z in [0, 0.102], handle +x
+  frame: urdf_floor_origin (VERIFIED 2026-07-13: mug_yixin.glb z>=0 base-origin; mug.glb is centered — same split as the chair)
+  DO_NOT_USE_WITH_SE3: assets/object_meshes/mug.glb  # centered frame
+
+chair:
+  pose_source: samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose.csv (teammate SE3)
+  eval_geometry: {object_type: mesh, object_mesh_path: assets/object_meshes/chair_yixin.glb}
+  render_mesh: assets/object_meshes/chair_yixin.glb   # keep-mesh-origin, native metric
+  frame: urdf_floor_origin
+  DO_NOT_USE: assets/object_meshes/chair.glb          # centered frame != SE3 frame -> phantom 34cm gap
+
+stick:
+  pose_source: samples_known_object/11_stick/results/benchmark_vlm_qwen/object_pose.csv (teammate SE3)
+  eval_geometry: {object_type: capsule, object_length_m: 1.86}  # local x axis, r=0.018 (URDF)
+  render_mesh: (URDF via generic_urdf_scene)
+  frame: urdf_floor_origin
+
+# WARNING (2026-07-13, iter 21): the mug has THREE distinct local frames in play:
+#   1. object_pose.csv SE3 schema (cols tx..qz)  2. articraft mug_local (contact points CSV)
+#   3. mug_yixin.glb — handle points transformed via (1) land 200 mm outside (3).
+# Reconcile before ANY mesh-based mug evaluation; until then the camera-space handle points
+# in mug_articraft_contact_points.csv are the only frame-safe handle reference.
+
+# RESOLUTION (iter 23): the mug's AUTHORITATIVE representation is the EULER columns
+# (x,y,z,yaw,pitch,roll,scale + handle_phase_rad) paired with
+# samples_known_object/02_mug/articraft/materialized_mug_mesh/ via
+# rigid.load_articraft_meshes + m16.transform_mesh (her entire render path).
+# Under it the hand->handle grasp is 7.1 mm median (correct).
+# DO NOT use mug_articraft_contact_points.csv camera_x/y/z as a 3D reference
+# (stale contact_proxy_depth, +120 mm off) nor the SE3 cols (inconsistent with both).

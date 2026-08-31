@@ -1,0 +1,733 @@
+#!/usr/bin/env python3
+"""Put the body, hands and object together in one 3D scene and render it.
+
+Everything the pipeline produces ends up in the same GVHMR camera frame, so it
+all just drops into one pyrender scene: the GVHMR SMPL-X body, the HaMeR fingers
+stitched onto it, and the object at its lifted trajectory (DA3 contact-phase by
+default). Two outputs:
+
+  overlay.mp4   mesh drawn back over the input video, semi-transparent so you
+                can eyeball the fit against the real person
+  camera.mp4    clean 3D HOI render through the original GVHMR camera
+  world.mp4     orbiting camera on a clean floor, HOI-paper style
+
+The object is a plain sphere unless you pass --object-mesh (e.g. a SAM 3D
+Objects export). If the trajectory CSV carries a non-identity quaternion
+(qw,qx,qy,qz — e.g. from inherit_grasp_rotation.py, which writes a *_rot.csv
+that pick_trajectory prefers), the object mesh is rotated about its center in
+the camera frame before the usual _CAM_FLIP/_CV_TO_WORLD treatment, exactly
+like the body verts.
+
+Run it as a file, not -m: it imports the overlay renderer sitting next to it.
+  conda run -n gvhmr python scripts/shared/human_ball/render_full_scene_3d.py --sample-dir samples/basketball_01
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import sys
+import wave
+from pathlib import Path
+
+import cv2
+import numpy as np
+
+# NumPy 2.0 dropped np.infty and pyrender's shadow code still reaches for it.
+# Put it back so SHADOWS_DIRECTIONAL doesn't blow up.
+if not hasattr(np, "infty"):
+    np.infty = np.inf
+
+# Grab the SMPL-X build + camera helpers from the overlay renderer next door
+# instead of duplicating them (works because we run this as a file).
+from render_smplx_pyrender_overlay import (
+    BODY_COLORS,
+    _CAM_FLIP,
+    build_vertices,
+    composite,
+    load_smplx_params,
+    make_camera,
+)
+
+import pyrender
+import trimesh
+
+PAPER_BODY = (0.62, 0.63, 0.68)   # neutral grey, if you want it
+TAN_BODY = (0.87, 0.72, 0.54)     # the warm tone the HOI-PAGE figures use
+BODY_PALETTE = {**BODY_COLORS, "paper": PAPER_BODY, "tan": TAN_BODY}
+BALL_COLOR = (0.86, 0.42, 0.12)
+GROUND_COLOR = (0.86, 0.86, 0.89)
+BG_COLOR = np.array([0.97, 0.975, 0.98])
+
+# OpenCV camera (y down, z forward) to a normal y-up world for the free camera.
+# It's a reflection, which matters later when we build meshes (see render_world).
+_CV_TO_WORLD = np.diag([1.0, -1.0, 1.0]).astype(np.float64)
+
+
+def quat_wxyz_to_mat(qw: float, qx: float, qy: float, qz: float) -> np.ndarray:
+    """Unit quaternion (w,x,y,z) -> 3x3 rotation matrix (camera frame)."""
+    n = np.sqrt(qw * qw + qx * qx + qy * qy + qz * qz)
+    if n < 1e-9:
+        return np.eye(3)
+    w, x, y, z = qw / n, qx / n, qy / n, qz / n
+    return np.array([
+        [1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
+        [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
+        [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)],
+    ], dtype=np.float64)
+
+
+def read_object_trajectory(path: Path) -> dict[int, dict[str, float]]:
+    rows: dict[int, dict[str, float]] = {}
+    with path.open() as f:
+        for row in csv.DictReader(f):
+            try:
+                entry = {
+                    "t": np.array([float(row["tx"]), float(row["ty"]), float(row["tz"])], dtype=np.float64),
+                    "r": float(row.get("radius_m", 0.12) or 0.12),
+                }
+            except (KeyError, ValueError):
+                continue
+            try:
+                entry["R"] = quat_wxyz_to_mat(float(row["qw"]), float(row["qx"]),
+                                              float(row["qy"]), float(row["qz"]))
+            except (KeyError, ValueError, TypeError):
+                entry["R"] = np.eye(3)
+            rows[int(row["frame"])] = entry
+    if not rows:
+        raise RuntimeError(f"No object trajectory rows in {path}")
+    return rows
+
+
+def make_object_mesh(radius: float, object_mesh: Path | None, object_scale: float,
+                     keep_origin: bool = False) -> trimesh.Trimesh:
+    # default is a coloured sphere; if a real mesh is given, centre it and scale it
+    # to the trajectory radius unless an explicit scale was passed
+    if object_mesh is not None:
+        mesh = trimesh.load(str(object_mesh), force="mesh")
+        if not keep_origin:
+            # generic-mainline SE3 poses are defined w.r.t. the URDF/model frame —
+            # recentring breaks them (pass --keep-mesh-origin for those)
+            mesh.apply_translation(-mesh.bounding_box.centroid)
+        if object_scale > 0:
+            mesh.apply_scale(object_scale)
+        else:
+            half = float(np.max(mesh.bounding_box.extents)) / 2.0
+            if half > 1e-6:
+                mesh.apply_scale(radius / half)
+        return mesh
+    sphere = trimesh.creation.uv_sphere(radius=radius, count=[24, 24])
+    sphere.visual.vertex_colors = np.tile(
+        (np.array([*BALL_COLOR, 1.0]) * 255).astype(np.uint8), (sphere.vertices.shape[0], 1)
+    )
+    return sphere
+
+
+def to_pyrender_mesh(tri, color=None, smooth=True, roughness=0.55):
+    if color is not None:
+        mat = pyrender.MetallicRoughnessMaterial(
+            metallicFactor=0.0, roughnessFactor=roughness, baseColorFactor=(*color, 1.0)
+        )
+        return pyrender.Mesh.from_trimesh(tri, material=mat, smooth=smooth)
+    # Exported multi-part URDF assets carry per-face colors. Pyrender cannot
+    # combine those with smooth shading, so preserve their authored colors
+    # with flat normals instead of failing the paper-scene render.
+    if getattr(getattr(tri, "visual", None), "kind", None) == "face":
+        smooth = False
+    return pyrender.Mesh.from_trimesh(tri, smooth=smooth)
+
+
+def add_lights(scene):
+    # cheap camera-relative key/fill for the overlay, no shadows
+    key = np.array([[1, 0, 0, 0], [0, 0, -1, 3], [0, 1, 0, 3], [0, 0, 0, 1]], dtype=np.float64)
+    fill = np.array([[-1, 0, 0, 0], [0, 0, 1, 3], [0, 1, 0, 3], [0, 0, 0, 1]], dtype=np.float64)
+    scene.add(pyrender.DirectionalLight(color=np.ones(3), intensity=3.0), pose=key)
+    scene.add(pyrender.DirectionalLight(color=np.ones(3), intensity=1.5), pose=fill)
+
+
+def add_world_lights(scene, center, radius):
+    # one directional key (this is what casts the shadow, since only directional
+    # shadows are on), plus a couple of point lights for fill that don't. ambient
+    # carries the rest. keeps a single clean shadow under the figure.
+    d = max(radius, 1.0)
+    up = np.array([0.0, 1.0, 0.0])
+    key = pyrender.DirectionalLight(color=np.array([1.0, 0.99, 0.97]), intensity=2.0)
+    scene.add(key, pose=look_at(center + np.array([1.2, 2.8, 1.6]) * d, center, up))
+    for off, inten in [(np.array([-2.4, 1.4, 1.2]), 6.0), (np.array([0.0, 1.6, -2.6]), 4.0)]:
+        pose = np.eye(4)
+        pose[:3, 3] = center + off * d
+        scene.add(pyrender.PointLight(color=np.ones(3), intensity=inten * d * d), pose=pose)
+
+
+def look_at(eye, target, up):
+    # standard camera-to-world; pyrender cameras look down their -Z
+    z = eye - target
+    z = z / (np.linalg.norm(z) + 1e-9)
+    x = np.cross(up, z)
+    x = x / (np.linalg.norm(x) + 1e-9)
+    y = np.cross(z, x)
+    pose = np.eye(4, dtype=np.float64)
+    pose[:3, 0], pose[:3, 1], pose[:3, 2], pose[:3, 3] = x, y, z, eye
+    return pose
+
+
+def ground_quad(y, cx, cz, size):
+    verts = np.array([
+        [cx - size, y, cz - size], [cx + size, y, cz - size],
+        [cx + size, y, cz + size], [cx - size, y, cz + size],
+    ], dtype=np.float64)
+    # both windings so it shows from either side
+    faces = np.array([[0, 1, 2], [0, 2, 3], [0, 2, 1], [0, 3, 2]], dtype=np.int64)
+    return trimesh.Trimesh(vertices=verts, faces=faces, process=False)
+
+
+def _contact_marker(point, flip):
+    m = trimesh.creation.uv_sphere(radius=0.05, count=[14, 14])
+    m.apply_translation(point)
+    m.vertices = m.vertices @ flip.T
+    return m
+
+
+def render_overlay(renderer, verts, faces, ball_tri, ball_center, K, body_color, ball_color,
+                   contact_point=None, secondary_meshes=(), hand_faces=()):
+    scene = pyrender.Scene(ambient_light=np.array([0.3, 0.3, 0.3, 1.0]))
+    scene.add(make_camera(K), pose=np.eye(4))
+    body = trimesh.Trimesh(vertices=verts @ _CAM_FLIP.T, faces=faces, process=False)
+    scene.add(to_pyrender_mesh(body, color=body_color))
+    for segmented_faces, color in hand_faces:
+        hand = trimesh.Trimesh(
+            vertices=verts @ _CAM_FLIP.T, faces=segmented_faces, process=False
+        )
+        scene.add(to_pyrender_mesh(hand, color=color, roughness=0.48))
+    bt = ball_tri.copy()
+    bt.apply_translation(ball_center)
+    bt.vertices = bt.vertices @ _CAM_FLIP.T
+    scene.add(to_pyrender_mesh(bt, color=ball_color, roughness=0.45))
+    for secondary, color in secondary_meshes:
+        transformed = secondary.copy()
+        transformed.vertices = transformed.vertices @ _CAM_FLIP.T
+        scene.add(to_pyrender_mesh(transformed, color=color, smooth=False, roughness=0.5))
+    if contact_point is not None:
+        scene.add(to_pyrender_mesh(_contact_marker(contact_point, _CAM_FLIP), color=(1.0, 0.1, 0.1)))
+    add_lights(scene)
+    color, _ = renderer.render(scene, flags=pyrender.RenderFlags.RGBA | pyrender.RenderFlags.SKIP_CULL_FACES)
+    return color[::-1]  # pyrender hands the image back bottom-up
+
+
+def render_world(renderer, verts, faces, ball_tri, ball_center, cam_pose, yfov,
+                 body_color, ball_color, ground, center, radius, contact_point=None,
+                 secondary_meshes=(), hand_faces=()):
+    scene = pyrender.Scene(ambient_light=np.array([0.5, 0.5, 0.53, 1.0]), bg_color=BG_COLOR)
+    cam = pyrender.PerspectiveCamera(yfov=yfov, znear=0.05, zfar=100.0)
+    scene.add(cam, pose=cam_pose)
+    # _CV_TO_WORLD flips handedness (det -1), which flips the triangle winding too.
+    # Reverse the faces so normals still point outward - otherwise the outward
+    # faces get culled and you end up looking straight through the head.
+    body = trimesh.Trimesh(vertices=verts @ _CV_TO_WORLD.T, faces=faces[:, ::-1], process=False)
+    scene.add(to_pyrender_mesh(body, color=body_color, roughness=0.6))
+    for segmented_faces, color in hand_faces:
+        hand = trimesh.Trimesh(
+            vertices=verts @ _CV_TO_WORLD.T,
+            faces=segmented_faces[:, ::-1],
+            process=False,
+        )
+        scene.add(to_pyrender_mesh(hand, color=color, roughness=0.48))
+    bt = ball_tri.copy()
+    bt.apply_translation(ball_center)
+    bt.vertices = bt.vertices @ _CV_TO_WORLD.T
+    bt.faces = bt.faces[:, ::-1]
+    scene.add(to_pyrender_mesh(bt, color=ball_color, roughness=0.45))
+    for secondary, color in secondary_meshes:
+        transformed = secondary.copy()
+        transformed.vertices = transformed.vertices @ _CV_TO_WORLD.T
+        transformed.faces = transformed.faces[:, ::-1]
+        scene.add(to_pyrender_mesh(transformed, color=color, smooth=False, roughness=0.5))
+    if contact_point is not None:
+        m = _contact_marker(contact_point, _CV_TO_WORLD)
+        m.faces = m.faces[:, ::-1]
+        scene.add(to_pyrender_mesh(m, color=(1.0, 0.1, 0.1)))
+    if ground is not None:
+        scene.add(to_pyrender_mesh(ground, color=GROUND_COLOR, smooth=False, roughness=0.95))
+    add_world_lights(scene, center, radius)
+    # SKIP_CULL_FACES on top as a belt-and-braces against any stray winding
+    flags = (pyrender.RenderFlags.RGBA | pyrender.RenderFlags.SHADOWS_DIRECTIONAL
+             | pyrender.RenderFlags.SKIP_CULL_FACES)
+    color, _ = renderer.render(scene, flags=flags)
+    return color  # y-up world + look_at is already the right way up
+
+
+def pick_trajectory(results_dir: Path, override: Path | None) -> Path:
+    if override is not None:
+        if not override.exists():
+            raise RuntimeError(f"trajectory not found: {override}")
+        return override
+    # best available: contact-refined DA3, then plain DA3, then the old sphere one;
+    # each level prefers the rotation-augmented *_rot.csv (inherit_grasp_rotation.py)
+    for cand in [
+        results_dir / "pose6d_sharedcam_contactphase_depthv3" / "ball_pose6d_sharedcam_contactphase_trajectory.csv",
+        results_dir / "pose6d_sharedcam_depthv3" / "ball_pose6d_sharedcam_trajectory.csv",
+        results_dir / "pose6d_sharedcam" / "ball_pose6d_sharedcam_trajectory.csv",
+    ]:
+        rot = cand.with_name(cand.stem + "_rot.csv")
+        if rot.exists():
+            return rot
+        if cand.exists():
+            return cand
+    raise RuntimeError("No object trajectory found; run the lifting stage first.")
+
+
+def read_human_site(path: Path, site_id: str) -> dict[int, np.ndarray]:
+    with path.open() as stream:
+        return {
+            int(row["frame"]): np.asarray(
+                [float(row["x_m"]), float(row["y_m"]), float(row["z_m"])], dtype=float
+            )
+            for row in csv.DictReader(stream)
+            if row.get("site_id") == site_id
+        }
+
+
+def read_frame_rows(path: Path | None) -> dict[int, dict[str, str]]:
+    if path is None or not path.is_file():
+        return {}
+    with path.open() as stream:
+        return {int(float(row["frame"])): row for row in csv.DictReader(stream) if row.get("frame")}
+
+
+def read_all_human_sites(path: Path | None) -> dict[int, list[dict[str, str]]]:
+    if path is None or not path.is_file():
+        return {}
+    out: dict[int, list[dict[str, str]]] = {}
+    with path.open() as stream:
+        for row in csv.DictReader(stream):
+            out.setdefault(int(float(row["frame"])), []).append(row)
+    return out
+
+
+def audio_envelope(path: Path | None, frame_count: int, fps: float) -> np.ndarray:
+    """Return a robust frame-rate RMS envelope for visualization only."""
+    if path is None or not path.is_file():
+        return np.zeros(frame_count, dtype=np.float32)
+    with wave.open(str(path), "rb") as stream:
+        rate = stream.getframerate()
+        channels = stream.getnchannels()
+        width = stream.getsampwidth()
+        raw = stream.readframes(stream.getnframes())
+    dtype = {1: np.uint8, 2: np.int16, 4: np.int32}.get(width)
+    if dtype is None:
+        return np.zeros(frame_count, dtype=np.float32)
+    samples = np.frombuffer(raw, dtype=dtype).astype(np.float32)
+    if width == 1:
+        samples -= 128.0
+    if channels > 1:
+        samples = samples[: len(samples) - len(samples) % channels].reshape(-1, channels).mean(1)
+    env = np.zeros(frame_count, dtype=np.float32)
+    for index in range(frame_count):
+        start = int(index * rate / fps)
+        end = min(len(samples), int((index + 1) * rate / fps))
+        if end > start:
+            env[index] = float(np.sqrt(np.mean(samples[start:end] ** 2)))
+    scale = float(np.percentile(env[env > 0], 95.0)) if np.any(env > 0) else 0.0
+    return np.clip(env / max(scale, 1e-8), 0.0, 1.0)
+
+
+def event_scores(path: Path | None, frame_count: int) -> np.ndarray:
+    scores = np.zeros(frame_count, dtype=np.float32)
+    if path is None or not path.is_file():
+        return scores
+    with path.open() as stream:
+        rows = list(csv.DictReader(stream))
+    raw_scores = []
+    for row in rows:
+        try:
+            raw_scores.append(float(row.get("audio_score") or row.get("peak") or 0.0))
+        except ValueError:
+            raw_scores.append(0.0)
+    normalizer = max(max(raw_scores, default=0.0), 1.0)
+    for row, score in zip(rows, raw_scores):
+        try:
+            frame = int(round(float(row.get("audio_frame") or row.get("frame") or 0)))
+        except ValueError:
+            continue
+        if 1 <= frame <= frame_count:
+            scores[frame - 1] = max(scores[frame - 1], score / normalizer)
+    return scores
+
+
+def interaction_label(row: dict[str, str]) -> str:
+    phase = str(row.get("phase", "") or "").strip()
+    if phase:
+        return phase.upper()
+    human = str(row.get("human_contact_state", row.get("anchor_contact_state", row.get("contact_active", "0"))))
+    floor = str(row.get("floor_contact_state", "0"))
+    if human in {"1", "1.0", "true", "True"} and floor in {"1", "1.0", "true", "True"}:
+        return "HUMAN + SUPPORT CONTACT"
+    if human in {"1", "1.0", "true", "True"}:
+        return "HUMAN CONTACT"
+    if floor in {"1", "1.0", "true", "True"}:
+        return "SUPPORT CONTACT"
+    return "FREE MOTION"
+
+
+def draw_audio_contact_hud(frame: np.ndarray, index: int, envelope: np.ndarray,
+                           events: np.ndarray, state: dict[str, str]) -> np.ndarray:
+    """Draw audio evidence and optimization/contact state without hiding the 3D scene."""
+    h, w = frame.shape[:2]
+    panel_h = max(82, h // 9)
+    top = h - panel_h
+    overlay = frame.copy()
+    cv2.rectangle(overlay, (0, top), (w, h), (18, 22, 28), -1)
+    frame = cv2.addWeighted(overlay, 0.78, frame, 0.22, 0.0)
+    usable = max(w - 32, 1)
+    points = []
+    for i, value in enumerate(envelope):
+        x = 16 + int(i * usable / max(len(envelope) - 1, 1))
+        y = h - 14 - int(float(value) * (panel_h - 38))
+        points.append((x, y))
+    if len(points) > 1:
+        cv2.polylines(frame, [np.asarray(points, np.int32)], False, (255, 190, 55), 2, cv2.LINE_AA)
+    for i in np.flatnonzero(events > 0):
+        x = 16 + int(i * usable / max(len(events) - 1, 1))
+        cv2.line(frame, (x, top + 25), (x, h - 10), (40, 80, 255), 1, cv2.LINE_AA)
+    cursor = 16 + int(index * usable / max(len(envelope) - 1, 1))
+    cv2.line(frame, (cursor, top + 2), (cursor, h - 4), (80, 255, 255), 2, cv2.LINE_AA)
+    label = interaction_label(state)
+    score = float(envelope[min(index, len(envelope) - 1)]) if len(envelope) else 0.0
+    event = float(events[min(index, len(events) - 1)]) if len(events) else 0.0
+    color = (80, 230, 110) if "CONTACT" in label else (220, 220, 220)
+    cv2.putText(frame, f"AUDIO RMS {score:.2f}   EVENT {event:.2f}", (18, top + 20),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 220, 90), 1, cv2.LINE_AA)
+    cv2.putText(frame, f"PHASE: {label}", (max(18, w - 390), top + 20),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 1, cv2.LINE_AA)
+    return frame
+
+
+def make_paddle_mesh(hand: np.ndarray, ball: np.ndarray) -> trimesh.Trimesh:
+    """Create a metric table-tennis paddle rigidly joining hand and ball side."""
+    direction = ball - hand
+    distance = float(np.linalg.norm(direction))
+    direction = direction / max(distance, 1e-8)
+    # The grip starts in the palm; clamp the bat centre so a distant/blurred
+    # ball cannot stretch the paddle away from the player.
+    face_center = hand + direction * min(max(distance - 0.02, 0.12), 0.20)
+    handle_center = 0.5 * (hand + face_center)
+    handle = trimesh.creation.cylinder(radius=0.014, height=float(np.linalg.norm(face_center - hand)))
+    handle.apply_transform(trimesh.geometry.align_vectors((0.0, 0.0, 1.0), direction))
+    handle.apply_translation(handle_center)
+    face = trimesh.creation.cylinder(radius=0.078, height=0.012, sections=40)
+    # Orient the paddle face toward the ball while keeping its long handle axis
+    # aligned to the palm-to-face direction.
+    face_normal = np.cross(direction, np.asarray((0.0, 1.0, 0.0)))
+    if np.linalg.norm(face_normal) < 1e-6:
+        face_normal = np.asarray((1.0, 0.0, 0.0))
+    face_normal /= np.linalg.norm(face_normal)
+    face.apply_transform(trimesh.geometry.align_vectors((0.0, 0.0, 1.0), face_normal))
+    face.apply_translation(face_center)
+    return trimesh.util.concatenate((handle, face))
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Body + hands + object in one 3D scene.")
+    ap.add_argument("--sample-dir", type=Path, default=Path("samples/basketball_01"))
+    ap.add_argument("--body-model-root", type=Path,
+                    default=Path("scripts/third-party/GVHMR/inputs/checkpoints/body_models"))
+    ap.add_argument("--contact-csv", type=Path, default=None,
+                    help="body_surface_contacts.csv — draws a red marker at the surface "
+                         "contact point (hand/finger or foot) on contact frames")
+    ap.add_argument("--object-pose-csv", type=Path, default=None,
+                    help="6DOF object pose. Supports the generic SE3 schema "
+                         "(frame,tx,ty,tz,qw,qx,qy,qz) and the legacy mug schema "
+                         "(frame,tx,ty,tz,yaw,pitch,roll,scale); overrides "
+                         "translation-only placement")
+    ap.add_argument("--object-trajectory", type=Path, default=None,
+                    help="override the auto-picked trajectory csv")
+    ap.add_argument("--object-mesh", type=Path, default=None,
+                    help="real object mesh (.glb/.obj/.ply), e.g. from SAM 3D Objects; "
+                         "otherwise a sphere")
+    ap.add_argument("--keep-mesh-origin", action="store_true",
+                    help="do not recentre --object-mesh (generic-mainline SE3 poses are in the URDF frame)")
+    ap.add_argument("--object-scale", type=float, default=0.0,
+                    help="metric scale for --object-mesh (0 = fit to the trajectory radius)")
+    ap.add_argument("--fps", type=float, default=24.0)
+    ap.add_argument("--body-color", choices=tuple(BODY_PALETTE), default="tan")
+    ap.add_argument("--alpha", type=float, default=0.5,
+                    help="overlay mesh opacity over the video; low so you can see the real "
+                         "person underneath (doesn't touch the world view)")
+    ap.add_argument("--orbit-turns", type=float, default=1.0, help="full camera turns over the clip")
+    ap.add_argument("--azimuth-deg", type=float, default=0.0,
+                    help="fixed starting azimuth; useful with --orbit-turns 0")
+    ap.add_argument("--elevation-deg", type=float, default=16.0)
+    ap.add_argument("--mode", choices=["both", "overlay", "camera", "world", "all"], default="both")
+    ap.add_argument("--out-dir", type=Path, default=None,
+                    help="override output directory (default results/renders/full_scene_3d)")
+    ap.add_argument("--tag", type=str, default="",
+                    help="filename prefix so renders are saved under distinct names (e.g. L1, L2)")
+    ap.add_argument("--paddle-human-sites-csv", type=Path, default=None,
+                    help="add a secondary table-tennis paddle attached to a tracked hand")
+    ap.add_argument("--paddle-hand", choices=("left_hand", "right_hand"), default="right_hand")
+    ap.add_argument("--highlight-hands", action="store_true",
+                    help="color the animated SMPL-X hand surfaces for visible HaMeR verification")
+    ap.add_argument("--audio-wav", type=Path, default=None,
+                    help="audio waveform used for the per-frame evidence timeline")
+    ap.add_argument("--audio-events-csv", type=Path, default=None,
+                    help="detected audio impacts/events shown as timeline impulses")
+    ap.add_argument("--disable-audio-hud", action="store_true",
+                    help="hide waveform/events in the world view (for a clean visual-only baseline)")
+    ap.add_argument("--interaction-csv", type=Path, default=None,
+                    help="framewise contact-state or phase table used by the world-scene HUD")
+    ap.add_argument("--human-sites-csv", type=Path, default=None,
+                    help="typed human contact sites; active sites become 3D anchor markers")
+    args = ap.parse_args()
+
+    body_color = BODY_PALETTE[args.body_color]
+    results_dir = args.sample_dir / "results"
+    out_dir = args.out_dir or (results_dir / "renders" / "full_scene_3d")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    pfx = (args.tag + "_") if args.tag else ""
+
+    traj_path = pick_trajectory(results_dir, args.object_trajectory)
+    print(f"object trajectory: {traj_path}")
+    obj = read_object_trajectory(traj_path)
+
+    gvhmr, stitched = load_smplx_params(results_dir)
+    n_frames = gvhmr["transl"].shape[0]
+    K = gvhmr["K_fullimg"]
+    if K.ndim == 2:
+        K = K[np.newaxis].repeat(n_frames, axis=0)
+    elif K.shape[0] == 1 and n_frames > 1:
+        K = np.repeat(K, n_frames, axis=0)
+
+    print("Running SMPL-X forward pass...")
+    verts_all, faces = build_vertices(args.body_model_root, gvhmr, stitched)
+    hand_faces = ()
+    if args.highlight_hands:
+        segmentation_path = args.body_model_root / "part_vertex_indices.json"
+        with segmentation_path.open() as stream:
+            segmentation = json.load(stream)
+        segmented = []
+        for name, color in (("left_hand", (0.18, 0.48, 0.95)),
+                            ("right_hand", (0.18, 0.78, 0.42))):
+            indices = np.asarray(segmentation[name], dtype=np.int64)
+            mask = np.zeros(int(faces.max()) + 1, dtype=bool)
+            mask[indices] = True
+            selected = faces[np.all(mask[faces], axis=1)]
+            if not len(selected):
+                raise RuntimeError(f"No complete SMPL-X faces found for {name}")
+            segmented.append((selected, color))
+            print(f"HaMeR visibility layer: {name} vertices={len(indices)} faces={len(selected)}")
+        hand_faces = tuple(segmented)
+
+    median_r = float(np.median([v["r"] for v in obj.values()]))
+    ball_tri = make_object_mesh(median_r, args.object_mesh, args.object_scale,
+                                keep_origin=args.keep_mesh_origin)
+    # sphere gets an orange material; a real mesh keeps whatever texture it shipped with
+    ball_color = None if args.object_mesh else BALL_COLOR
+    print(f"object: {'mesh ' + args.object_mesh.name if args.object_mesh else 'sphere proxy'} "
+          f"(radius ~{median_r:.3f} m)")
+
+    frame_paths = sorted((args.sample_dir / "frames").glob("*.png"))
+    if not frame_paths:
+        raise RuntimeError(f"No frames in {args.sample_dir / 'frames'}")
+    H, W = cv2.imread(str(frame_paths[0])).shape[:2]
+    renderer = pyrender.OffscreenRenderer(viewport_width=W, viewport_height=H)
+
+    # line everything up by frame number
+    frame_nums = [int(p.stem) if p.stem.isdigit() else i + 1 for i, p in enumerate(frame_paths)]
+    body_idx = [min(max(fn - 1, 0), n_frames - 1) for fn in frame_nums]
+
+    # ball position + rotation per displayed frame; hold the last one if a frame is missing
+    ball_centers, ball_rots = [], []
+    last = obj[min(obj)]["t"]
+    last_R = obj[min(obj)]["R"]
+    for fn in frame_nums:
+        if fn in obj:
+            last = obj[fn]["t"]
+            last_R = obj[fn]["R"]
+        ball_centers.append(last.copy())
+        ball_rots.append(last_R.copy())
+    # only bother re-building the mesh per frame if any rotation is non-identity
+    has_rot = any(not np.allclose(R, np.eye(3), atol=1e-6) for R in ball_rots)
+    if has_rot:
+        print("object rotation: applying per-frame trajectory quaternions")
+
+    # Optional 6DOF object pose. Generic-mainline SE3 drives any object mesh by
+    # quaternion + translation. The legacy mug yaw/pitch/roll/scale path remains
+    # supported for older Articraft mug CSVs.
+    obj_params = None
+    obj_pose_schema = None
+    _transform6d = None
+    if args.object_pose_csv is not None and args.object_pose_csv.exists():
+        pose_by_frame = {}
+        with args.object_pose_csv.open() as f:
+            for r in csv.DictReader(f):
+                frame = int(r["frame"])
+                if all(k in r and r[k] not in ("", None) for k in ("qw", "qx", "qy", "qz")):
+                    pose_by_frame[frame] = {
+                        "t": np.array([float(r["tx"]), float(r["ty"]), float(r["tz"])], dtype=np.float64),
+                        "R": quat_wxyz_to_mat(float(r["qw"]), float(r["qx"]), float(r["qy"]), float(r["qz"])),
+                    }
+                    obj_pose_schema = "se3_quaternion"
+                elif all(k in r and r[k] not in ("", None) for k in ("yaw", "pitch", "roll", "scale")):
+                    pose_by_frame[frame] = np.array(
+                        [float(r["tx"]), float(r["ty"]), float(r["tz"]),
+                         float(r["yaw"]), float(r["pitch"]), float(r["roll"]), float(r["scale"])])
+                    obj_pose_schema = "legacy_mug_euler_scale"
+                else:
+                    raise RuntimeError(
+                        f"{args.object_pose_csv} must contain either qw/qx/qy/qz or yaw/pitch/roll/scale"
+                    )
+        if obj_pose_schema == "legacy_mug_euler_scale":
+            _stage1 = Path(__file__).resolve().parents[1] / "generic_contact_pipeline" / "components" / "pose" / "solvers"
+            sys.path.insert(0, str(_stage1))
+            import fit_mug_articraft_keyframe_pose as _base  # noqa: E402
+            _transform6d = _base.transform
+        last_p = pose_by_frame[min(pose_by_frame)]
+        obj_params = []
+        for fn in frame_nums:
+            if fn in pose_by_frame:
+                last_p = pose_by_frame[fn]
+            obj_params.append(last_p.copy() if hasattr(last_p, "copy") else dict(last_p))
+        print(f"object: 6DOF pose ({obj_pose_schema}, {len(pose_by_frame)} frames)")
+
+    # Frame the orbit around everything the body+ball cover over the whole clip,
+    # so the camera doesn't have to chase anything.
+    floor_y_cv = float(np.percentile(verts_all[..., 1], 99.0))  # ~the feet (y points down here)
+    pts_world = []
+    for bi, bc in zip(body_idx, ball_centers):
+        pts_world.append(verts_all[bi] @ _CV_TO_WORLD.T)
+        pts_world.append((bc[None] @ _CV_TO_WORLD.T))
+    pts_world = np.concatenate(pts_world, axis=0)
+    cmin, cmax = pts_world.min(0), pts_world.max(0)
+    center_w = 0.5 * (cmin + cmax)
+    scene_radius = float(np.linalg.norm(cmax - cmin)) * 0.5
+    yfov = np.deg2rad(50.0)
+    orbit_dist = scene_radius / np.tan(yfov / 2.0) * 1.1
+    ground = ground_quad(-floor_y_cv, center_w[0], center_w[2], max(scene_radius * 3.0, 3.0))
+    elev = np.deg2rad(args.elevation_deg)
+    up = np.array([0.0, 1.0, 0.0])
+
+    def writer(name):
+        return cv2.VideoWriter(str(out_dir / name), cv2.VideoWriter_fourcc(*"mp4v"), args.fps, (W, H))
+
+    # optional per-frame body-surface contact point (drawn as a red marker on contact frames)
+    contact_pts = {}
+    if args.contact_csv is not None and args.contact_csv.exists():
+        with args.contact_csv.open() as f:
+            for r in csv.DictReader(f):
+                if int(r.get("contact", 1)):
+                    contact_pts[int(r["frame"])] = np.array(
+                        [float(r["surface_x"]), float(r["surface_y"]), float(r["surface_z"])])
+        print(f"contact markers: {len(contact_pts)} contact frames")
+    paddle_hands = (
+        read_human_site(args.paddle_human_sites_csv, args.paddle_hand)
+        if args.paddle_human_sites_csv is not None else {}
+    )
+    audio_path = None if args.disable_audio_hud else (args.audio_wav or (args.sample_dir / "audio.wav"))
+    audio_event_path = None if args.disable_audio_hud else (args.audio_events_csv or (results_dir / "events" / "audio_events.csv"))
+    interaction_rows = read_frame_rows(args.interaction_csv)
+    human_site_rows = read_all_human_sites(args.human_sites_csv)
+    envelope = audio_envelope(audio_path, len(frame_paths), args.fps)
+    audio_events = event_scores(audio_event_path, len(frame_paths))
+    print(f"audio evidence: waveform={audio_path if audio_path is not None and audio_path.exists() else 'disabled/missing'} "
+          f"events={audio_event_path if audio_event_path is not None and audio_event_path.exists() else 'disabled/waveform_only'}")
+
+    do_overlay = args.mode in ("both", "overlay", "all")
+    do_camera = args.mode in ("camera", "all")
+    do_world = args.mode in ("both", "world", "all")
+    w_over = writer(f"{pfx}overlay.mp4") if do_overlay else None
+    w_camera = writer(f"{pfx}camera.mp4") if do_camera else None
+    w_world = writer(f"{pfx}world.mp4") if do_world else None
+
+    print(f"Rendering {len(frame_paths)} frames ({W}x{H}); mode={args.mode}")
+    n = len(frame_paths)
+    for i, (fp, bi, bc) in enumerate(zip(frame_paths, body_idx, ball_centers)):
+        # for 6DOF, pre-transform the object mesh to camera space and place at origin
+        if obj_params is not None:
+            obj_mesh = ball_tri.copy()
+            if obj_pose_schema == "legacy_mug_euler_scale":
+                obj_mesh.vertices = _transform6d(obj_params[i], np.asarray(ball_tri.vertices))
+            else:
+                pose = obj_params[i]
+                obj_mesh.vertices = np.asarray(ball_tri.vertices) @ pose["R"].T + pose["t"]
+            obj_center = np.zeros(3)
+        elif has_rot:
+            # rotate the (origin-centered) mesh about the object center in the CV
+            # camera frame; render_overlay/render_world then translate and apply
+            # _CAM_FLIP/_CV_TO_WORLD exactly as they do for the body verts
+            obj_mesh = ball_tri.copy()
+            obj_mesh.vertices = np.asarray(ball_tri.vertices) @ ball_rots[i].T
+            obj_center = bc
+        else:
+            obj_mesh, obj_center = ball_tri, bc
+        state_row = interaction_rows.get(frame_nums[i], {})
+        cpt = contact_pts.get(frame_nums[i])
+        if cpt is None and interaction_label(state_row) != "FREE MOTION":
+            candidates = human_site_rows.get(frame_nums[i], [])
+            wanted = str(state_row.get("contact_label", state_row.get("active_part", "")) or "")
+            if candidates:
+                site = next((row for row in candidates if row.get("site_id") == wanted), candidates[0])
+                try:
+                    cpt = np.asarray([float(site["x_m"]), float(site["y_m"]), float(site["z_m"])])
+                except (KeyError, ValueError):
+                    cpt = None
+        if cpt is None and interaction_label(state_row) != "FREE MOTION":
+            try:
+                cpt = np.asarray([float(state_row["state_active_part_x"]),
+                                  float(state_row["state_active_part_y"]),
+                                  float(state_row["state_active_part_z"])])
+            except (KeyError, ValueError):
+                cpt = None
+        secondary_meshes = ()
+        if frame_nums[i] in paddle_hands:
+            secondary_meshes = ((make_paddle_mesh(paddle_hands[frame_nums[i]], bc), (0.55, 0.08, 0.05)),)
+        if do_overlay:
+            img = cv2.imread(str(fp))
+            rgba = render_overlay(renderer, verts_all[bi], faces, obj_mesh, obj_center, K[bi], body_color, ball_color, contact_point=cpt, secondary_meshes=secondary_meshes, hand_faces=hand_faces)
+            frame = composite(img, rgba, args.alpha)
+            w_over.write(frame)
+            if i == 0:
+                cv2.imwrite(str(out_dir / f"{pfx}overlay_preview.png"), frame)
+        if do_camera:
+            rgba = render_overlay(renderer, verts_all[bi], faces, obj_mesh, obj_center, K[bi], body_color, ball_color, contact_point=cpt, secondary_meshes=secondary_meshes, hand_faces=hand_faces)
+            rgb = rgba[:, :, :3].astype(np.float32)
+            alpha = rgba[:, :, 3:4].astype(np.float32) / 255.0
+            background = np.full_like(rgb, 248.0)
+            camera_rgb = rgb * alpha + background * (1.0 - alpha)
+            frame = cv2.cvtColor(camera_rgb.astype(np.uint8), cv2.COLOR_RGB2BGR)
+            w_camera.write(frame)
+            if i == 0:
+                cv2.imwrite(str(out_dir / f"{pfx}camera_preview.png"), frame)
+        if do_world:
+            theta = np.deg2rad(args.azimuth_deg) + 2.0 * np.pi * args.orbit_turns * (i / max(n - 1, 1))
+            eye = center_w + orbit_dist * np.array([
+                np.cos(elev) * np.sin(theta), np.sin(elev), np.cos(elev) * np.cos(theta)
+            ])
+            cam_pose = look_at(eye, center_w, up)
+            rgba = render_world(renderer, verts_all[bi], faces, obj_mesh, obj_center, cam_pose, yfov,
+                                body_color, ball_color, ground, center_w, scene_radius,
+                                contact_point=cpt, secondary_meshes=secondary_meshes,
+                                hand_faces=hand_faces)
+            frame = cv2.cvtColor(rgba[:, :, :3], cv2.COLOR_RGB2BGR)
+            if not args.disable_audio_hud:
+                frame = draw_audio_contact_hud(frame, i, envelope, audio_events, state_row)
+            w_world.write(frame)
+            if i == 0:
+                cv2.imwrite(str(out_dir / f"{pfx}world_preview.png"), frame)
+        if (i + 1) % 24 == 0 or (i + 1) == n:
+            print(f"  {i + 1}/{n}")
+
+    if w_over:
+        w_over.release()
+        print(f"overlay_mp4: {out_dir / (pfx + 'overlay.mp4')}")
+    if w_camera:
+        w_camera.release()
+        print(f"camera_mp4: {out_dir / (pfx + 'camera.mp4')}")
+    if w_world:
+        w_world.release()
+        print(f"world_mp4: {out_dir / (pfx + 'world.mp4')}")
+    renderer.delete()
+
+
+if __name__ == "__main__":
+    main()

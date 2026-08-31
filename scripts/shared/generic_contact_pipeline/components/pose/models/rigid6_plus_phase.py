@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 
 from ....core.base.config import CaseProfile
-from ....core.base.io import REPO, read_csv, repo_path, write_csv, write_json
+from ....core.base.io import REPO, copy_file, read_csv, repo_path, write_csv, write_json
 from ....core.semantics.provenance import resolve_mug_m17_phase, write_mug_m17_reconstruction_report
 from ....core.base.runtime import runtime_python
 from ....core.base.schema import stage_paths
@@ -11,6 +11,19 @@ from ....core.base.schema import stage_paths
 
 def build(profile: CaseProfile) -> dict[str, object]:
     paths = stage_paths(profile)
+    materialized_seed_raw = profile.baseline.get("object_pose_init_csv", "")
+    materialized_seed = repo_path(materialized_seed_raw) if materialized_seed_raw else None
+    if materialized_seed is not None and materialized_seed.exists():
+        out = copy_file(materialized_seed, paths["object_pose_init"])
+        metrics = {
+            "component": "rigid6_plus_phase",
+            "source_kind": "configured_materialized_visual_stage3_fallback",
+            "object_pose_init": str(out),
+            "source": str(materialized_seed),
+            "policy": "reuse materialized visual rigid-body and articulation initializer",
+        }
+        write_json(paths["stage3_metrics"], metrics)
+        return metrics
     phase_source, phase_info = resolve_mug_m17_phase(profile)
     write_mug_m17_reconstruction_report(profile, phase_info)
     m18_dir = profile.result_dir / "m18_opening_2d_video_correction_internal"

@@ -76,11 +76,11 @@ def save_detection_preview(frame_path: Path, out_path: Path, box: list[float], t
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sample-dir", type=Path, required=True)
-    parser.add_argument("--model-id", default="IDEA-Research/grounding-dino-tiny")
+    parser.add_argument("--model-id", default="IDEA-Research/grounding-dino-base")
     parser.add_argument("--box-threshold", type=float, default=0.35)
     parser.add_argument("--text-threshold", type=float, default=0.25)
     parser.add_argument("--detector-device", default="cpu")
-    parser.add_argument("--sam2-model", default="facebook/sam2.1-hiera-tiny")
+    parser.add_argument("--sam2-model", default="facebook/sam2.1-hiera-large")
     parser.add_argument("--fps", type=float, default=24.0)
     args = parser.parse_args()
 

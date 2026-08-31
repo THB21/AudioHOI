@@ -1,11 +1,11 @@
 version: 1
 envs:
   audiohoi:
-    python: /home/yang/miniconda3/envs/audiohoi/bin/python
+    python: /home/hebestreit/miniforge3/envs/gvhmr/bin/python
     purpose: core AudioHOI optimization and lightweight render scripts
   qwen_vl:
-    python: /home/yang/miniconda3/envs/qwen-vl/bin/python
+    python: /home/hebestreit/miniforge3/envs/gvhmr/bin/python
     purpose: local Qwen-VL conservative verification
   bodyrender:
-    python: /home/yang/miniconda3/envs/bodyrender/bin/python
+    python: /home/hebestreit/miniforge3/envs/gvhmr/bin/python
     purpose: optional body/mesh render tools

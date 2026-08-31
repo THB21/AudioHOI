@@ -19,8 +19,8 @@ import cv2
 import numpy as np
 
 
-DEFAULT_DINO_MODEL = "IDEA-Research/grounding-dino-tiny"
-DEFAULT_SAM2_MODEL = "facebook/sam2.1-hiera-tiny"
+DEFAULT_DINO_MODEL = "IDEA-Research/grounding-dino-base"
+DEFAULT_SAM2_MODEL = "facebook/sam2.1-hiera-large"
 
 
 def read_case_config(path: Path | None) -> dict[str, Any]:

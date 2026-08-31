@@ -347,7 +347,7 @@ def draw_object_sprite(frame: np.ndarray, ball: dict[str, float], K: np.ndarray,
     if object_kind == "mug":
         draw_mug_sprite(frame, center, radius, obs, object_proxy)
     else:
-        draw_object_sprite(frame, ball, K, object_kind, object_obs.get(int(ball["frame"])), object_proxy)
+        draw_ball_sprite(frame, center, radius)
 
 
 def draw_box_wire_3d(ax, center: tuple[float, float, float], size: tuple[float, float, float], color: str, linewidth: float = 2.0, alpha: float = 0.95) -> None:

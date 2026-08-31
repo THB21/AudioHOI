@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 
 from ....core.base.config import CaseProfile
-from ....core.base.io import REPO, copy_file, read_csv, write_csv, write_json
+from ....core.base.io import REPO, copy_file, read_csv, repo_path, write_csv, write_json
 from ....core.semantics.provenance import resolve_mug_m17_phase, write_mug_m17_reconstruction_report
 from ....core.base.runtime import runtime_python
 from ....core.base.schema import stage_paths
@@ -11,7 +11,28 @@ from ....core.base.schema import stage_paths
 
 def build(profile: CaseProfile) -> dict[str, object]:
     paths = stage_paths(profile)
-    observation_csv = profile.sample_dir / "results/object_observations/object_observations.csv"
+    configured_observations = profile.baseline.get("object_observations_csv", "")
+    observation_csv = (
+        repo_path(configured_observations)
+        if configured_observations
+        else profile.sample_dir / "results/object_observations/object_observations.csv"
+    )
+    materialized_points_raw = profile.baseline.get("object_local_points_csv", "")
+    materialized_points = repo_path(materialized_points_raw) if materialized_points_raw else None
+    if materialized_points is not None and materialized_points.exists():
+        out_obs = copy_file(observation_csv, paths["object_observations"])
+        out_pts = copy_file(materialized_points, paths["object_local_points"])
+        metrics = {
+            "component": "rigid_body_plus_parts",
+            "source_kind": "configured_materialized_visual_stage1_fallback",
+            "object_observations": str(out_obs),
+            "object_local_points": str(out_pts),
+            "observation_source": str(observation_csv),
+            "local_points_source": str(materialized_points),
+            "policy": "reuse materialized visual Stage-1 observations and object-local points",
+        }
+        write_json(paths["stage1_metrics"], metrics)
+        return metrics
     phase_source, phase_info = resolve_mug_m17_phase(profile)
     write_mug_m17_reconstruction_report(profile, phase_info)
     obs_rows = read_csv(observation_csv)

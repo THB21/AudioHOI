@@ -53,16 +53,31 @@ import torch
 
 _HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(_HERE.parents[0] / "human_ball" / "contact"))
-from object_geometry import geometry_from_rows  # noqa: E402
+from object_geometry import geometry_from_rows, quat_to_rotmat  # noqa: E402
 from refine_body_pose_contact import _PART_POINTS  # noqa: E402
+from hoi_paper_metrics import box_corners, evaluate_hoi_paper_metrics  # noqa: E402
 
 _RECORD_PARTS = {"left_hand", "right_hand", "left_foot", "right_foot"}
 
 
+def _first_existing(*cands: Path) -> Path | None:
+    for c in cands:
+        if c.exists():
+            return c
+    return None
+
+
 def load_human_params(results_dir: Path, mode: str = "auto") -> tuple[dict, str]:
-    refined = results_dir / "contact_refine" / "contact_refined_smplx_params.pkl"
-    stitched = results_dir / "hands" / "stitched_smplx_params.pkl"
-    raw_pkl = results_dir / "gvhmr" / "result.pkl"
+    # Case dirs use either `contact_refine`/`hands`/`gvhmr` (mug, stick, samples/*) or the
+    # `human_`-prefixed variants (basketball, football, chair under samples_known_object).
+    refined = _first_existing(
+        results_dir / "contact_refine" / "contact_refined_smplx_params.pkl",
+        results_dir / "human_contact_refine" / "contact_refined_smplx_params.pkl")
+    stitched = _first_existing(
+        results_dir / "hands" / "stitched_smplx_params.pkl",
+        results_dir / "human_hands" / "stitched_smplx_params.pkl")
+    raw_pkl = _first_existing(results_dir / "gvhmr" / "result.pkl",
+                              results_dir / "human_gvhmr" / "result.pkl")
     raw = pickle.load(raw_pkl.open("rb"))
     p = raw["smpl_params_incam"]
     params = {
@@ -72,11 +87,11 @@ def load_human_params(results_dir: Path, mode: str = "auto") -> tuple[dict, str]
         "transl": np.asarray(p["transl"], dtype=np.float32),
     }
     src = "gvhmr"
-    if mode in ("auto", "stitched", "refined") and stitched.exists():
+    if mode in ("auto", "stitched", "refined") and stitched is not None:
         st = pickle.load(stitched.open("rb"))
         params.update({k: np.asarray(v) for k, v in st.items() if isinstance(v, np.ndarray)})
         src = "stitched"
-    if mode in ("auto", "refined") and refined.exists():
+    if mode in ("auto", "refined") and refined is not None:
         rf = pickle.load(refined.open("rb"))
         params.update({k: np.asarray(v) for k, v in rf.items() if isinstance(v, np.ndarray)})
         src = "contact_refine"
@@ -84,10 +99,15 @@ def load_human_params(results_dir: Path, mode: str = "auto") -> tuple[dict, str]
 
 
 def build_part_points(params: dict, body_model_root: Path, n: int, device: str,
-                      use_verts: bool = True, parts: list[str] | None = None) -> dict[str, torch.Tensor]:
+                      use_verts: bool = True, parts: list[str] | None = None,
+                      return_joints: bool = False, return_vertices: bool = False):
     """Per-part point clouds. use_verts=True (default) uses dense SMPL-X mesh vertices
     (hand/foot flesh) so penetration/contact are measured on the actual surface, not
-    21 skeleton points; parts may add 'pelvis'/'back' for body-object contact."""
+    21 skeleton points; parts may add 'pelvis'/'back' for body-object contact.
+
+    return_joints=True additionally returns the full SMPL-X joint array [N, J, 3]
+    (metres, camera frame) for the human temporal metrics (HOI-PAGE smoothness,
+    CARI4D acceleration)."""
     import smplx
     betas = params["betas"]
     if betas.shape[0] == 1:
@@ -108,12 +128,20 @@ def build_part_points(params: dict, body_model_root: Path, n: int, device: str,
     with torch.no_grad():
         out = model(**kwargs)
     plist = parts or list(_PART_POINTS)
+    joints = out.joints.detach().cpu().numpy() if return_joints else None
     if use_verts:
         from part_vertices import part_vertex_indices
         pv = part_vertex_indices(body_model_root, plist)
         V = out.vertices
-        return {name: V[:, torch.as_tensor(pv[name], device=device), :] for name in plist}
-    return {name: out.joints[:, _PART_POINTS[name], :] for name in plist if name in _PART_POINTS}
+        pts = {name: V[:, torch.as_tensor(pv[name], device=device), :] for name in plist}
+    else:
+        pts = {name: out.joints[:, _PART_POINTS[name], :] for name in plist if name in _PART_POINTS}
+    values = [pts]
+    if return_joints:
+        values.append(joints)
+    if return_vertices:
+        values.append(out.vertices.detach())
+    return tuple(values) if len(values) > 1 else pts
 
 
 def expected_contacts(rows: list[dict], sample_dir: Path, n: int) -> tuple[np.ndarray, list[str], list[int]]:
@@ -133,8 +161,10 @@ def expected_contacts(rows: list[dict], sample_dir: Path, n: int) -> tuple[np.nd
         ap = str(r.get("active_part", "") or "")
         if ap:
             part[i] = ap
-    records = sample_dir / "results" / "audio_semantics" / "contact_records.csv"
-    if records.exists():
+    records = _first_existing(
+        sample_dir / "results" / "audio_semantics" / "contact_records.csv",
+        sample_dir / "results" / "human_audio_semantics" / "contact_records.csv")
+    if records is not None:
         with records.open() as f:
             for r in csv.DictReader(f):
                 i = int(round(float(r.get("frame", 0)))) - 1
@@ -164,7 +194,7 @@ def main() -> None:
                     help="measure on 21 skeleton points per hand (legacy) instead of dense mesh verts")
     ap.add_argument("--body-parts", type=str, default=None,
                     help="extra parts for penetration/contact: comma of pelvis,back")
-    ap.add_argument("--object-type", choices=["sphere", "capsule", "mesh"], default="sphere")
+    ap.add_argument("--object-type", choices=["sphere", "capsule", "mesh", "mesh_sdf"], default="sphere")
     ap.add_argument("--object-length-m", type=float, default=None)
     ap.add_argument("--object-radius-m", type=float, default=None)
     ap.add_argument("--object-axis-local", choices=["x", "y", "z"], default="x")
@@ -192,21 +222,51 @@ def main() -> None:
                               axis_local=args.object_axis_local,
                               mesh_path=args.object_mesh_path, device=device)
     plist = list(_PART_POINTS) + [p for p in (args.body_parts.split(",") if args.body_parts else []) if p]
-    parts = build_part_points(params, args.body_model_root, n, device,
-                              use_verts=not args.skeleton_only, parts=plist)
+    parts, joints, all_human_vertices = build_part_points(
+        params, args.body_model_root, n, device,
+        use_verts=not args.skeleton_only, parts=plist,
+        return_joints=True, return_vertices=True)
     valid = geom.valid.cpu().numpy()
 
     # distances [part][N] min over part points; and all-point matrix for penetration depth
     dmin = {}
     pen_depth = []  # penetration depths (mm) over all (frame, part, point) past eps
+    pen_pts_per_frame = np.zeros(n)   # # penetrating query points per frame (HOI-PAGE vertex ratio)
+    total_query_pts = 0               # total query points across parts
     radius = geom.radius
+    valid_t = torch.from_numpy(valid).to(device)
     for name, pts in parts.items():
         d = geom.point_distances(pts)                      # [N, P]
         dmin[name] = d.min(dim=1).values.cpu().numpy()
         depth = (radius[:, None] - d).clamp_min(0.0) * 1000.0
-        depth = depth[torch.from_numpy(valid).to(device)]
+        pen_mask = depth > args.pen_eps_mm                 # [N, P] point inside past slack
+        pen_pts_per_frame += (pen_mask & valid_t[:, None]).sum(dim=1).cpu().numpy()
+        total_query_pts += pts.shape[1]
+        depth = depth[valid_t]
         pen_depth.append(depth[depth > args.pen_eps_mm].cpu().numpy())
     pen_depth = np.concatenate(pen_depth) if pen_depth else np.array([])
+
+    # Paper-compatible physical plausibility uses every SMPL-X vertex, rather than
+    # only the semantic hand/foot subsets used by the diagnostic metrics above.
+    # Mesh proximity can otherwise materialize N_frames * N_vertices auxiliary
+    # arrays inside trimesh and exceed RAM. Chunking vertices is mathematically
+    # identical and also works for analytic sphere/capsule geometry.
+    paper_sdf_chunks = []
+    paper_vertex_chunk = 512 if args.object_type == "mesh" else all_human_vertices.shape[1]
+    for vertex_start in range(0, all_human_vertices.shape[1], paper_vertex_chunk):
+        vertex_end = min(all_human_vertices.shape[1], vertex_start + paper_vertex_chunk)
+        paper_sdf_chunks.append(
+            (geom.point_distances(all_human_vertices[:, vertex_start:vertex_end])
+             - geom.radius[:, None]).detach().cpu()
+        )
+    paper_signed_distances = torch.cat(paper_sdf_chunks, dim=1).numpy()
+    # HOI-PAGE non-collision ratio: fraction of human (part) vertices NOT inside the
+    # object surface, averaged over valid frames (their metric is per-vertex, not per-frame).
+    if valid.any() and total_query_pts:
+        frac_non_col = 1.0 - pen_pts_per_frame[valid] / float(total_query_pts)
+        non_collision_vertex_ratio = round(float(frac_non_col.mean()), 5)
+    else:
+        non_collision_vertex_ratio = None
 
     rad = radius.cpu().numpy()
     closest = np.min(np.stack(list(dmin.values())), axis=0)   # [N] nearest human point
@@ -243,6 +303,68 @@ def main() -> None:
     T = np.array([[float(r["tx"]), float(r["ty"]), float(r["tz"])] for r in rows[:n]])
     jerk = float((np.linalg.norm(T[3:] - 3 * T[2:-1] + 3 * T[1:-2] - T[:-3], axis=1) ** 2).mean()) \
         if len(T) >= 4 else None
+
+    # Paper-definition temporal metrics (HOI-PAGE smoothness + CARI4D acceleration).
+    # HOI-PAGE "Smoothness" = per-frame acceleration magnitude of the motion (lower=smoother),
+    #   reported separately for Human and Object; we report the same quantity GT-free.
+    # CARI4D "Acc-h"/"Acc-o" are ACCELERATION ERROR vs GT (cm); we can only give the GT-free
+    #   acceleration MAGNITUDE (cm/frame^2) — a different quantity, flagged in the comparison.
+    def _accel_mag(x):  # x [N, ..., 3] -> mean ||second-difference|| over points & frames
+        if x is None or len(x) < 3:
+            return None
+        a = x[2:] - 2 * x[1:-1] + x[:-2]
+        return float(np.linalg.norm(a, axis=-1).mean())
+
+    def _jerk_mag(x):   # mean ||third-difference||^2
+        if x is None or len(x) < 4:
+            return None
+        j = x[3:] - 3 * x[2:-1] + 3 * x[1:-2] - x[:-3]
+        return float((np.linalg.norm(j, axis=-1) ** 2).mean())
+
+    Jv = joints[:n] if joints is not None else None            # [N, J, 3] metres
+    human_accel_m = _accel_mag(Jv)                             # mean per-joint accel (m/frame^2)
+    human_smoothness = round(human_accel_m, 6) if human_accel_m is not None else None
+    human_accel_cm = round(human_accel_m * 100.0, 4) if human_accel_m is not None else None
+    hj = _jerk_mag(Jv)
+    human_jerk = round(hj, 6) if hj is not None else None
+    oa = _accel_mag(T)                                         # object translation accel (m/frame^2)
+    object_smoothness = round(oa, 6) if oa is not None else None
+    object_accel_cm = round(oa * 100.0, 4) if oa is not None else None
+
+    # HOI-paper object smoothness transforms all eight local bounding-box corners,
+    # so rotation and scale changes contribute instead of translation alone.
+    quats = np.asarray([
+        [float(r.get("qw", 1.0) or 1.0), float(r.get("qx", 0.0) or 0.0),
+         float(r.get("qy", 0.0) or 0.0), float(r.get("qz", 0.0) or 0.0)]
+        for r in rows[:n]
+    ], dtype=np.float64)
+    rotations = quat_to_rotmat(quats)
+    scales = np.asarray([float(r.get("scale", 1.0) or 1.0) for r in rows[:n]], dtype=np.float64)
+    if args.object_type == "sphere":
+        unit_corners = box_corners(np.asarray([[-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]]))
+        object_corners_world = unit_corners[None] * rad[:n, None, None] + T[:, None, :]
+    elif args.object_type == "capsule":
+        radius_m = float(args.object_radius_m if args.object_radius_m is not None else 0.018)
+        half = np.full(3, radius_m, dtype=np.float64)
+        half[{"x": 0, "y": 1, "z": 2}[args.object_axis_local]] += float(args.object_length_m) / 2.0
+        local_corners = box_corners(np.stack([-half, half]))
+        object_corners_world = np.einsum(
+            "fij,fpj->fpi", rotations, local_corners[None] * scales[:, None, None]
+        ) + T[:, None, :]
+    else:
+        import trimesh
+        mesh = trimesh.load(args.object_mesh_path, force="mesh")
+        local_corners = box_corners(np.asarray(mesh.bounds, dtype=np.float64))
+        object_corners_world = np.einsum(
+            "fij,fpj->fpi", rotations, local_corners[None] * scales[:, None, None]
+        ) + T[:, None, :]
+
+    paper_metrics = evaluate_hoi_paper_metrics(
+        human_joints=Jv,
+        object_corners_world=object_corners_world,
+        human_object_signed_distances=paper_signed_distances,
+        valid_frames=valid,
+    )
 
     # Tier-3 novel metrics (docs/research_hoi_eval_metrics_sota.md)
     delta = 2  # ± frames around an audio event
@@ -292,6 +414,7 @@ def main() -> None:
         # A. penetration
         "pen_frame_ratio": round(float(pen_frame.sum()) / max(nv, 1), 4),
         "non_collision_ratio": round(1.0 - float(pen_frame.sum()) / max(nv, 1), 4),
+        "non_collision_vertex_ratio": non_collision_vertex_ratio,   # HOI-PAGE definition (per-vertex)
         "pen_depth_mean_mm": round(float(pen_depth.mean()), 2) if pen_depth.size else 0.0,
         "pen_depth_max_mm": round(float(pen_depth.max()), 2) if pen_depth.size else 0.0,
         # B. contact
@@ -303,6 +426,24 @@ def main() -> None:
         # C. temporal
         "object_jerk": round(jerk, 6) if jerk is not None else None,
         "grasp_stability_mm": round(float(np.mean(stab)), 2) if stab else None,
+        # Paper-definition temporal (HOI-PAGE smoothness / CARI4D acceleration)
+        "human_smoothness": human_smoothness,        # mean per-joint accel magnitude (m/frame^2)
+        "object_smoothness": object_smoothness,      # object translation accel magnitude (m/frame^2)
+        "human_jerk": human_jerk,                    # mean ||third-difference||^2 of joints
+        "human_accel_cm": human_accel_cm,            # CARI4D Acc-h form (cm/frame^2), GT-free magnitude
+        "object_accel_cm": object_accel_cm,          # CARI4D Acc-o form (cm/frame^2), GT-free magnitude
+        # Generalized HOI-paper protocol (automatic, GT-free subset). Smoothness is
+        # neighbour-average residual in metres; physical scores are in [0,1].
+        "hoi_paper_human_temporal_smoothness_m": round(paper_metrics["human_temporal_smoothness"], 6)
+        if paper_metrics["human_temporal_smoothness"] is not None else None,
+        "hoi_paper_object_temporal_smoothness_m": round(paper_metrics["object_temporal_smoothness"], 6)
+        if paper_metrics["object_temporal_smoothness"] is not None else None,
+        "hoi_paper_non_collision_score": round(paper_metrics["non_collision_score"], 5)
+        if paper_metrics["non_collision_score"] is not None else None,
+        "hoi_paper_contact_score": round(paper_metrics["contact_score"], 5)
+        if paper_metrics["contact_score"] is not None else None,
+        "hoi_paper_query_vertex_scope": "all_smplx_vertices",
+        "hoi_paper_contact_definition": "fraction_of_valid_frames_with_any_smplx_vertex_on_or_inside_object_surface",
         # Tier-3 novel (audio-aware) metrics
         "audio_events": len(event_frames),
         "contact_ratio_audio_windows": c_audio,

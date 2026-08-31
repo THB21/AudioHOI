@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ....core.base.config import CaseProfile
-from ....core.base.io import read_csv, write_csv, write_json
+from ....core.base.io import read_csv, repo_path, write_csv, write_json
 from ....core.base.schema import stage_paths
 
 
@@ -46,6 +46,39 @@ def build(profile: CaseProfile) -> dict[str, object]:
         profile.sample_dir / "results/da3/priors/object_depth_prior.csv",
         profile.sample_dir / "results/da3/priors/ball_depth_prior.csv",
     )
+    # Held-out cases can provide the already materialized *visual* Stage-1 table
+    # even when the original SAM2/DA3 intermediates were not retained.  Reusing
+    # that table is preferable to silently using a solved pose.  In the strict
+    # no-audio arm, all audio-valued columns are zeroed before contact extraction.
+    baseline_obs_raw = profile.baseline.get("object_observations_csv", "")
+    baseline_obs = repo_path(baseline_obs_raw) if baseline_obs_raw else None
+    raw_visual_inputs_complete = (
+        ball_traj_csv.exists() and center_traj_csv.exists() and depth_csv.exists()
+    )
+    if not raw_visual_inputs_complete and baseline_obs is not None and baseline_obs.exists():
+        rows = read_csv(baseline_obs)
+        audio_disabled = "disable_audio_events" in set(profile.data.get("ablation_flags", []))
+        if audio_disabled:
+            for row in rows:
+                for key in list(row):
+                    if key.lower() in {"audio_score", "audio_support", "audio_confidence"}:
+                        row[key] = "0.000000"
+                    elif key.lower() in {"audio_contact_frame", "audio_event", "audio_active"}:
+                        row[key] = "0"
+        out = write_csv(paths["object_observations"], rows)
+        write_csv(paths["object_local_points"], [], fields=["point_id", "part", "role", "local_x", "local_y", "local_z", "source"])
+        metrics = {
+            "component": "mask_track_center",
+            "source": str(baseline_obs),
+            "source_kind": "configured_visual_observation_fallback",
+            "audio_columns_zeroed": audio_disabled,
+            "object_observations": str(out),
+            "local_points": "none_for_center_proxy",
+            "rows": len(rows),
+            "policy": "reuse materialized visual Stage-1 observations only; solved object pose is not read",
+        }
+        write_json(paths["stage1_metrics"], metrics)
+        return metrics
     if not ball_traj_csv.exists():
         raise FileNotFoundError(f"Missing SAM2/object trajectory: {ball_traj_csv}")
     if not center_traj_csv.exists():

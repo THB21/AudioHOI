@@ -32,9 +32,15 @@ camera:
   cx: 640.0
   cy: 360.0
 baseline:
-  final_pose_csv: samples_known_object/05_chair/results/mainline_0425/object_pose.csv
-  final_contact_csv: samples_known_object/05_chair/results/mainline_0425/object_contact_points.csv
-  final_phase_csv: samples_known_object/05_chair/results/mainline_0425/object_phase.csv
+  object_observations_csv: samples_known_object/05_chair/results/benchmark_vlm_qwen/object_observations.csv
+  object_local_points_csv: samples_known_object/05_chair/results/benchmark_vlm_qwen/object_local_points.csv
+  object_local_segments_csv: samples_known_object/05_chair/results/benchmark_vlm_qwen/object_local_segments.csv
+  chair_leg_candidates_csv: samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_leg_candidates.csv
+  chair_front_frame_csv: samples_known_object/05_chair/results/benchmark_vlm_qwen/chair_front_frame_cotracker_observations.csv
+  object_pose_init_csv: samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose_init.csv
+  final_pose_csv: samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose.csv
+  final_contact_csv: samples_known_object/05_chair/results/benchmark_vlm_qwen/object_contact_points.csv
+  final_phase_csv: samples_known_object/05_chair/results/benchmark_vlm_qwen/object_phase.csv
   semantic_observations_csv: samples_known_object/05_chair/results/chair_semantic_observations/chair_semantic_observations.csv
-  physical6d_seed_csv: samples_known_object/05_chair/results/mainline_0425/physical6d_seed/physical6d_pose.csv
+  physical6d_seed_csv: samples_known_object/05_chair/results/benchmark_vlm_qwen/object_pose_init.csv
   render_dir: samples_known_object/05_chair/results/renders/mainline_0425

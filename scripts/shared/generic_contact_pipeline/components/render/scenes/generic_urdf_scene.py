@@ -146,6 +146,26 @@ def load_obj_mesh(path: Path) -> tuple[np.ndarray, np.ndarray]:
     return np.asarray(mesh.vertices, dtype=float), np.asarray(mesh.faces, dtype=np.int32)
 
 
+def load_single_mesh_visual(
+    mesh_path: Path, radius_m: float, metric: str = "fit_radius", scale: float = 0.0
+) -> list[dict[str, object]]:
+    """One-element visuals list from a real object .glb, recentered to its bbox centroid and
+    metric-scaled. 'fit_radius' makes the largest extent = 2*radius_m (exact for a symmetric
+    ball); 'native' trusts the glb units (already-metric meshes like mug/chair/stick).
+    An explicit --object-scale > 0 overrides the metric fit."""
+    verts, faces = load_obj_mesh(mesh_path)
+    lo = verts.min(axis=0)
+    hi = verts.max(axis=0)
+    verts = verts - 0.5 * (lo + hi)  # recenter to bbox centroid
+    if scale > 0.0:
+        verts = verts * scale
+    elif metric == "fit_radius" and radius_m > 0.0:
+        half = float(np.max(hi - lo)) / 2.0
+        if half > 1e-9:
+            verts = verts * (radius_m / half)
+    return [{"link": "object", "name": "object_mesh", "vertices": verts, "faces": faces, "color": (60, 140, 220)}]
+
+
 def primitive_mesh(geom_el: ET.Element, root: Path) -> tuple[np.ndarray, np.ndarray]:
     box = geom_el.find("box")
     if box is not None:
@@ -660,7 +680,12 @@ def main() -> None:
     ap.add_argument("--sample-dir", type=Path, required=True)
     ap.add_argument("--pose-csv", type=Path, required=True)
     ap.add_argument("--contacts-csv", type=Path)
-    ap.add_argument("--urdf", type=Path, required=True)
+    ap.add_argument("--urdf", type=Path, default=None)
+    ap.add_argument("--object-mesh", type=Path, default=None,
+                    help="Render a single real object mesh (.glb) instead of a URDF (e.g. assets/object_meshes/basketball.glb).")
+    ap.add_argument("--object-scale", type=float, default=0.0,
+                    help="Explicit uniform scale for --object-mesh; 0 = fit largest extent to 2*radius_m.")
+    ap.add_argument("--object-mesh-metric", type=str, choices=["fit_radius", "native"], default="fit_radius")
     ap.add_argument("--out-root", type=Path, required=True)
     ap.add_argument("--fps", type=float, default=24.0)
     ap.add_argument("--alpha", type=float, default=0.78)
@@ -672,13 +697,21 @@ def main() -> None:
     args = ap.parse_args()
 
     rows = read_rows(args.pose_csv)
-    visuals = load_articraft_visuals(args.urdf)
+    if args.object_mesh is not None:
+        radius_m = float(rows[0].get("radius_m", 0.12) or 0.12)
+        visuals = load_single_mesh_visual(args.object_mesh, radius_m, args.object_mesh_metric, args.object_scale)
+        geom_src = str(args.object_mesh)
+    else:
+        if args.urdf is None:
+            raise SystemExit("generic_urdf_scene: provide --urdf or --object-mesh")
+        visuals = load_articraft_visuals(args.urdf)
+        geom_src = str(args.urdf)
     body = build_body_geometry(args.body_model_root, read_human_result(args.sample_dir / "results/gvhmr/result.pkl"))
     visible_tracks = read_visible_line_tracks(args.sample_dir)
     K = np.array([[args.fx, 0.0, args.cx], [0.0, args.fy, args.cy], [0.0, 0.0, 1.0]], dtype=float)
     object_dir = args.out_root / "object_only"
     human_dir = args.out_root / "with_human"
-    outputs = {"pose_csv": str(args.pose_csv), "urdf": str(args.urdf), "object_only": {}, "with_human": {}}
+    outputs = {"pose_csv": str(args.pose_csv), "urdf": geom_src, "object_only": {}, "with_human": {}}
     outputs["object_only"].update(draw_overlay(args.sample_dir, rows, visuals, object_dir / "overlay.mp4", args.fps, K, args.alpha))
     outputs["object_only"].update(render_3d(rows, visuals, object_dir / "camera3d.mp4", args.fps))
     outputs["object_only"].update(render_3d(rows, visuals, object_dir / "side_yz.mp4", args.fps, side_yz=True))

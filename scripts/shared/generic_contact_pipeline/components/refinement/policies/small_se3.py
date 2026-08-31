@@ -13,6 +13,19 @@ from ....core.gates.vlm_gates import apply_contact_gate_to_rows
 
 def apply(profile: CaseProfile) -> dict[str, object]:
     paths = stage_paths(profile)
+    flags = set(profile.data.get("ablation_flags", []))
+    if "disable_audio_events" in flags:
+        pose = copy_file(paths["object_pose_init"], paths["object_pose"])
+        contacts = copy_file(paths["contact_candidates"], paths["object_contact_points"])
+        metrics = {
+            "component": "small_se3",
+            "object_pose": str(pose),
+            "object_contact_points": str(contacts),
+            "policy": "audio-disabled arm preserves the shared visual/VLM Stage3 pose",
+            "ablation_flags": sorted(flags),
+        }
+        write_json(paths["stage4_metrics"], metrics)
+        return metrics
     generic_stage4_dir = profile.result_dir / "stage4_generic_refine"
     generic_stage4_render_dir = profile.render_dir / "stage4_generic_refine"
     script = REPO / "scripts/shared/generic_contact_pipeline/components/refinement/solvers/chair_audio_contact_static.py"

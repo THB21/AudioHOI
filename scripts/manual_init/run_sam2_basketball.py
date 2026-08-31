@@ -89,7 +89,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sample-dir", type=Path, default=Path("samples/basketball_01"))
     parser.add_argument("--fps", type=float, default=24.0)
-    parser.add_argument("--model", default="facebook/sam2.1-hiera-tiny")
+    parser.add_argument("--model", default="facebook/sam2.1-hiera-large")
     parser.add_argument("--box", default="470,320,570,430", help="First-frame basketball box x1,y1,x2,y2")
     parser.add_argument(
         "--points",

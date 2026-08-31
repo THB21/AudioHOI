@@ -23,11 +23,6 @@ vlm:
   parts: [main_body, contact_region, support_region, background, unclear]
   contacts: [hand, floor, body, nothing_nearby, unclear]
   stable_refs: [center, visible_semantic_part, support_point, unclear]
-  frame_policy:
-    stage1: all
-    stage2: all
-    stage4: all
-    stage5: all
 camera:
   fx: 1468.604736328125
   fy: 1468.604736328125
@@ -48,3 +43,5 @@ sequence_se3_optimizer:
   static_tail_length_px: 3.0
   translation_scales: [0.055, 0.055, 0.085]
   rotation_scale: 0.060
+baseline:
+  object_observations_csv: samples_known_object/11_stick/results/benchmark_vlm_qwen/object_observations.csv

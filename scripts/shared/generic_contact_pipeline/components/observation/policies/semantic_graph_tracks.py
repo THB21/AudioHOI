@@ -10,9 +10,39 @@ from ....core.base.schema import stage_paths
 
 def build(profile: CaseProfile) -> dict[str, object]:
     paths = stage_paths(profile)
+    tracks_csv = profile.sample_dir / "results/tracking/object_mesh_tracks.csv"
+    baseline = profile.baseline
+    fallback_keys = {
+        "object_observations": "object_observations_csv",
+        "object_local_points": "object_local_points_csv",
+        "object_local_segments": "object_local_segments_csv",
+    }
+    fallback_paths = {
+        output: repo_path(baseline.get(key, "")) if baseline.get(key) else None
+        for output, key in fallback_keys.items()
+    }
+    if not tracks_csv.exists() and all(path is not None and path.exists() for path in fallback_paths.values()):
+        obs = copy_file(fallback_paths["object_observations"], paths["object_observations"])
+        pts = copy_file(fallback_paths["object_local_points"], paths["object_local_points"])
+        segs = copy_file(fallback_paths["object_local_segments"], paths["object_local_segments"])
+        leg_source = repo_path(baseline["chair_leg_candidates_csv"])
+        front_source = repo_path(baseline["chair_front_frame_csv"])
+        leg_candidates = copy_file(leg_source, profile.result_dir / "chair_leg_candidates.csv")
+        front_frame = copy_file(front_source, profile.result_dir / "chair_front_frame_cotracker_observations.csv")
+        metrics = {
+            "component": "semantic_graph_tracks",
+            "source_kind": "configured_materialized_visual_stage1_fallback",
+            "object_observations": str(obs),
+            "object_local_points": str(pts),
+            "object_local_segments": str(segs),
+            "chair_leg_candidates": str(leg_candidates),
+            "chair_front_frame_cotracker_observations": str(front_frame),
+            "policy": "reuse materialized visual observations because raw tracker table was not retained",
+        }
+        write_json(paths["stage1_metrics"], metrics)
+        return metrics
     semantic_dir = profile.result_dir / "chair_semantic_observations_internal"
     semantic_builder = repo_path("scripts/shared/generic_contact_pipeline/components/observation/solvers/build_chair_semantic_observations.py")
-    tracks_csv = profile.sample_dir / "results/tracking/object_mesh_tracks.csv"
     semantic_cmd = [
         runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON"),
         str(semantic_builder),

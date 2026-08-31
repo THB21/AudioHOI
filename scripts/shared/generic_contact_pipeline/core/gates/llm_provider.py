@@ -71,6 +71,86 @@ class LLMProvider:
     def timeout_seconds(self) -> int:
         return int(self.data.get("timeout_seconds", 120))
 
+    def _complete_claude_cli(self, system: str, user: str) -> tuple[str | None, str]:
+        """Route through the local ``claude`` CLI in headless print mode --- uses the user's
+        Claude subscription, no API key. Runs from a neutral cwd (``/tmp``) so NO project
+        CLAUDE.md, memory, or conversation context is loaded: a fresh Claude with no background
+        knowledge that judges only the data provided in the prompt."""
+        import subprocess
+
+        prompt = f"{system}\n\n{user}" if system else user
+        cmd = ["claude", "-p", prompt, "--output-format", "text"]
+        if self.model_id and self.model_id != "mistral-small-latest":
+            cmd += ["--model", self.model_id]
+        try:
+            proc = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=self.timeout_seconds, cwd="/tmp",
+            )
+            if proc.returncode != 0:
+                return None, f"claude cli exit {proc.returncode}: {(proc.stderr or proc.stdout)[:500]}"
+            out = proc.stdout.strip()
+            return (out, "") if out else (None, "empty claude cli output")
+        except Exception as exc:  # noqa: BLE001
+            return None, str(exc)
+
+    def complete(self, system: str, user: str) -> tuple[str | None, str]:
+        """Return (assistant_text, error_string). Dispatches on ``kind``: local ``claude`` CLI
+        (subscription, no key) for kind in {claude_cli, claude_code}; Anthropic Claude Messages
+        API for {anthropic_messages, claude, anthropic}; otherwise the OpenAI/Mistral
+        chat-completions format. Text-only; used for the discrete data-audit."""
+        if self.kind in ("claude_cli", "claude_code"):
+            return self._complete_claude_cli(system, user)
+
+        import requests
+
+        if not self.api_key:
+            return None, f"missing API key {self.api_key_env}"
+        try:
+            if self.kind in ("anthropic_messages", "claude", "anthropic"):
+                resp = requests.post(
+                    self.base_url.rstrip("/") + "/messages",
+                    headers={
+                        "x-api-key": self.api_key,
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json",
+                    },
+                    json={
+                        "model": self.model_id,
+                        "max_tokens": self.max_new_tokens,
+                        "temperature": self.temperature,
+                        "system": system,
+                        "messages": [{"role": "user", "content": user}],
+                    },
+                    timeout=self.timeout_seconds,
+                )
+                if resp.status_code >= 400:
+                    return None, f"anthropic status {resp.status_code}: {resp.text[:500]}"
+                parts = resp.json().get("content", [])
+                text = "".join(p.get("text", "") for p in parts if isinstance(p, dict))
+                return text, ""
+            # OpenAI / Mistral chat-completions
+            resp = requests.post(
+                self.base_url.rstrip("/") + "/chat/completions",
+                headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+                json={
+                    "model": self.model_id,
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                    "temperature": self.temperature,
+                    "max_tokens": self.max_new_tokens,
+                    "response_format": {"type": "json_object"},
+                },
+                timeout=self.timeout_seconds,
+            )
+            if resp.status_code >= 400:
+                return None, f"{self.kind} status {resp.status_code}: {resp.text[:500]}"
+            text = str(resp.json().get("choices", [{}])[0].get("message", {}).get("content", ""))
+            return text, ""
+        except Exception as exc:  # noqa: BLE001
+            return None, str(exc)
+
     def doctor(self) -> dict[str, object]:
         return {
             "name": self.name,

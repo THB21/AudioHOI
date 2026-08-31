@@ -1,0 +1,284 @@
+{
+  "source_urdf": "samples_known_object/15_suitcase_drag/articraft/materialized_suitcase/model.urdf",
+  "fixed_joint_state": {
+    "handle_extension": 0.28
+  },
+  "semantic_handle_contrast": true,
+  "units": "m",
+  "visual_count": 64,
+  "visuals": [
+    {
+      "link": "suitcase_body",
+      "visual": "main_shell"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "cross_shell"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rounded_corner_0_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rounded_corner_0_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rounded_corner_1_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rounded_corner_1_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "front_rib_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_0_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_0_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_0_2"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "front_rib_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_1_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_1_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_1_2"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "front_rib_2"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_2_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_2_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_2_2"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "front_rib_3"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_3_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_3_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_3_2"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "front_rib_4"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_4_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_4_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_4_2"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "front_rib_5"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_5_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_5_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_5_2"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "front_rib_6"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_6_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_6_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rear_rib_6_2"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "zipper_belt"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "side_zipper_track"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "top_handle_recess"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "top_carry_handle"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "top_handle_mount_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "top_handle_mount_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rail_socket_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "socket_base_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "rail_socket_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "socket_base_1"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "combination_lock"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "zipper_pull_0"
+    },
+    {
+      "link": "suitcase_body",
+      "visual": "zipper_pull_1"
+    },
+    {
+      "link": "wheel_0",
+      "visual": "tire"
+    },
+    {
+      "link": "wheel_0",
+      "visual": "hub"
+    },
+    {
+      "link": "wheel_0",
+      "visual": "caster_fork"
+    },
+    {
+      "link": "wheel_1",
+      "visual": "tire"
+    },
+    {
+      "link": "wheel_1",
+      "visual": "hub"
+    },
+    {
+      "link": "wheel_1",
+      "visual": "caster_fork"
+    },
+    {
+      "link": "wheel_2",
+      "visual": "tire"
+    },
+    {
+      "link": "wheel_2",
+      "visual": "hub"
+    },
+    {
+      "link": "wheel_2",
+      "visual": "caster_fork"
+    },
+    {
+      "link": "wheel_3",
+      "visual": "tire"
+    },
+    {
+      "link": "wheel_3",
+      "visual": "hub"
+    },
+    {
+      "link": "wheel_3",
+      "visual": "caster_fork"
+    },
+    {
+      "link": "telescoping_handle",
+      "visual": "silver_rail_0"
+    },
+    {
+      "link": "telescoping_handle",
+      "visual": "silver_rail_1"
+    },
+    {
+      "link": "telescoping_handle",
+      "visual": "black_grip"
+    },
+    {
+      "link": "telescoping_handle",
+      "visual": "grip_post_0"
+    },
+    {
+      "link": "telescoping_handle",
+      "visual": "grip_post_1"
+    }
+  ],
+  "bounds_m": [
+    [
+      -0.196,
+      -0.125,
+      -4.5914827676019065e-08
+    ],
+    [
+      0.2095,
+      0.144,
+      0.904
+    ]
+  ],
+  "extents_m": [
+    0.40549999999999997,
+    0.269,
+    0.9040000459148277
+  ]
+}

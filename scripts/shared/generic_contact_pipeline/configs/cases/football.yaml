@@ -8,7 +8,9 @@ pose_model: translation3
 refinement_policy:
   - anchor_depth
   - backproject_xy
-render_backend: proxy_sphere
+render_backend: mesh_solid
+object_mesh: assets/object_meshes/football.glb
+object_mesh_metric: fit_radius
 result_name: generic_pipeline_v1
 vlm:
   target: football

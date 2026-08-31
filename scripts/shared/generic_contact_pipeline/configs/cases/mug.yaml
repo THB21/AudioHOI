@@ -22,6 +22,9 @@ camera:
   cx: 640.0
   cy: 360.0
 baseline:
+  object_observations_csv: samples_known_object/02_mug/results/benchmark_vlm_qwen/object_observations.csv
+  object_local_points_csv: samples_known_object/02_mug/results/benchmark_vlm_qwen/object_local_points.csv
+  object_pose_init_csv: samples_known_object/02_mug/results/benchmark_vlm_qwen/object_pose_init.csv
   final_pose_csv: samples_known_object/02_mug/results/final_result/object_pose.csv
   final_phase_csv: samples_known_object/02_mug/results/final_result/handle_phase.csv
   m15_recovered_phase_csv: samples_known_object/02_mug/results/renders/M15_original_phase_recovered/handle_phase_joint_contact.csv

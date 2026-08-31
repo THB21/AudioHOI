@@ -196,7 +196,36 @@ def audio_fields_from_records(records_csv: Path, frames: np.ndarray, radius: int
     event_type = np.array(["" for _ in frames], dtype=object)
     part_label = np.array(["" for _ in frames], dtype=object)
     event_time = np.full(n, np.nan)
+    floor_onset = np.zeros(n, dtype=bool)  # audio-timed object<->floor contacts (bounces/placements)
     best = np.zeros(n)
+    # L_rest sustained-contact intervals (audio_loss_v2 §3.3): the persistence machine
+    # (src/audio/persistence.py) already wrote contact_state/interval_id — a held object stays
+    # attached to the same part through silent/occluded frames. Fill every frame spanned by a
+    # (direct_contact|keep_grasp) interval with that part, so the object can be pinned to the
+    # held part over the WHOLE interval, not just at the discrete event frames.
+    held = np.zeros(n, dtype=bool)
+    held_part = np.array(["" for _ in frames], dtype=object)
+    _intervals: dict[int, dict] = {}
+    for r in rows:
+        if not int(float(r.get("relevant", 1) or 0)):
+            continue
+        iid = int(float(r.get("interval_id", -1) or -1))
+        state = str(r.get("contact_state", "") or "")
+        ent = str(r.get("stable_entity", r.get("target_entity", "")) or "")
+        if iid < 0 or state not in ("direct_contact", "keep_grasp") or ent not in (
+            "left_hand", "right_hand", "left_foot", "right_foot"):
+            continue
+        fr = int(float(r.get("refined_frame", r.get("frame", 0)) or 0))
+        d = _intervals.setdefault(iid, {"lo": fr, "hi": fr, "part": ent})
+        d["lo"] = min(d["lo"], fr)
+        d["hi"] = max(d["hi"], fr)
+        d["part"] = ent
+    for d in _intervals.values():
+        for f in range(d["lo"], d["hi"] + 1):
+            j = idx.get(f)
+            if j is not None:
+                held[j] = True
+                held_part[j] = d["part"]
     for r in rows:
         if not int(float(r.get("relevant", 1) or 0)):
             continue
@@ -234,9 +263,15 @@ def audio_fields_from_records(records_csv: Path, frames: np.ndarray, radius: int
         tgt = str(r.get("target_entity", "") or "")
         if r.get("contact_target") == "part" and tgt in {"left_hand", "right_hand", "left_foot", "right_foot"}:
             part_label[ev_i] = tgt
+        # A4 placement anchors: audio-timed object<->floor contacts (bounce/placement).
+        # These onsets were previously "left unpinned"; with known floor geometry they are
+        # the strongest depth anchor available (object bottom on the support plane).
+        if r.get("contact_target") in ("support", "floor"):
+            floor_onset[ev_i] = True
     return {"support": support, "gamma": gamma, "w_audio_scale": scale,
             "promote": promote, "event_type": event_type, "part_label": part_label,
-            "event_time": event_time}
+            "event_time": event_time, "held": held, "held_part": held_part,
+            "floor_onset": floor_onset}
 
 
 def build_anchor_segment_reference(
@@ -284,6 +319,11 @@ def solve_anchor_interpolation(
     w_audio_scale: np.ndarray | None = None,
     impulse_mode: str = "relax",
     kappa_budget: float = 0.05,
+    audio_jump_w: float = 0.0,
+    audio_jump_frac: float = 0.5,
+    sustained_mask: np.ndarray | None = None,
+    sustained_target: np.ndarray | None = None,
+    w_sustained: float = 0.0,
     u_obs: np.ndarray | None = None,
     v_obs: np.ndarray | None = None,
     K: np.ndarray | None = None,
@@ -297,6 +337,18 @@ def solve_anchor_interpolation(
     w_pen: float = 0.0,
     vis_conf: np.ndarray | None = None,
     audio_vis_coupling: float = 0.0,
+    sigma_idx: np.ndarray | None = None,
+    sigma_targets: np.ndarray | None = None,
+    sigma_weights: np.ndarray | None = None,
+    sound_idx: np.ndarray | None = None,
+    sound_amp: np.ndarray | None = None,
+    w_sound: float = 0.0,
+    floor_idx: np.ndarray | None = None,
+    floor_targets: np.ndarray | None = None,
+    w_floor_anchor: float = 0.0,
+    impdir_idx: np.ndarray | None = None,
+    impdir_part_pos: np.ndarray | None = None,
+    w_impulse_dir: float = 0.0,
 ) -> np.ndarray:
     """Refine ball depth between contact anchors.
 
@@ -395,6 +447,62 @@ def solve_anchor_interpolation(
                     coef = coef * (1.0 + audio_vis_coupling * (1.0 - c_free))
                 residual_list.append(coef * (z[free_idx][valid] - tgt[valid]))
 
+        # sigma-weighted SOFT audio anchors (SOTA import #1, loop_plan §3.5 deviation fix):
+        # audio-promoted contacts enter as finite-weight residuals (weight ~ per-event onset
+        # confidence, a 1/sigma proxy) instead of infinite-weight hard pins — so a mistimed or
+        # misattributed onset can be overruled by smoothness/reference/penetration evidence,
+        # and GVHMR part-depth bias no longer propagates with infinite weight.
+        if sigma_idx is not None and len(sigma_idx):
+            residual_list.append(sigma_weights * (z[sigma_idx] - sigma_targets))
+
+        # A4 placement anchors: audio-timed floor/support contacts pull depth to the
+        # closed-form floor-contact value (soft — floor_v itself is an estimate).
+        if w_floor_anchor > 0.0 and floor_idx is not None and len(floor_idx):
+            residual_list.append(w_floor_anchor * (z[floor_idx] - floor_targets))
+
+        # A2 impulse DIRECTION (pipeline_gaps A2): at a part-attributed onset the velocity
+        # change must point ALONG the contact normal (away from the striking part) — the
+        # ball bounces off the foot, it doesn't gain sideways velocity. Residual per onset:
+        # |dv|*(1 - cos(dv, n)) with n = (C - P)/|C - P| — zero when aligned, grows with
+        # misaligned impulse. A geometric guard independent of AKCA's attribution.
+        if w_impulse_dir > 0.0 and impdir_idx is not None and len(impdir_idx) and \
+                u_obs is not None and v_obs is not None and K is not None:
+            xyz_d = reconstruct_xyz_from_uvz(u_obs, v_obs, z, K)
+            for k_i, i in enumerate(impdir_idx):
+                dv = (xyz_d[i + 1] - xyz_d[i]) - (xyz_d[i] - xyz_d[i - 1])
+                nrm = xyz_d[i] - impdir_part_pos[k_i]
+                nn = np.linalg.norm(nrm)
+                dvn = np.linalg.norm(dv)
+                if nn < 1e-6 or dvn < 1e-6:
+                    continue
+                cos = float(dv @ nrm) / (dvn * nn)
+                residual_list.append(np.array([w_impulse_dir * dvn * (1.0 - cos)]))
+
+        # L_sound (SOTA import #3, analysis-by-synthesis lite): Hertz/modal impact physics
+        # says the depth-velocity change scales monotonically with impact sound amplitude
+        # (dv ~ A^(5/6)). Enforce the scale-free ORDERING consequence: a clearly louder onset
+        # (amp >= 1.5x) must not produce a SMALLER depth kink than a clearly quieter one —
+        # a pairwise hinge over onset kinks |d2z|. This is the energy-ordering residual
+        # (PAVAS-APCC style), computed in audio space semantics but on trajectory variables.
+        if w_sound > 0.0 and sound_idx is not None and len(sound_idx) >= 2 and n >= 3:
+            kink = np.abs(z[sound_idx + 1] - 2.0 * z[sound_idx] + z[sound_idx - 1])
+            louder = sound_amp[:, None] >= 1.5 * sound_amp[None, :]  # [a, b]: a clearly louder
+            viol = np.maximum(0.0, kink[None, :] - kink[:, None])[louder]  # kink_b > kink_a
+            if viol.size:
+                residual_list.append(w_sound * viol)
+
+        # L_rest (audio_loss_v2 §3.3): over a SUSTAINED contact interval the object is HELD by
+        # the part for the WHOLE span (not just at the impact) — so pin its depth to the held
+        # part's depth across every free frame of the interval. This is the sustained-contact
+        # dimension that point-anchors miss (unblocks held/rested objects: a set-down mug, a
+        # grasped stick, a chair being sat on — cases that emit no promotable impulse).
+        if w_sustained > 0.0 and sustained_mask is not None and sustained_target is not None:
+            s_free = np.asarray(sustained_mask, dtype=bool)[free_idx]
+            s_tgt = np.asarray(sustained_target, dtype=np.float64)[free_idx]
+            s_valid = s_free & np.isfinite(s_tgt)
+            if np.any(s_valid):
+                residual_list.append(w_sustained * (z[free_idx][s_valid] - s_tgt[s_valid]))
+
         # penalize depth acceleration (second difference) on free frames - this is
         # the "no sudden unexpected moves" regularizer, not a physics prior. It is
         # locally relaxed at audio impacts (by the per-frame, per-event-type gamma) so
@@ -417,6 +525,15 @@ def solve_anchor_interpolation(
                         w_temp * second_z,
                     )
                     residual_list.append(smooth_res[smooth_mask])
+                    # L_jump (audio_loss_v2 §3.2): the budget hinge only ALLOWS a kink up to
+                    # b_t; it never REQUIRES one, so a trajectory can glide straight through a
+                    # loud impact. Add a two-sided lower bound: at onsets, penalize a kink
+                    # SMALLER than b_min = frac*b_t (an impact MUST produce depth motion,
+                    # magnitude ~ Hertz A^(5/6)). Together the two bound |d2z| into a band.
+                    if audio_jump_w > 0.0:
+                        b_min = audio_jump_frac * budget
+                        jump_res = np.where(onset, audio_jump_w * np.maximum(0.0, b_min - np.abs(second_z)), 0.0)
+                        residual_list.append(jump_res[smooth_mask])
                 else:
                     accel_w = np.clip(w_temp * (1.0 - relax[1:-1] * audio_support[1:-1]), 0.0, None)
                     residual_list.append((accel_w * second_z)[smooth_mask])
@@ -551,6 +668,17 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--kappa-budget", type=float, default=0.05,
                         help="impulse budget scale in metres/frame^2 for --impulse-mode budget: a "
                              "full-strength onset (A=1) allows this much depth kink for free")
+    parser.add_argument("--audio-jump", dest="audio_jump_w", type=float, default=0.0,
+                        help="L_jump (audio_loss_v2): weight of the prescriptive kink LOWER bound at "
+                             "impacts (0=off). Requires the depth kink at an onset to be >= frac*budget "
+                             "so a loud impact must produce object motion (budget alone only allows a kink).")
+    parser.add_argument("--audio-jump-frac", type=float, default=0.5,
+                        help="lower bound as a fraction of the Hertz budget b_t (with --audio-jump)")
+    parser.add_argument("--audio-sustained", dest="w_sustained", type=float, default=0.0,
+                        help="L_rest (audio_loss_v2 §3.3): weight of the sustained-hold term (0=off). Over a "
+                             "keep_grasp/direct_contact interval (persistence machine in contact_records) the object "
+                             "is pinned to the held part's depth for the WHOLE interval, not just at the event — "
+                             "the sustained-contact dimension that impulse anchors miss (held/rested objects).")
     parser.add_argument("--audio-flight-physics", action="store_true", default=False,
                         help="audio as mode oracle: enable the flight-phase physics residuals ONLY "
                              "on frames strictly between consecutive audio events < 40 frames apart "
@@ -562,6 +690,12 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--no-audio-new-anchors", dest="audio_new_anchors", action="store_false")
     parser.add_argument("--audio-anchor-thresh", type=float, default=0.5,
                         help="audio_score threshold for promoting an onset frame to a contact anchor")
+    parser.add_argument("--audio-anchor-geom-gate", dest="audio_anchor_geom_gate", action="store_true", default=False,
+                        help="only keep an audio onset as a HARD anchor if its attributed part is within "
+                             "--audio-anchor-max-px of the object 2D center (else demote to the soft audio pull); "
+                             "blocks mistimed/misattributed onsets from pinning the ball to a wrong/far part")
+    parser.add_argument("--audio-anchor-max-px", type=float, default=140.0,
+                        help="pixel gate for --audio-anchor-geom-gate (matches the VLM part-override gate)")
     parser.add_argument("--audio-semantics", dest="audio_semantics", action="store_true", default=True,
                         help="classify each onset (impact/bounce/placement/scrape/sustained) and apply "
                              "per-event physics: per-frame gamma overrides --audio-accel-relax, and only "
@@ -577,6 +711,25 @@ def main(argv: list[str] | None = None) -> None:
                              "the body plane where blind interpolation floated 25 cm off)")
     parser.add_argument("--object-depth-csv", type=Path, default=None,
                         help="per-frame DA3 depth confidence source (default results/depth/object_depth.csv)")
+    parser.add_argument("--body-params-pkl", type=Path, default=None,
+                        help="override the raw GVHMR body with a refined SMPL-X params pkl "
+                             "(e.g. Stage-C output) when building contact-part joints — "
+                             "enables Stage B<->C alternation")
+    parser.add_argument("--sigma-anchors", type=float, default=0.0,
+                        help="soften audio-promoted anchors to sigma-weighted soft residuals "
+                             "(weight = this x per-event onset confidence); 0 = hard pins (legacy). "
+                             "Visual anchors stay hard.")
+    parser.add_argument("--w-sound", type=float, default=0.0,
+                        help="L_sound energy-ordering weight: a clearly louder onset must not "
+                             "produce a smaller depth kink than a clearly quieter one (0 = off)")
+    parser.add_argument("--w-floor-anchor", type=float, default=0.0,
+                        help="A4 placement anchors: at audio-timed floor/support onsets pull "
+                             "depth to the closed-form floor-contact depth z*=f*R/(floor_v-v_obs) "
+                             "(0 = off)")
+    parser.add_argument("--w-impulse-dir", type=float, default=0.0,
+                        help="A2 impulse-direction residual: at part-attributed onsets the "
+                             "velocity change must point along the contact normal, away from "
+                             "the striking part (0 = off)")
     parser.add_argument("--audio-subframe-anchors", dest="audio_subframe_anchors", action="store_true", default=True,
                         help="evaluate audio-anchor depth at the refined fractional-frame contact time "
                              "(audio is ms-precise; the frame grid is not) (default on)")
@@ -614,6 +767,15 @@ def main(argv: list[str] | None = None) -> None:
     state_rows = read_rows(state_csv)
     event_rows = read_rows(event_csv)
     human = read_human_result(results_dir / "gvhmr" / "result.pkl")
+    if args.body_params_pkl is not None and args.body_params_pkl.exists():
+        with args.body_params_pkl.open("rb") as f:
+            _ov = pickle.load(f)
+        n_ov = 0
+        for k in ("body_pose", "betas", "global_orient", "transl"):
+            if k in _ov and isinstance(_ov[k], np.ndarray):
+                human[k] = np.asarray(_ov[k], dtype=np.float32)
+                n_ov += 1
+        print(f"body params override: {args.body_params_pkl} ({n_ov} fields)")
     joints = build_body_joints(args.body_model_root, human)
     K = np.asarray(human["K_fullimg"], dtype=np.float64)
     if len(joints) < len(ball_rows):
@@ -720,6 +882,29 @@ def main(argv: list[str] | None = None) -> None:
                       if float(r["audio_score"]) >= args.audio_anchor_thresh}
             promote = np.asarray([f in strong for f in ball_frames], dtype=bool)
         audio_anchor_mask = promote & np.isfinite(part_z) & ~human_event_mask
+        # W3 geometry gate: keep an audio onset as a HARD anchor only if its attributed part
+        # is within --audio-anchor-max-px of the object's 2D center (the same guard the VLM
+        # part-override already uses). A mistimed/misattributed loud onset otherwise hard-pins
+        # the ball to a wrong/far part -> "object too far from the joint". Demoted onsets still
+        # contribute through the soft audio pull (audio_support), so no timing signal is lost.
+        if args.audio_anchor_geom_gate and np.any(audio_anchor_mask):
+            n_before = int(np.count_nonzero(audio_anchor_mask))
+            part_points_gate = build_contact_part_centers(joints)
+            for i in np.flatnonzero(audio_anchor_mask):
+                label = str(part_name[i])
+                if label not in part_points_gate:
+                    continue
+                P = part_points_gate[label][i]
+                if float(P[2]) <= 1e-6:
+                    continue
+                u_p = K[i, 0, 0] * P[0] / P[2] + K[i, 0, 2]
+                v_p = K[i, 1, 1] * P[1] / P[2] + K[i, 1, 2]
+                if float(np.hypot(u_p - u_obs[i], v_p - v_obs[i])) > args.audio_anchor_max_px:
+                    audio_anchor_mask[i] = False
+            n_demoted = n_before - int(np.count_nonzero(audio_anchor_mask))
+            if n_demoted:
+                print(f"audio geom-gate: demoted {n_demoted}/{n_before} audio anchor(s) "
+                      f"beyond {args.audio_anchor_max_px:.0f}px to soft pull")
     anchor_mask = human_event_mask | audio_anchor_mask
     if not np.any(anchor_mask):
         raise RuntimeError("No anchors at all: no visual contact events and no promotable audio onsets")
@@ -768,8 +953,79 @@ def main(argv: list[str] | None = None) -> None:
                 z_star = float(r1 if abs(r1 - anchor_values[i]) <= abs(r2 - anchor_values[i]) else r2)
             anchor_values[i] = max(0.20, z_star)
 
+    # sigma-anchors: split audio-promoted anchors out of the hard mask into soft
+    # sigma-weighted residuals. The reference/boundary window keeps the UNION mask so
+    # the segment reference and constant tails are unchanged — only the pinning softens.
+    window_anchor_mask = anchor_mask.copy()
+    sigma_idx = sigma_targets = sigma_weights = None
+    if args.sigma_anchors > 0.0:
+        soft_mask = audio_anchor_mask & ~human_event_mask & np.isfinite(anchor_values)
+        if np.any(soft_mask) and np.any(anchor_mask & ~soft_mask):
+            sigma_idx = np.flatnonzero(soft_mask)
+            sigma_targets = anchor_values[sigma_idx]
+            conf = np.clip(audio_support[sigma_idx], 0.1, 1.0)
+            sigma_weights = args.sigma_anchors * conf
+            anchor_mask = anchor_mask & ~soft_mask
+            print(f"sigma-anchors: {len(sigma_idx)} audio anchor(s) softened "
+                  f"(w = {args.sigma_anchors} x conf {np.round(conf, 2).tolist()})")
+        elif np.any(soft_mask):
+            print("sigma-anchors: skipped — audio anchors are the only anchors (need >=1 hard)")
+
+    # A4 placement anchors: at audio-timed floor/support onsets the closed-form
+    # floor-contact depth z* = f*R/(floor_v - v_obs) (ball bottom on the support line)
+    # is the strongest depth evidence available; audio supplies WHEN.
+    floor_idx = floor_targets = None
+    if args.w_floor_anchor > 0.0 and sem is not None and "floor_onset" in sem:
+        radius_fa = float(ball_rows[0]["radius_m"])
+        cand = []
+        for i in np.flatnonzero(np.asarray(sem["floor_onset"], dtype=bool)):
+            fv = float(ball_rows[i].get("floor_v", float("nan")) or float("nan"))
+            dv = fv - v_obs[i]
+            if np.isfinite(fv) and dv > 1.0:
+                z_star = float(K[i, 0, 0]) * radius_fa / dv
+                if 0.2 < z_star < 30.0:
+                    cand.append((i, z_star))
+        if cand:
+            floor_idx = np.asarray([c[0] for c in cand], dtype=np.int64)
+            floor_targets = np.asarray([c[1] for c in cand], dtype=np.float64)
+            print(f"floor anchors: {len(cand)} audio floor onsets -> z* "
+                  f"{np.round(floor_targets, 2).tolist()} (w={args.w_floor_anchor})")
+        else:
+            print("floor anchors: no usable floor onsets (missing floor_v or degenerate)")
+
+    # A2 impulse-direction: onset frames with a record-attributed part + that part's 3D center
+    impdir_idx = impdir_part_pos = None
+    if args.w_impulse_dir > 0.0 and sem is not None and np.any(sem["part_label"] != ""):
+        part_points_dir = build_contact_part_centers(joints)
+        cand_i, cand_p = [], []
+        for i in np.flatnonzero(sem["part_label"] != ""):
+            lbl = str(sem["part_label"][i])
+            if 1 <= i <= len(ball_frames) - 2 and lbl in part_points_dir:
+                P = part_points_dir[lbl][i]
+                if np.all(np.isfinite(P)):
+                    cand_i.append(i)
+                    cand_p.append(P)
+        if cand_i:
+            impdir_idx = np.asarray(cand_i, dtype=np.int64)
+            impdir_part_pos = np.asarray(cand_p, dtype=np.float64)
+            print(f"impulse-dir: {len(cand_i)} part onsets (w={args.w_impulse_dir})")
+
+    # L_sound onsets: local peaks of the audio support field (the onset frames) + amplitude
+    sound_idx = sound_amp = None
+    if args.w_sound > 0.0:
+        a_sup = np.asarray(audio_support, dtype=np.float64)
+        peaks = [i for i in range(1, len(a_sup) - 1)
+                 if a_sup[i] >= 0.2 and a_sup[i] >= a_sup[i - 1] and a_sup[i] > a_sup[i + 1]]
+        if len(peaks) >= 2:
+            sound_idx = np.asarray(peaks, dtype=np.int64)
+            sound_amp = a_sup[sound_idx]
+            print(f"L_sound: {len(peaks)} onset peaks, amp range "
+                  f"{sound_amp.min():.2f}-{sound_amp.max():.2f}, w={args.w_sound}")
+        else:
+            print("L_sound: skipped — fewer than 2 onset peaks")
+
     if args.z_ref_mode == "anchor_segment":
-        z_ref = build_anchor_segment_reference(z_init, anchor_mask, anchor_values)
+        z_ref = build_anchor_segment_reference(z_init, window_anchor_mask, anchor_values)
     else:
         z_ref = z_ref_global
 
@@ -830,6 +1086,22 @@ def main(argv: list[str] | None = None) -> None:
         body_joints = [joints[:, j, :] for j in range(min(22, joints.shape[1]))]
         pen_centers = np.stack([*part_centers.values(), *body_joints], axis=0)
 
+    # L_rest: build the sustained-hold depth target (held part's depth over keep_grasp intervals)
+    sustained_mask = None
+    sustained_target = None
+    if args.w_sustained > 0.0 and sem is not None and "held" in sem and np.any(sem["held"]):
+        held = np.asarray(sem["held"], dtype=bool)
+        held_part_arr = sem["held_part"]
+        part_points_sus = build_contact_part_centers(joints)
+        sustained_target = np.full(len(ball_frames), np.nan)
+        for i in np.flatnonzero(held & ~human_event_mask & ~audio_anchor_mask):
+            lbl = str(held_part_arr[i])
+            if lbl in part_points_sus:
+                sustained_target[i] = float(part_points_sus[lbl][i][2])
+        sustained_mask = held & np.isfinite(sustained_target)
+        print(f"L_rest sustained-hold: {int(np.count_nonzero(sustained_mask))} held free frames "
+              f"across {len(set(str(p) for p in held_part_arr[held] if str(p)))} part(s)")
+
     z_final = solve_anchor_interpolation(
         z_ref=z_ref,
         anchor_mask=anchor_mask,
@@ -843,6 +1115,11 @@ def main(argv: list[str] | None = None) -> None:
         w_audio_scale=w_audio_scale,
         impulse_mode=args.impulse_mode,
         kappa_budget=args.kappa_budget,
+        audio_jump_w=args.audio_jump_w,
+        audio_jump_frac=args.audio_jump_frac,
+        sustained_mask=sustained_mask,
+        sustained_target=sustained_target,
+        w_sustained=args.w_sustained,
         u_obs=u_obs,
         v_obs=v_obs,
         K=K,
@@ -856,9 +1133,21 @@ def main(argv: list[str] | None = None) -> None:
         w_pen=args.w_pen,
         vis_conf=vis_conf,
         audio_vis_coupling=args.audio_vis_coupling,
+        sigma_idx=sigma_idx,
+        sigma_targets=sigma_targets,
+        sigma_weights=sigma_weights,
+        sound_idx=sound_idx,
+        sound_amp=sound_amp,
+        w_sound=args.w_sound,
+        floor_idx=floor_idx,
+        floor_targets=floor_targets,
+        w_floor_anchor=args.w_floor_anchor,
+        impdir_idx=impdir_idx,
+        impdir_part_pos=impdir_part_pos,
+        w_impulse_dir=args.w_impulse_dir,
     )
     if args.outside_window_mode == "boundary_constant":
-        anchor_idx = np.flatnonzero(anchor_mask)
+        anchor_idx = np.flatnonzero(window_anchor_mask)
         interp_start = int(anchor_idx[0])
         interp_end = int(anchor_idx[-1])
         if interp_start > 0:
@@ -869,7 +1158,8 @@ def main(argv: list[str] | None = None) -> None:
     # the clamp bypasses the in-solve penetration residual — clean up any frames
     # (typically the constant tails) where the human walks into the parked object
     if pen_centers is not None:
-        z_final = resolve_ray_penetration(z_final, u_obs, v_obs, K, pen_centers, pen_clearance, ~anchor_mask)
+        # union mask: softened audio anchors keep their contact-adjacent exemption here
+        z_final = resolve_ray_penetration(z_final, u_obs, v_obs, K, pen_centers, pen_clearance, ~window_anchor_mask)
 
     xyz_final = reconstruct_xyz_from_uvz(u_obs, v_obs, z_final, K)
     r_proj, bottom_proj = project_ball(xyz_final, K, radius_m)

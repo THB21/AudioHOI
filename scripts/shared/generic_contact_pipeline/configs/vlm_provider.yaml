@@ -3,7 +3,7 @@ default_provider: qwen_vl_local
 providers:
   qwen_vl_local:
     kind: qwen_vl
-    python: /home/yang/miniconda3/envs/qwen-vl/bin/python
+    python: /home/hebestreit/miniforge3/envs/qwen-vl/bin/python
     model_id: Qwen/Qwen3-VL-8B-Instruct
     local_dir: models/modelscope/Qwen/Qwen3-VL-8B-Instruct
     device_map: auto

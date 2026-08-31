@@ -433,38 +433,18 @@ def _extract_json_object(text: str) -> dict[str, Any] | None:
 def _ask_mistral(profile: CaseProfile, queries: list[dict[str, object]], summaries: dict[str, dict[str, object]], deterministic_results: list[dict[str, object]]) -> tuple[list[dict[str, object]] | None, dict[str, object]]:
     provider = load_llm_provider()
     trace: dict[str, object] = {"provider": provider.doctor(), "used": False, "error": ""}
-    if not provider.api_key:
-        trace["error"] = f"missing API key {provider.api_key_env}"
-        return None, trace
     prompt = MISTRAL_USER_PROMPT.format(
         case_name=profile.case_name,
         queries=json.dumps(queries, ensure_ascii=False, indent=2),
         summaries=json.dumps(summaries, ensure_ascii=False, indent=2),
         deterministic_results=json.dumps(deterministic_results, ensure_ascii=False, indent=2),
     )
-    payload = {
-        "model": provider.model_id,
-        "messages": [
-            {"role": "system", "content": MISTRAL_SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
-        "temperature": provider.temperature,
-        "max_tokens": provider.max_new_tokens,
-        "response_format": {"type": "json_object"},
-    }
-    headers = {"Authorization": f"Bearer {provider.api_key}", "Content-Type": "application/json"}
-    try:
-        resp = requests.post(provider.base_url.rstrip("/") + "/chat/completions", headers=headers, json=payload, timeout=provider.timeout_seconds)
-        if resp.status_code >= 400:
-            trace["error"] = f"mistral status {resp.status_code}: {resp.text[:500]}"
-            return None, trace
-        data = resp.json()
-    except Exception as exc:
-        trace["error"] = str(exc)
+    text, err = provider.complete(MISTRAL_SYSTEM_PROMPT, prompt)
+    if text is None:
+        trace["error"] = err
         return None, trace
-    text = str(data.get("choices", [{}])[0].get("message", {}).get("content", ""))
     parsed = _extract_json_object(text)
-    trace.update({"used": True, "response_id": data.get("id", ""), "usage": data.get("usage", {}), "raw_text": text[:4000]})
+    trace.update({"used": True, "raw_text": text[:4000]})
     if not parsed or not isinstance(parsed.get("results"), list):
         trace["error"] = "response did not contain results list"
         return None, trace
@@ -554,7 +534,7 @@ def run_llm_csv_audit(profile: CaseProfile, mode: str = "seed") -> dict[str, obj
         _failure_range_audit(profile, paths),
     ]
     llm_trace: dict[str, object] = {"mode": mode, "used": False}
-    if mode == "mistral":
+    if mode in ("mistral", "claude"):
         reviewed, llm_trace = _ask_mistral(profile, queries, summaries, results)
         if reviewed is not None:
             results = reviewed
@@ -564,7 +544,7 @@ def run_llm_csv_audit(profile: CaseProfile, mode: str = "seed") -> dict[str, obj
         paths["llm_csv_audit_results"],
         {
             "case_name": profile.case_name,
-            "mode": "mistral_csv_audit" if mode == "mistral" and llm_trace.get("used") and not llm_trace.get("error") else "deterministic_csv_audit",
+            "mode": "live_llm_csv_audit" if mode in ("mistral", "claude") and llm_trace.get("used") and not llm_trace.get("error") else "deterministic_csv_audit",
             "llm_trace": llm_trace,
             "results": results,
         },

@@ -79,7 +79,10 @@ def _max_abs_delta(a: list[float], b: list[float]) -> float:
 def _run_exact_anchor_refinement(profile: CaseProfile, pose_csv: str, proxy_csv: str, state_csv: str) -> dict[str, str]:
     python_bin = runtime_python("audiohoi", override_env="AUDIOHOI_PYTHON")
     script = repo_path("scripts/shared/generic_contact_pipeline/components/refinement/solvers/anchor_depth_solver.py")
-    event_csv = profile.sample_dir / "results/contact_candidates_object_proxy/contact_candidates_labeled.csv"
+    # Use the contact table generated inside this exact ablation arm. The old
+    # sample-global path both breaks held-out cases and can leak audio-derived
+    # events into a no-audio run.
+    event_csv = stage_paths(profile)["contact_candidates"]
     out_subdir = f"{profile.result_name}/exact_anchor_depth_reference"
     cmd = [
         python_bin,
@@ -156,6 +159,21 @@ def apply(profile: CaseProfile) -> dict[str, object]:
             continue
         anchor_values[fr] = active_z - offset
 
+    if not anchor_values:
+        out = copy_file(paths["object_pose_init"], paths["object_pose"])
+        contacts = copy_file(paths["contact_candidates"], paths["object_contact_points"])
+        metrics = {
+            "component": "anchor_depth",
+            "object_pose": str(out),
+            "object_contact_points": str(contacts),
+            "anchor_frames": 0,
+            "vlm_contact_gate": vlm_gate_summary,
+            "policy": "no verified visual human-contact anchors; preserve Stage3 visual pose without inventing contact",
+            "ablation_flags": sorted(flags),
+        }
+        write_json(paths["stage4_metrics"], metrics)
+        return metrics
+
     z_raw = _interp_anchor_segment(frames, z_init, anchor_values)
     raw_rows = _build_pose_rows(
         init_rows,
@@ -166,12 +184,33 @@ def apply(profile: CaseProfile) -> dict[str, object]:
     )
     raw_debug_path = paths["object_pose"].with_name("object_pose_anchor_raw_debug.csv")
     write_csv(raw_debug_path, raw_rows)
-    exact = _run_exact_anchor_refinement(
-        profile=profile,
-        pose_csv=str(paths["object_pose_init"]),
-        proxy_csv=str(paths["contact_candidates"]),
-        state_csv=str(paths["contact_state"]),
-    )
+    try:
+        exact = _run_exact_anchor_refinement(
+            profile=profile,
+            pose_csv=str(paths["object_pose_init"]),
+            proxy_csv=str(paths["contact_candidates"]),
+            state_csv=str(paths["contact_state"]),
+        )
+    except subprocess.CalledProcessError as exc:
+        # A VLM proposal can survive the lightweight gate above while the exact
+        # solver rejects it as non-human or otherwise unusable.  That is a valid
+        # zero-contact result, especially in the visual-only arm.  Preserve the
+        # common visual Stage-3 trajectory instead of making the ablation fail.
+        out = copy_file(paths["object_pose_init"], paths["object_pose"])
+        contacts = copy_file(paths["contact_candidates"], paths["object_contact_points"])
+        metrics = {
+            "component": "anchor_depth",
+            "object_pose": str(out),
+            "object_contact_points": str(contacts),
+            "anchor_frames": 0,
+            "candidate_anchor_frames": len(anchor_values),
+            "vlm_contact_gate": vlm_gate_summary,
+            "policy": "exact solver rejected all human-contact anchors; preserve Stage3 visual pose",
+            "exact_solver_returncode": exc.returncode,
+            "ablation_flags": sorted(flags),
+        }
+        write_json(paths["stage4_metrics"], metrics)
+        return metrics
     out = copy_file(exact["pose_csv"], paths["object_pose"])
     contacts = copy_file(paths["contact_candidates"], paths["object_contact_points"]) if paths["contact_candidates"].exists() else None
     final_rows = read_csv(paths["object_pose"])

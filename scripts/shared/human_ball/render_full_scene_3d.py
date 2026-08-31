@@ -109,6 +109,10 @@ def make_object_mesh(radius: float, object_mesh: Path | None, object_scale: floa
             mesh.apply_translation(-mesh.bounding_box.centroid)
         if object_scale > 0:
             mesh.apply_scale(object_scale)
+        elif keep_origin:
+            # a URDF/model-frame mesh (--keep-mesh-origin, SE3 poses) is ALREADY metric —
+            # radius-fitting it shrinks e.g. a 0.78 m chair to the 0.12 m ball radius. Keep native.
+            pass
         else:
             half = float(np.max(mesh.bounding_box.extents)) / 2.0
             if half > 1e-6:
@@ -269,17 +273,26 @@ def main():
     ap.add_argument("--object-scale", type=float, default=0.0,
                     help="metric scale for --object-mesh (0 = fit to the trajectory radius)")
     ap.add_argument("--fps", type=float, default=24.0)
+    ap.add_argument("--output-width", type=int, default=0,
+                    help="world-render width override; 0 keeps source-video width")
+    ap.add_argument("--output-height", type=int, default=0,
+                    help="world-render height override; 0 keeps source-video height")
     ap.add_argument("--body-color", choices=tuple(BODY_PALETTE), default="tan")
     ap.add_argument("--alpha", type=float, default=0.5,
                     help="overlay mesh opacity over the video; low so you can see the real "
                          "person underneath (doesn't touch the world view)")
     ap.add_argument("--orbit-turns", type=float, default=1.0, help="full camera turns over the clip")
+    ap.add_argument("--start-azimuth-deg", type=float, default=0.0,
+                    help="initial world-camera azimuth; combine with --orbit-turns 0 for a fixed diagnostic view")
     ap.add_argument("--elevation-deg", type=float, default=16.0)
     ap.add_argument("--mode", choices=["both", "overlay", "world"], default="both")
     ap.add_argument("--out-dir", type=Path, default=None,
                     help="override output directory (default results/renders/full_scene_3d)")
     ap.add_argument("--tag", type=str, default="",
                     help="filename prefix so renders are saved under distinct names (e.g. L1, L2)")
+    ap.add_argument("--body-params-pkl", type=Path, default=None,
+                    help="explicit SMPL-X params pkl overriding the auto-picked "
+                         "contact_refine/stitched file (e.g. an experimental refinement)")
     args = ap.parse_args()
 
     body_color = BODY_PALETTE[args.body_color]
@@ -293,6 +306,12 @@ def main():
     obj = read_object_trajectory(traj_path)
 
     gvhmr, stitched = load_smplx_params(results_dir)
+    if args.body_params_pkl is not None:
+        import pickle as _pkl
+        with args.body_params_pkl.open("rb") as f:
+            override = _pkl.load(f)
+        stitched = {k: np.asarray(v) for k, v in override.items() if isinstance(v, np.ndarray)}
+        print(f"Body params OVERRIDE: {args.body_params_pkl}")
     n_frames = gvhmr["transl"].shape[0]
     K = gvhmr["K_fullimg"]
     if K.ndim == 2:
@@ -315,6 +334,10 @@ def main():
     if not frame_paths:
         raise RuntimeError(f"No frames in {args.sample_dir / 'frames'}")
     H, W = cv2.imread(str(frame_paths[0])).shape[:2]
+    if args.output_width > 0:
+        W = args.output_width
+    if args.output_height > 0:
+        H = args.output_height
     renderer = pyrender.OffscreenRenderer(viewport_width=W, viewport_height=H)
 
     # line everything up by frame number
@@ -419,7 +442,7 @@ def main():
             if i == 0:
                 cv2.imwrite(str(out_dir / f"{pfx}overlay_preview.png"), frame)
         if do_world:
-            theta = 2.0 * np.pi * args.orbit_turns * (i / max(n - 1, 1))
+            theta = np.deg2rad(args.start_azimuth_deg) + 2.0 * np.pi * args.orbit_turns * (i / max(n - 1, 1))
             eye = center_w + orbit_dist * np.array([
                 np.cos(elev) * np.sin(theta), np.sin(elev), np.cos(elev) * np.cos(theta)
             ])

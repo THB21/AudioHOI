@@ -51,6 +51,16 @@ class CaseProfile:
             "cy": float(raw.get("cy", 360.0)),
         }
 
+    @property
+    def object_mesh(self) -> Path | None:
+        """Real object mesh (.glb) for the mesh_solid render backend, if configured."""
+        value = self.data.get("object_mesh")
+        return repo_path(str(value)) if value else None
+
+    @property
+    def object_mesh_metric(self) -> str:
+        return str(self.data.get("object_mesh_metric", "fit_radius"))
+
     def component(self, key: str) -> str:
         value = self.data.get(key)
         if value is None:

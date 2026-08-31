@@ -307,7 +307,7 @@ def main() -> None:
     ap.add_argument("--to-stage", default="stage7", choices=[name for name, _fn in STAGES])
     ap.add_argument("--result-name", default="", help="Override case profile result_name, e.g. generic_pipeline_v2_llm_vlm_gate.")
     ap.add_argument("--ablation-flag", action="append", default=[], help="Runtime ablation flag consumed by components.")
-    ap.add_argument("--llm-mode", default="seed", choices=["none", "seed", "qwen", "mistral"], help="Resolve Stage -1 HOI semantic prior.")
+    ap.add_argument("--llm-mode", default="seed", choices=["none", "seed", "qwen", "mistral", "claude"], help="Resolve Stage -1 HOI semantic prior + data-audit LLM. 'claude' uses the default provider (claude CLI, subscription).")
     ap.add_argument("--skip-vlm", action="store_true", help="Deprecated alias for --vlm-mode none.")
     ap.add_argument("--vlm-mode", default="dry-run", choices=["none", "dry-run", "qwen"], help="Stage-level VLM verification mode.")
     ap.add_argument("--vlm-blocking", action="store_true", help="Stop the pipeline when a real VLM result rejects a stage.")

@@ -435,9 +435,6 @@ def _call_live_stage_llm(
 ) -> tuple[list[dict[str, object]] | None, dict[str, object]]:
     provider = load_llm_provider()
     trace: dict[str, object] = {"provider": provider.doctor(), "used": False, "error": ""}
-    if not provider.api_key:
-        trace["error"] = f"missing API key {provider.api_key_env}"
-        return None, trace
     summaries = _live_stage_summaries(profile, stage)
     prompt = (
         "Review this AudioHOI pipeline stage. Decide whether the stage can continue, "
@@ -446,28 +443,11 @@ def _call_live_stage_llm(
         f"Structured evidence:\n{json.dumps(summaries, ensure_ascii=False, indent=2)}\n\n"
         f"Deterministic fallback results:\n{json.dumps(deterministic_results, ensure_ascii=False, indent=2)}"
     )
-    payload = {
-        "model": provider.model_id,
-        "messages": [
-            {"role": "system", "content": LIVE_LLM_SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
-        "temperature": provider.temperature,
-        "max_tokens": provider.max_new_tokens,
-        "response_format": {"type": "json_object"},
-    }
-    headers = {"Authorization": f"Bearer {provider.api_key}", "Content-Type": "application/json"}
-    try:
-        resp = requests.post(provider.base_url.rstrip("/") + "/chat/completions", headers=headers, json=payload, timeout=provider.timeout_seconds)
-        if resp.status_code >= 400:
-            trace["error"] = f"mistral status {resp.status_code}: {resp.text[:500]}"
-            return None, trace
-        data = resp.json()
-    except Exception as exc:
-        trace["error"] = str(exc)
+    text, err = provider.complete(LIVE_LLM_SYSTEM_PROMPT, prompt)
+    if text is None:
+        trace["error"] = err
         return None, trace
-    text = str(data.get("choices", [{}])[0].get("message", {}).get("content", ""))
-    trace.update({"used": True, "response_id": data.get("id", ""), "usage": data.get("usage", {}), "raw_text": text[:4000]})
+    trace.update({"used": True, "raw_text": text[:4000]})
     parsed = _parse_json_object(text)
     if not parsed or not isinstance(parsed.get("results"), list):
         trace["error"] = "response did not contain a results list"
@@ -535,7 +515,7 @@ def _llm_csv_audit(profile: CaseProfile, stage: str, *, llm_mode: str) -> list[d
         return []
     result_rows = _stage_llm_results(profile, stage, queries)
     llm_trace: dict[str, object] = {"mode": llm_mode, "used": False}
-    if llm_mode == "mistral":
+    if llm_mode in ("mistral", "claude"):
         reviewed, llm_trace = _call_live_stage_llm(profile, stage, queries, result_rows)
         if reviewed is not None:
             result_rows = reviewed

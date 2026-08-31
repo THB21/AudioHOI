@@ -20,6 +20,7 @@ import torch
 
 from scripts.shared.generic_contact_pipeline.components.contact.utils.contact_part_utils import (
     build_contact_identity,
+    build_contact_part_centers,
     choose_active_contact_relation,
     normalize_contact_label,
     resolve_human_state_key,
@@ -127,6 +128,51 @@ def reconstruct_xyz_from_uvz(u_obs: np.ndarray, v_obs: np.ndarray, z: np.ndarray
     x = (u_obs - cx) * z / fx
     y = (v_obs - cy) * z / fy
     return np.stack([x, y, z], axis=1)
+
+
+def ray_dirs_from_uv(u_obs: np.ndarray, v_obs: np.ndarray, K: np.ndarray) -> np.ndarray:
+    """Per-frame camera-ray direction d=(dx,dy,1) so that C(z)=z*d is at depth z."""
+    fx = K[:, 0, 0]
+    fy = K[:, 1, 1]
+    cx = K[:, 0, 2]
+    cy = K[:, 1, 2]
+    dx = (u_obs - cx) / fx
+    dy = (v_obs - cy) / fy
+    return np.stack([dx, dy, np.ones_like(dx)], axis=1)
+
+
+def surface_gap_depth(d: np.ndarray, part: np.ndarray, radius: float, z_prefer: float) -> tuple[float, bool]:
+    """Depth z along ray d where the object surface touches the part center P:
+    solve |z*d - P| = radius, return the root nearest z_prefer.
+    When the ray never comes within radius of P, return the closest-approach depth
+    z*=(d.P)/(d.d) and reachable=False."""
+    a = float(d @ d)
+    dp = float(d @ part)
+    c = float(part @ part - radius * radius)
+    disc = dp * dp - a * c
+    if disc >= 0.0:
+        s = float(np.sqrt(disc))
+        z1 = (dp - s) / a
+        z2 = (dp + s) / a
+        z = z1 if abs(z1 - z_prefer) <= abs(z2 - z_prefer) else z2
+        return z, True
+    return dp / a, False
+
+
+def surface_touch_point(d: np.ndarray, part: np.ndarray, radius: float, z_prefer: float) -> np.ndarray:
+    """Object center placed so its surface touches P at radius. On the observed ray
+    when reachable (reprojection preserved); otherwise snapped off-ray to P+radius*n_hat
+    (closes the residual lateral gap at occluded contact instants)."""
+    z, reachable = surface_gap_depth(d, part, radius, z_prefer)
+    if reachable:
+        return z * d
+    z_ca = float(d @ part) / float(d @ d)
+    c_star = z_ca * d
+    diff = c_star - part
+    n = float(np.linalg.norm(diff))
+    if n < 1e-9:
+        return c_star
+    return part + radius * diff / n
 
 
 def write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) -> None:
@@ -293,6 +339,29 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--z-ref-mode", type=str, choices=["global_shift", "anchor_segment"], default="anchor_segment")
     parser.add_argument("--max-contact-depth-offset-m", type=float, default=1.0)
     parser.add_argument("--delta-stat", type=str, choices=["median", "mean"], default="median")
+    # Iteration #13 (object<->joint distance). Default-off: center_depth + no xy-tie reproduces prior output.
+    parser.add_argument(
+        "--anchor-geometry",
+        type=str,
+        choices=["center_depth", "surface_gap"],
+        default="center_depth",
+        help="center_depth: pin object center depth to part-center depth (legacy). "
+        "surface_gap: pin along the object ray so the surface touches the part (|C-P|=radius).",
+    )
+    parser.add_argument(
+        "--anchor-xy-tie",
+        action="store_true",
+        help="At anchor frames where the object ray cannot reach within radius of the part, "
+        "snap the object center off-ray to P+radius*n_hat (closes the residual lateral gap).",
+    )
+    parser.add_argument(
+        "--anchor-xy-tie-max-px",
+        type=float,
+        default=50.0,
+        help="Confidence guard: cap the off-ray snap so its 2D reprojection shift stays <= this "
+        "many pixels. Prevents trusting a possibly-wrong GVHMR joint over a good 2D track when the "
+        "two disagree by a lot (e.g. fast-occluded football kicks). Reachable frames are unaffected.",
+    )
     parser.add_argument("--w-ref", type=float, default=0.7)
     parser.add_argument("--w-temp", type=float, default=5.0)
     parser.add_argument("--w-phys-xz", type=float, default=1.25)
@@ -392,6 +461,21 @@ def main(argv: list[str] | None = None) -> None:
     contact_offset_for_anchor = np.zeros_like(contact_offset_raw)
     contact_offset_for_anchor[valid_contact_offset] = contact_offset_raw[valid_contact_offset]
     anchor_values = part_z - contact_offset_for_anchor
+
+    # Full 3D part point P per frame (for surface-gap geometry and the |C-P| diagnostic).
+    part_centers_all = build_contact_part_centers(joints)
+    part_xyz = np.zeros((len(part_name), 3), dtype=np.float64)
+    for i, nm in enumerate(part_name):
+        part_xyz[i] = part_centers_all[nm][i] if nm in part_centers_all else np.array([0.0, 0.0, part_z[i]])
+    ray_dirs = ray_dirs_from_uv(u_obs, v_obs, K)
+    radii_m = np.asarray([r["radius_m"] for r in pose_rows], dtype=np.float64)
+
+    # F1 surface-gap: anchor depth = ray-root where the surface touches the part center.
+    if args.anchor_geometry == "surface_gap":
+        for i in np.flatnonzero(human_event_mask):
+            z_sg, _reach = surface_gap_depth(ray_dirs[i], part_xyz[i], float(radii_m[i]), float(part_z[i]))
+            anchor_values[i] = max(z_sg, 0.20)
+
     deltas = anchor_values[human_event_mask] - z_init[human_event_mask]
     global_z_shift = float(np.median(deltas) if args.delta_stat == "median" else np.mean(deltas))
     z_ref_global = np.maximum(z_init + global_z_shift, 0.20)
@@ -425,6 +509,42 @@ def main(argv: list[str] | None = None) -> None:
         interp_start = interp_end = -1
 
     xyz_final = reconstruct_xyz_from_uvz(u_obs, v_obs, z_final, K)
+    anchor_dist3d_before = np.linalg.norm(xyz_final - part_xyz, axis=1)
+
+    # F2 xy-tie: at anchor frames, place the object center so its surface touches the part.
+    # On-ray when reachable (no reprojection cost). Off-ray otherwise, but capped so the 2D
+    # reprojection shift stays <= --anchor-xy-tie-max-px (confidence guard against trusting a
+    # wrong GVHMR joint over a good 2D track). Closes the residual lateral gap (RC1).
+    xy_tie_shift_px = np.zeros(len(pose_rows), dtype=np.float64)
+    if args.anchor_xy_tie:
+        for i in np.flatnonzero(human_event_mask):
+            d = ray_dirs[i]
+            P = part_xyz[i]
+            r = float(radii_m[i])
+            z_sg, reachable = surface_gap_depth(d, P, r, float(z_final[i]))
+            if reachable:
+                xyz_final[i] = z_sg * d  # on-ray, exact contact, zero reprojection cost
+                continue
+            z_ca = float(d @ P) / float(d @ d)
+            c_star = z_ca * d
+            diff = c_star - P
+            n = float(np.linalg.norm(diff))
+            if n < 1e-9:
+                xyz_final[i] = c_star
+                continue
+            c_snap = P + r * diff / n  # exact contact, off-ray
+            Ki = K[i]
+
+            def _uv(C: np.ndarray) -> np.ndarray:
+                return np.array([Ki[0, 0] * C[0] / C[2] + Ki[0, 2], Ki[1, 1] * C[1] / C[2] + Ki[1, 2]])
+
+            shift_full = float(np.linalg.norm(_uv(c_snap) - _uv(c_star)))
+            alpha = 1.0 if shift_full <= args.anchor_xy_tie_max_px else args.anchor_xy_tie_max_px / shift_full
+            xyz_final[i] = c_star + alpha * (c_snap - c_star)
+            xy_tie_shift_px[i] = float(np.linalg.norm(_uv(xyz_final[i]) - _uv(c_star)))
+        z_final = xyz_final[:, 2].copy()
+    anchor_dist3d = np.linalg.norm(xyz_final - part_xyz, axis=1)
+
     z_contact_final = z_final + contact_offset_for_anchor
     out_rows = []
     reproj_rows = []
@@ -484,6 +604,7 @@ def main(argv: list[str] | None = None) -> None:
                 "z_ref_global_shift": f"{z_ref_global[idx]:.6f}",
                 "z_ref_anchor_segment": f"{z_ref_segment[idx]:.6f}",
                 "contact_depth_gap": f"{(z_contact_final[idx] - part_z[idx]):.6f}",
+                "anchor_dist3d_m": f"{anchor_dist3d[idx]:.6f}",
             }
         )
         reproj_rows.append(
@@ -511,7 +632,7 @@ def main(argv: list[str] | None = None) -> None:
             "floor_v","support_type","support_source","support_confidence","residual_px","contact_frame","audio_contact_frame",
             "human_contact_event","floor_contact_event","human_contact_state","floor_contact_state",
             "contact_part","contact_side","contact_label","active_part","active_part_y","active_part_z",
-            "u_ref_obs","v_ref_obs","contact_u","contact_v","contact_depth_offset_m","contact_depth_offset_used_m","z_contact_final","global_z_ref","z_ref_global_shift","z_ref_anchor_segment","contact_depth_gap",
+            "u_ref_obs","v_ref_obs","contact_u","contact_v","contact_depth_offset_m","contact_depth_offset_used_m","z_contact_final","global_z_ref","z_ref_global_shift","z_ref_anchor_segment","contact_depth_gap","anchor_dist3d_m",
         ],
     )
     write_csv(reproj_csv, reproj_rows, ["frame","u_obs","v_obs","u_reproj","v_reproj","error_u","error_v","error_px"])
@@ -533,6 +654,21 @@ def main(argv: list[str] | None = None) -> None:
         f.write(f"num_frames: {len(pose_rows)}\n")
         f.write(f"num_human_event_frames: {int(np.count_nonzero(human_event_mask))}\n")
         f.write(f"num_floor_event_frames: {int(np.count_nonzero(floor_event_mask))}\n")
+        f.write(f"anchor_geometry: {args.anchor_geometry}\n")
+        f.write(f"anchor_xy_tie: {int(bool(args.anchor_xy_tie))}\n")
+        if np.any(human_event_mask):
+            ev = human_event_mask
+            f.write(f"mean_radius_m: {float(np.mean(radii_m[ev])):.6f}\n")
+            f.write(f"anchor_dist3d_before_m_mean: {float(np.mean(anchor_dist3d_before[ev])):.6f}\n")
+            f.write(f"anchor_dist3d_before_m_max: {float(np.max(anchor_dist3d_before[ev])):.6f}\n")
+            f.write(f"anchor_dist3d_after_m_mean: {float(np.mean(anchor_dist3d[ev])):.6f}\n")
+            f.write(f"anchor_dist3d_after_m_max: {float(np.max(anchor_dist3d[ev])):.6f}\n")
+    print(
+        f"anchor_dist3d(mean|max) at {int(np.count_nonzero(human_event_mask))} contact frames: "
+        f"before {float(np.mean(anchor_dist3d_before[human_event_mask])):.3f}|{float(np.max(anchor_dist3d_before[human_event_mask])):.3f} m -> "
+        f"after {float(np.mean(anchor_dist3d[human_event_mask])):.3f}|{float(np.max(anchor_dist3d[human_event_mask])):.3f} m "
+        f"(radius {float(np.mean(radii_m[human_event_mask])):.3f} m)"
+    )
     print(f"object_contact_csv: {out_csv}")
     print(f"object_contact_reproj_csv: {reproj_csv}")
     print(f"object_contact_summary: {summary_txt}")

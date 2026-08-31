@@ -457,7 +457,15 @@ def resolve_hoi_profile(profile: CaseProfile, mode: str = "seed") -> tuple[dict[
                 }
             )
             return seed_resolved, seed_trace
-    raise ValueError(f"Unknown LLM mode {mode!r}; expected none, seed, qwen, or mistral")
+    if mode == "claude":
+        # The Stage -1 HOI semantic prior stays deterministic (seed); the live Claude LLM is
+        # used for the data-movement AUDIT (Stage 6.5 CSV audit + live stage gates), not the
+        # symbolic prior. This keeps the prior reproducible while Claude judges the data.
+        seed_resolved, seed_trace = build_profile_from_seed(profile)
+        seed_trace = dict(seed_trace)
+        seed_trace["mode"] = "claude_seed_prior"
+        return seed_resolved, seed_trace
+    raise ValueError(f"Unknown LLM mode {mode!r}; expected none, seed, qwen, mistral, or claude")
 
 
 def profile_choices_for_vlm(profile: CaseProfile) -> dict[str, Any] | None:

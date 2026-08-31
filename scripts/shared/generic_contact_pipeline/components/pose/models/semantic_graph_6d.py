@@ -10,6 +10,20 @@ from ....core.base.schema import stage_paths
 
 def build(profile: CaseProfile) -> dict[str, object]:
     paths = stage_paths(profile)
+    depth_index = profile.sample_dir / "results/da3/scene_depth/index.csv"
+    materialized_seed_raw = profile.baseline.get("object_pose_init_csv", "")
+    materialized_seed = repo_path(materialized_seed_raw) if materialized_seed_raw else None
+    if not depth_index.exists() and materialized_seed is not None and materialized_seed.exists():
+        out = copy_file(materialized_seed, paths["object_pose_init"])
+        metrics = {
+            "component": "semantic_graph_6d",
+            "source_kind": "configured_materialized_visual_stage3_fallback",
+            "object_pose_init": str(out),
+            "source": str(materialized_seed),
+            "policy": "reuse materialized visual pose initializer because raw DA3 scene-depth frames were not retained",
+        }
+        write_json(paths["stage3_metrics"], metrics)
+        return metrics
     seed_dir = profile.result_dir / "physical6d_seed"
     script = REPO / "scripts/shared/generic_contact_pipeline/components/pose/solvers/fit_chair_metric_6d_pose.py"
     cmd = [

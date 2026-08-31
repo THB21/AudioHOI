@@ -1,0 +1,4 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+volleyball,stage3,artifact:object_pose_init,pass,keep_outputs,0,1,0,object_pose_init exists
+volleyball,stage3,se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+volleyball,stage3,vlm_gate,unclear,rerun_stage_with_lower_trust,1,1,0,VLM marked 1 frame/query rows unclear

@@ -1,0 +1,14 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+back_view_basketball,stage-1,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+back_view_basketball,stage-1,llm_csv:stage_contract,pass,keep_outputs,0,1,0,no stage-specific CSV audit rule
+back_view_basketball,stage0,artifact:stage0_inputs_manifest,pass,keep_outputs,0,1,0,stage0_inputs_manifest exists
+back_view_basketball,stage0,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+back_view_basketball,stage0,llm_csv:stage0_inputs,pass,keep_outputs,0,1,0,stage0 input manifest exists
+back_view_basketball,stage1,artifact:object_observations,pass,keep_outputs,0,1,0,object_observations exists
+back_view_basketball,stage1,artifact:object_correspondence,pass,keep_outputs,0,1,0,object_correspondence exists
+back_view_basketball,stage1,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+back_view_basketball,stage1,llm_csv:observation_contract,pass,keep_outputs,0,1,0,object_observations=240 object_correspondence=240
+back_view_basketball,stage5,artifact:render_manifest,pass,keep_outputs,0,1,0,render_manifest exists
+back_view_basketball,stage5,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+back_view_basketball,stage5,llm_csv:render_manifest,pass,keep_outputs,0,1,0,render manifest exists
+back_view_basketball,stage5,llm_csv:render_temporal_consistency,pass,keep_outputs,0,1,0,temporal VLM/machine audit has no mismatch

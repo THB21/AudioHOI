@@ -1,0 +1,27 @@
+{
+  "backend": "urdf_solid",
+  "outputs": {
+    "object_only/overlay.mp4": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/object_only/overlay.mp4",
+    "object_only/camera3d.mp4": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/object_only/camera3d.mp4",
+    "object_only/side_yz.mp4": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/object_only/side_yz.mp4",
+    "with_human/overlay.mp4": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/with_human/overlay.mp4",
+    "with_human/camera3d.mp4": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/with_human/camera3d.mp4",
+    "with_human/side_yz.mp4": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/with_human/side_yz.mp4",
+    "object_only/overlay_quality.csv": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/object_only/overlay_quality.csv",
+    "with_human/overlay_quality.csv": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/with_human/overlay_quality.csv"
+  },
+  "required": [
+    "object_only/overlay.mp4",
+    "object_only/camera3d.mp4",
+    "object_only/side_yz.mp4",
+    "with_human/overlay.mp4",
+    "with_human/camera3d.mp4",
+    "with_human/side_yz.mp4"
+  ],
+  "policy": "rerender configured Articraft URDF solid mesh with generic urdf_solid_scene from generic pose/contact",
+  "renderer": {
+    "python": "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+    "script": "/home/hebestreit/AudioHOI/scripts/shared/generic_contact_pipeline/components/render/scenes/generic_urdf_scene.py",
+    "urdf": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/articraft/materialized_suitcase/model.urdf"
+  }
+}

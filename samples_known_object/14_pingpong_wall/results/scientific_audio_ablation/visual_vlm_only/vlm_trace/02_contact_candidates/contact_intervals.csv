@@ -1,0 +1,8 @@
+start_frame,end_frame,candidate_type,confidence,source
+11,11,floor,0.0,contact_candidates
+38,38,floor,0.0,contact_candidates
+110,110,floor,0.0,contact_candidates
+177,177,floor,0.0,contact_candidates
+192,192,floor,0.0,contact_candidates
+220,220,floor,0.0,contact_candidates
+229,229,floor,0.0,contact_candidates

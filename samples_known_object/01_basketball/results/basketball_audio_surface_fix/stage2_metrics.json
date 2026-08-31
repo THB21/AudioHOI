@@ -1,0 +1,38 @@
+{
+  "component": "generic_contact_anchor_mainline",
+  "case_name": "basketball",
+  "adapter": {
+    "component": "hand_floor_from_anchor_floor_candidates",
+    "rows": 192,
+    "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/contact_candidates.csv",
+    "contact_state": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/contact_state_frames.csv",
+    "anchor_candidate_source": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/contact_candidates_internal/anchor_contact_candidates.csv",
+    "floor_candidate_source": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/contact_candidates_internal/floor_contact_candidates.csv",
+    "depth_offset_source": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/ball_proxy_depth.csv",
+    "policy": "generic fusion of generic anchor/floor candidate gates; generic ball_proxy_depth supplies GVHMR+mesh+DA3 contact-depth offsets",
+    "adapter_component": "hand_floor"
+  },
+  "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/contact_candidates.csv",
+  "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/anchor_state.csv",
+  "anchor_rows": 192,
+  "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only",
+  "generic_contact_anchor_mainline": {
+    "component": "generic_contact_anchor_mainline",
+    "case_name": "basketball",
+    "adapter": {
+      "component": "hand_floor_from_anchor_floor_candidates",
+      "rows": 192,
+      "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/contact_candidates.csv",
+      "contact_state": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/contact_state_frames.csv",
+      "anchor_candidate_source": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/contact_candidates_internal/anchor_contact_candidates.csv",
+      "floor_candidate_source": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/contact_candidates_internal/floor_contact_candidates.csv",
+      "depth_offset_source": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/ball_proxy_depth.csv",
+      "policy": "generic fusion of generic anchor/floor candidate gates; generic ball_proxy_depth supplies GVHMR+mesh+DA3 contact-depth offsets",
+      "adapter_component": "hand_floor"
+    },
+    "contact_candidates": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/contact_candidates.csv",
+    "anchor_state": "/mnt/hdd/AudioHOI/samples_known_object/01_basketball/results/benchmark_vlm_qwen/anchor_state.csv",
+    "anchor_rows": 192,
+    "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only"
+  }
+}

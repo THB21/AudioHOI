@@ -1,0 +1,6 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+pingpong,stage2,11,contact_relation_check,paddle_on_ball_center,pass,accept_candidate,0,1,1,0,1
+pingpong,stage2,177,contact_relation_check,paddle_on_ball_center,pass,accept_candidate,0,1,1,0,1
+pingpong,stage2,229,contact_relation_check,paddle_on_ball_center,pass,accept_candidate,0,1,1,0,1
+pingpong,stage2,1,contact_relation_check,paddle_on_ball_center,pass,accept_candidate,0,1,1,0,1
+pingpong,stage2,121,contact_relation_check,paddle_on_ball_center,pass,accept_candidate,0,1,1,0,1

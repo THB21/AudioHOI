@@ -1,0 +1,11 @@
+start_frame,end_frame,support_surface_type
+1,14,
+30,36,
+49,53,
+58,67,
+93,97,
+113,118,
+131,136,
+184,189,
+199,199,floor
+222,222,fallback

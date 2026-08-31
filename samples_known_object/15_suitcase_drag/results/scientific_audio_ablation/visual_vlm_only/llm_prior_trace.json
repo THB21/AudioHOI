@@ -1,0 +1,10 @@
+{
+  "case_name": "suitcase",
+  "mode": "seed",
+  "seed_profile": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/annotations/hoi_profile_seed.json",
+  "seed_exists": false,
+  "prompt_context": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_only/prompt_context.json",
+  "prompt_entry_count": 5,
+  "warnings": [],
+  "fallback_used": true
+}

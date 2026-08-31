@@ -1,0 +1,57 @@
+{
+  "sample_dir": "samples_known_object/12_back_view_basketball",
+  "trajectory_csv": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/derived_stage4/active_audio_visual/generic_sphere_sequence_candidate.csv",
+  "verdict": "FAIL",
+  "reason": "1 high-severity finding(s) covering 5 frames (2.1% of 240)",
+  "corrections": [
+    {
+      "issue": "boundary_drift",
+      "frames": [
+        231,
+        232,
+        233,
+        234,
+        235,
+        236,
+        237,
+        238,
+        239,
+        240
+      ],
+      "recipe": {
+        "type": "rerun_solver",
+        "flags": {
+          "--w-temp": 8.0
+        }
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        162
+      ],
+      "recipe": {
+        "type": "rerun_body_refine",
+        "flags": {}
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        1,
+        2,
+        3,
+        161
+      ],
+      "recipe": {
+        "type": "visual_review",
+        "frames": [
+          1,
+          2,
+          3,
+          161
+        ]
+      }
+    }
+  ]
+}

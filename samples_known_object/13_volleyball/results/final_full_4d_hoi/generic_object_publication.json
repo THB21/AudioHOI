@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "status": "accepted",
+  "candidate_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/generic_stage4_candidate/generic_object_pose_candidate.csv",
+  "candidate_sha256": "abe046c01f23c83b40c7491d50b0eecb9336ae16193d29322385a6e9248544ef",
+  "accepted_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose.csv",
+  "accepted_sha256": "abe046c01f23c83b40c7491d50b0eecb9336ae16193d29322385a6e9248544ef",
+  "solve_attempt_id": "generic-solve-cdcb0ce16742",
+  "hard_gate": {
+    "passed": true,
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px",
+      "contact_distance_normalized_rmse",
+      "contact_gap_p95_m",
+      "contact_gap_max_m"
+    ],
+    "blocking_reasons": []
+  },
+  "case_dispatch_used": false,
+  "human_state_optimized": false,
+  "attempt_dir": "samples_known_object/13_volleyball/results/final_full_4d_hoi/generic_sequence_solver_attempts/generic-solve-cdcb0ce16742",
+  "automatic_hard_gate": {
+    "passed": true,
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px",
+      "contact_distance_normalized_rmse",
+      "contact_gap_p95_m",
+      "contact_gap_max_m"
+    ],
+    "blocking_reasons": []
+  },
+  "object_only_boundary": true,
+  "candidate_vlm_evidence": {
+    "status": "not_applicable",
+    "reason": "candidate evidence requires generic_urdf"
+  },
+  "interval_selection": {
+    "status": "not_applicable"
+  },
+  "consumed_contact_points": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_contact_points.csv"
+}

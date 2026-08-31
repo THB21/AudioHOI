@@ -1,0 +1,90 @@
+{
+  "schema_version": 4,
+  "case_name": "volleyball",
+  "result_name": "final_full_4d_hoi",
+  "stage": "stage0",
+  "attempt_id": "000001",
+  "status": "failed",
+  "trigger": "scheduled_pipeline_stage",
+  "parent_attempt_id": null,
+  "started_at": "2026-08-19T18:30:56.632628+00:00",
+  "finished_at": "2026-08-19T18:31:34.240944+00:00",
+  "metadata": {
+    "from_stage": "stage0",
+    "to_stage": "stage0"
+  },
+  "artifacts_before": {},
+  "artifacts_after": {
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_inputs_manifest.json": {
+      "sha256": "6f241c4949390af07200462c02b2124a3922805f2d4a5de60480050f4b9c7211",
+      "size_bytes": 4294
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_metrics.json": {
+      "sha256": "67e25e80cde34dd6ddc308a220c52e21548a1d2b9ae04f226100dfa2581c595e",
+      "size_bytes": 16351
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_last_attempt.json": {
+      "sha256": "6c1be8cf5f98570b9aa44dd05ceaf3db08d68359c9590eebfba383802ccab219",
+      "size_bytes": 16741
+    }
+  },
+  "stored_artifacts": {
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_last_attempt.json": {
+      "algorithm": "sha256",
+      "sha256": "6c1be8cf5f98570b9aa44dd05ceaf3db08d68359c9590eebfba383802ccab219",
+      "size_bytes": 16741,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_last_attempt.json",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/6c/6c1be8cf5f98570b9aa44dd05ceaf3db08d68359c9590eebfba383802ccab219"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_inputs_manifest.json": {
+      "algorithm": "sha256",
+      "sha256": "6f241c4949390af07200462c02b2124a3922805f2d4a5de60480050f4b9c7211",
+      "size_bytes": 4294,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_inputs_manifest.json",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/6f/6f241c4949390af07200462c02b2124a3922805f2d4a5de60480050f4b9c7211"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_metrics.json": {
+      "algorithm": "sha256",
+      "sha256": "67e25e80cde34dd6ddc308a220c52e21548a1d2b9ae04f226100dfa2581c595e",
+      "size_bytes": 16351,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_metrics.json",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/67/67e25e80cde34dd6ddc308a220c52e21548a1d2b9ae04f226100dfa2581c595e"
+    }
+  },
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "volleyball",
+    "result_name": "final_full_4d_hoi",
+    "stage": "stage0",
+    "status": "pass",
+    "artifacts": [],
+    "errors": []
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage0",
+    "plugins": [],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_last_attempt.json",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_inputs_manifest.json",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_metrics.json"
+  ],
+  "result_summary": {},
+  "error": {
+    "type": "RuntimeError",
+    "message": "case ingestion failed for volleyball: rigid_asset_mesh_export: runtime Python is missing for megapose: /home/yang/miniconda3/envs/megapose/bin/python",
+    "traceback": "Traceback (most recent call last):\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/run_pipeline.py\", line 354, in run_case\n    result = fn(profile)\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/stages/main/stage0_preprocess.py\", line 77, in run\n    raise RuntimeError(f\"case ingestion failed for {profile.case_name}: {detail}\")\nRuntimeError: case ingestion failed for volleyball: rigid_asset_mesh_export: runtime Python is missing for megapose: /home/yang/miniconda3/envs/megapose/bin/python\n"
+  }
+}

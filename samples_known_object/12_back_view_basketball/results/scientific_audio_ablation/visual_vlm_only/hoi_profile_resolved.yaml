@@ -1,0 +1,75 @@
+case_name: back_view_basketball
+object_category: basketball
+object_family: dynamic_ball
+object_parts:
+- name: ball_center
+  role: semantic_or_contact_candidate
+- name: ball_boundary
+  role: semantic_or_contact_candidate
+- name: ball_bottom
+  role: semantic_or_contact_candidate
+human_parts:
+- left_hand
+- right_hand
+interaction_edges:
+- human_part: left_hand
+  object_part: ball_center
+  relation: candidate_contact
+- human_part: right_hand
+  object_part: ball_center
+  relation: candidate_contact
+support_priors:
+- floor_support
+motion_priors:
+- smooth_temporal_motion
+vlm_query_policy:
+  stage0:
+  - target_mask_check
+  stage1:
+  - keypart_identity_check
+  - track_stability_check
+  stage2:
+  - contact_relation_check
+  stage3:
+  - overlay_alignment_check
+  stage4:
+  - anchor_update_check
+  - temporal_motion_check
+  stage5:
+  - post_render_sanity_check
+source: case_config_default
+schema_version: 1
+rules:
+  llm_outputs_pose: false
+  vlm_outputs_pose: false
+  vlm_outputs_loss_weights: false
+  optimizer_is_only_continuous_solver: true
+source_prompt_count: 5
+source_prompts:
+- kind: sample_metadata.prompt
+  path: /tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/metadata.json
+  record_id: ''
+  text_preview: Generate an 8-second photorealistic video with a completely static
+    camera and no cuts, zooms, pans, or slow motion. The athlete performs six fast
+    low crossover dribbles, alternating hands. During two crossovers the ball is briefly
+    hidden by a leg or lower torso for only two to four frames, then reappears on
+    a physically continuous path. Add exactly one clear bounce sound at every floor
+    impact, synchronized to the impact frame, and no extra impact sounds. The ball
+    must not float, teleport, duplicate, deform, or reverse direction without contact.
+    Keep the full body and floor visible.
+- kind: sample_metadata.detection_text
+  path: /tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/metadata.json
+  record_id: ''
+  text_preview: basketball. orange basketball. ball.
+- kind: sample_metadata.name
+  path: /tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/metadata.json
+  record_id: ''
+  text_preview: back_view_basketball
+- kind: sample_metadata.video
+  path: /tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/metadata.json
+  record_id: ''
+  text_preview: video_sample/12_back_view_basketball_video.mp4
+- kind: sample_metadata.image
+  path: /tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/metadata.json
+  record_id: ''
+  text_preview: video_sample/12_back_view_basketball.jpg

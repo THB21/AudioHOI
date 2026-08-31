@@ -1,0 +1,13 @@
+start_frame,end_frame,candidate_type,confidence,source
+1,16,hand,0.0,contact_candidates
+31,39,hand,0.0,contact_candidates
+49,52,hand,0.0,contact_candidates
+63,68,hand,0.0,contact_candidates
+93,97,hand,0.0,contact_candidates
+114,118,hand,0.0,contact_candidates
+130,136,hand,0.0,contact_candidates
+162,162,floor,0.0,contact_candidates
+184,189,hand,0.0,contact_candidates
+196,202,hand,0.0,contact_candidates
+222,222,floor,0.0,contact_candidates
+227,228,hand,0.0,contact_candidates

@@ -1,0 +1,80 @@
+{
+  "case_name": "pingpong_wall",
+  "stage": "stage4",
+  "mode": "qwen_vl",
+  "decision": "pass_with_unclear_frames",
+  "blocking": false,
+  "query_count": 11,
+  "gate_counts": {
+    "unclear": 8,
+    "pass": 3
+  },
+  "query_counts": {
+    "anchor_update_check": 1,
+    "contact_relation_check": 1,
+    "overlay_alignment_check": 1,
+    "temporal_motion_check": 1,
+    "constraint_reliability_check": 7
+  },
+  "accepted_frames": [
+    1,
+    177,
+    192
+  ],
+  "blocked_frames": [],
+  "report_only_reject_frames": [],
+  "unclear_frames": [
+    1,
+    11,
+    38,
+    110,
+    220,
+    229
+  ],
+  "repair_actions_by_frame": {
+    "1": [
+      "unclear_no_update",
+      "accept_candidate"
+    ],
+    "11": [
+      "unclear_no_update"
+    ],
+    "38": [
+      "unclear_no_update"
+    ],
+    "110": [
+      "unclear_no_update"
+    ],
+    "177": [
+      "downweight_correspondence"
+    ],
+    "192": [
+      "accept_candidate"
+    ],
+    "220": [
+      "unclear_no_update"
+    ],
+    "229": [
+      "unclear_no_update"
+    ]
+  },
+  "rejected_results": [],
+  "allowed_repair_actions": [
+    "accept_candidate",
+    "reject_candidate",
+    "disable_contact_frame",
+    "keep_previous_anchor",
+    "downweight_correspondence",
+    "use_mask_fallback",
+    "retry_with_alternative_keypart",
+    "allow_small_se3_refine",
+    "freeze_before_after_contact",
+    "mark_for_report_only",
+    "unclear_no_update",
+    "keep_stable_candidate",
+    "select_occlusion_challenger",
+    "reject_candidate_pair",
+    "propagate_projected_ballistic_trajectory"
+  ],
+  "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+}

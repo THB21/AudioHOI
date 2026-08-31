@@ -1,0 +1,7 @@
+Does the highlighted mask correspond to the target basketball?
+Which basketball part is highlighted?
+Which basketball part is highlighted?
+Which basketball part is highlighted?
+Is the highlighted reference point or part stable and visually trackable across neighboring frames?
+Is the highlighted reference point or part stable and visually trackable across neighboring frames?
+Is the highlighted reference point or part stable and visually trackable across neighboring frames?

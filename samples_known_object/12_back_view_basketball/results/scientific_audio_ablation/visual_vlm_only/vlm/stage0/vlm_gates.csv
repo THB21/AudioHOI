@@ -1,0 +1,2 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+back_view_basketball,stage0,1,target_mask_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0

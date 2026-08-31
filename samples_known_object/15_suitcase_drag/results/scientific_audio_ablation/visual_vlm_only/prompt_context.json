@@ -1,0 +1,44 @@
+{
+  "case_name": "suitcase",
+  "result_name": "scientific_audio_ablation/visual_vlm_only",
+  "prompt_entry_count": 5,
+  "entries": [
+    {
+      "kind": "sample_metadata.prompt",
+      "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/metadata.json",
+      "record_id": "",
+      "text_preview": "Generate an 8-second photorealistic video from the supplied first frame. Use one completely static side camera with no cuts, zooms, pans, camera shake, or slow motion. The suitcase remains on the far side of the person, away from the camera, throughout the sequence, and the far hand maintains a continuous grasp on the extended handle. Use this deliberately irregular motion schedule: first pull the suitcase steadily for about 0.8 seconds; stop completely for about 0.6 seconds; make one short sharper tug for about 0.4 seconds; stop again for about 0.7 seconds; make a longer uneven drag for about 1.5 seconds while the wheels cross two shallow floor seams; stop for about 0.4 seconds; then turn slightly and make a final diagonal drag so the suitcase moves farther behind the person's legs and lower torso. During the final drag, gradually reduce the visible suitcase area from about seventy percent to about thirty percent. For the final 1.5 seconds, both person and suitcase are completely stationary while the suitcase remains partially occluded; the top of the handle, one outer wheel, and one lower corner must remain visible as geometric anchors. Add a soft continuous wheel-rolling sound only while the suitcase is moving, with loudness roughly following speed. Add one small wheel click at each of the two floor seams. Use silence during every full stop, especially the final stationary interval. Keep footsteps very quiet and non-impulsive. Add no extra impacts, music, or speech. The suitcase must remain rigid, keep constant size and handle length, keep its wheels on the floor, and must not slide during stops, float, teleport, duplicate, deform, switch sides, or pass through the person or floor.",
+      "sha256": "001df9f8da3895d421370cc8d2f9ab127f168f12e35637ce404aabe0f4a27880"
+    },
+    {
+      "kind": "sample_metadata.detection_text",
+      "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/metadata.json",
+      "record_id": "",
+      "text_preview": "small hard-shell rolling suitcase. rolling luggage. suitcase.",
+      "sha256": "b716d2f9af85fa2deb8c208586b82ea388f012e4e1a64d592831d0c581a6845a"
+    },
+    {
+      "kind": "sample_metadata.name",
+      "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/metadata.json",
+      "record_id": "",
+      "text_preview": "suitcase_drag",
+      "sha256": "e9c7d9e1786e980aea1e4a7e48aba47e2204700936592c75f5e3bcbf43bd2de9"
+    },
+    {
+      "kind": "sample_metadata.video",
+      "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/metadata.json",
+      "record_id": "",
+      "text_preview": "video_sample/15_suitcase_drag_video.mp4",
+      "sha256": "acf780a9f874b70b5be21dcd2d5fabcc1014f1fd3fe88afb5ad357ba88427561"
+    },
+    {
+      "kind": "sample_metadata.image",
+      "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/metadata.json",
+      "record_id": "",
+      "text_preview": "video_sample/15_suitcase_drag.jpg",
+      "sha256": "7de83c9fe828ba63b2948ee21c9ee5c68352d49154a572a8a97663bfc74d1d01"
+    }
+  ],
+  "missing_referenced_prompts": [],
+  "usage_rule": "Prompt context is semantic evidence for LLM/VLM query design only; it must not supply continuous pose, coordinates, or loss weights."
+}

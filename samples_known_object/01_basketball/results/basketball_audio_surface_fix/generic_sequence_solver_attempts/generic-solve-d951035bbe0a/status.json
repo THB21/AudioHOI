@@ -1,0 +1,40 @@
+{
+  "accepted_outputs_written": false,
+  "active_bound_count": 0,
+  "artifacts": {
+    "factor_ledger.json": "3cb9a67b81e688b73a12c0302a0db1ad1cfe29ac1556f30cd5b7aa1e7d0ee5e7",
+    "hard_metrics.json": "8fb45b9dbc4fd3ea4c819d3c04cdde6453dfdf08a024f63511417611d96e0641",
+    "residuals.csv": "7e3482f6c7f820e2bbf2eb352105b18a75fc09dc43b87aa09411b8aa9653a9ba",
+    "state.csv": "1587df4aad10da12da80361a762dbadd4eeb95d30253227b3fde622667bde229",
+    "vlm_gates.json": "0da00f85bcae8e1ed51ddaad479e552e98b02844a6361ac8e394e1255b557b8b"
+  },
+  "case_dispatch_used": false,
+  "contract_attempt_id": "generic-attempt-4602434376bf",
+  "factor_ids": [
+    "point_reprojection:measurement_ir",
+    "metric_depth:measurement_ir",
+    "temporal_acceleration:state_sequence",
+    "static_freeze:state_sequence",
+    "contact_distance:interaction_state"
+  ],
+  "final_squared_error": 12.049754561129241,
+  "frame_count": 192,
+  "function_evaluations": 40,
+  "hard_metrics_status": "evaluated",
+  "initial_squared_error": 17.002705357294477,
+  "message": "`ftol` termination condition is satisfied.",
+  "optimality": 0.00581728846492232,
+  "parent_solve_attempt_id": null,
+  "residual_program_sha256": "076b9c1b50ebd0141ce0e7d30a9e4f9a40eedcc4cad5341e4ff414c3cec96ab9",
+  "result_sha256": "0c34cc0c304f82f250ea6375f643fa02fb5cb6f5389759b2f92d2f155a783ef6",
+  "schema_version": 1,
+  "sequence_contract_sha256": "630b55fd1bd6bcff79ff1639f12687e6505a1596bec94629c96c05b4218edee2",
+  "solve_attempt_id": "generic-solve-d951035bbe0a",
+  "state_spec_id": "translation3:sphere",
+  "state_width": 3,
+  "success": true,
+  "termination_status": 2,
+  "vlm_factor_arbitration_blocking": false,
+  "vlm_factor_arbitration_sha256": "ef116b0a7d1be56de1b79d54a601e6ddb028623176e7579d3ca234efca02a097",
+  "vlm_gates_status": "evaluated"
+}

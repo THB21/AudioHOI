@@ -1,0 +1,25 @@
+{
+  "audio_sha256": "c6ca2ea28d534f6874e576557a586309dd7b1c6f0ce77aa5135d7fd2b3b292ca",
+  "classifier": "rule",
+  "detector": "combined",
+  "empty_event_stream_valid": false,
+  "envelope_config": {
+    "hop_ms": 41.666666666666664,
+    "impulse_z": 3.0,
+    "min_motion_ms": 150.0,
+    "min_silence_ms": 250.0,
+    "motion_off_z": -0.1,
+    "motion_on_z": 0.55,
+    "window_ms": 80.0
+  },
+  "envelope_output": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/events/audio_envelope.csv",
+  "envelope_row_count": 240,
+  "envelope_sha256": "2c9465958a87d77a9c349d3d0a28d47499fe52605d7bb377b52134b32a8eb407",
+  "event_count": 129,
+  "events_sha256": "7377b1f70c0d9b049cbad04535def89d6f95ebaa27337500e4d43763ae893fcc",
+  "fps": 24.0,
+  "output": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/events/audio_events.csv",
+  "sample_dir": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall",
+  "schema_version": 2,
+  "status": "generated"
+}

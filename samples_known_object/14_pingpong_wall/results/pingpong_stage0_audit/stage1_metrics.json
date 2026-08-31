@@ -1,0 +1,38 @@
+{
+  "component": "generic_observation_mainline",
+  "case_name": "pingpong_wall",
+  "adapter": {
+    "component": "mask_track_center",
+    "source": "samples_known_object/14_pingpong_wall/results/tracking/object_trajectory.csv",
+    "center_source": "samples_known_object/14_pingpong_wall/results/tracking/object_center_trajectory.csv",
+    "points_source": "samples_known_object/14_pingpong_wall/results/tracking/object_points.csv",
+    "depth_source": "samples_known_object/14_pingpong_wall/results/da3/priors/object_depth_prior.csv",
+    "identity_selection_source": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/sphere_identity_selection.csv",
+    "object_observations": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/object_observations.csv",
+    "local_points": "none_for_center_proxy",
+    "rows": 240,
+    "policy": "generic one-entity identity selection when present, otherwise mask/object center/radius + CoTracker + DA3; contact fields are owned by Stage2",
+    "adapter_component": "mask_track_center",
+    "capability_plugin": {
+      "kind": "observation",
+      "name": "mask_track_center",
+      "module": "scripts.shared.generic_contact_pipeline.components.observation.policies.mask_track_center",
+      "entrypoint": "build",
+      "requires": [],
+      "provides": [
+        "observation.point_reference"
+      ],
+      "role": "compatibility_adapter",
+      "plugin_id": "observation:mask_track_center"
+    }
+  },
+  "object_observations": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/object_observations.csv",
+  "object_correspondence": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/object_correspondence.csv",
+  "object_surface_points": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/object_surface_points.csv",
+  "object_semantic_points": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/object_semantic_points.csv",
+  "rows": 240,
+  "correspondence_rows": 240,
+  "surface_rows": 0,
+  "semantic_rows": 0,
+  "policy": "fixed generic observation contract; case-specific observation code is compatibility adapter only"
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "stage": "stage4_contact_refine",
+  "component": "generic_sequence_executor",
+  "status": "candidate_blocked",
+  "solve_attempt_id": "generic-solve-59c13df02db6",
+  "attempt_dir": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/generic_sequence_solver_attempts/generic-solve-59c13df02db6",
+  "candidate_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/generic_stage4_candidate/generic_object_pose_candidate.csv",
+  "candidate_sha256": "dc2c91664c6554522d55f1fe7253ce741d04e615b1aba872334405f81380c92f",
+  "accepted_path": null,
+  "accepted_sha256": null,
+  "hard_gate": {
+    "passed": false,
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px"
+    ],
+    "blocking_reasons": [
+      "solver_not_converged_or_stationary"
+    ]
+  },
+  "initial_squared_error": 7799.550733595832,
+  "final_squared_error": 252.74966503916045,
+  "function_evaluations": 200,
+  "factor_ids": [
+    "point_reprojection:measurement_ir",
+    "metric_depth:measurement_ir",
+    "temporal_acceleration:state_sequence"
+  ],
+  "measurement_count": 960,
+  "contact_constraint_count": 240,
+  "case_dispatch_used": false,
+  "baseline_pose_read": false,
+  "human_state_optimized": false,
+  "accepted_outputs_written": false,
+  "candidate_vlm_evidence": {
+    "status": "not_applicable",
+    "reason": "candidate evidence requires generic_urdf"
+  },
+  "stable_attempt_id": "generic-solve-59c13df02db6",
+  "challenger_attempt_id": null,
+  "interval_selection": {
+    "status": "not_applicable"
+  },
+  "consumed_contact_points": null
+}

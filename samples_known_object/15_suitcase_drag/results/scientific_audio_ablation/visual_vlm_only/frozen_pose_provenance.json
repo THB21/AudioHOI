@@ -1,0 +1,7 @@
+{
+  "case": "suitcase",
+  "mode": "visual_vlm_only",
+  "source": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/ablation_evaluation/frozen_poses/no_audio_object_pose_6d.csv",
+  "target": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_only/object_pose.csv",
+  "policy": "precomputed controlled trajectory materialized for identical Stage 5 rendering"
+}

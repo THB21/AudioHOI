@@ -1,0 +1,325 @@
+{
+  "schema_version": 4,
+  "case_name": "volleyball",
+  "result_name": "final_full_4d_hoi",
+  "stage": "stage2",
+  "attempt_id": "000001",
+  "status": "completed",
+  "trigger": "scheduled_pipeline_stage",
+  "parent_attempt_id": null,
+  "started_at": "2026-08-19T18:37:54.724480+00:00",
+  "finished_at": "2026-08-19T18:38:32.041187+00:00",
+  "metadata": {
+    "from_stage": "stage1",
+    "to_stage": "stage4"
+  },
+  "artifacts_before": {},
+  "artifacts_after": {
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_candidates.csv": {
+      "sha256": "cadf589161691a2296fbdbe922a97d7f42cbe435459995d300563cbb972edfae",
+      "size_bytes": 29931
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_events.csv": {
+      "sha256": "dd4742e338392672d5d79fe0b1a86f5369df493bef6b43f0f4ebf5c6d7991a0b",
+      "size_bytes": 1749
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/human_sites.csv": {
+      "sha256": "650f45e5667340c3f726b3070d134eb4a4ef0bdb7cd6e7c3d98182fe74356692",
+      "size_bytes": 121757
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/support_geometry.json": {
+      "sha256": "71b2c62b2230160feeb7a6523d20a50641204f2234f3da9041f48f13dab8e8fe",
+      "size_bytes": 205
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/anchor_state.csv": {
+      "sha256": "00801dc5adc6a5fc3cdcef9a6f80f39a4bc9eccd3e5a11d8e23dec3be00d256a",
+      "size_bytes": 29446
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_state_frames.csv": {
+      "sha256": "0d4e38786fbf5a600176695d39f7bba7d8f207c6c99e9cc1eaa55fc0969db811",
+      "size_bytes": 48494
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage2_metrics.json": {
+      "sha256": "23d21f6d96de6c52c239c8899edce2b07c8474516cd5ac7c7e38a5e54b9198f3",
+      "size_bytes": 4933
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage2/vlm_gates.csv": {
+      "sha256": "cbf11e6a026d0034d32cb8e41ef5b7d45edeaa0073c8ed447713ddaa7fcc0ff1",
+      "size_bytes": 1128
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage2/stage_audit_gates.csv": {
+      "sha256": "d1deab194364f9f00efa8a0568ab2b992d7a108ae1732d5e3def01454f66db15",
+      "size_bytes": 363
+    }
+  },
+  "stored_artifacts": {
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/anchor_state.csv": {
+      "algorithm": "sha256",
+      "sha256": "00801dc5adc6a5fc3cdcef9a6f80f39a4bc9eccd3e5a11d8e23dec3be00d256a",
+      "size_bytes": 29446,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/anchor_state.csv",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/00/00801dc5adc6a5fc3cdcef9a6f80f39a4bc9eccd3e5a11d8e23dec3be00d256a"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_candidates.csv": {
+      "algorithm": "sha256",
+      "sha256": "cadf589161691a2296fbdbe922a97d7f42cbe435459995d300563cbb972edfae",
+      "size_bytes": 29931,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_candidates.csv",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/ca/cadf589161691a2296fbdbe922a97d7f42cbe435459995d300563cbb972edfae"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_events.csv": {
+      "algorithm": "sha256",
+      "sha256": "dd4742e338392672d5d79fe0b1a86f5369df493bef6b43f0f4ebf5c6d7991a0b",
+      "size_bytes": 1749,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_events.csv",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/dd/dd4742e338392672d5d79fe0b1a86f5369df493bef6b43f0f4ebf5c6d7991a0b"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_state_frames.csv": {
+      "algorithm": "sha256",
+      "sha256": "0d4e38786fbf5a600176695d39f7bba7d8f207c6c99e9cc1eaa55fc0969db811",
+      "size_bytes": 48494,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_state_frames.csv",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/0d/0d4e38786fbf5a600176695d39f7bba7d8f207c6c99e9cc1eaa55fc0969db811"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/human_sites.csv": {
+      "algorithm": "sha256",
+      "sha256": "650f45e5667340c3f726b3070d134eb4a4ef0bdb7cd6e7c3d98182fe74356692",
+      "size_bytes": 121757,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/human_sites.csv",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/65/650f45e5667340c3f726b3070d134eb4a4ef0bdb7cd6e7c3d98182fe74356692"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage2_metrics.json": {
+      "algorithm": "sha256",
+      "sha256": "23d21f6d96de6c52c239c8899edce2b07c8474516cd5ac7c7e38a5e54b9198f3",
+      "size_bytes": 4933,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage2_metrics.json",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/23/23d21f6d96de6c52c239c8899edce2b07c8474516cd5ac7c7e38a5e54b9198f3"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage2/stage_audit_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "d1deab194364f9f00efa8a0568ab2b992d7a108ae1732d5e3def01454f66db15",
+      "size_bytes": 363,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage2/stage_audit_gates.csv",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/d1/d1deab194364f9f00efa8a0568ab2b992d7a108ae1732d5e3def01454f66db15"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/support_geometry.json": {
+      "algorithm": "sha256",
+      "sha256": "71b2c62b2230160feeb7a6523d20a50641204f2234f3da9041f48f13dab8e8fe",
+      "size_bytes": 205,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/support_geometry.json",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/71/71b2c62b2230160feeb7a6523d20a50641204f2234f3da9041f48f13dab8e8fe"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage2/vlm_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "cbf11e6a026d0034d32cb8e41ef5b7d45edeaa0073c8ed447713ddaa7fcc0ff1",
+      "size_bytes": 1128,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage2/vlm_gates.csv",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/cb/cbf11e6a026d0034d32cb8e41ef5b7d45edeaa0073c8ed447713ddaa7fcc0ff1"
+    }
+  },
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "volleyball",
+    "result_name": "final_full_4d_hoi",
+    "stage": "stage2",
+    "status": "pass",
+    "artifacts": [
+      {
+        "artifact_key": "contact_candidates",
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_candidates.csv",
+        "adapter": "contact_candidate_v1",
+        "required": true,
+        "columns": [
+          "frame",
+          "time",
+          "contact_active",
+          "human_part",
+          "human_side",
+          "object_part",
+          "object_local_id",
+          "contact_u",
+          "contact_v",
+          "contact_depth_offset_m",
+          "contact_conf",
+          "anchor_score",
+          "source"
+        ],
+        "required_columns": [
+          "frame",
+          "time",
+          "contact_active",
+          "human_part",
+          "human_side",
+          "object_part",
+          "object_local_id",
+          "contact_u",
+          "contact_v",
+          "contact_depth_offset_m",
+          "anchor_score",
+          "source"
+        ],
+        "extension_columns": [
+          "contact_conf"
+        ],
+        "row_count": 240,
+        "adapted_examples": [
+          {
+            "frame": 1,
+            "time": 0.0,
+            "contact_active": true,
+            "human_part": "hand",
+            "human_side": "left",
+            "object_part": "ball_boundary",
+            "local_coordinate": null
+          },
+          {
+            "frame": 2,
+            "time": 0.041667,
+            "contact_active": true,
+            "human_part": "hand",
+            "human_side": "left",
+            "object_part": "ball_boundary",
+            "local_coordinate": null
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      },
+      {
+        "artifact_key": "anchor_state",
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/anchor_state.csv",
+        "adapter": "point_anchor_state_v1",
+        "required": true,
+        "columns": [
+          "frame",
+          "time",
+          "contact_id",
+          "human_part",
+          "human_side",
+          "object_part",
+          "contact_observed",
+          "contact_persistent",
+          "anchor_update_allowed",
+          "pose_anchor_allowed",
+          "stable_local_x",
+          "stable_local_y",
+          "stable_local_z",
+          "stable_local_s",
+          "observed_local_x",
+          "observed_local_y",
+          "observed_local_z",
+          "observed_local_s",
+          "contact_confidence",
+          "anchor_action",
+          "source"
+        ],
+        "required_columns": [
+          "frame",
+          "time",
+          "contact_id",
+          "human_part",
+          "human_side",
+          "object_part",
+          "contact_observed",
+          "contact_persistent",
+          "anchor_update_allowed",
+          "pose_anchor_allowed",
+          "stable_local_x",
+          "stable_local_y",
+          "stable_local_z",
+          "anchor_action",
+          "source"
+        ],
+        "extension_columns": [
+          "stable_local_s",
+          "observed_local_x",
+          "observed_local_y",
+          "observed_local_z",
+          "observed_local_s",
+          "contact_confidence"
+        ],
+        "row_count": 240,
+        "adapted_examples": [
+          {
+            "frame": 1,
+            "time": 0.0,
+            "contact_id": "left_hand_ball_boundary",
+            "human_part": "hand",
+            "human_side": "left",
+            "object_part": "ball_boundary",
+            "stable_local": {
+              "x": null,
+              "y": null,
+              "z": null
+            }
+          },
+          {
+            "frame": 2,
+            "time": 0.041667,
+            "contact_id": "left_hand_ball_boundary",
+            "human_part": "hand",
+            "human_side": "left",
+            "object_part": "ball_boundary",
+            "stable_local": {
+              "x": null,
+              "y": null,
+              "z": null
+            }
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      }
+    ],
+    "errors": []
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage2",
+    "plugins": [
+      {
+        "kind": "contact",
+        "name": "hand_floor",
+        "module": "scripts.shared.generic_contact_pipeline.components.contact.policies.hand_floor",
+        "entrypoint": "build",
+        "requires": [
+          "observation.point_reference"
+        ],
+        "provides": [
+          "contact.candidates",
+          "anchor.support"
+        ],
+        "role": "compatibility_adapter",
+        "plugin_id": "contact:hand_floor"
+      }
+    ],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/anchor_state.csv",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_candidates.csv",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_events.csv",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_state_frames.csv",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/human_sites.csv",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage2_metrics.json",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage2/stage_audit_gates.csv",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/support_geometry.json",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage2/vlm_gates.csv"
+  ],
+  "result_summary": {
+    "stage_status": "",
+    "vlm_decision": "pass",
+    "stage_audit_decision": "pass",
+    "rerun_requested": false
+  }
+}

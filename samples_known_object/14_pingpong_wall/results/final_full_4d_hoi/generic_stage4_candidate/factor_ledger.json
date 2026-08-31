@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "factor_id": "point_reprojection:measurement_ir",
+      "residual_fn_ref": "shadow_residual::point_reprojection",
+      "evaluator_ref": "FactorResidualEvaluator.point_reprojection",
+      "input_ids": [
+        "state:StateSpec:root",
+        "measurement:MeasurementIR:visual_observation"
+      ],
+      "gate_provenance": [
+        "activation_policy:visibility_state_controls_visual_observation+vlm_factor_arbitration",
+        "gate_axis:VisibilityState",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0001",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0002",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0003",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0004",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0005",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0006",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0007",
+        "legacy_gate_source:VisibilityState activation"
+      ],
+      "status": "ready_not_executed",
+      "runtime_config": {
+        "weight": 1.0,
+        "sigma": 5.0,
+        "sigma_unit": "px",
+        "source": "measurement_ir:single_identity_sphere_candidate",
+        "state_scales": null,
+        "activation_weight_tiers": [
+          [
+            "active",
+            1.0
+          ],
+          [
+            "downweighted",
+            0.15
+          ],
+          [
+            "inactive",
+            0.0
+          ]
+        ]
+      },
+      "activation_intervals": [
+        {
+          "start_frame": 1,
+          "end_frame": 176,
+          "status": "active"
+        },
+        {
+          "start_frame": 177,
+          "end_frame": 177,
+          "status": "downweighted"
+        },
+        {
+          "start_frame": 178,
+          "end_frame": 240,
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "factor_id": "metric_depth:measurement_ir",
+      "residual_fn_ref": "shadow_residual::metric_depth",
+      "evaluator_ref": "FactorResidualEvaluator.metric_depth",
+      "input_ids": [
+        "state:StateSpec:root",
+        "measurement:MeasurementIR:depth_observation"
+      ],
+      "gate_provenance": [
+        "activation_policy:visibility_state_controls_visual_observation+vlm_factor_arbitration",
+        "gate_axis:VisibilityState",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0001",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0002",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0003",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0004",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0005",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0006",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0007",
+        "legacy_gate_source:VisibilityState activation"
+      ],
+      "status": "ready_not_executed",
+      "runtime_config": {
+        "weight": 0.2,
+        "sigma": 0.4,
+        "sigma_unit": "m",
+        "source": "measurement_ir:small_sphere_monocular_depth_weak_prior",
+        "state_scales": null,
+        "activation_weight_tiers": [
+          [
+            "active",
+            1.0
+          ],
+          [
+            "downweighted",
+            0.15
+          ],
+          [
+            "inactive",
+            0.0
+          ]
+        ]
+      },
+      "activation_intervals": [
+        {
+          "start_frame": 1,
+          "end_frame": 176,
+          "status": "active"
+        },
+        {
+          "start_frame": 177,
+          "end_frame": 177,
+          "status": "downweighted"
+        },
+        {
+          "start_frame": 178,
+          "end_frame": 240,
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "factor_id": "temporal_acceleration:state_sequence",
+      "residual_fn_ref": "shadow_residual::temporal_acceleration",
+      "evaluator_ref": "FactorResidualEvaluator.temporal_delta",
+      "input_ids": [
+        "state:StateSpec:root"
+      ],
+      "gate_provenance": [
+        "activation_policy:interaction_state_controls_acceleration_smoothness",
+        "gate_axis:ContactMode",
+        "gate_axis:MotionMode",
+        "legacy_gate_source:InteractionState ContactMode/MotionMode activation"
+      ],
+      "status": "ready_not_executed",
+      "runtime_config": {
+        "weight": 15.0,
+        "sigma": null,
+        "sigma_unit": null,
+        "source": "sequence_translation_optimizer:contact_gated_ballistic_continuity",
+        "state_scales": [
+          0.5,
+          0.5,
+          0.3
+        ],
+        "activation_weight_tiers": [
+          [
+            "active",
+            1.0
+          ],
+          [
+            "downweighted",
+            0.005
+          ],
+          [
+            "inactive",
+            0.0
+          ]
+        ]
+      },
+      "activation_intervals": [
+        {
+          "start_frame": 1,
+          "end_frame": 240,
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "factor_id": "static_freeze:state_sequence",
+      "residual_fn_ref": "shadow_residual::static_freeze",
+      "evaluator_ref": "FactorResidualEvaluator.temporal_delta",
+      "input_ids": [
+        "state:StateSpec:root"
+      ],
+      "gate_provenance": [
+        "activation_policy:motion_mode_controls_static_freeze",
+        "gate_axis:MotionMode",
+        "legacy_gate_source:InteractionState ContactMode/MotionMode activation"
+      ],
+      "status": "ready_not_executed"
+    },
+    {
+      "factor_id": "pose_prior:state_initializer",
+      "residual_fn_ref": "shadow_residual::pose_prior",
+      "evaluator_ref": "FactorResidualEvaluator.pose_prior",
+      "input_ids": [
+        "state:StateSpec:root"
+      ],
+      "gate_provenance": [
+        "activation_policy:always_on_state_or_geometry_regularizer",
+        "gate_axis:StateSpec"
+      ],
+      "status": "ready_not_executed"
+    },
+    {
+      "factor_id": "contact_distance:contact_constraint_shadow",
+      "residual_fn_ref": "shadow_residual::contact_distance",
+      "evaluator_ref": "FactorResidualEvaluator.contact_distance",
+      "input_ids": [
+        "state:StateSpec:root",
+        "constraint:ContactConstraintIR:contact_or_support"
+      ],
+      "gate_provenance": [
+        "activation_policy:contact_state_controls_contact_distance+vlm_factor_arbitration",
+        "gate_axis:ContactState",
+        "gate_axis:ContactMode",
+        "gate_axis:active_contact_ids",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0001",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0002",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0003",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0004",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0005",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0006",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0007",
+        "legacy_gate_source:contact_active in contact_candidates.csv"
+      ],
+      "status": "ready_not_executed"
+    }
+  ],
+  "case_dispatch_used": false,
+  "baseline_pose_read": false,
+  "human_state_optimized": false
+}

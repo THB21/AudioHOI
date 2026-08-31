@@ -1,0 +1,10 @@
+frame,window_start,window_end,time,contact_type,target,score,confidence_level,source_support,source_proximity,source_motion,source_audio,source_depth,occlusion_score
+14,1,14,0.541667,anchor_contact_event,right_hand,0.313143,proposal,0.000000,0.313143,1.000000,0.998961,0.000000,0.000000
+30,30,36,1.208333,anchor_contact_event,left_hand,0.412508,proposal,0.000000,0.412508,0.058293,0.352779,0.000000,0.000000
+53,49,53,2.166667,anchor_contact_event,left_hand,0.264108,proposal,0.000000,0.264108,0.000000,0.342994,0.000000,0.000000
+97,93,97,4.000000,anchor_contact_event,left_hand,0.241737,none,0.000000,0.241737,0.000000,0.497594,0.000000,0.000000
+113,113,118,4.666667,anchor_contact_event,left_hand,0.670119,soft,0.000000,0.670119,0.000000,0.499123,0.000000,0.000000
+136,131,136,5.625000,anchor_contact_event,left_hand,0.218084,none,0.000000,0.218084,1.000000,0.607211,0.000000,0.000000
+184,184,189,7.625000,anchor_contact_event,left_hand,0.224573,none,0.004952,0.224573,0.415114,0.499601,0.000000,0.000000
+199,199,199,8.250000,plane_support_contact_event,floor,1.000000,strong,1.000000,0.167217,0.000000,0.557391,0.000000,0.000000
+222,222,222,9.208333,plane_support_contact_event,fallback,1.000000,strong,1.000000,0.000000,0.021281,0.000000,0.000000,0.000000

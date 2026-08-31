@@ -1,0 +1,36 @@
+{
+  "case_name": "volleyball",
+  "stage": "stage5",
+  "llm_mode": "seed",
+  "note": "LLM audit operates on CSV/metrics evidence and may only emit discrete gates/actions.",
+  "queries": [
+    {
+      "case_name": "volleyball",
+      "stage": "stage5",
+      "object_family": "dynamic_ball",
+      "role": "CSV/metrics LLM audit gate; labels only, no coordinates or pose generation",
+      "query_id": "render_manifest",
+      "question": "Did render/eval produce a manifest that can be checked by VLM post-render gates?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "stage_inconsistent",
+        "unclear"
+      ]
+    },
+    {
+      "case_name": "volleyball",
+      "stage": "stage5",
+      "object_family": "dynamic_ball",
+      "role": "CSV/metrics LLM audit gate; labels only, no coordinates or pose generation",
+      "query_id": "render_temporal_consistency",
+      "question": "Do machine temporal spike metrics and VLM render-temporal gates agree, or does the case need manual/optimizer review?",
+      "allowed_labels": [
+        "pass",
+        "temporal_spike_not_caught_by_vlm",
+        "stage_inconsistent",
+        "unclear"
+      ]
+    }
+  ]
+}

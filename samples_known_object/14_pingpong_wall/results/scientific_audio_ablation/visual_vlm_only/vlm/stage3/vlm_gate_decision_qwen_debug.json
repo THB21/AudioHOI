@@ -1,0 +1,9 @@
+{
+  "case_name": "pingpong",
+  "stage": "stage3",
+  "gate_rows": 3,
+  "effective_rows": 3,
+  "gate_csv": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_only/vlm/stage3/vlm_gates_qwen_debug.csv",
+  "debug_limit": 10,
+  "note": "Debug Qwen gates are audit evidence only and do not overwrite full-stage vlm_gates.csv."
+}

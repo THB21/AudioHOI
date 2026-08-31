@@ -1,0 +1,44 @@
+{
+  "case_name": "back_view_basketball",
+  "result_name": "scientific_audio_ablation/visual_vlm_only",
+  "prompt_entry_count": 5,
+  "entries": [
+    {
+      "kind": "sample_metadata.prompt",
+      "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/metadata.json",
+      "record_id": "",
+      "text_preview": "Generate an 8-second photorealistic video with a completely static camera and no cuts, zooms, pans, or slow motion. The athlete performs six fast low crossover dribbles, alternating hands. During two crossovers the ball is briefly hidden by a leg or lower torso for only two to four frames, then reappears on a physically continuous path. Add exactly one clear bounce sound at every floor impact, synchronized to the impact frame, and no extra impact sounds. The ball must not float, teleport, duplicate, deform, or reverse direction without contact. Keep the full body and floor visible.",
+      "sha256": "8a960f3c8faa2650ee0c54c87f96cda8f761c53068e3afcc0f4d9bca7e2d8d64"
+    },
+    {
+      "kind": "sample_metadata.detection_text",
+      "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/metadata.json",
+      "record_id": "",
+      "text_preview": "basketball. orange basketball. ball.",
+      "sha256": "0de5a7a29eac8fc87ec87bad27f28db1f66fbf3850f69452b1f57b632a892a8b"
+    },
+    {
+      "kind": "sample_metadata.name",
+      "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/metadata.json",
+      "record_id": "",
+      "text_preview": "back_view_basketball",
+      "sha256": "6af7313fd7e0245ef7f2c164a69b405d2385cb6b009942fb177f5bcf3f2d6ee2"
+    },
+    {
+      "kind": "sample_metadata.video",
+      "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/metadata.json",
+      "record_id": "",
+      "text_preview": "video_sample/12_back_view_basketball_video.mp4",
+      "sha256": "0492a9e35fb3a12b4aa14ec49da01c93da9582ca44cbcc2411e8788d32f30efc"
+    },
+    {
+      "kind": "sample_metadata.image",
+      "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/metadata.json",
+      "record_id": "",
+      "text_preview": "video_sample/12_back_view_basketball.jpg",
+      "sha256": "f5af569c9f2faefca0bd03329a7c37dafcffb59117f700194e8671ee9817b216"
+    }
+  ],
+  "missing_referenced_prompts": [],
+  "usage_rule": "Prompt context is semantic evidence for LLM/VLM query design only; it must not supply continuous pose, coordinates, or loss weights."
+}

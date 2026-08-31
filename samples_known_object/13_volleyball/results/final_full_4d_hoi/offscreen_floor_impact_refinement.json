@@ -1,0 +1,24 @@
+{
+  "status": "refined",
+  "changed_frames": [
+    159,
+    160,
+    161,
+    162,
+    163
+  ],
+  "impacts": [
+    {
+      "interval": [
+        159,
+        163
+      ],
+      "impact_frame": 162,
+      "audio_score": 0.9997093170756602,
+      "floor_center_v": 643.7372337841055,
+      "source": "vlm_out_of_frame+audio_impulse+floor_contact_candidate"
+    }
+  ],
+  "human_state_optimized": false,
+  "case_dispatch_used": false
+}

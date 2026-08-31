@@ -1,0 +1,7 @@
+{
+  "component": "backproject_xy",
+  "case_name": "volleyball",
+  "object_pose": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_pose.csv",
+  "object_contact_points": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_contact_points.csv",
+  "policy": "generic pass-through from Stage3 backprojected pose when no stronger refinement has produced object_pose"
+}

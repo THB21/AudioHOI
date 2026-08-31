@@ -1,0 +1,11 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+pingpong_wall,stage2,11,contact_relation_check,paddle_face,pass,accept_candidate,0,1,1
+pingpong_wall,stage2,177,contact_relation_check,paddle_face,pass,accept_candidate,0,1,1
+pingpong_wall,stage2,229,contact_relation_check,paddle_face,pass,accept_candidate,0,1,1
+pingpong_wall,stage2,1,contact_relation_check,paddle_face,pass,accept_candidate,0,1,1
+pingpong_wall,stage2,121,contact_relation_check,paddle_face,pass,accept_candidate,0,1,1
+pingpong_wall,stage2,11,keypart_visibility_check,detection_failure,reject,keep_previous_anchor,0,0,1
+pingpong_wall,stage2,177,keypart_visibility_check,out_of_frame,pass,propagate_projected_ballistic_trajectory,0,0,1
+pingpong_wall,stage2,229,keypart_visibility_check,detection_failure,reject,keep_previous_anchor,0,0,1
+pingpong_wall,stage2,1,keypart_visibility_check,detection_failure,reject,keep_previous_anchor,0,0,1
+pingpong_wall,stage2,121,keypart_visibility_check,detection_failure,reject,keep_previous_anchor,0,0,1

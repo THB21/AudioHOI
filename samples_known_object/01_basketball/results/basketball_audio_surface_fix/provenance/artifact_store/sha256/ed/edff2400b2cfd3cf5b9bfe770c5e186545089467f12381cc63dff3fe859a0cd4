@@ -1,0 +1,55 @@
+{
+  "schema_version": 2,
+  "stage": "stage0_preprocess",
+  "case_name": "basketball",
+  "sample_dir": "samples_known_object/01_basketball",
+  "result_dir": "samples_known_object/01_basketball/results/basketball_audio_surface_fix",
+  "render_dir": "samples_known_object/01_basketball/results/renders/basketball_audio_surface_fix",
+  "prepared_inputs": {
+    "frame_extract": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "frames": "samples_known_object/01_basketball/frames"
+      },
+      "output_hashes": {
+        "frames": "4267bd3c37321c1bffed7058a4dad006ed280e8d6419d69e3d3f41ad1e70c04c"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "audio_extract": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "audio": "samples_known_object/01_basketball/audio.wav"
+      },
+      "output_hashes": {
+        "audio": "2c44967d05b59165826756bc5736b9d9fb2fc588f83f753f85b4667ae1a31e3a"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "sam2": {
+      "status": "failed",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "sam2_masks": "samples_known_object/01_basketball/results/segmentation/masks",
+        "sam2_trajectory": "samples_known_object/01_basketball/results/tracking/object_trajectory.csv"
+      },
+      "output_hashes": {},
+      "error": "Traceback (most recent call last):\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py\", line 281, in <module>\n    main()\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py\", line 254, in main\n    raise ValueError(\"--dino-text is required when --box is not provided\")\nValueError: --dino-text is required when --box is not provided\n",
+      "human_state_role": null
+    }
+  },
+  "checks": {
+    "case_ingestion_accepted": false,
+    "frame_count_positive": true,
+    "fps_positive": true,
+    "required_tasks_complete": false,
+    "gvhmr_read_only": true
+  },
+  "case_ingestion_manifest": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/case_ingestion_last_attempt.json",
+  "case_ingestion_manifest_sha256": "2a33d0487f522e97061cd5395e63b11b3e3584e195c4a4e8ed746345783131ef",
+  "status": "failed"
+}

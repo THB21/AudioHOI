@@ -1,0 +1,533 @@
+{
+  "case_name": "back_view_basketball",
+  "profile": {
+    "case_name": "back_view_basketball",
+    "sample_dir": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball",
+    "object_family": "dynamic_ball",
+    "geometry_model": "sphere_proxy",
+    "observation_model": "mask_track_center",
+    "contact_policy": "hand_floor",
+    "pose_model": "translation3",
+    "refinement_policy": [
+      "anchor_depth",
+      "backproject_xy"
+    ],
+    "render_backend": "mesh_solid",
+    "object_mesh": "assets/object_meshes/basketball.glb",
+    "object_mesh_metric": "fit_radius",
+    "result_name": "scientific_audio_ablation/visual_vlm_only",
+    "preprocess": {
+      "auto_run": false,
+      "fps": 24.0
+    },
+    "vlm": {
+      "target": "basketball",
+      "parts": [
+        "ball_center",
+        "ball_boundary",
+        "ball_bottom",
+        "background",
+        "unclear"
+      ],
+      "contacts": [
+        "left_hand",
+        "right_hand",
+        "floor",
+        "body",
+        "nothing_nearby",
+        "unclear"
+      ],
+      "stable_refs": [
+        "center",
+        "bottom_support",
+        "boundary_point",
+        "unclear"
+      ]
+    },
+    "camera": {
+      "fx": 1468.604736328125,
+      "fy": 1468.604736328125,
+      "cx": 640.0,
+      "cy": 360.0
+    },
+    "baseline": {
+      "final_pose_csv": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_pose.csv",
+      "init_pose_csv": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_pose_init.csv",
+      "object_observations_csv": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_observations.csv",
+      "contact_candidates_csv": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_candidates.csv",
+      "contact_state_csv": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_state_frames.csv"
+    },
+    "ablation_flags": [
+      "disable_audio_events"
+    ]
+  },
+  "result_dir": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only",
+  "render_dir": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only",
+  "from_stage": "stage5",
+  "to_stage": "stage5",
+  "vlm_mode": "none",
+  "llm_mode": "seed",
+  "vlm_blocking": false,
+  "stage_results": [
+    {
+      "stage": "stage5",
+      "result": {
+        "backend": "mesh_solid",
+        "outputs": {
+          "object_only/overlay.mp4": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only/object_only/overlay.mp4",
+          "object_only/camera3d.mp4": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only/object_only/camera3d.mp4",
+          "object_only/side_yz.mp4": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only/object_only/side_yz.mp4",
+          "with_human/overlay.mp4": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only/with_human/overlay.mp4",
+          "with_human/camera3d.mp4": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only/with_human/camera3d.mp4",
+          "with_human/side_yz.mp4": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only/with_human/side_yz.mp4",
+          "object_only/overlay_quality.csv": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only/object_only/overlay_quality.csv",
+          "with_human/overlay_quality.csv": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only/with_human/overlay_quality.csv"
+        },
+        "required": [
+          "object_only/overlay.mp4",
+          "object_only/camera3d.mp4",
+          "object_only/side_yz.mp4",
+          "with_human/overlay.mp4",
+          "with_human/camera3d.mp4",
+          "with_human/side_yz.mp4"
+        ],
+        "policy": "render the real object .glb mesh (metric-scaled, per-frame SE(3)) via generic_urdf_scene --object-mesh",
+        "renderer": {
+          "python": "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+          "script": "/home/hebestreit/AudioHOI/scripts/shared/generic_contact_pipeline/components/render/scenes/generic_urdf_scene.py",
+          "object_mesh": "/home/hebestreit/AudioHOI/assets/object_meshes/basketball.glb",
+          "object_mesh_metric": "fit_radius"
+        }
+      },
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "back_view_basketball",
+        "stage": "stage5",
+        "decision": "pass",
+        "llm_mode": "seed",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 4,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [
+          "no_effective_vlm_gate"
+        ],
+        "audit_csv": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/stage_audit/stage5/stage_audit_gates.csv",
+        "llm_audit_queries": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/stage_audit/stage5/llm_audit_queries.json",
+        "llm_audit_results": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/stage_audit/stage5/llm_audit_results.csv"
+      }
+    }
+  ],
+  "generic_se3_mainline": {
+    "enabled": true,
+    "contract": "fixed_preprocess_observation_contact_anchor_se3_init_sequence_optimizer",
+    "object_family": "dynamic_ball",
+    "legacy_yaml_selectors": {
+      "observation_model": "mask_track_center",
+      "contact_policy": "hand_floor",
+      "pose_model": "translation3",
+      "refinement_policy": [
+        "anchor_depth",
+        "backproject_xy"
+      ],
+      "role": "stage1-3 are normalized through generic contracts; refinement_policy is ignored by Stage4 except the generic sequence optimizer marker"
+    },
+    "artifacts": {
+      "stage0_inputs_manifest": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/stage0_inputs_manifest.json",
+        "exists": true,
+        "rows": 101
+      },
+      "object_observations": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_observations.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_correspondence": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_correspondence.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_surface_points": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_surface_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "object_semantic_points": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_semantic_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "line_correspondence": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/line_correspondence.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "line_observations": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/line_observations.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "contact_candidates": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/contact_candidates.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "anchor_state": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/anchor_state.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "object_pose_init": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_pose_init.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "object_pose_pre_smooth": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_pose_pre_smooth.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "motion_regime": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/motion_regime.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "physical_smooth_residuals": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/physical_smooth_residuals.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "pose_jump_audit": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/pose_jump_audit.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "optimizer_decisions": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/optimizer_decisions.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "object_pose": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_pose.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_contact_points": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_contact_points.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "stage_audit_gates": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/stage_audit/stage_audit_gates.csv",
+        "exists": true,
+        "rows": 13
+      },
+      "stage_audit_latest": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/stage_audit/stage_audit_latest.json",
+        "exists": true,
+        "rows": 16
+      }
+    }
+  },
+  "post_run": {
+    "vlm_trace": {
+      "case_name": "back_view_basketball",
+      "result_name": "scientific_audio_ablation/visual_vlm_only",
+      "trace_root": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace",
+      "directories": {
+        "00_input": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/00_input",
+        "01_observation": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation",
+        "02_contact_candidates": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/02_contact_candidates",
+        "03_vlm_reasoning": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/03_vlm_reasoning",
+        "04_gating": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/04_gating",
+        "05_optimization": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/05_optimization",
+        "06_evaluation": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/06_evaluation"
+      },
+      "artifacts": {
+        "input_video": {
+          "stage": "",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/video.mp4",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/00_input/video.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "sampled_frames": {
+          "stage": "00_input",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm/stage0/evidence",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/00_input/sampled_frames",
+          "exists": true,
+          "rows": 7,
+          "storage_mode": "relative_symlink_or_copy"
+        },
+        "object_mask_overlay": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only/with_human/overlay_vlm_masked.mp4",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/object_mask_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "human_pose_overlay": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only/with_human/overlay.mp4",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/human_pose_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "depth_overlay": {
+          "stage": "01_observation",
+          "source_path": "",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/depth_overlay.mp4",
+          "exists": false,
+          "rows": "",
+          "storage_mode": "missing"
+        },
+        "contact_candidate_overlay": {
+          "stage": "02_contact_candidates",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only/with_human/overlay.mp4",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "before_after_overlay": {
+          "stage": "05_optimization",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/renders/scientific_audio_ablation/visual_vlm_only/with_human/overlay.mp4",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/05_optimization/before_after_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "object_observations": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_observations.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/object_observations.csv",
+          "exists": true,
+          "rows": 240,
+          "storage_mode": "relative_symlink"
+        },
+        "object_correspondence": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_correspondence.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/object_correspondence.csv",
+          "exists": true,
+          "rows": 240,
+          "storage_mode": "relative_symlink"
+        },
+        "object_surface_points": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_surface_points.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/object_surface_points.csv",
+          "exists": true,
+          "rows": 0,
+          "storage_mode": "relative_symlink"
+        },
+        "object_semantic_points": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_semantic_points.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/object_semantic_points.csv",
+          "exists": true,
+          "rows": 0,
+          "storage_mode": "relative_symlink"
+        },
+        "line_correspondence": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/line_correspondence.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/line_correspondence.csv",
+          "exists": false,
+          "rows": "",
+          "storage_mode": "missing"
+        },
+        "line_observations": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/line_observations.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/line_observations.csv",
+          "exists": false,
+          "rows": "",
+          "storage_mode": "missing"
+        },
+        "contact_candidates": {
+          "stage": "02_contact_candidates",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/contact_candidates.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/02_contact_candidates/contact_candidates.csv",
+          "exists": false,
+          "rows": "",
+          "storage_mode": "missing"
+        },
+        "gate_timeline_png": {
+          "stage": "04_gating",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/04_gating/gate_timeline.png",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/04_gating/gate_timeline.png",
+          "exists": true,
+          "rows": ""
+        }
+      },
+      "trace_completeness": {
+        "required_count": 13,
+        "present_count": 11,
+        "missing_required": [
+          "contact_candidates",
+          "depth_overlay"
+        ],
+        "items": {
+          "input_video": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/00_input/video.mp4",
+            "stage": ""
+          },
+          "sampled_frames": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/00_input/sampled_frames",
+            "stage": "00_input"
+          },
+          "object_observations": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/object_observations.csv",
+            "stage": "01_observation"
+          },
+          "object_correspondence": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/object_correspondence.csv",
+            "stage": "01_observation"
+          },
+          "object_surface_points": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/object_surface_points.csv",
+            "stage": "01_observation"
+          },
+          "object_semantic_points": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/object_semantic_points.csv",
+            "stage": "01_observation"
+          },
+          "contact_candidates": {
+            "required": true,
+            "exists": false,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/02_contact_candidates/contact_candidates.csv",
+            "stage": "02_contact_candidates"
+          },
+          "object_mask_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/object_mask_overlay.mp4",
+            "stage": "01_observation"
+          },
+          "human_pose_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/human_pose_overlay.mp4",
+            "stage": "01_observation"
+          },
+          "depth_overlay": {
+            "required": true,
+            "exists": false,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/01_observation/depth_overlay.mp4",
+            "stage": "01_observation"
+          },
+          "contact_candidate_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+            "stage": "02_contact_candidates"
+          },
+          "before_after_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/05_optimization/before_after_overlay.mp4",
+            "stage": "05_optimization"
+          },
+          "gate_timeline_png": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/04_gating/gate_timeline.png",
+            "stage": "04_gating"
+          }
+        }
+      }
+    },
+    "final_evaluator": {
+      "case": "back_view_basketball",
+      "method": "vlm_gated",
+      "result_name": "scientific_audio_ablation/visual_vlm_only",
+      "method_status": "ok",
+      "final_pass": true,
+      "metrics": {
+        "overlay_error_px_mean": 0.0,
+        "mask_iou_mean": null,
+        "overlay_proxy_score": 1.0,
+        "contact_precision": null,
+        "contact_recall": null,
+        "contact_f1": null,
+        "contact_label_status": "needs_manual_labels",
+        "contact_proxy_score": null,
+        "anchor_drift_m_mean": null,
+        "anchor_drift_m_max": null,
+        "penetration_rate": 0.0,
+        "floating_rate": 0.0,
+        "velocity_spike_count": 0,
+        "acceleration_spike_count": 0,
+        "jump_count": 0,
+        "static_tail_drift_m_max": 0.0,
+        "geometry_length_spread_m": null,
+        "gt_contact_available": false
+      },
+      "failure_flags": {
+        "overlay_fail": false,
+        "contact_fail": false,
+        "anchor_drift_fail": false,
+        "penetration_fail": false,
+        "floating_fail": false,
+        "jump_fail": false,
+        "static_tail_fail": false,
+        "geometry_fail": false,
+        "failure_count": 0
+      },
+      "vlm_score": {
+        "mode": "dry-run_metric_grounded",
+        "score": 1.0,
+        "checklist_count": 20,
+        "pipeline_vlm_gate_score": {},
+        "pipeline_vlm_gate_framewise_count": 0,
+        "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+      },
+      "llm_audit_summary": "review_required",
+      "failure_stage_hint": "pass",
+      "vlm_eval_summary": {
+        "mode": "dry-run_metric_grounded",
+        "query_count": 3,
+        "mean_overall_plausibility": 5.0,
+        "failure_stage_hint": "pass",
+        "scores": {
+          "visibility": 5,
+          "contact_correctness": 3,
+          "support_consistency": 5,
+          "penetration_absence": 5,
+          "temporal_plausibility": 5,
+          "overall_plausibility": 5,
+          "short_reason": "metric-grounded final evaluator checklist; replace source with Qwen final judge when available",
+          "failure_stage_hint": "pass"
+        },
+        "vlm_pipeline_score": {
+          "mode": "dry-run_metric_grounded",
+          "score": 1.0,
+          "checklist_count": 20,
+          "pipeline_vlm_gate_score": {},
+          "pipeline_vlm_gate_framewise_count": 0,
+          "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+        },
+        "framewise_pipeline_judgment_count": 20
+      }
+    }
+  }
+}

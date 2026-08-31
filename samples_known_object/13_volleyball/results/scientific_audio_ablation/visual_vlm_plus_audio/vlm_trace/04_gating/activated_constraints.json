@@ -1,0 +1,97 @@
+{
+  "keypart_identity_check": {
+    "frames": [
+      "1",
+      "121",
+      "240"
+    ],
+    "pass_gates": [
+      "not_evaluated"
+    ],
+    "active_count": 0
+  },
+  "track_stability_check": {
+    "frames": [
+      "1",
+      "121",
+      "240"
+    ],
+    "pass_gates": [
+      "not_evaluated"
+    ],
+    "active_count": 0
+  },
+  "contact_relation_check": {
+    "frames": [
+      "1",
+      "62",
+      "222",
+      "119",
+      "240",
+      "1",
+      "62",
+      "222",
+      "119",
+      "240"
+    ],
+    "pass_gates": [
+      "not_evaluated"
+    ],
+    "active_count": 0
+  },
+  "keypart_visibility_check": {
+    "frames": [
+      "1",
+      "62",
+      "222",
+      "119",
+      "240"
+    ],
+    "pass_gates": [
+      "not_evaluated"
+    ],
+    "active_count": 0
+  },
+  "overlay_alignment_check": {
+    "frames": [
+      "1",
+      "121",
+      "240",
+      "1",
+      "62",
+      "222",
+      "119",
+      "240"
+    ],
+    "pass_gates": [
+      "not_evaluated"
+    ],
+    "active_count": 0
+  },
+  "anchor_update_check": {
+    "frames": [
+      "1",
+      "62",
+      "222",
+      "119",
+      "240"
+    ],
+    "pass_gates": [
+      "not_evaluated"
+    ],
+    "active_count": 0
+  },
+  "temporal_motion_check": {
+    "frames": [
+      "1",
+      "62",
+      "222",
+      "119",
+      "240"
+    ],
+    "pass_gates": [
+      "not_evaluated"
+    ],
+    "active_count": 0
+  }
+}

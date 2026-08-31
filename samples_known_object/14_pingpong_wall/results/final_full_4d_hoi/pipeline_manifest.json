@@ -1,0 +1,1010 @@
+{
+  "case_name": "pingpong_wall",
+  "profile": {
+    "case_name": "pingpong_wall",
+    "sample_dir": "samples_known_object/14_pingpong_wall",
+    "object_family": "dynamic_small_sphere",
+    "geometry_model": "sphere_proxy",
+    "geometry_asset_descriptor": "scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json",
+    "sphere": {
+      "radius_m": 0.02
+    },
+    "observation_model": "mask_track_center",
+    "contact_policy": "hand_floor",
+    "pose_model": "translation3",
+    "refinement_policy": [
+      "generic_sphere_sequence",
+      "backproject_xy"
+    ],
+    "render_backend": "proxy_sphere",
+    "result_name": "final_full_4d_hoi",
+    "preprocess": {
+      "fps": 24.0,
+      "static_camera": true,
+      "detector_model": "IDEA-Research/grounding-dino-tiny",
+      "detector_text": "white ping-pong ball.",
+      "first_frame_box": "700,245,735,278",
+      "segmenter_model": "facebook/sam2.1-hiera-tiny",
+      "tracker": "cotracker3_online",
+      "tracker_query_source": "sam2_mask_center",
+      "tracker_sequence_mode": "persistent_online",
+      "tracker_grid_size": 6,
+      "tracker_resize_width": 512,
+      "da3_chunk_size": 16,
+      "da3_process_res": 504
+    },
+    "generic_object_problem": {
+      "initializer": "point_depth",
+      "initializer_artifacts": [
+        "object_observations.csv",
+        "contact_state_frames.csv",
+        "contact_candidates_internal/contact_candidates_labeled.csv"
+      ],
+      "contact_artifact": "sphere_no_metric_contact_constraints.csv",
+      "interaction_state_artifact": "impact_interaction_states.csv",
+      "interaction_state_exclusive": true,
+      "measurement_factors": [
+        "point_reprojection",
+        "metric_depth"
+      ],
+      "measurement_roles": {
+        "point_reprojection": [
+          "object_center"
+        ],
+        "metric_depth": [
+          "object_center_depth"
+        ]
+      },
+      "sequence_factors": [
+        "temporal_acceleration"
+      ],
+      "max_function_evaluations": 2000
+    },
+    "factor_runtime": {
+      "point_reprojection": {
+        "weight": 1.0,
+        "sigma": 5.0,
+        "sigma_unit": "px",
+        "source": "measurement_ir:single_identity_sphere_candidate",
+        "activation_weight_tiers": {
+          "active": 1.0,
+          "downweighted": 0.15,
+          "inactive": 0.0
+        }
+      },
+      "metric_depth": {
+        "weight": 0.2,
+        "sigma": 0.4,
+        "sigma_unit": "m",
+        "source": "measurement_ir:small_sphere_monocular_depth_weak_prior",
+        "activation_weight_tiers": {
+          "active": 1.0,
+          "downweighted": 0.15,
+          "inactive": 0.0
+        }
+      },
+      "temporal_acceleration": {
+        "weight": 15.0,
+        "state_scales": [
+          0.5,
+          0.5,
+          0.3
+        ],
+        "source": "sequence_translation_optimizer:contact_gated_ballistic_continuity",
+        "activation_weight_tiers": {
+          "active": 1.0,
+          "downweighted": 0.005,
+          "inactive": 0.0
+        }
+      }
+    },
+    "vlm": {
+      "target": "single physical white ping-pong ball",
+      "parts": [
+        "physical_ball_candidate",
+        "duplicate_generation_artifact",
+        "motion_blur_streak",
+        "background",
+        "unclear"
+      ],
+      "contacts": [
+        "paddle_face",
+        "practice_wall",
+        "no_contact",
+        "unclear"
+      ],
+      "stable_refs": [
+        "same_ball_from_previous_frame",
+        "same_ball_to_next_frame",
+        "event_consistent_candidate",
+        "unclear"
+      ],
+      "frame_policy": {
+        "stage0": "risk",
+        "stage1": "risk",
+        "stage2": "risk",
+        "stage4": "risk"
+      },
+      "single_identity": {
+        "enabled": true,
+        "entity_id": "pingpong_ball",
+        "maximum_entities": 1,
+        "candidate_artifact": "sphere_identity_candidates.csv",
+        "selected_artifact": "sphere_identity_selection.csv",
+        "forced_choices": [
+          "candidate_a",
+          "candidate_b",
+          "occluded_or_blurred",
+          "unclear"
+        ],
+        "evidence_offsets_frames": [
+          -2,
+          -1,
+          0,
+          1,
+          2
+        ],
+        "enforce_contact_only_direction_change": true
+      }
+    },
+    "audio": {
+      "expected_event_order": [
+        "paddle_impact",
+        "wall_impact"
+      ],
+      "alternating": true,
+      "event_count": {
+        "paddle_impact": 5,
+        "wall_impact": 5
+      }
+    },
+    "camera": {
+      "fx": 1468.604736328125,
+      "fy": 1468.604736328125,
+      "cx": 640.0,
+      "cy": 360.0
+    }
+  },
+  "result_dir": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi",
+  "render_dir": "samples_known_object/14_pingpong_wall/results/renders/final_full_4d_hoi",
+  "from_stage": "stage0",
+  "to_stage": "stage0",
+  "vlm_mode": "none",
+  "llm_mode": "none",
+  "vlm_blocking": false,
+  "capability_plugins": {
+    "observation": {
+      "kind": "observation",
+      "name": "mask_track_center",
+      "module": "scripts.shared.generic_contact_pipeline.components.observation.policies.mask_track_center",
+      "entrypoint": "build",
+      "requires": [],
+      "provides": [
+        "observation.point_reference"
+      ],
+      "role": "compatibility_adapter",
+      "plugin_id": "observation:mask_track_center"
+    },
+    "contact": {
+      "kind": "contact",
+      "name": "hand_floor",
+      "module": "scripts.shared.generic_contact_pipeline.components.contact.policies.hand_floor",
+      "entrypoint": "build",
+      "requires": [
+        "observation.point_reference"
+      ],
+      "provides": [
+        "contact.candidates",
+        "anchor.support"
+      ],
+      "role": "compatibility_adapter",
+      "plugin_id": "contact:hand_floor"
+    },
+    "pose": {
+      "kind": "pose",
+      "name": "translation3",
+      "module": "scripts.shared.generic_contact_pipeline.components.pose.models.translation3",
+      "entrypoint": "build",
+      "requires": [
+        "observation.point_reference",
+        "contact.candidates"
+      ],
+      "provides": [
+        "pose.se3"
+      ],
+      "role": "compatibility_adapter",
+      "plugin_id": "pose:translation3"
+    },
+    "refinement": [
+      {
+        "kind": "refinement",
+        "name": "generic_sphere_sequence",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.policies.generic_sphere_sequence",
+        "entrypoint": "apply",
+        "requires": [
+          "pose.se3",
+          "contact.candidates"
+        ],
+        "provides": [
+          "pose.seed_refined"
+        ],
+        "role": "mainline_implementation",
+        "plugin_id": "refinement:generic_sphere_sequence"
+      },
+      {
+        "kind": "refinement",
+        "name": "backproject_xy",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.policies.backproject_xy",
+        "entrypoint": "apply",
+        "requires": [
+          "pose.se3"
+        ],
+        "provides": [
+          "pose.seed_refined"
+        ],
+        "role": "compatibility_adapter",
+        "plugin_id": "refinement:backproject_xy"
+      }
+    ],
+    "implicit_mainline": [
+      {
+        "kind": "refinement",
+        "name": "sequence_se3_optimizer",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.sequence_se3_optimizer",
+        "entrypoint": "smooth_quaternion_pose_sequence",
+        "requires": [
+          "pose.se3"
+        ],
+        "provides": [
+          "pose.sequence_refined"
+        ],
+        "role": "mainline_marker_and_implementation",
+        "plugin_id": "refinement:sequence_se3_optimizer"
+      }
+    ],
+    "intrinsic_capabilities": [
+      "input.audio",
+      "input.video"
+    ],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ]
+  },
+  "stage_results": [
+    {
+      "stage": "stage0",
+      "result": {
+        "schema_version": 2,
+        "stage": "stage0_preprocess",
+        "case_name": "pingpong_wall",
+        "status": "accepted",
+        "frame_count": 240,
+        "fps": 24.0,
+        "checks": {
+          "case_ingestion_accepted": true,
+          "frame_count_positive": true,
+          "fps_positive": true,
+          "required_tasks_complete": true,
+          "gvhmr_read_only": true
+        },
+        "tasks": [
+          {
+            "task_id": "frame_extract",
+            "status": "reused",
+            "required": true,
+            "runtime_env": "audiohoi",
+            "command": [
+              "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+              "scripts/shared/generic_contact_pipeline/tools/run_media_extract.py",
+              "--sample-dir",
+              "samples_known_object/14_pingpong_wall",
+              "--kind",
+              "frames"
+            ],
+            "cache_key": "3542c2cf5388eeb6429582c9a848e0ab38ceb82459a5f89e3c49a23ecdea09be",
+            "input_hashes": {
+              "video": "72d1434f6b3e3d91416fd89eedb17b52b2c32b4c292dd574c7e7f3a05664f52c"
+            },
+            "output_paths": {
+              "frames": "samples_known_object/14_pingpong_wall/frames"
+            },
+            "output_kinds": {
+              "frames": "directory"
+            },
+            "output_hashes": {
+              "frames": "e4c0ce627455946899137b692c611201a94337773dd040452404335ec39873fc"
+            },
+            "started_at": "2026-08-19T18:34:02.290617+00:00",
+            "completed_at": "2026-08-19T18:34:02.368984+00:00",
+            "return_code": 0,
+            "stdout_tail": "hash-valid cache hit",
+            "stderr_tail": "",
+            "error": "",
+            "human_state_role": null
+          },
+          {
+            "task_id": "audio_extract",
+            "status": "reused",
+            "required": true,
+            "runtime_env": "audiohoi",
+            "command": [
+              "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+              "scripts/shared/generic_contact_pipeline/tools/run_media_extract.py",
+              "--sample-dir",
+              "samples_known_object/14_pingpong_wall",
+              "--kind",
+              "audio"
+            ],
+            "cache_key": "4f719794d2b74e61d2f9f12228263b5627d6f7a1ce431fb74442ce44276b743d",
+            "input_hashes": {
+              "video": "72d1434f6b3e3d91416fd89eedb17b52b2c32b4c292dd574c7e7f3a05664f52c"
+            },
+            "output_paths": {
+              "audio": "samples_known_object/14_pingpong_wall/audio.wav"
+            },
+            "output_kinds": {
+              "audio": "file"
+            },
+            "output_hashes": {
+              "audio": "c6ca2ea28d534f6874e576557a586309dd7b1c6f0ce77aa5135d7fd2b3b292ca"
+            },
+            "started_at": "2026-08-19T18:34:02.369010+00:00",
+            "completed_at": "2026-08-19T18:34:02.378773+00:00",
+            "return_code": 0,
+            "stdout_tail": "hash-valid cache hit",
+            "stderr_tail": "",
+            "error": "",
+            "human_state_role": null
+          },
+          {
+            "task_id": "sam2",
+            "status": "generated",
+            "required": true,
+            "runtime_env": "audiohoi",
+            "command": [
+              "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+              "scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py",
+              "--case-config",
+              "scripts/shared/generic_contact_pipeline/configs/cases/pingpong_wall.yaml",
+              "--sample-dir",
+              "samples_known_object/14_pingpong_wall",
+              "--fps",
+              "24.0",
+              "--box",
+              "700,245,735,278"
+            ],
+            "cache_key": "413f56d45089827c557e556c9c2b549fe21d07495d52abeef55d1eeee5441554",
+            "input_hashes": {
+              "frames": "e4c0ce627455946899137b692c611201a94337773dd040452404335ec39873fc",
+              "case_config": "548f6ca231233383e42cb591a0dba82f62e9325bc2ba889dac2c60693a566b48"
+            },
+            "output_paths": {
+              "sam2_masks": "samples_known_object/14_pingpong_wall/results/segmentation/masks",
+              "sam2_trajectory": "samples_known_object/14_pingpong_wall/results/tracking/object_trajectory.csv"
+            },
+            "output_kinds": {
+              "sam2_masks": "directory",
+              "sam2_trajectory": "file"
+            },
+            "output_hashes": {
+              "sam2_masks": "beff378b8db69bd9d73a080255e14affb2612a9ba78f836db3b676cf31739619",
+              "sam2_trajectory": "df3e61fdfa6e3ab7403ce32a0aa8d0195d1c7473ed531fe952577bb479421f8a"
+            },
+            "started_at": "2026-08-19T18:34:02.378791+00:00",
+            "completed_at": "2026-08-19T18:34:21.720003+00:00",
+            "return_code": 0,
+            "stdout_tail": "{\n  \"init_detection\": {\n    \"text\": \"white ping-pong ball.\",\n    \"model_id\": \"manual_box\",\n    \"score\": 1.0,\n    \"box\": [\n      700.0,\n      245.0,\n      735.0,\n      278.0\n    ],\n    \"label\": \"white ping-pong ball.\"\n  },\n  \"sam2_model\": \"facebook/sam2.1-hiera-tiny\",\n  \"frames\": 240,\n  \"masks\": 240,\n  \"masks_dir\": \"/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/segmentation/masks\",\n  \"trajectory\": \"/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/tracking/object_trajectory.csv\"\n}\n",
+            "stderr_tail": "<00:08, 20.23it/s]\npropagate in video:  31%|███       | 74/240 [00:03<00:08, 20.24it/s]\npropagate in video:  32%|███▏      | 77/240 [00:03<00:08, 20.24it/s]\npropagate in video:  33%|███▎      | 80/240 [00:03<00:07, 20.22it/s]\npropagate in video:  35%|███▍      | 83/240 [00:04<00:07, 20.22it/s]\npropagate in video:  36%|███▌      | 86/240 [00:04<00:07, 20.23it/s]\npropagate in video:  37%|███▋      | 89/240 [00:04<00:07, 20.23it/s]\npropagate in video:  38%|███▊      | 92/240 [00:04<00:07, 20.24it/s]\npropagate in video:  40%|███▉      | 95/240 [00:04<00:07, 20.24it/s]\npropagate in video:  41%|████      | 98/240 [00:04<00:07, 20.23it/s]\npropagate in video:  42%|████▏     | 101/240 [00:04<00:06, 20.23it/s]\npropagate in video:  43%|████▎     | 104/240 [00:05<00:06, 20.24it/s]\npropagate in video:  45%|████▍     | 107/240 [00:05<00:06, 20.24it/s]\npropagate in video:  46%|████▌     | 110/240 [00:05<00:06, 20.24it/s]\npropagate in video:  47%|████▋     | 113/240 [00:05<00:06, 20.24it/s]\npropagate in video:  48%|████▊     | 116/240 [00:05<00:06, 20.24it/s]\npropagate in video:  50%|████▉     | 119/240 [00:05<00:05, 20.22it/s]\npropagate in video:  51%|█████     | 122/240 [00:05<00:05, 20.22it/s]\npropagate in video:  52%|█████▏    | 125/240 [00:06<00:05, 20.22it/s]\npropagate in video:  53%|█████▎    | 128/240 [00:06<00:05, 20.23it/s]\npropagate in video:  55%|█████▍    | 131/240 [00:06<00:05, 20.24it/s]\npropagate in video:  56%|█████▌    | 134/240 [00:06<00:05, 20.24it/s]\npropagate in video:  57%|█████▋    | 137/240 [00:06<00:05, 20.24it/s]\npropagate in video:  58%|█████▊    | 140/240 [00:06<00:04, 20.23it/s]\npropagate in video:  60%|█████▉    | 143/240 [00:06<00:04, 20.23it/s]\npropagate in video:  61%|██████    | 146/240 [00:07<00:04, 20.24it/s]\npropagate in video:  62%|██████▏   | 149/240 [00:07<00:04, 20.23it/s]\npropagate in video:  63%|██████▎   | 152/240 [00:07<00:04, 20.23it/s]\npropagate in video:  65%|██████▍   | 155/240 [00:07<00:04, 20.22it/s]\npropagate in video:  66%|██████▌   | 158/240 [00:07<00:04, 20.23it/s]\npropagate in video:  67%|██████▋   | 161/240 [00:07<00:03, 20.22it/s]\npropagate in video:  68%|██████▊   | 164/240 [00:08<00:03, 20.23it/s]\npropagate in video:  70%|██████▉   | 167/240 [00:08<00:03, 20.23it/s]\npropagate in video:  71%|███████   | 170/240 [00:08<00:03, 20.22it/s]\npropagate in video:  72%|███████▏  | 173/240 [00:08<00:03, 20.22it/s]\npropagate in video:  73%|███████▎  | 176/240 [00:08<00:03, 20.22it/s]\npropagate in video:  75%|███████▍  | 179/240 [00:08<00:03, 20.22it/s]\npropagate in video:  76%|███████▌  | 182/240 [00:08<00:02, 20.21it/s]\npropagate in video:  77%|███████▋  | 185/240 [00:09<00:02, 20.22it/s]\npropagate in video:  78%|███████▊  | 188/240 [00:09<00:02, 20.22it/s]\npropagate in video:  80%|███████▉  | 191/240 [00:09<00:02, 20.21it/s]\npropagate in video:  81%|████████  | 194/240 [00:09<00:02, 20.20it/s]\npropagate in video:  82%|████████▏ | 197/240 [00:09<00:02, 20.20it/s]\npropagate in video:  83%|████████▎ | 200/240 [00:09<00:01, 20.20it/s]\npropagate in video:  85%|████████▍ | 203/240 [00:09<00:01, 20.21it/s]\npropagate in video:  86%|████████▌ | 206/240 [00:10<00:01, 20.22it/s]\npropagate in video:  87%|████████▋ | 209/240 [00:10<00:01, 20.22it/s]\npropagate in video:  88%|████████▊ | 212/240 [00:10<00:01, 20.21it/s]\npropagate in video:  90%|████████▉ | 215/240 [00:10<00:01, 20.22it/s]\npropagate in video:  91%|█████████ | 218/240 [00:10<00:01, 20.20it/s]\npropagate in video:  92%|█████████▏| 221/240 [00:10<00:00, 20.21it/s]\npropagate in video:  93%|█████████▎| 224/240 [00:10<00:00, 20.21it/s]\npropagate in video:  95%|█████████▍| 227/240 [00:11<00:00, 20.22it/s]\npropagate in video:  96%|█████████▌| 230/240 [00:11<00:00, 20.21it/s]\npropagate in video:  97%|█████████▋| 233/240 [00:11<00:00, 20.21it/s]\npropagate in video:  98%|█████████▊| 236/240 [00:11<00:00, 20.18it/s]\npropagate in video: 100%|█████████▉| 239/240 [00:11<00:00, 20.18it/s]\npropagate in video: 100%|██████████| 240/240 [00:11<00:00, 20.38it/s]\n",
+            "error": "",
+            "human_state_role": null
+          },
+          {
+            "task_id": "cotracker",
+            "status": "reused",
+            "required": true,
+            "runtime_env": "audiohoi",
+            "command": [
+              "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+              "scripts/shared/generic_contact_pipeline/tools/run_cotracker_object_points.py",
+              "--case-config",
+              "scripts/shared/generic_contact_pipeline/configs/cases/pingpong_wall.yaml",
+              "--sample-dir",
+              "samples_known_object/14_pingpong_wall",
+              "--object-family",
+              "dynamic_small_sphere",
+              "--fps",
+              "24.0",
+              "--resize-width",
+              "512",
+              "--sequence-mode",
+              "persistent_online",
+              "--grid-size",
+              "6"
+            ],
+            "cache_key": "fecd38576f621beabe2c69766b5a580e47939c5e16851a1ddb2b194adb0faaf8",
+            "input_hashes": {
+              "frames": "e4c0ce627455946899137b692c611201a94337773dd040452404335ec39873fc",
+              "sam2_masks": "beff378b8db69bd9d73a080255e14affb2612a9ba78f836db3b676cf31739619"
+            },
+            "output_paths": {
+              "cotracker_center": "samples_known_object/14_pingpong_wall/results/tracking/object_center_trajectory.csv",
+              "cotracker_points": "samples_known_object/14_pingpong_wall/results/tracking/object_points.csv",
+              "cotracker_mesh_tracks": "samples_known_object/14_pingpong_wall/results/tracking/object_mesh_tracks_test.csv",
+              "cotracker_rigid_tracks": "samples_known_object/14_pingpong_wall/results/tracking/rigid_point_tracks.csv",
+              "cotracker_rigid_tracks_manifest": "samples_known_object/14_pingpong_wall/results/tracking/rigid_point_tracks_manifest.json"
+            },
+            "output_kinds": {
+              "cotracker_center": "file",
+              "cotracker_points": "file",
+              "cotracker_mesh_tracks": "file",
+              "cotracker_rigid_tracks": "file",
+              "cotracker_rigid_tracks_manifest": "file"
+            },
+            "output_hashes": {
+              "cotracker_center": "d654d52f986f5bf03766680bc1afa52246fbec3c7359c8a93280845954622231",
+              "cotracker_points": "9e90e4a3ad6b1cbfb60fdad2e8cc59ca796a4bb12717d7d256015477fd5574a3",
+              "cotracker_mesh_tracks": "52e9b357c1e7f34d84e9167821d6ad6f5fbee7416b7103b0bcf391b76d1708cd",
+              "cotracker_rigid_tracks": "81987a4870bed2b14fcde78dbcb17c9f173a80f66e7e6da8a0594cb5cf2b50a4",
+              "cotracker_rigid_tracks_manifest": "bdb5201998a818bd075bbf4efa3bc97c47a1066eaebc65b5bf27c319f715fe7c"
+            },
+            "started_at": "2026-08-19T18:34:21.720029+00:00",
+            "completed_at": "2026-08-19T18:34:21.827487+00:00",
+            "return_code": 0,
+            "stdout_tail": "hash-valid cache hit",
+            "stderr_tail": "",
+            "error": "",
+            "human_state_role": null
+          },
+          {
+            "task_id": "sam_pt_mask_candidate",
+            "status": "disabled",
+            "required": false,
+            "runtime_env": "audiohoi",
+            "command": [
+              "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+              "scripts/shared/generic_contact_pipeline/tools/run_sam_pt_mask_refine.py",
+              "--sample-dir",
+              "samples_known_object/14_pingpong_wall",
+              "--prompt-stride",
+              "24",
+              "--minimum-visible-points",
+              "16",
+              "--maximum-prompt-points",
+              "16"
+            ],
+            "cache_key": "disabled_by_ablation",
+            "input_hashes": {},
+            "output_paths": {
+              "sam_pt_candidate_masks": "samples_known_object/14_pingpong_wall/results/segmentation/sam_pt_candidate_masks",
+              "sam_pt_candidate_manifest": "samples_known_object/14_pingpong_wall/results/segmentation/sam_pt_candidate_manifest.json"
+            },
+            "output_kinds": {
+              "sam_pt_candidate_masks": "directory",
+              "sam_pt_candidate_manifest": "file"
+            },
+            "output_hashes": {},
+            "started_at": "2026-08-19T18:34:21.827513+00:00",
+            "completed_at": "2026-08-19T18:34:21.827518+00:00",
+            "return_code": 0,
+            "stdout_tail": "disabled by disable_audio_events",
+            "stderr_tail": "",
+            "error": "",
+            "human_state_role": null
+          },
+          {
+            "task_id": "rigid_asset_mesh_export",
+            "status": "disabled",
+            "required": false,
+            "runtime_env": "megapose",
+            "command": [
+              "/home/yang/miniconda3/envs/megapose/bin/python",
+              "scripts/shared/generic_contact_pipeline/tools/export_rigid_asset_mesh.py",
+              "--asset-descriptor",
+              "scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json",
+              "--output",
+              "samples_known_object/14_pingpong_wall/articraft/megapose/fixed_rigid_asset_mm.ply"
+            ],
+            "cache_key": "disabled_by_ablation",
+            "input_hashes": {},
+            "output_paths": {
+              "rigid_provider_mesh": "samples_known_object/14_pingpong_wall/articraft/megapose/fixed_rigid_asset_mm.ply",
+              "rigid_provider_mesh_manifest": "samples_known_object/14_pingpong_wall/articraft/megapose/fixed_rigid_asset_mm.ply.json"
+            },
+            "output_kinds": {
+              "rigid_provider_mesh": "file",
+              "rigid_provider_mesh_manifest": "file"
+            },
+            "output_hashes": {},
+            "started_at": "2026-08-19T18:34:21.827525+00:00",
+            "completed_at": "2026-08-19T18:34:21.827528+00:00",
+            "return_code": 0,
+            "stdout_tail": "disabled by disable_audio_events",
+            "stderr_tail": "",
+            "error": "",
+            "human_state_role": null
+          },
+          {
+            "task_id": "external_rigid_pose_provider",
+            "status": "disabled",
+            "required": false,
+            "runtime_env": "megapose",
+            "command": [
+              "/home/yang/miniconda3/envs/megapose/bin/python",
+              "scripts/shared/generic_contact_pipeline/tools/run_megapose_rigid_pose.py",
+              "--case-config",
+              "scripts/shared/generic_contact_pipeline/configs/cases/pingpong_wall.yaml",
+              "--sample-dir",
+              "samples_known_object/14_pingpong_wall",
+              "--asset-mesh",
+              "samples_known_object/14_pingpong_wall/articraft/megapose/fixed_rigid_asset_mm.ply",
+              "--mask-dir",
+              "samples_known_object/14_pingpong_wall/results/segmentation/masks",
+              "--track-artifact",
+              "samples_known_object/14_pingpong_wall/results/tracking/rigid_point_tracks.csv",
+              "--frames",
+              "auto",
+              "--auto-frame-count",
+              "10",
+              "--output",
+              "samples_known_object/14_pingpong_wall/results/megapose/rigid_pose_hypotheses.jsonl",
+              "--overlay-dir",
+              "samples_known_object/14_pingpong_wall/results/megapose/official_overlays",
+              "--megapose-data-dir",
+              "third-party/megapose6d/local_data",
+              "--display",
+              ":1",
+              "--renderer-workers",
+              "0",
+              "--batch-size",
+              "64"
+            ],
+            "cache_key": "disabled_by_ablation",
+            "input_hashes": {},
+            "output_paths": {
+              "external_rigid_pose_hypotheses": "samples_known_object/14_pingpong_wall/results/megapose/rigid_pose_hypotheses.jsonl",
+              "external_rigid_pose_manifest": "samples_known_object/14_pingpong_wall/results/megapose/rigid_pose_hypotheses.jsonl.manifest.json",
+              "external_rigid_pose_overlays": "samples_known_object/14_pingpong_wall/results/megapose/official_overlays"
+            },
+            "output_kinds": {
+              "external_rigid_pose_hypotheses": "file",
+              "external_rigid_pose_manifest": "file",
+              "external_rigid_pose_overlays": "directory"
+            },
+            "output_hashes": {},
+            "started_at": "2026-08-19T18:34:21.827533+00:00",
+            "completed_at": "2026-08-19T18:34:21.827538+00:00",
+            "return_code": 0,
+            "stdout_tail": "disabled by disable_audio_events",
+            "stderr_tail": "",
+            "error": "",
+            "human_state_role": null
+          },
+          {
+            "task_id": "bind_rigid_feature_tracks",
+            "status": "disabled",
+            "required": false,
+            "runtime_env": "audiohoi",
+            "command": [
+              "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+              "scripts/shared/generic_contact_pipeline/tools/bind_rigid_feature_tracks.py",
+              "--case",
+              "pingpong_wall",
+              "--result-name",
+              "final_full_4d_hoi",
+              "--track-artifact",
+              "samples_known_object/14_pingpong_wall/results/tracking/rigid_point_tracks.csv",
+              "--pose-hypotheses",
+              "samples_known_object/14_pingpong_wall/results/megapose/rigid_pose_hypotheses.jsonl",
+              "--output-csv",
+              "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/rigid_feature_measurements.csv",
+              "--output-manifest",
+              "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/rigid_feature_measurements_manifest.json",
+              "--maximum-anchor-error-px",
+              "18.0",
+              "--minimum-track-visibility",
+              "0.5",
+              "--minimum-pose-mask-iou",
+              "0.6"
+            ],
+            "cache_key": "disabled_by_ablation",
+            "input_hashes": {},
+            "output_paths": {
+              "rigid_feature_measurements": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/rigid_feature_measurements.csv",
+              "rigid_feature_measurements_manifest": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/rigid_feature_measurements_manifest.json"
+            },
+            "output_kinds": {
+              "rigid_feature_measurements": "file",
+              "rigid_feature_measurements_manifest": "file"
+            },
+            "output_hashes": {},
+            "started_at": "2026-08-19T18:34:21.827543+00:00",
+            "completed_at": "2026-08-19T18:34:21.827546+00:00",
+            "return_code": 0,
+            "stdout_tail": "disabled by disable_audio_events",
+            "stderr_tail": "",
+            "error": "",
+            "human_state_role": null
+          },
+          {
+            "task_id": "da3",
+            "status": "reused",
+            "required": true,
+            "runtime_env": "da3",
+            "command": [
+              "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+              "scripts/shared/generic_contact_pipeline/tools/run_da3_scene_depth.py",
+              "--sample-dir",
+              "samples_known_object/14_pingpong_wall",
+              "--da3-root",
+              "third-party/depth-anything-3",
+              "--model-dir",
+              "depth-anything/DA3METRIC-LARGE",
+              "--chunk-size",
+              "16",
+              "--process-res",
+              "504"
+            ],
+            "cache_key": "21098e89584f4e15c54a9ca55c47964f229a015372bab1b3fe6a555849d47a9b",
+            "input_hashes": {
+              "frames": "e4c0ce627455946899137b692c611201a94337773dd040452404335ec39873fc",
+              "da3_cli": "4ff3c2a9305eb9ff18132b139daa1cc2ea421f94e9e3c245cd1b1173437ed799"
+            },
+            "output_paths": {
+              "da3_scene_depth": "samples_known_object/14_pingpong_wall/results/da3/scene_depth"
+            },
+            "output_kinds": {
+              "da3_scene_depth": "directory"
+            },
+            "output_hashes": {
+              "da3_scene_depth": "b2e9c7c70723fe20d8149d3d4ec5730d3331096f75097a7d2bec561b09ce3b58"
+            },
+            "started_at": "2026-08-19T18:34:21.827551+00:00",
+            "completed_at": "2026-08-19T18:34:22.015843+00:00",
+            "return_code": 0,
+            "stdout_tail": "hash-valid cache hit",
+            "stderr_tail": "",
+            "error": "",
+            "human_state_role": null
+          },
+          {
+            "task_id": "object_depth_prior",
+            "status": "reused",
+            "required": true,
+            "runtime_env": "audiohoi",
+            "command": [
+              "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+              "scripts/shared/generic_contact_pipeline/tools/run_object_depth_prior.py",
+              "--sample-dir",
+              "samples_known_object/14_pingpong_wall"
+            ],
+            "cache_key": "bd32770c7620439205f5ea354e57bd261cd1a811aed3ad03436c89a9f927aa7f",
+            "input_hashes": {
+              "da3_scene_depth": "b2e9c7c70723fe20d8149d3d4ec5730d3331096f75097a7d2bec561b09ce3b58",
+              "sam2_masks": "beff378b8db69bd9d73a080255e14affb2612a9ba78f836db3b676cf31739619",
+              "sam2_trajectory": "df3e61fdfa6e3ab7403ce32a0aa8d0195d1c7473ed531fe952577bb479421f8a",
+              "cotracker_center": "d654d52f986f5bf03766680bc1afa52246fbec3c7359c8a93280845954622231"
+            },
+            "output_paths": {
+              "object_depth_prior": "samples_known_object/14_pingpong_wall/results/da3/priors/object_depth_prior.csv"
+            },
+            "output_kinds": {
+              "object_depth_prior": "file"
+            },
+            "output_hashes": {
+              "object_depth_prior": "1242861e35a2cfafab3666cbe1e9a42807c6d27774532ad9399c8f86ddf763b8"
+            },
+            "started_at": "2026-08-19T18:34:22.015875+00:00",
+            "completed_at": "2026-08-19T18:34:22.113440+00:00",
+            "return_code": 0,
+            "stdout_tail": "hash-valid cache hit",
+            "stderr_tail": "",
+            "error": "",
+            "human_state_role": null
+          },
+          {
+            "task_id": "gvhmr",
+            "status": "reused",
+            "required": true,
+            "runtime_env": "gvhmr",
+            "command": [
+              "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+              "scripts/shared/human/gvhmr/run_gvhmr.py",
+              "--sample-dir",
+              "samples_known_object/14_pingpong_wall",
+              "--fps",
+              "24",
+              "--static-cam"
+            ],
+            "cache_key": "4441656ea12757ad36c111fad4879654cca3a58f208b6510792933d17efb115c",
+            "input_hashes": {
+              "video": "72d1434f6b3e3d91416fd89eedb17b52b2c32b4c292dd574c7e7f3a05664f52c",
+              "frames": "e4c0ce627455946899137b692c611201a94337773dd040452404335ec39873fc",
+              "gvhmr_checkpoint": "4fae7da2de388d5da3514cb27a2d003f364dacb280e9cf88972b710e589c6b91"
+            },
+            "output_paths": {
+              "gvhmr_result": "samples_known_object/14_pingpong_wall/results/gvhmr/result.pkl"
+            },
+            "output_kinds": {
+              "gvhmr_result": "file"
+            },
+            "output_hashes": {
+              "gvhmr_result": "61365809f14c9afbbf9b5ccfad329dc61eee3715e5ec59b5d62d70900d82957c"
+            },
+            "started_at": "2026-08-19T18:34:22.113462+00:00",
+            "completed_at": "2026-08-19T18:34:22.288869+00:00",
+            "return_code": 0,
+            "stdout_tail": "hash-valid cache hit",
+            "stderr_tail": "",
+            "error": "",
+            "human_state_role": "read_only_observed"
+          },
+          {
+            "task_id": "audio_events",
+            "status": "reused",
+            "required": true,
+            "runtime_env": "audiohoi",
+            "command": [
+              "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+              "scripts/shared/generic_contact_pipeline/tools/run_audio_event_extract.py",
+              "--sample-dir",
+              "samples_known_object/14_pingpong_wall"
+            ],
+            "cache_key": "345a8a30e425457ddf93bdc255476c5a9f2ca6f5a4c4673e0afbf783639c3401",
+            "input_hashes": {
+              "audio": "c6ca2ea28d534f6874e576557a586309dd7b1c6f0ce77aa5135d7fd2b3b292ca",
+              "frames": "e4c0ce627455946899137b692c611201a94337773dd040452404335ec39873fc",
+              "gvhmr_result": "61365809f14c9afbbf9b5ccfad329dc61eee3715e5ec59b5d62d70900d82957c",
+              "cotracker_center": "d654d52f986f5bf03766680bc1afa52246fbec3c7359c8a93280845954622231"
+            },
+            "output_paths": {
+              "audio_events": "samples_known_object/14_pingpong_wall/results/events/audio_events.csv",
+              "audio_envelope": "samples_known_object/14_pingpong_wall/results/events/audio_envelope.csv",
+              "audio_event_manifest": "samples_known_object/14_pingpong_wall/results/events/audio_event_manifest.json"
+            },
+            "output_kinds": {
+              "audio_events": "file",
+              "audio_envelope": "file",
+              "audio_event_manifest": "file"
+            },
+            "output_hashes": {
+              "audio_events": "7377b1f70c0d9b049cbad04535def89d6f95ebaa27337500e4d43763ae893fcc",
+              "audio_envelope": "2c9465958a87d77a9c349d3d0a28d47499fe52605d7bb377b52134b32a8eb407",
+              "audio_event_manifest": "2b1a9b1613dc1fb5c2c5c0f08809a1353dc31d11f4bfb6db71e1440c7bc898dd"
+            },
+            "started_at": "2026-08-19T18:34:22.288891+00:00",
+            "completed_at": "2026-08-19T18:34:22.367831+00:00",
+            "return_code": 0,
+            "stdout_tail": "hash-valid cache hit",
+            "stderr_tail": "",
+            "error": "",
+            "human_state_role": null
+          }
+        ],
+        "generated_tasks": 1,
+        "reused_tasks": 7,
+        "disabled_tasks": 4,
+        "failed_tasks": [],
+        "object_only_boundary": true,
+        "human_state_optimized": false
+      },
+      "vlm_semantic_prepass": null,
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "pingpong_wall",
+        "stage": "stage0",
+        "decision": "pass",
+        "llm_mode": "none",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 2,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [
+          "no_effective_vlm_gate"
+        ],
+        "audit_csv": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage0/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage0/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage0/llm_audit_results.csv"
+      }
+    }
+  ],
+  "generic_se3_mainline": {
+    "enabled": true,
+    "contract": "fixed_preprocess_observation_contact_anchor_se3_init_sequence_optimizer",
+    "object_family": "dynamic_small_sphere",
+    "yaml_plugin_selectors": {
+      "observation_model": "mask_track_center",
+      "contact_policy": "hand_floor",
+      "pose_model": "translation3",
+      "refinement_policy": [
+        "generic_sphere_sequence",
+        "backproject_xy"
+      ],
+      "resolution": "explicit capability plugin registry",
+      "role": "Stage1-3 selectors invoke compatibility adapters; Stage4 refinement selectors run in declared order as compatibility seed/residual builders, except plugins explicitly marked as mainline markers or implementations"
+    },
+    "artifacts": {
+      "stage0_inputs_manifest": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage0_inputs_manifest.json",
+        "exists": true,
+        "rows": 174
+      },
+      "object_observations": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_observations.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_correspondence": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_correspondence.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_surface_points": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_surface_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "object_semantic_points": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_semantic_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "line_correspondence": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/line_correspondence.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "line_observations": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/line_observations.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "contact_candidates": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "anchor_state": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/anchor_state.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_pose_init": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_pose_init.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_pose_pre_smooth": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_pose_pre_smooth.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "motion_regime": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/motion_regime.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "physical_smooth_residuals": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/physical_smooth_residuals.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "pose_jump_audit": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/pose_jump_audit.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "optimizer_decisions": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/optimizer_decisions.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "object_pose": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_pose.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "object_contact_points": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_contact_points.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "stage_audit_gates": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage_audit_gates.csv",
+        "exists": true,
+        "rows": 11
+      },
+      "stage_audit_latest": {
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage_audit_latest.json",
+        "exists": true,
+        "rows": 16
+      }
+    },
+    "actual_vlm_artifacts": {
+      "exists": true,
+      "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm",
+      "stage_count": 4,
+      "file_count": 55,
+      "csv_row_count": 90,
+      "stages": {
+        "stage1": {
+          "files": 12,
+          "csv_rows": {
+            "vlm_gates.csv": 6,
+            "vlm_queries.csv": 6,
+            "vlm_results.csv": 6
+          }
+        },
+        "stage2": {
+          "files": 16,
+          "csv_rows": {
+            "vlm_gates.csv": 10,
+            "vlm_queries.csv": 10,
+            "vlm_results.csv": 10
+          }
+        },
+        "stage3": {
+          "files": 9,
+          "csv_rows": {
+            "vlm_gates.csv": 3,
+            "vlm_queries.csv": 3,
+            "vlm_results.csv": 3
+          }
+        },
+        "stage4": {
+          "files": 18,
+          "csv_rows": {
+            "vlm_gates.csv": 11,
+            "vlm_queries.csv": 11,
+            "vlm_results.csv": 11
+          }
+        }
+      }
+    },
+    "actual_stage_audit_artifacts": {
+      "exists": true,
+      "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit",
+      "stage_count": 4,
+      "file_count": 20,
+      "csv_row_count": 11,
+      "stages": {
+        "stage0": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 0,
+            "stage_audit_gates.csv": 2
+          }
+        },
+        "stage1": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 0,
+            "stage_audit_gates.csv": 3
+          }
+        },
+        "stage2": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 0,
+            "stage_audit_gates.csv": 3
+          }
+        },
+        "stage3": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 0,
+            "stage_audit_gates.csv": 3
+          }
+        }
+      }
+    }
+  }
+}

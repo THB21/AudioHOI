@@ -1,0 +1,6 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+pingpong,stage2,11,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+pingpong,stage2,177,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+pingpong,stage2,229,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+pingpong,stage2,1,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+pingpong,stage2,121,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1

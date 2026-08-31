@@ -1,0 +1,21 @@
+{
+  "case_name": "volleyball",
+  "stage": "stage2",
+  "gate_rows": 10,
+  "effective_rows": 10,
+  "blocked_frames": [],
+  "unclear_frames": [],
+  "accepted_contact_frames": [
+    1,
+    68,
+    121,
+    228,
+    240
+  ],
+  "accepted_anchor_frames": [
+    121,
+    228,
+    240
+  ],
+  "gate_csv": "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage2/vlm_gates.csv"
+}

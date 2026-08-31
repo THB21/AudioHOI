@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "status": "candidate_blocked",
+  "candidate_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/generic_stage4_candidate/generic_object_pose_candidate.csv",
+  "candidate_sha256": "fb53e8701b94b52ddbfb6be02c0a7e8f32f56eb8d3d3acaf64c02dc201395d75",
+  "accepted_path": null,
+  "accepted_sha256": null,
+  "solve_attempt_id": "generic-solve-5658ef045708",
+  "hard_gate": {
+    "passed": false,
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px"
+    ],
+    "blocking_reasons": [
+      "solver_not_converged_or_stationary"
+    ]
+  },
+  "case_dispatch_used": false,
+  "human_state_optimized": false,
+  "attempt_dir": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/generic_sequence_solver_attempts/generic-solve-5658ef045708",
+  "automatic_hard_gate": {
+    "passed": false,
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px"
+    ],
+    "blocking_reasons": [
+      "solver_not_converged_or_stationary"
+    ]
+  },
+  "object_only_boundary": true,
+  "candidate_vlm_evidence": {
+    "status": "not_applicable",
+    "reason": "candidate evidence requires generic_urdf"
+  },
+  "interval_selection": {
+    "status": "not_applicable"
+  },
+  "consumed_contact_points": null
+}

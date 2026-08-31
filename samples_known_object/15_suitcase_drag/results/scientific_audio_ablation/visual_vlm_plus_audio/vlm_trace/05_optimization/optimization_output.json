@@ -1,0 +1,86 @@
+{
+  "object_pose_pre_smooth": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/object_pose_pre_smooth.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "object_pose": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/object_pose.csv",
+    "exists": true,
+    "rows": 240,
+    "columns": [
+      "frame",
+      "time",
+      "source",
+      "initializer_heading_rad",
+      "tx",
+      "ty",
+      "tz",
+      "qw",
+      "qx",
+      "qy",
+      "qz",
+      "generic_solve_attempt_id"
+    ],
+    "sample": [
+      {
+        "frame": "1",
+        "time": "0.0",
+        "source": "generic_sequence_executor",
+        "initializer_heading_rad": "-0.4339216372361592",
+        "tx": "-0.359091250",
+        "ty": "0.843582756",
+        "tz": "4.499648808",
+        "qw": "0.681163463",
+        "qx": "0.731111767",
+        "qy": "0.029104385",
+        "qz": "-0.025393995",
+        "generic_solve_attempt_id": "generic-solve-93755e7aab23"
+      },
+      {
+        "frame": "2",
+        "time": "0.041667",
+        "source": "generic_sequence_executor",
+        "initializer_heading_rad": "-0.4339216372361592",
+        "tx": "-0.356344213",
+        "ty": "0.843707631",
+        "tz": "4.502330829",
+        "qw": "0.681456840",
+        "qx": "0.730860142",
+        "qy": "0.029128615",
+        "qz": "-0.024729579",
+        "generic_solve_attempt_id": "generic-solve-93755e7aab23"
+      },
+      {
+        "frame": "3",
+        "time": "0.083333",
+        "source": "generic_sequence_executor",
+        "initializer_heading_rad": "-0.4339216372361592",
+        "tx": "-0.354984249",
+        "ty": "0.843378630",
+        "tz": "4.507586139",
+        "qw": "0.682033037",
+        "qx": "0.730381837",
+        "qy": "0.028682421",
+        "qz": "-0.023465450",
+        "generic_solve_attempt_id": "generic-solve-93755e7aab23"
+      }
+    ]
+  },
+  "physical_smooth_residuals": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/physical_smooth_residuals.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "pose_jump_audit": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/pose_jump_audit.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  }
+}

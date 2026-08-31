@@ -1,0 +1,6 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+volleyball,stage2,10,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+volleyball,stage2,65,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+volleyball,stage2,222,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+volleyball,stage2,1,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+volleyball,stage2,119,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0

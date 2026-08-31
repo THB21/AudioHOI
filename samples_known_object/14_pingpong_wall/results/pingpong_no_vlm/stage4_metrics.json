@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "stage": "stage4_contact_refine",
+  "component": "generic_sequence_executor",
+  "status": "candidate_blocked",
+  "solve_attempt_id": "generic-solve-eddfc6ed7d13",
+  "attempt_dir": "samples_known_object/14_pingpong_wall/results/pingpong_no_vlm/generic_sequence_solver_attempts/generic-solve-eddfc6ed7d13",
+  "candidate_path": "samples_known_object/14_pingpong_wall/results/pingpong_no_vlm/generic_stage4_candidate/generic_object_pose_candidate.csv",
+  "candidate_sha256": "299edf84362f1ad62153eef3d11aa75b7a9319a12cec7f312376de7058ecd6b1",
+  "accepted_path": null,
+  "accepted_sha256": null,
+  "hard_gate": {
+    "passed": false,
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px"
+    ],
+    "blocking_reasons": [
+      "solver_not_converged_or_stationary"
+    ]
+  },
+  "initial_squared_error": 5672.077389824507,
+  "final_squared_error": 332.7947035341664,
+  "function_evaluations": 200,
+  "factor_ids": [
+    "point_reprojection:measurement_ir",
+    "metric_depth:measurement_ir",
+    "temporal_acceleration:state_sequence"
+  ],
+  "measurement_count": 960,
+  "contact_constraint_count": 240,
+  "case_dispatch_used": false,
+  "baseline_pose_read": false,
+  "human_state_optimized": false,
+  "accepted_outputs_written": false,
+  "candidate_vlm_evidence": {
+    "status": "not_applicable",
+    "reason": "candidate evidence requires generic_urdf"
+  },
+  "stable_attempt_id": "generic-solve-eddfc6ed7d13",
+  "challenger_attempt_id": null,
+  "interval_selection": {
+    "status": "not_applicable"
+  }
+}

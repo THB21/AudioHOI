@@ -1,0 +1,4 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+volleyball,stage0,1,target_mask_check,wrong_object,reject,use_mask_fallback,0,0,1
+volleyball,stage0,121,target_mask_check,yes,pass,accept_candidate,0,0,1
+volleyball,stage0,240,target_mask_check,yes,pass,accept_candidate,0,0,1

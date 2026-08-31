@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "query_type": "amodal_mask_completion_check",
+  "pose_artifact": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_pose.csv",
+  "pose_sha256": "",
+  "selections": [],
+  "written_frames": [],
+  "continuous_pose_from_vlm": false,
+  "pixel_mask_generator": "qwen_approved_body_convex_hull_union_original_partial_mask",
+  "vlm_role": "discrete_occlusion_completion_approval_only"
+}

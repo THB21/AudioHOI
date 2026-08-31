@@ -1,0 +1,10 @@
+{
+  "case_name": "back_view_basketball",
+  "mode": "seed",
+  "seed_profile": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/annotations/hoi_profile_seed.json",
+  "seed_exists": false,
+  "prompt_context": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/prompt_context.json",
+  "prompt_entry_count": 5,
+  "warnings": [],
+  "fallback_used": true
+}

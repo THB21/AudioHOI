@@ -1,0 +1,44 @@
+{
+  "object_observations": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/object_observations.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "object_correspondence": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/object_correspondence.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "object_surface_points": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/object_surface_points.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "object_semantic_points": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/object_semantic_points.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "line_correspondence": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/line_correspondence.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "line_observations": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/line_observations.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  }
+}

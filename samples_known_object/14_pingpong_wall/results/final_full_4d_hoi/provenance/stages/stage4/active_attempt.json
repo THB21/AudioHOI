@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "stage": "stage4",
+  "attempt_id": "000003",
+  "status": "failed",
+  "record": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/stages/stage4/attempts/000003.json",
+  "finished_at": "2026-08-19T18:38:04.552887+00:00"
+}

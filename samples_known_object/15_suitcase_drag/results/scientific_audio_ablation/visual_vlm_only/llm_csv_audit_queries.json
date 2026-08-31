@@ -1,0 +1,315 @@
+{
+  "case_name": "suitcase",
+  "queries": [
+    {
+      "query_id": "schema_completeness",
+      "question": "Do the required CSV outputs contain the expected schema for this case?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "stage_inconsistent",
+        "contact_empty",
+        "contact_side_swapped",
+        "static_drift",
+        "rotation_jump",
+        "depth_outlier",
+        "vlm_gate_ignored",
+        "unclear"
+      ],
+      "evidence": {
+        "case_name": "suitcase",
+        "object_family": "rigid_mesh",
+        "fixed_mainline": "preprocess -> generic observation -> generic contact/anchor -> generic SE3 pose init -> generic sequence_se3_optimizer -> render/eval",
+        "legacy_yaml_selectors_role": "compatibility adapters only",
+        "legacy_observation_model": "rigid_body_parts",
+        "legacy_contact_policy": "palm_handle",
+        "legacy_pose_model": "rigid6",
+        "legacy_refinement_policy": [
+          "stable_grasp_anchor",
+          "sequence_se3_optimizer"
+        ],
+        "render_backend": "urdf_solid"
+      }
+    },
+    {
+      "query_id": "stage_consistency",
+      "question": "Are Stage2 contact candidates, Stage4 contact outputs, VLM gates, and metrics mutually consistent?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "stage_inconsistent",
+        "contact_empty",
+        "contact_side_swapped",
+        "static_drift",
+        "rotation_jump",
+        "depth_outlier",
+        "vlm_gate_ignored",
+        "unclear"
+      ],
+      "evidence": {
+        "case_name": "suitcase",
+        "object_family": "rigid_mesh",
+        "fixed_mainline": "preprocess -> generic observation -> generic contact/anchor -> generic SE3 pose init -> generic sequence_se3_optimizer -> render/eval",
+        "legacy_yaml_selectors_role": "compatibility adapters only",
+        "legacy_observation_model": "rigid_body_parts",
+        "legacy_contact_policy": "palm_handle",
+        "legacy_pose_model": "rigid6",
+        "legacy_refinement_policy": [
+          "stable_grasp_anchor",
+          "sequence_se3_optimizer"
+        ],
+        "render_backend": "urdf_solid"
+      }
+    },
+    {
+      "query_id": "object_specific_rules",
+      "question": "Do the case-specific semantic rules hold for contact, phase, static/freeze, and side assignments?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "stage_inconsistent",
+        "contact_empty",
+        "contact_side_swapped",
+        "static_drift",
+        "rotation_jump",
+        "depth_outlier",
+        "vlm_gate_ignored",
+        "unclear"
+      ],
+      "evidence": {
+        "case_name": "suitcase",
+        "object_family": "rigid_mesh",
+        "fixed_mainline": "preprocess -> generic observation -> generic contact/anchor -> generic SE3 pose init -> generic sequence_se3_optimizer -> render/eval",
+        "legacy_yaml_selectors_role": "compatibility adapters only",
+        "legacy_observation_model": "rigid_body_parts",
+        "legacy_contact_policy": "palm_handle",
+        "legacy_pose_model": "rigid6",
+        "legacy_refinement_policy": [
+          "stable_grasp_anchor",
+          "sequence_se3_optimizer"
+        ],
+        "render_backend": "urdf_solid"
+      }
+    },
+    {
+      "query_id": "failure_range_summary",
+      "question": "Which frame ranges should be inspected for depth outliers, rotation jumps, static drift, or missing contact?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "stage_inconsistent",
+        "contact_empty",
+        "contact_side_swapped",
+        "static_drift",
+        "rotation_jump",
+        "depth_outlier",
+        "vlm_gate_ignored",
+        "unclear"
+      ],
+      "evidence": {
+        "case_name": "suitcase",
+        "object_family": "rigid_mesh",
+        "fixed_mainline": "preprocess -> generic observation -> generic contact/anchor -> generic SE3 pose init -> generic sequence_se3_optimizer -> render/eval",
+        "legacy_yaml_selectors_role": "compatibility adapters only",
+        "legacy_observation_model": "rigid_body_parts",
+        "legacy_contact_policy": "palm_handle",
+        "legacy_pose_model": "rigid6",
+        "legacy_refinement_policy": [
+          "stable_grasp_anchor",
+          "sequence_se3_optimizer"
+        ],
+        "render_backend": "urdf_solid"
+      }
+    }
+  ],
+  "summaries": {
+    "object_observations": {
+      "exists": false,
+      "row_count": 0,
+      "columns": [],
+      "sample_rows": []
+    },
+    "object_correspondence": {
+      "exists": false,
+      "row_count": 0,
+      "columns": [],
+      "sample_rows": []
+    },
+    "contact_candidates": {
+      "exists": false,
+      "row_count": 0,
+      "columns": [],
+      "sample_rows": []
+    },
+    "anchor_state": {
+      "exists": false,
+      "row_count": 0,
+      "columns": [],
+      "sample_rows": []
+    },
+    "contact_state": {
+      "exists": false,
+      "row_count": 0,
+      "columns": [],
+      "sample_rows": []
+    },
+    "object_pose_init": {
+      "exists": false,
+      "row_count": 0,
+      "columns": [],
+      "sample_rows": []
+    },
+    "object_pose": {
+      "exists": true,
+      "row_count": 240,
+      "columns": [
+        "frame",
+        "time",
+        "source",
+        "initializer_heading_rad",
+        "tx",
+        "ty",
+        "tz",
+        "qw",
+        "qx",
+        "qy",
+        "qz",
+        "generic_solve_attempt_id"
+      ],
+      "sample_rows": [
+        {
+          "frame": "1",
+          "time": "0.0",
+          "source": "generic_sequence_executor",
+          "initializer_heading_rad": "-0.4339216372361592",
+          "tx": "-0.359136848",
+          "ty": "0.843571335",
+          "tz": "4.499798272",
+          "qw": "0.681155683",
+          "qx": "0.731095533",
+          "qy": "0.029428053",
+          "qz": "-0.025695266",
+          "generic_solve_attempt_id": "generic-solve-a0076da401a1"
+        },
+        {
+          "frame": "2",
+          "time": "0.041667",
+          "source": "generic_sequence_executor",
+          "initializer_heading_rad": "-0.4339216372361592",
+          "tx": "-0.356401891",
+          "ty": "0.843696232",
+          "tz": "4.502482011",
+          "qw": "0.681448932",
+          "qx": "0.730842425",
+          "qy": "0.029477294",
+          "qz": "-0.025055777",
+          "generic_solve_attempt_id": "generic-solve-a0076da401a1"
+        },
+        {
+          "frame": "3",
+          "time": "0.083333",
+          "source": "generic_sequence_executor",
+          "initializer_heading_rad": "-0.4339216372361592",
+          "tx": "-0.355060866",
+          "ty": "0.843366482",
+          "tz": "4.507748972",
+          "qw": "0.682024996",
+          "qx": "0.730360722",
+          "qy": "0.029090657",
+          "qz": "-0.023850659",
+          "generic_solve_attempt_id": "generic-solve-a0076da401a1"
+        }
+      ]
+    },
+    "object_contact_points": {
+      "exists": false,
+      "row_count": 0,
+      "columns": [],
+      "sample_rows": []
+    },
+    "object_phase": {
+      "exists": false,
+      "row_count": 0,
+      "columns": [],
+      "sample_rows": []
+    },
+    "physical_smooth_residuals": {
+      "exists": false,
+      "row_count": 0,
+      "columns": [],
+      "sample_rows": []
+    },
+    "motion_regime": {
+      "exists": false,
+      "row_count": 0,
+      "columns": [],
+      "sample_rows": []
+    },
+    "pose_jump_audit": {
+      "exists": false,
+      "row_count": 0,
+      "columns": [],
+      "sample_rows": []
+    },
+    "optimizer_decisions": {
+      "exists": false,
+      "row_count": 0,
+      "columns": [],
+      "sample_rows": []
+    },
+    "stage3_metrics": {
+      "exists": false,
+      "keys": [],
+      "empty": true
+    },
+    "stage4_metrics": {
+      "exists": false,
+      "keys": [],
+      "empty": true
+    },
+    "stage6_compare_report": {
+      "exists": false,
+      "keys": [],
+      "empty": true
+    },
+    "vlm_gates": {
+      "exists": true,
+      "row_count": 1,
+      "columns": [
+        "case_name",
+        "stage",
+        "frame",
+        "query_type",
+        "normalized_label",
+        "pass_gate",
+        "repair_action",
+        "allow_anchor_update",
+        "allow_contact_residual",
+        "allow_pose_refine",
+        "report_only",
+        "is_effective"
+      ],
+      "sample_rows": [
+        {
+          "case_name": "suitcase",
+          "stage": "stage0",
+          "frame": "1",
+          "query_type": "target_mask_check",
+          "normalized_label": "dry_run_not_evaluated",
+          "pass_gate": "not_evaluated",
+          "repair_action": "none",
+          "allow_anchor_update": "0",
+          "allow_contact_residual": "0",
+          "allow_pose_refine": "0",
+          "report_only": "0",
+          "is_effective": "0"
+        }
+      ]
+    },
+    "loss_summary": {
+      "exists": false,
+      "keys": [],
+      "empty": true
+    }
+  }
+}

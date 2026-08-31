@@ -1,0 +1,514 @@
+{
+  "schema_version": 2,
+  "stage": "stage0_preprocess",
+  "case_name": "volleyball",
+  "status": "accepted",
+  "frame_count": 240,
+  "fps": 24.0,
+  "checks": {
+    "case_ingestion_accepted": true,
+    "frame_count_positive": true,
+    "fps_positive": true,
+    "required_tasks_complete": true,
+    "gvhmr_read_only": true
+  },
+  "tasks": [
+    {
+      "task_id": "frame_extract",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_media_extract.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--kind",
+        "frames"
+      ],
+      "cache_key": "f2d792371b7892003b128ee1bb42c1e06b32c4fbe782e70e79d29b4b8327a02f",
+      "input_hashes": {
+        "video": "b6a80fbaba744f294c5311639b44ff1e924a40e6d5b5ae67ca18fcf41d6575c8"
+      },
+      "output_paths": {
+        "frames": "samples_known_object/13_volleyball/frames"
+      },
+      "output_kinds": {
+        "frames": "directory"
+      },
+      "output_hashes": {
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1"
+      },
+      "started_at": "2026-08-19T18:36:12.548241+00:00",
+      "completed_at": "2026-08-19T18:36:12.639337+00:00",
+      "return_code": 0,
+      "stdout_tail": "validated existing artifact bootstrap",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "audio_extract",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_media_extract.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--kind",
+        "audio"
+      ],
+      "cache_key": "4d595bc661451a7ddc293346383e8fc1ef3a702c311ee0828802bff30bb31921",
+      "input_hashes": {
+        "video": "b6a80fbaba744f294c5311639b44ff1e924a40e6d5b5ae67ca18fcf41d6575c8"
+      },
+      "output_paths": {
+        "audio": "samples_known_object/13_volleyball/audio.wav"
+      },
+      "output_kinds": {
+        "audio": "file"
+      },
+      "output_hashes": {
+        "audio": "312a7368c29267f9ecea29c39bfd84df6f778c1f092e6f28b3c4e865d580b33a"
+      },
+      "started_at": "2026-08-19T18:36:12.639363+00:00",
+      "completed_at": "2026-08-19T18:36:12.648882+00:00",
+      "return_code": 0,
+      "stdout_tail": "validated existing artifact bootstrap",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "sam2",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py",
+        "--case-config",
+        "scripts/shared/generic_contact_pipeline/configs/cases/volleyball.yaml",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--fps",
+        "24.0",
+        "--box",
+        "535,15,625,110"
+      ],
+      "cache_key": "e00a787ce33be4dda0feaa7ec4d5b2f9471c1d409b9d0971e2590de833a20c70",
+      "input_hashes": {
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1",
+        "case_config": "1fe9bc9a054dabd46ea5d193931c228b58bc4b462e5684c4d7120cc510f370cb"
+      },
+      "output_paths": {
+        "sam2_masks": "samples_known_object/13_volleyball/results/segmentation/masks",
+        "sam2_trajectory": "samples_known_object/13_volleyball/results/tracking/object_trajectory.csv"
+      },
+      "output_kinds": {
+        "sam2_masks": "directory",
+        "sam2_trajectory": "file"
+      },
+      "output_hashes": {
+        "sam2_masks": "54a0b530b95ec4a806f17646da7ff94cd125710e980274fb43d24a9a3a22f43b",
+        "sam2_trajectory": "7d45aadd88766d2a2e4eab02689e0a92138b4d9a391f12a22c0c768bbb02af31"
+      },
+      "started_at": "2026-08-19T18:36:12.648901+00:00",
+      "completed_at": "2026-08-19T18:36:12.742812+00:00",
+      "return_code": 0,
+      "stdout_tail": "validated existing artifact bootstrap",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "cotracker",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_cotracker_object_points.py",
+        "--case-config",
+        "scripts/shared/generic_contact_pipeline/configs/cases/volleyball.yaml",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--object-family",
+        "dynamic_ball",
+        "--fps",
+        "24.0",
+        "--resize-width",
+        "640",
+        "--sequence-mode",
+        "persistent_online",
+        "--grid-size",
+        "12"
+      ],
+      "cache_key": "2072d145c436795a05e5a1a31520c037701f987f3464768338069146a219b9c2",
+      "input_hashes": {
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1",
+        "sam2_masks": "54a0b530b95ec4a806f17646da7ff94cd125710e980274fb43d24a9a3a22f43b"
+      },
+      "output_paths": {
+        "cotracker_center": "samples_known_object/13_volleyball/results/tracking/object_center_trajectory.csv",
+        "cotracker_points": "samples_known_object/13_volleyball/results/tracking/object_points.csv",
+        "cotracker_mesh_tracks": "samples_known_object/13_volleyball/results/tracking/object_mesh_tracks_test.csv",
+        "cotracker_rigid_tracks": "samples_known_object/13_volleyball/results/tracking/rigid_point_tracks.csv",
+        "cotracker_rigid_tracks_manifest": "samples_known_object/13_volleyball/results/tracking/rigid_point_tracks_manifest.json"
+      },
+      "output_kinds": {
+        "cotracker_center": "file",
+        "cotracker_points": "file",
+        "cotracker_mesh_tracks": "file",
+        "cotracker_rigid_tracks": "file",
+        "cotracker_rigid_tracks_manifest": "file"
+      },
+      "output_hashes": {
+        "cotracker_center": "f88cb1ac6369d1bb1b69e31bfc448656860d38ca4602e8d16fc3b7b11651dfe6",
+        "cotracker_points": "3d047b9c9e5383d02b6b1b8848fbfd9ec7adcea5da1d5697885ffeec361062de",
+        "cotracker_mesh_tracks": "6528f0ecb9f965825bde133392810c7e670beb1dfcc229e5c82c2034de18c432",
+        "cotracker_rigid_tracks": "f23aaf7c3056612556440a7b09f5ee48c9478b7c7440476255c38ea82f175daf",
+        "cotracker_rigid_tracks_manifest": "2b8cc073571762ffdc94f092d317ea4e44ee68e4a384dc851a9e090e56aa6d8f"
+      },
+      "started_at": "2026-08-19T18:36:12.742832+00:00",
+      "completed_at": "2026-08-19T18:36:12.945909+00:00",
+      "return_code": 0,
+      "stdout_tail": "validated existing artifact bootstrap",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "sam_pt_mask_candidate",
+      "status": "disabled",
+      "required": false,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_sam_pt_mask_refine.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--prompt-stride",
+        "24",
+        "--minimum-visible-points",
+        "16",
+        "--maximum-prompt-points",
+        "16"
+      ],
+      "cache_key": "disabled_by_ablation",
+      "input_hashes": {},
+      "output_paths": {
+        "sam_pt_candidate_masks": "samples_known_object/13_volleyball/results/segmentation/sam_pt_candidate_masks",
+        "sam_pt_candidate_manifest": "samples_known_object/13_volleyball/results/segmentation/sam_pt_candidate_manifest.json"
+      },
+      "output_kinds": {
+        "sam_pt_candidate_masks": "directory",
+        "sam_pt_candidate_manifest": "file"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:36:12.945939+00:00",
+      "completed_at": "2026-08-19T18:36:12.945945+00:00",
+      "return_code": 0,
+      "stdout_tail": "disabled by disable_audio_events",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "rigid_asset_mesh_export",
+      "status": "disabled",
+      "required": false,
+      "runtime_env": "megapose",
+      "command": [
+        "/home/yang/miniconda3/envs/megapose/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/export_rigid_asset_mesh.py",
+        "--asset-descriptor",
+        "scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json",
+        "--output",
+        "samples_known_object/13_volleyball/articraft/megapose/fixed_rigid_asset_mm.ply"
+      ],
+      "cache_key": "disabled_by_ablation",
+      "input_hashes": {},
+      "output_paths": {
+        "rigid_provider_mesh": "samples_known_object/13_volleyball/articraft/megapose/fixed_rigid_asset_mm.ply",
+        "rigid_provider_mesh_manifest": "samples_known_object/13_volleyball/articraft/megapose/fixed_rigid_asset_mm.ply.json"
+      },
+      "output_kinds": {
+        "rigid_provider_mesh": "file",
+        "rigid_provider_mesh_manifest": "file"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:36:12.945953+00:00",
+      "completed_at": "2026-08-19T18:36:12.945956+00:00",
+      "return_code": 0,
+      "stdout_tail": "disabled by disable_audio_events",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "external_rigid_pose_provider",
+      "status": "disabled",
+      "required": false,
+      "runtime_env": "megapose",
+      "command": [
+        "/home/yang/miniconda3/envs/megapose/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_megapose_rigid_pose.py",
+        "--case-config",
+        "scripts/shared/generic_contact_pipeline/configs/cases/volleyball.yaml",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--asset-mesh",
+        "samples_known_object/13_volleyball/articraft/megapose/fixed_rigid_asset_mm.ply",
+        "--mask-dir",
+        "samples_known_object/13_volleyball/results/segmentation/masks",
+        "--track-artifact",
+        "samples_known_object/13_volleyball/results/tracking/rigid_point_tracks.csv",
+        "--frames",
+        "auto",
+        "--auto-frame-count",
+        "10",
+        "--output",
+        "samples_known_object/13_volleyball/results/megapose/rigid_pose_hypotheses.jsonl",
+        "--overlay-dir",
+        "samples_known_object/13_volleyball/results/megapose/official_overlays",
+        "--megapose-data-dir",
+        "third-party/megapose6d/local_data",
+        "--display",
+        ":1",
+        "--renderer-workers",
+        "0",
+        "--batch-size",
+        "64"
+      ],
+      "cache_key": "disabled_by_ablation",
+      "input_hashes": {},
+      "output_paths": {
+        "external_rigid_pose_hypotheses": "samples_known_object/13_volleyball/results/megapose/rigid_pose_hypotheses.jsonl",
+        "external_rigid_pose_manifest": "samples_known_object/13_volleyball/results/megapose/rigid_pose_hypotheses.jsonl.manifest.json",
+        "external_rigid_pose_overlays": "samples_known_object/13_volleyball/results/megapose/official_overlays"
+      },
+      "output_kinds": {
+        "external_rigid_pose_hypotheses": "file",
+        "external_rigid_pose_manifest": "file",
+        "external_rigid_pose_overlays": "directory"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:36:12.945962+00:00",
+      "completed_at": "2026-08-19T18:36:12.945968+00:00",
+      "return_code": 0,
+      "stdout_tail": "disabled by disable_audio_events",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "bind_rigid_feature_tracks",
+      "status": "disabled",
+      "required": false,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/bind_rigid_feature_tracks.py",
+        "--case",
+        "volleyball",
+        "--result-name",
+        "final_full_4d_hoi",
+        "--track-artifact",
+        "samples_known_object/13_volleyball/results/tracking/rigid_point_tracks.csv",
+        "--pose-hypotheses",
+        "samples_known_object/13_volleyball/results/megapose/rigid_pose_hypotheses.jsonl",
+        "--output-csv",
+        "samples_known_object/13_volleyball/results/final_full_4d_hoi/rigid_feature_measurements.csv",
+        "--output-manifest",
+        "samples_known_object/13_volleyball/results/final_full_4d_hoi/rigid_feature_measurements_manifest.json",
+        "--maximum-anchor-error-px",
+        "18.0",
+        "--minimum-track-visibility",
+        "0.5",
+        "--minimum-pose-mask-iou",
+        "0.6"
+      ],
+      "cache_key": "disabled_by_ablation",
+      "input_hashes": {},
+      "output_paths": {
+        "rigid_feature_measurements": "samples_known_object/13_volleyball/results/final_full_4d_hoi/rigid_feature_measurements.csv",
+        "rigid_feature_measurements_manifest": "samples_known_object/13_volleyball/results/final_full_4d_hoi/rigid_feature_measurements_manifest.json"
+      },
+      "output_kinds": {
+        "rigid_feature_measurements": "file",
+        "rigid_feature_measurements_manifest": "file"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:36:12.945974+00:00",
+      "completed_at": "2026-08-19T18:36:12.945978+00:00",
+      "return_code": 0,
+      "stdout_tail": "disabled by disable_audio_events",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "da3",
+      "status": "generated",
+      "required": true,
+      "runtime_env": "da3",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_da3_scene_depth.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--da3-root",
+        "third-party/depth-anything-3",
+        "--model-dir",
+        "depth-anything/DA3METRIC-LARGE",
+        "--chunk-size",
+        "16",
+        "--process-res",
+        "504"
+      ],
+      "cache_key": "74b9f63d4a5e1fd15fb0ca564c631eb22507b70a20d76d9a3ffbf64288b12f67",
+      "input_hashes": {
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1",
+        "da3_cli": "4ff3c2a9305eb9ff18132b139daa1cc2ea421f94e9e3c245cd1b1173437ed799"
+      },
+      "output_paths": {
+        "da3_scene_depth": "samples_known_object/13_volleyball/results/da3/scene_depth"
+      },
+      "output_kinds": {
+        "da3_scene_depth": "directory"
+      },
+      "output_hashes": {
+        "da3_scene_depth": "ba7b955da28d55872ffc14b7943e1baddd99845faf7b978a446ca29b4e49c7f8"
+      },
+      "started_at": "2026-08-19T18:36:12.945984+00:00",
+      "completed_at": "2026-08-19T18:36:26.360969+00:00",
+      "return_code": 0,
+      "stdout_tail": "conds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.37708425521850586 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.0034356117248535156 seconds\u001b[0m\n\u001b[97m[INFO ] Processed Images Done taking 0.07676959037780762 seconds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.3780100345611572 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.0050809383392333984 seconds\u001b[0m\n\u001b[97m[INFO ] Processed Images Done taking 0.07773756980895996 seconds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.3777589797973633 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.005042076110839844 seconds\u001b[0m\n\u001b[97m[INFO ] Processed Images Done taking 0.07624268531799316 seconds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.379199743270874 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.0034291744232177734 seconds\u001b[0m\n\u001b[97m[INFO ] Processed Images Done taking 0.08015251159667969 seconds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.3789327144622803 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.005097389221191406 seconds\u001b[0m\n\u001b[97m[INFO ] Processed Images Done taking 0.07399153709411621 seconds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.37813425064086914 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.0051116943359375 seconds\u001b[0m\n\u001b[97m[INFO ] Processed Images Done taking 0.07549357414245605 seconds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.378476619720459 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.0035250186920166016 seconds\u001b[0m\n\u001b[97m[INFO ] Processed Images Done taking 0.07835674285888672 seconds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.3793482780456543 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.005087137222290039 seconds\u001b[0m\n\u001b[97m[INFO ] Processed Images Done taking 0.07637333869934082 seconds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.3790757656097412 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.004990339279174805 seconds\u001b[0m\n\u001b[97m[INFO ] Processed Images Done taking 0.07816886901855469 seconds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.37938523292541504 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.0034346580505371094 seconds\u001b[0m\n\u001b[97m[INFO ] Processed Images Done taking 0.07385826110839844 seconds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.37948083877563477 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.005100250244140625 seconds\u001b[0m\n\u001b[97m[INFO ] Processed Images Done taking 0.07632875442504883 seconds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.3785417079925537 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.004972934722900391 seconds\u001b[0m\n\u001b[97m[INFO ] Processed Images Done taking 0.07410025596618652 seconds. Shape:  torch.Size([16, 3, 280, 504])\u001b[0m\n\u001b[97m[INFO ] Model Forward Pass Done. Time: 0.3805835247039795 seconds\u001b[0m\n\u001b[97m[INFO ] Conversion to Prediction Done. Time: 0.0034873485565185547 seconds\u001b[0m\n{\"chunk_size\": 16, \"da3_root\": \"/home/hebestreit/AudioHOI/scripts/third-party/depth-anything-3\", \"depth_shape\": [240, 280, 504], \"device\": \"cuda\", \"frame_count\": 240, \"model_dir\": \"depth-anything/DA3METRIC-LARGE\", \"normalized_depth_sha256\": \"b0a302f0863d5a39f584ea24d30cdb45bd9898f258e6a4992d30c1e6b402c1c1\", \"output\": \"/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/da3/scene_depth\", \"process_res\": 504, \"sample_dir\": \"/tmp/audiohoi-nine/samples_known_object/13_volleyball\", \"schema_version\": 1, \"status\": \"generated\"}\n",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "object_depth_prior",
+      "status": "generated",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_object_depth_prior.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball"
+      ],
+      "cache_key": "1827391e67f27e6dfd61219e4016dfeabfde52022e4ddf389b9d4e9f65c6e04f",
+      "input_hashes": {
+        "da3_scene_depth": "ba7b955da28d55872ffc14b7943e1baddd99845faf7b978a446ca29b4e49c7f8",
+        "sam2_masks": "54a0b530b95ec4a806f17646da7ff94cd125710e980274fb43d24a9a3a22f43b",
+        "sam2_trajectory": "7d45aadd88766d2a2e4eab02689e0a92138b4d9a391f12a22c0c768bbb02af31",
+        "cotracker_center": "f88cb1ac6369d1bb1b69e31bfc448656860d38ca4602e8d16fc3b7b11651dfe6"
+      },
+      "output_paths": {
+        "object_depth_prior": "samples_known_object/13_volleyball/results/da3/priors/object_depth_prior.csv"
+      },
+      "output_kinds": {
+        "object_depth_prior": "file"
+      },
+      "output_hashes": {
+        "object_depth_prior": "be3664882fcc127cd2c8bc70c3d3c30d89a85c93a8fbb2a6bf72d87c97365d35"
+      },
+      "started_at": "2026-08-19T18:36:26.360996+00:00",
+      "completed_at": "2026-08-19T18:36:27.230465+00:00",
+      "return_code": 0,
+      "stdout_tail": "{\"frame_count\": 240, \"mask_dir\": \"/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/segmentation/masks\", \"missing_mask_interpolated_frames\": [18, 19, 20, 21, 22, 23, 24, 25, 26, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 140, 141, 142, 143, 144, 159, 160, 161, 162, 163], \"object_prior_source\": \"da3_metric_sam2_mask_median\", \"output\": \"/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/da3/priors/object_depth_prior.csv\", \"sample_dir\": \"/tmp/audiohoi-nine/samples_known_object/13_volleyball\", \"scene_depth_dir\": \"/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/da3/scene_depth\", \"schema_version\": 1, \"smooth_window\": 7, \"status\": \"generated\"}\n",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "gvhmr",
+      "status": "generated",
+      "required": true,
+      "runtime_env": "gvhmr",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/human/gvhmr/run_gvhmr.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--fps",
+        "24",
+        "--static-cam"
+      ],
+      "cache_key": "7670adade68fca89cdd33ad750f90c381233397581050698e9d3bd963ac2b635",
+      "input_hashes": {
+        "video": "b6a80fbaba744f294c5311639b44ff1e924a40e6d5b5ae67ca18fcf41d6575c8",
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1",
+        "gvhmr_checkpoint": "4fae7da2de388d5da3514cb27a2d003f364dacb280e9cf88972b710e589c6b91"
+      },
+      "output_paths": {
+        "gvhmr_result": "samples_known_object/13_volleyball/results/gvhmr/result.pkl"
+      },
+      "output_kinds": {
+        "gvhmr_result": "file"
+      },
+      "output_hashes": {
+        "gvhmr_result": "28d0cdc6fac37ea90fe1bc16f68d9ebfac10776b75bf0f283cedac145f076742"
+      },
+      "started_at": "2026-08-19T18:36:27.230493+00:00",
+      "completed_at": "2026-08-19T18:37:12.810045+00:00",
+      "return_code": 0,
+      "stdout_tail": "How many people in the video? 1\nPerson in process 0\n\nsample:        13_volleyball\nframes:        240\nbody_pose:     (240, 63)\nglobal_orient: (240, 3)\ntransl:        (240, 3)\nbetas:         (240, 10)\nK_fullimg:     (240, 3, 3)\noutput:        /tmp/audiohoi-nine/samples_known_object/13_volleyball/results/gvhmr\n",
+      "stderr_tail": " 57%|█████▋    | 136/240 [00:03<00:02, 47.22it/s]\nYoloV8 Tracking:  59%|█████▉    | 141/240 [00:03<00:02, 47.22it/s]\nYoloV8 Tracking:  61%|██████    | 146/240 [00:03<00:01, 47.39it/s]\nYoloV8 Tracking:  63%|██████▎   | 151/240 [00:03<00:01, 47.43it/s]\nYoloV8 Tracking:  65%|██████▌   | 156/240 [00:03<00:01, 47.51it/s]\nYoloV8 Tracking:  67%|██████▋   | 161/240 [00:03<00:01, 47.76it/s]\nYoloV8 Tracking:  69%|██████▉   | 166/240 [00:03<00:01, 48.08it/s]\nYoloV8 Tracking:  71%|███████▏  | 171/240 [00:03<00:01, 47.70it/s]\nYoloV8 Tracking:  73%|███████▎  | 176/240 [00:04<00:01, 47.22it/s]\nYoloV8 Tracking:  75%|███████▌  | 181/240 [00:04<00:01, 47.16it/s]\nYoloV8 Tracking:  78%|███████▊  | 186/240 [00:04<00:01, 46.51it/s]\nYoloV8 Tracking:  80%|███████▉  | 191/240 [00:04<00:01, 46.48it/s]\nYoloV8 Tracking:  82%|████████▏ | 196/240 [00:04<00:00, 46.75it/s]\nYoloV8 Tracking:  84%|████████▍ | 201/240 [00:04<00:00, 47.04it/s]\nYoloV8 Tracking:  86%|████████▌ | 206/240 [00:04<00:00, 47.26it/s]\nYoloV8 Tracking:  88%|████████▊ | 211/240 [00:04<00:00, 47.56it/s]\nYoloV8 Tracking:  90%|█████████ | 216/240 [00:04<00:00, 47.89it/s]\nYoloV8 Tracking:  92%|█████████▏| 221/240 [00:04<00:00, 47.88it/s]\nYoloV8 Tracking:  94%|█████████▍| 226/240 [00:05<00:00, 47.75it/s]\nYoloV8 Tracking:  96%|█████████▋| 231/240 [00:05<00:00, 47.50it/s]\nYoloV8 Tracking:  98%|█████████▊| 236/240 [00:05<00:00, 47.69it/s]\nYoloV8 Tracking: 100%|██████████| 240/240 [00:05<00:00, 44.34it/s]\n\nViTPose:   0%|          | 0/15 [00:00<?, ?it/s]\nViTPose:   7%|▋         | 1/15 [00:01<00:15,  1.10s/it]\nViTPose:  13%|█▎        | 2/15 [00:02<00:14,  1.10s/it]\nViTPose:  20%|██        | 3/15 [00:03<00:13,  1.11s/it]\nViTPose:  27%|██▋       | 4/15 [00:04<00:12,  1.11s/it]\nViTPose:  33%|███▎      | 5/15 [00:05<00:11,  1.11s/it]\nViTPose:  40%|████      | 6/15 [00:06<00:09,  1.11s/it]\nViTPose:  47%|████▋     | 7/15 [00:07<00:08,  1.11s/it]\nViTPose:  53%|█████▎    | 8/15 [00:08<00:07,  1.11s/it]\nViTPose:  60%|██████    | 9/15 [00:10<00:06,  1.12s/it]\nViTPose:  67%|██████▋   | 10/15 [00:11<00:05,  1.12s/it]\nViTPose:  73%|███████▎  | 11/15 [00:12<00:04,  1.13s/it]\nViTPose:  80%|████████  | 12/15 [00:13<00:03,  1.13s/it]\nViTPose:  87%|████████▋ | 13/15 [00:14<00:02,  1.14s/it]\nViTPose:  93%|█████████▎| 14/15 [00:15<00:01,  1.14s/it]\nViTPose: 100%|██████████| 15/15 [00:16<00:00,  1.15s/it]\nViTPose: 100%|██████████| 15/15 [00:16<00:00,  1.12s/it]\n\nHMR2 Feature:   0%|          | 0/15 [00:00<?, ?it/s]\nHMR2 Feature:   7%|▋         | 1/15 [00:00<00:07,  1.80it/s]\nHMR2 Feature:  13%|█▎        | 2/15 [00:01<00:07,  1.73it/s]\nHMR2 Feature:  20%|██        | 3/15 [00:01<00:06,  1.74it/s]\nHMR2 Feature:  27%|██▋       | 4/15 [00:02<00:06,  1.72it/s]\nHMR2 Feature:  33%|███▎      | 5/15 [00:02<00:05,  1.72it/s]\nHMR2 Feature:  40%|████      | 6/15 [00:03<00:05,  1.71it/s]\nHMR2 Feature:  47%|████▋     | 7/15 [00:04<00:04,  1.70it/s]\nHMR2 Feature:  53%|█████▎    | 8/15 [00:04<00:04,  1.71it/s]\nHMR2 Feature:  60%|██████    | 9/15 [00:05<00:03,  1.70it/s]\nHMR2 Feature:  67%|██████▋   | 10/15 [00:05<00:02,  1.69it/s]\nHMR2 Feature:  73%|███████▎  | 11/15 [00:06<00:02,  1.69it/s]\nHMR2 Feature:  80%|████████  | 12/15 [00:07<00:01,  1.69it/s]\nHMR2 Feature:  87%|████████▋ | 13/15 [00:07<00:01,  1.69it/s]\nHMR2 Feature:  93%|█████████▎| 14/15 [00:08<00:00,  1.68it/s]\nHMR2 Feature: 100%|██████████| 15/15 [00:08<00:00,  1.68it/s]\nHMR2 Feature: 100%|██████████| 15/15 [00:08<00:00,  1.70it/s]\n[08/19 20:37:10][INFO] [Preprocess] Done\n[08/19 20:37:10][INFO] [HMR4D] Predicting\n[08/19 20:37:11][INFO] [EnDecoder] Use MM_V1_AMASS_LOCAL_BEDLAM_CAM for statistics!\n[08/19 20:37:11][INFO] [PL-Trainer] Loading ckpt type: inputs/checkpoints/gvhmr/gvhmr_siga24_release.ckpt\n[08/19 20:37:11][INFO] [HMR4D] Elapsed: 0.34s\n[08/19 20:37:11][INFO] [HMR4D] Saved → /tmp/audiohoi-nine/samples_known_object/13_volleyball/results/gvhmr/result.pt\n[08/19 20:37:11][INFO] [HMR4D] Saved → /tmp/audiohoi-nine/samples_known_object/13_volleyball/results/gvhmr/result.pkl\n",
+      "error": "",
+      "human_state_role": "read_only_observed"
+    },
+    {
+      "task_id": "audio_events",
+      "status": "generated",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_audio_event_extract.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball"
+      ],
+      "cache_key": "996108c1fedd7043040d89d36e163a2c0cef41c9aa3a43bbd1f93bba995b3e2e",
+      "input_hashes": {
+        "audio": "312a7368c29267f9ecea29c39bfd84df6f778c1f092e6f28b3c4e865d580b33a",
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1",
+        "gvhmr_result": "28d0cdc6fac37ea90fe1bc16f68d9ebfac10776b75bf0f283cedac145f076742",
+        "cotracker_center": "f88cb1ac6369d1bb1b69e31bfc448656860d38ca4602e8d16fc3b7b11651dfe6"
+      },
+      "output_paths": {
+        "audio_events": "samples_known_object/13_volleyball/results/events/audio_events.csv",
+        "audio_envelope": "samples_known_object/13_volleyball/results/events/audio_envelope.csv",
+        "audio_event_manifest": "samples_known_object/13_volleyball/results/events/audio_event_manifest.json"
+      },
+      "output_kinds": {
+        "audio_events": "file",
+        "audio_envelope": "file",
+        "audio_event_manifest": "file"
+      },
+      "output_hashes": {
+        "audio_events": "ef561f0417aa22a3d29762ab0113e983993455f2500c9c4b7b90db2db7cef383",
+        "audio_envelope": "211ec2b08c25eebdfb133e69bc301150412be0cfc3e38150f92d49504a8ed3ba",
+        "audio_event_manifest": "fc53ae2654a5f886f8c609dabf65e4773725e4a6a6f6d617a5c118d17d548098"
+      },
+      "started_at": "2026-08-19T18:37:12.810072+00:00",
+      "completed_at": "2026-08-19T18:37:15.951960+00:00",
+      "return_code": 0,
+      "stdout_tail": "{\"audio_sha256\": \"312a7368c29267f9ecea29c39bfd84df6f778c1f092e6f28b3c4e865d580b33a\", \"classifier\": \"rule\", \"detector\": \"combined\", \"empty_event_stream_valid\": false, \"envelope_config\": {\"hop_ms\": 41.666666666666664, \"impulse_z\": 3.0, \"min_motion_ms\": 150.0, \"min_silence_ms\": 250.0, \"motion_off_z\": -0.1, \"motion_on_z\": 0.55, \"window_ms\": 80.0}, \"envelope_output\": \"/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/events/audio_envelope.csv\", \"envelope_row_count\": 240, \"envelope_sha256\": \"211ec2b08c25eebdfb133e69bc301150412be0cfc3e38150f92d49504a8ed3ba\", \"event_count\": 50, \"events_sha256\": \"ef561f0417aa22a3d29762ab0113e983993455f2500c9c4b7b90db2db7cef383\", \"fps\": 24.0, \"output\": \"/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/events/audio_events.csv\", \"sample_dir\": \"/tmp/audiohoi-nine/samples_known_object/13_volleyball\", \"schema_version\": 2, \"status\": \"generated\"}\n",
+      "stderr_tail": "/home/hebestreit/miniforge3/envs/gvhmr/lib/python3.10/site-packages/librosa/core/spectrum.py:266: UserWarning: n_fft=2048 is too large for input signal of length=800\n  warnings.warn(\n",
+      "error": "",
+      "human_state_role": null
+    }
+  ],
+  "generated_tasks": 4,
+  "reused_tasks": 4,
+  "disabled_tasks": 4,
+  "failed_tasks": [],
+  "object_only_boundary": true,
+  "human_state_optimized": false
+}

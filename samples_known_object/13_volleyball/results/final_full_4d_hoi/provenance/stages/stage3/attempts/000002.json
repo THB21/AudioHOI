@@ -1,0 +1,245 @@
+{
+  "schema_version": 4,
+  "case_name": "volleyball",
+  "result_name": "final_full_4d_hoi",
+  "stage": "stage3",
+  "attempt_id": "000002",
+  "status": "completed",
+  "trigger": "stage_audit_rerun",
+  "parent_attempt_id": "000001",
+  "started_at": "2026-08-19T18:38:45.723410+00:00",
+  "finished_at": "2026-08-19T18:38:45.791585+00:00",
+  "metadata": {
+    "audit_decision": {
+      "case_name": "volleyball",
+      "stage": "stage3",
+      "decision": "unclear",
+      "llm_mode": "none",
+      "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+      "gate_rows": 3,
+      "blocking_count": 0,
+      "rerun_stage": true,
+      "residual_reweight": false,
+      "repair_actions": [
+        "rerun_stage_with_lower_trust"
+      ],
+      "audit_csv": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage3/stage_audit_gates.csv",
+      "llm_audit_queries": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage3/llm_audit_queries.json",
+      "llm_audit_results": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage3/llm_audit_results.csv"
+    }
+  },
+  "artifacts_before": {
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose_init.csv": {
+      "sha256": "d96a17484bc0c77765f4520f440920a8be41a8f818a68e2476b44409abad4548",
+      "size_bytes": 62200
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage3_metrics.json": {
+      "sha256": "22803c1090591dd5c97a661c10fcae84b1d212144ab3793dce4833a209701f92",
+      "size_bytes": 1735
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage3/vlm_gates.csv": {
+      "sha256": "cd66a3e37c7cf3b50e01cd328e488bcf84ce4583d910e832d3ff90519bfcbb22",
+      "size_bytes": 451
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage3/stage_audit_gates.csv": {
+      "sha256": "e1c4acedbbe124ad6faa360337c3165bd2e380c1abcd8afa373cef7f757e9cbc",
+      "size_bytes": 388
+    }
+  },
+  "artifacts_after": {
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose_init.csv": {
+      "sha256": "d96a17484bc0c77765f4520f440920a8be41a8f818a68e2476b44409abad4548",
+      "size_bytes": 62200
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage3_metrics.json": {
+      "sha256": "22803c1090591dd5c97a661c10fcae84b1d212144ab3793dce4833a209701f92",
+      "size_bytes": 1735
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage3/vlm_gates.csv": {
+      "sha256": "cd66a3e37c7cf3b50e01cd328e488bcf84ce4583d910e832d3ff90519bfcbb22",
+      "size_bytes": 451
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage3/stage_audit_gates.csv": {
+      "sha256": "e1c4acedbbe124ad6faa360337c3165bd2e380c1abcd8afa373cef7f757e9cbc",
+      "size_bytes": 388
+    }
+  },
+  "stored_artifacts": {
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose_init.csv": {
+      "algorithm": "sha256",
+      "sha256": "d96a17484bc0c77765f4520f440920a8be41a8f818a68e2476b44409abad4548",
+      "size_bytes": 62200,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose_init.csv",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/d9/d96a17484bc0c77765f4520f440920a8be41a8f818a68e2476b44409abad4548"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage3_metrics.json": {
+      "algorithm": "sha256",
+      "sha256": "22803c1090591dd5c97a661c10fcae84b1d212144ab3793dce4833a209701f92",
+      "size_bytes": 1735,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage3_metrics.json",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/22/22803c1090591dd5c97a661c10fcae84b1d212144ab3793dce4833a209701f92"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage3/stage_audit_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "e1c4acedbbe124ad6faa360337c3165bd2e380c1abcd8afa373cef7f757e9cbc",
+      "size_bytes": 388,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage3/stage_audit_gates.csv",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/e1/e1c4acedbbe124ad6faa360337c3165bd2e380c1abcd8afa373cef7f757e9cbc"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage3/vlm_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "cd66a3e37c7cf3b50e01cd328e488bcf84ce4583d910e832d3ff90519bfcbb22",
+      "size_bytes": 451,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage3/vlm_gates.csv",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/cd/cd66a3e37c7cf3b50e01cd328e488bcf84ce4583d910e832d3ff90519bfcbb22"
+    }
+  },
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "volleyball",
+    "result_name": "final_full_4d_hoi",
+    "stage": "stage3",
+    "status": "pass",
+    "artifacts": [
+      {
+        "artifact_key": "object_pose_init",
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose_init.csv",
+        "adapter": "se3_pose_v1",
+        "required": true,
+        "columns": [
+          "frame",
+          "time",
+          "tx",
+          "ty",
+          "tz",
+          "qw",
+          "qx",
+          "qy",
+          "qz",
+          "radius_m",
+          "coord_frame",
+          "u_obs",
+          "v_obs",
+          "u_proj",
+          "v_proj",
+          "bottom_proj_v",
+          "floor_v",
+          "u_ref_obs",
+          "v_ref_obs",
+          "support_v_obs",
+          "depth_prior_m",
+          "contact_depth_offset_m",
+          "contact_frame",
+          "audio_contact_frame",
+          "source",
+          "se3_schema"
+        ],
+        "required_columns": [
+          "frame",
+          "time",
+          "tx",
+          "ty",
+          "tz",
+          "qw",
+          "qx",
+          "qy",
+          "qz"
+        ],
+        "extension_columns": [
+          "radius_m",
+          "coord_frame",
+          "u_obs",
+          "v_obs",
+          "u_proj",
+          "v_proj",
+          "bottom_proj_v",
+          "floor_v",
+          "u_ref_obs",
+          "v_ref_obs",
+          "support_v_obs",
+          "depth_prior_m",
+          "contact_depth_offset_m",
+          "contact_frame",
+          "audio_contact_frame",
+          "source",
+          "se3_schema"
+        ],
+        "row_count": 240,
+        "adapted_examples": [
+          {
+            "frame": 1,
+            "time": 0.0,
+            "translation": [
+              -0.109743,
+              -0.597319,
+              2.891488
+            ],
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "frame": 2,
+            "time": 0.041667,
+            "translation": [
+              -0.10984,
+              -0.597729,
+              2.89275
+            ],
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      }
+    ],
+    "errors": []
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage3",
+    "plugins": [
+      {
+        "kind": "pose",
+        "name": "translation3",
+        "module": "scripts.shared.generic_contact_pipeline.components.pose.models.translation3",
+        "entrypoint": "build",
+        "requires": [
+          "observation.point_reference",
+          "contact.candidates"
+        ],
+        "provides": [
+          "pose.se3"
+        ],
+        "role": "compatibility_adapter",
+        "plugin_id": "pose:translation3"
+      }
+    ],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [],
+  "result_summary": {
+    "stage_status": "",
+    "vlm_decision": "pass_with_unclear_frames",
+    "stage_audit_decision": "unclear",
+    "rerun_requested": true
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "case": "pingpong",
+  "method": "vlm_gated",
+  "result_name": "scientific_audio_ablation/visual_vlm_plus_audio",
+  "method_status": "ok",
+  "final_pass": true,
+  "metrics": {
+    "overlay_error_px_mean": null,
+    "mask_iou_mean": null,
+    "overlay_proxy_score": null,
+    "contact_precision": null,
+    "contact_recall": null,
+    "contact_f1": null,
+    "contact_label_status": "needs_manual_labels",
+    "contact_proxy_score": null,
+    "anchor_drift_m_mean": null,
+    "anchor_drift_m_max": null,
+    "penetration_rate": 0.0,
+    "floating_rate": 0.0,
+    "velocity_spike_count": 0,
+    "acceleration_spike_count": 0,
+    "jump_count": 0,
+    "static_tail_drift_m_max": 0.0,
+    "geometry_length_spread_m": null,
+    "gt_contact_available": false
+  },
+  "failure_flags": {
+    "overlay_fail": false,
+    "contact_fail": false,
+    "anchor_drift_fail": false,
+    "penetration_fail": false,
+    "floating_fail": false,
+    "jump_fail": false,
+    "static_tail_fail": false,
+    "geometry_fail": false,
+    "failure_count": 0
+  },
+  "vlm_score": {
+    "mode": "dry-run_metric_grounded",
+    "score": 1.0,
+    "checklist_count": 20,
+    "pipeline_vlm_gate_score": {},
+    "pipeline_vlm_gate_framewise_count": 0,
+    "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+  },
+  "llm_audit_summary": "review_required",
+  "failure_stage_hint": "pass",
+  "vlm_eval_summary": {
+    "mode": "dry-run_metric_grounded",
+    "query_count": 3,
+    "mean_overall_plausibility": 4.0,
+    "failure_stage_hint": "pass",
+    "scores": {
+      "visibility": 3,
+      "contact_correctness": 3,
+      "support_consistency": 5,
+      "penetration_absence": 5,
+      "temporal_plausibility": 5,
+      "overall_plausibility": 4,
+      "short_reason": "metric-grounded final evaluator checklist; replace source with Qwen final judge when available",
+      "failure_stage_hint": "pass"
+    },
+    "vlm_pipeline_score": {
+      "mode": "dry-run_metric_grounded",
+      "score": 1.0,
+      "checklist_count": 20,
+      "pipeline_vlm_gate_score": {},
+      "pipeline_vlm_gate_framewise_count": 0,
+      "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+    },
+    "framewise_pipeline_judgment_count": 20
+  }
+}

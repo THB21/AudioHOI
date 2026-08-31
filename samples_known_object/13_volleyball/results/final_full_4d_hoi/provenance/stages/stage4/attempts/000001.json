@@ -1,0 +1,130 @@
+{
+  "schema_version": 4,
+  "case_name": "volleyball",
+  "result_name": "final_full_4d_hoi",
+  "stage": "stage4",
+  "attempt_id": "000001",
+  "status": "failed",
+  "trigger": "scheduled_pipeline_stage",
+  "parent_attempt_id": null,
+  "started_at": "2026-08-19T18:38:46.719816+00:00",
+  "finished_at": "2026-08-19T18:38:48.144472+00:00",
+  "metadata": {
+    "from_stage": "stage1",
+    "to_stage": "stage4"
+  },
+  "artifacts_before": {},
+  "artifacts_after": {},
+  "stored_artifacts": {},
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "volleyball",
+    "result_name": "final_full_4d_hoi",
+    "stage": "stage4",
+    "status": "fail",
+    "artifacts": [
+      {
+        "artifact_key": "object_pose",
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose.csv",
+        "adapter": "se3_pose_v1",
+        "required": true,
+        "status": "missing_required",
+        "errors": []
+      },
+      {
+        "artifact_key": "motion_regime",
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/motion_regime.csv",
+        "adapter": "motion_regime_v1",
+        "required": false,
+        "status": "not_materialized",
+        "errors": []
+      },
+      {
+        "artifact_key": "physical_smooth_residuals",
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/physical_smooth_residuals.csv",
+        "adapter": "physical_smooth_residual_v1",
+        "required": false,
+        "status": "not_materialized",
+        "errors": []
+      },
+      {
+        "artifact_key": "optimizer_decisions",
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/optimizer_decisions.csv",
+        "adapter": "optimizer_decision_v1",
+        "required": false,
+        "status": "not_materialized",
+        "errors": []
+      }
+    ],
+    "errors": [
+      "object_pose: required artifact is missing: /tmp/audiohoi-nine/samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose.csv"
+    ]
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage4",
+    "plugins": [
+      {
+        "kind": "refinement",
+        "name": "generic_sphere_sequence",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.policies.generic_sphere_sequence",
+        "entrypoint": "apply",
+        "requires": [
+          "pose.se3",
+          "contact.candidates"
+        ],
+        "provides": [
+          "pose.seed_refined"
+        ],
+        "role": "mainline_implementation",
+        "plugin_id": "refinement:generic_sphere_sequence"
+      },
+      {
+        "kind": "refinement",
+        "name": "backproject_xy",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.policies.backproject_xy",
+        "entrypoint": "apply",
+        "requires": [
+          "pose.se3"
+        ],
+        "provides": [
+          "pose.seed_refined"
+        ],
+        "role": "compatibility_adapter",
+        "plugin_id": "refinement:backproject_xy"
+      },
+      {
+        "kind": "refinement",
+        "name": "sequence_se3_optimizer",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.sequence_se3_optimizer",
+        "entrypoint": "smooth_quaternion_pose_sequence",
+        "requires": [
+          "pose.se3"
+        ],
+        "provides": [
+          "pose.sequence_refined"
+        ],
+        "role": "mainline_marker_and_implementation",
+        "plugin_id": "refinement:sequence_se3_optimizer"
+      }
+    ],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [],
+  "result_summary": {},
+  "error": {
+    "type": "FileNotFoundError",
+    "message": "[Errno 2] No such file or directory: '/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv'",
+    "traceback": "Traceback (most recent call last):\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/run_pipeline.py\", line 354, in run_case\n    result = fn(profile)\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/stages/main/stage4_contact_refine.py\", line 287, in run\n    prepared = prepare_capability_object_problem(\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/core/solver/capability_production_problem.py\", line 1335, in prepare_capability_object_problem\n    vlm_contact_samples = _vlm_confirmed_surface_contact_samples(\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/core/solver/capability_production_problem.py\", line 869, in _vlm_confirmed_surface_contact_samples\n    query_rows = _rows(stage_dir / \"vlm_queries.csv\")\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/core/solver/legacy_production_problem.py\", line 32, in _rows\n    with path.open(newline=\"\") as handle:\n  File \"/home/hebestreit/miniforge3/envs/gvhmr/lib/python3.10/pathlib.py\", line 1119, in open\n    return self._accessor.open(self, mode, buffering, encoding, errors,\nFileNotFoundError: [Errno 2] No such file or directory: '/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv'\n"
+  }
+}

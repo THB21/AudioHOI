@@ -1,0 +1,51 @@
+{
+  "schema_version": 2,
+  "stage": "stage4_contact_refine",
+  "component": "generic_sequence_executor",
+  "status": "accepted",
+  "solve_attempt_id": "generic-solve-d951035bbe0a",
+  "attempt_dir": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/generic_sequence_solver_attempts/generic-solve-d951035bbe0a",
+  "candidate_path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/generic_stage4_candidate/generic_object_pose_candidate.csv",
+  "candidate_sha256": "ffa564359d309c555184b57d02a422e7ffd3d8c7169dd7bff42ce60a8e81d460",
+  "accepted_path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/object_pose.csv",
+  "accepted_sha256": "ffa564359d309c555184b57d02a422e7ffd3d8c7169dd7bff42ce60a8e81d460",
+  "hard_gate": {
+    "passed": true,
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px",
+      "contact_distance_normalized_rmse",
+      "contact_gap_p95_m",
+      "contact_gap_max_m"
+    ],
+    "blocking_reasons": []
+  },
+  "initial_squared_error": 17.002705357294477,
+  "final_squared_error": 12.049754561129241,
+  "function_evaluations": 40,
+  "factor_ids": [
+    "point_reprojection:measurement_ir",
+    "metric_depth:measurement_ir",
+    "temporal_acceleration:state_sequence",
+    "static_freeze:state_sequence",
+    "contact_distance:interaction_state"
+  ],
+  "measurement_count": 768,
+  "contact_constraint_count": 192,
+  "case_dispatch_used": false,
+  "baseline_pose_read": false,
+  "human_state_optimized": false,
+  "accepted_outputs_written": true,
+  "candidate_vlm_evidence": {
+    "status": "not_applicable",
+    "reason": "candidate evidence requires generic_urdf"
+  },
+  "stable_attempt_id": "generic-solve-d951035bbe0a",
+  "challenger_attempt_id": null,
+  "interval_selection": {
+    "status": "not_applicable"
+  },
+  "consumed_contact_points": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/object_contact_points.csv"
+}

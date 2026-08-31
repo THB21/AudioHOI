@@ -1,0 +1,398 @@
+{
+  "schema_version": 2,
+  "stage": "stage0_preprocess",
+  "case_name": "pingpong_wall",
+  "status": "failed",
+  "frame_count": 240,
+  "fps": 24.0,
+  "checks": {
+    "case_ingestion_accepted": false,
+    "frame_count_positive": true,
+    "fps_positive": true,
+    "required_tasks_complete": false,
+    "gvhmr_read_only": true
+  },
+  "tasks": [
+    {
+      "task_id": "frame_extract",
+      "status": "generated",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_media_extract.py",
+        "--sample-dir",
+        "samples_known_object/14_pingpong_wall",
+        "--kind",
+        "frames"
+      ],
+      "cache_key": "3542c2cf5388eeb6429582c9a848e0ab38ceb82459a5f89e3c49a23ecdea09be",
+      "input_hashes": {
+        "video": "72d1434f6b3e3d91416fd89eedb17b52b2c32b4c292dd574c7e7f3a05664f52c"
+      },
+      "output_paths": {
+        "frames": "samples_known_object/14_pingpong_wall/frames"
+      },
+      "output_kinds": {
+        "frames": "directory"
+      },
+      "output_hashes": {
+        "frames": "e4c0ce627455946899137b692c611201a94337773dd040452404335ec39873fc"
+      },
+      "started_at": "2026-08-19T18:21:16.896006+00:00",
+      "completed_at": "2026-08-19T18:21:19.080963+00:00",
+      "return_code": 0,
+      "stdout_tail": "{\"frame_count\": 240, \"kind\": \"frames\", \"output\": \"/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/frames\", \"schema_version\": 1, \"status\": \"generated\"}\n",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "audio_extract",
+      "status": "generated",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_media_extract.py",
+        "--sample-dir",
+        "samples_known_object/14_pingpong_wall",
+        "--kind",
+        "audio"
+      ],
+      "cache_key": "4f719794d2b74e61d2f9f12228263b5627d6f7a1ce431fb74442ce44276b743d",
+      "input_hashes": {
+        "video": "72d1434f6b3e3d91416fd89eedb17b52b2c32b4c292dd574c7e7f3a05664f52c"
+      },
+      "output_paths": {
+        "audio": "samples_known_object/14_pingpong_wall/audio.wav"
+      },
+      "output_kinds": {
+        "audio": "file"
+      },
+      "output_hashes": {
+        "audio": "c6ca2ea28d534f6874e576557a586309dd7b1c6f0ce77aa5135d7fd2b3b292ca"
+      },
+      "started_at": "2026-08-19T18:21:19.080992+00:00",
+      "completed_at": "2026-08-19T18:21:19.148838+00:00",
+      "return_code": 0,
+      "stdout_tail": "{\"kind\": \"audio\", \"output\": \"/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/audio.wav\", \"sample_rate\": 16000, \"schema_version\": 1, \"status\": \"generated\"}\n",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "sam2",
+      "status": "generated",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py",
+        "--case-config",
+        "scripts/shared/generic_contact_pipeline/configs/cases/pingpong_wall.yaml",
+        "--sample-dir",
+        "samples_known_object/14_pingpong_wall",
+        "--fps",
+        "24.0",
+        "--box",
+        "700,245,735,278"
+      ],
+      "cache_key": "b8e53a90abbfccb7d40b1380a647a13dc48ca759bb23e77b74a4031f6c2cb453",
+      "input_hashes": {
+        "frames": "e4c0ce627455946899137b692c611201a94337773dd040452404335ec39873fc",
+        "case_config": "c1f897a4f529198522212a1b28b5469852f411f4ef4aa0b141bd6a98b6b91741"
+      },
+      "output_paths": {
+        "sam2_masks": "samples_known_object/14_pingpong_wall/results/segmentation/masks",
+        "sam2_trajectory": "samples_known_object/14_pingpong_wall/results/tracking/object_trajectory.csv"
+      },
+      "output_kinds": {
+        "sam2_masks": "directory",
+        "sam2_trajectory": "file"
+      },
+      "output_hashes": {
+        "sam2_masks": "beff378b8db69bd9d73a080255e14affb2612a9ba78f836db3b676cf31739619",
+        "sam2_trajectory": "df3e61fdfa6e3ab7403ce32a0aa8d0195d1c7473ed531fe952577bb479421f8a"
+      },
+      "started_at": "2026-08-19T18:21:19.148872+00:00",
+      "completed_at": "2026-08-19T18:21:41.867417+00:00",
+      "return_code": 0,
+      "stdout_tail": "{\n  \"init_detection\": {\n    \"text\": \"white ping-pong ball.\",\n    \"model_id\": \"manual_box\",\n    \"score\": 1.0,\n    \"box\": [\n      700.0,\n      245.0,\n      735.0,\n      278.0\n    ],\n    \"label\": \"white ping-pong ball.\"\n  },\n  \"sam2_model\": \"facebook/sam2.1-hiera-tiny\",\n  \"frames\": 240,\n  \"masks\": 240,\n  \"masks_dir\": \"/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/segmentation/masks\",\n  \"trajectory\": \"/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/tracking/object_trajectory.csv\"\n}\n",
+      "stderr_tail": "<00:08, 20.27it/s]\npropagate in video:  31%|███       | 74/240 [00:03<00:08, 20.26it/s]\npropagate in video:  32%|███▏      | 77/240 [00:03<00:08, 20.26it/s]\npropagate in video:  33%|███▎      | 80/240 [00:03<00:07, 20.27it/s]\npropagate in video:  35%|███▍      | 83/240 [00:04<00:07, 20.27it/s]\npropagate in video:  36%|███▌      | 86/240 [00:04<00:07, 20.28it/s]\npropagate in video:  37%|███▋      | 89/240 [00:04<00:07, 20.28it/s]\npropagate in video:  38%|███▊      | 92/240 [00:04<00:07, 20.27it/s]\npropagate in video:  40%|███▉      | 95/240 [00:04<00:07, 20.26it/s]\npropagate in video:  41%|████      | 98/240 [00:04<00:07, 20.27it/s]\npropagate in video:  42%|████▏     | 101/240 [00:04<00:06, 20.27it/s]\npropagate in video:  43%|████▎     | 104/240 [00:05<00:06, 20.27it/s]\npropagate in video:  45%|████▍     | 107/240 [00:05<00:06, 20.26it/s]\npropagate in video:  46%|████▌     | 110/240 [00:05<00:06, 20.27it/s]\npropagate in video:  47%|████▋     | 113/240 [00:05<00:06, 20.26it/s]\npropagate in video:  48%|████▊     | 116/240 [00:05<00:06, 20.26it/s]\npropagate in video:  50%|████▉     | 119/240 [00:05<00:05, 20.25it/s]\npropagate in video:  51%|█████     | 122/240 [00:05<00:05, 20.26it/s]\npropagate in video:  52%|█████▏    | 125/240 [00:06<00:05, 20.24it/s]\npropagate in video:  53%|█████▎    | 128/240 [00:06<00:05, 20.23it/s]\npropagate in video:  55%|█████▍    | 131/240 [00:06<00:05, 20.24it/s]\npropagate in video:  56%|█████▌    | 134/240 [00:06<00:05, 20.25it/s]\npropagate in video:  57%|█████▋    | 137/240 [00:06<00:05, 20.25it/s]\npropagate in video:  58%|█████▊    | 140/240 [00:06<00:04, 20.26it/s]\npropagate in video:  60%|█████▉    | 143/240 [00:06<00:04, 20.26it/s]\npropagate in video:  61%|██████    | 146/240 [00:07<00:04, 20.26it/s]\npropagate in video:  62%|██████▏   | 149/240 [00:07<00:04, 20.27it/s]\npropagate in video:  63%|██████▎   | 152/240 [00:07<00:04, 20.28it/s]\npropagate in video:  65%|██████▍   | 155/240 [00:07<00:04, 20.28it/s]\npropagate in video:  66%|██████▌   | 158/240 [00:07<00:04, 20.28it/s]\npropagate in video:  67%|██████▋   | 161/240 [00:07<00:03, 20.28it/s]\npropagate in video:  68%|██████▊   | 164/240 [00:08<00:03, 20.27it/s]\npropagate in video:  70%|██████▉   | 167/240 [00:08<00:03, 20.27it/s]\npropagate in video:  71%|███████   | 170/240 [00:08<00:03, 20.26it/s]\npropagate in video:  72%|███████▏  | 173/240 [00:08<00:03, 20.25it/s]\npropagate in video:  73%|███████▎  | 176/240 [00:08<00:03, 20.25it/s]\npropagate in video:  75%|███████▍  | 179/240 [00:08<00:03, 20.26it/s]\npropagate in video:  76%|███████▌  | 182/240 [00:08<00:02, 20.27it/s]\npropagate in video:  77%|███████▋  | 185/240 [00:09<00:02, 20.24it/s]\npropagate in video:  78%|███████▊  | 188/240 [00:09<00:02, 20.25it/s]\npropagate in video:  80%|███████▉  | 191/240 [00:09<00:02, 20.25it/s]\npropagate in video:  81%|████████  | 194/240 [00:09<00:02, 20.25it/s]\npropagate in video:  82%|████████▏ | 197/240 [00:09<00:02, 20.25it/s]\npropagate in video:  83%|████████▎ | 200/240 [00:09<00:01, 20.25it/s]\npropagate in video:  85%|████████▍ | 203/240 [00:09<00:01, 20.24it/s]\npropagate in video:  86%|████████▌ | 206/240 [00:10<00:01, 20.25it/s]\npropagate in video:  87%|████████▋ | 209/240 [00:10<00:01, 20.25it/s]\npropagate in video:  88%|████████▊ | 212/240 [00:10<00:01, 20.26it/s]\npropagate in video:  90%|████████▉ | 215/240 [00:10<00:01, 20.27it/s]\npropagate in video:  91%|█████████ | 218/240 [00:10<00:01, 20.27it/s]\npropagate in video:  92%|█████████▏| 221/240 [00:10<00:00, 20.27it/s]\npropagate in video:  93%|█████████▎| 224/240 [00:10<00:00, 20.26it/s]\npropagate in video:  95%|█████████▍| 227/240 [00:11<00:00, 20.26it/s]\npropagate in video:  96%|█████████▌| 230/240 [00:11<00:00, 20.25it/s]\npropagate in video:  97%|█████████▋| 233/240 [00:11<00:00, 20.25it/s]\npropagate in video:  98%|█████████▊| 236/240 [00:11<00:00, 20.23it/s]\npropagate in video: 100%|█████████▉| 239/240 [00:11<00:00, 20.22it/s]\npropagate in video: 100%|██████████| 240/240 [00:11<00:00, 20.41it/s]\n",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "cotracker",
+      "status": "generated",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_cotracker_object_points.py",
+        "--case-config",
+        "scripts/shared/generic_contact_pipeline/configs/cases/pingpong_wall.yaml",
+        "--sample-dir",
+        "samples_known_object/14_pingpong_wall",
+        "--object-family",
+        "dynamic_small_sphere",
+        "--fps",
+        "24.0",
+        "--resize-width",
+        "512",
+        "--sequence-mode",
+        "persistent_online",
+        "--grid-size",
+        "6"
+      ],
+      "cache_key": "fecd38576f621beabe2c69766b5a580e47939c5e16851a1ddb2b194adb0faaf8",
+      "input_hashes": {
+        "frames": "e4c0ce627455946899137b692c611201a94337773dd040452404335ec39873fc",
+        "sam2_masks": "beff378b8db69bd9d73a080255e14affb2612a9ba78f836db3b676cf31739619"
+      },
+      "output_paths": {
+        "cotracker_center": "samples_known_object/14_pingpong_wall/results/tracking/object_center_trajectory.csv",
+        "cotracker_points": "samples_known_object/14_pingpong_wall/results/tracking/object_points.csv",
+        "cotracker_mesh_tracks": "samples_known_object/14_pingpong_wall/results/tracking/object_mesh_tracks_test.csv",
+        "cotracker_rigid_tracks": "samples_known_object/14_pingpong_wall/results/tracking/rigid_point_tracks.csv",
+        "cotracker_rigid_tracks_manifest": "samples_known_object/14_pingpong_wall/results/tracking/rigid_point_tracks_manifest.json"
+      },
+      "output_kinds": {
+        "cotracker_center": "file",
+        "cotracker_points": "file",
+        "cotracker_mesh_tracks": "file",
+        "cotracker_rigid_tracks": "file",
+        "cotracker_rigid_tracks_manifest": "file"
+      },
+      "output_hashes": {
+        "cotracker_center": "d654d52f986f5bf03766680bc1afa52246fbec3c7359c8a93280845954622231",
+        "cotracker_points": "9e90e4a3ad6b1cbfb60fdad2e8cc59ca796a4bb12717d7d256015477fd5574a3",
+        "cotracker_mesh_tracks": "52e9b357c1e7f34d84e9167821d6ad6f5fbee7416b7103b0bcf391b76d1708cd",
+        "cotracker_rigid_tracks": "81987a4870bed2b14fcde78dbcb17c9f173a80f66e7e6da8a0594cb5cf2b50a4",
+        "cotracker_rigid_tracks_manifest": "bdb5201998a818bd075bbf4efa3bc97c47a1066eaebc65b5bf27c319f715fe7c"
+      },
+      "started_at": "2026-08-19T18:21:41.867449+00:00",
+      "completed_at": "2026-08-19T18:21:55.401844+00:00",
+      "return_code": 0,
+      "stdout_tail": "{\n  \"frames\": 240,\n  \"points_per_frame\": 26,\n  \"center_trajectory\": \"/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/tracking/object_center_trajectory.csv\",\n  \"object_points\": \"/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/tracking/object_points.csv\",\n  \"object_mesh_tracks\": \"/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/tracking/object_mesh_tracks_test.csv\",\n  \"sequence_mode\": \"persistent_online\",\n  \"rigid_point_tracks\": \"/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/tracking/rigid_point_tracks.csv\",\n  \"rigid_point_tracks_manifest\": \"/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/tracking/rigid_point_tracks_manifest.json\"\n}\n",
+      "stderr_tail": "Using cache found in /home/hebestreit/.cache/torch/hub/facebookresearch_co-tracker_main\nDownloading: \"https://huggingface.co/facebook/cotracker3/resolve/main/scaled_online.pth\" to /home/hebestreit/.cache/torch/hub/checkpoints/scaled_online.pth\n\n  0%|          | 0.00/97.0M [00:00<?, ?B/s]\n  0%|          | 128k/97.0M [00:00<04:02, 420kB/s]\n  1%|          | 896k/97.0M [00:00<00:36, 2.75MB/s]\n  4%|▍         | 4.25M/97.0M [00:00<00:07, 12.8MB/s]\n 14%|█▍        | 14.0M/97.0M [00:00<00:02, 40.1MB/s]\n 20%|█▉        | 19.0M/97.0M [00:00<00:02, 37.9MB/s]\n 24%|██▍       | 23.4M/97.0M [00:00<00:02, 38.6MB/s]\n 28%|██▊       | 27.6M/97.0M [00:00<00:01, 39.2MB/s]\n 33%|███▎      | 31.8M/97.0M [00:01<00:01, 40.0MB/s]\n 38%|███▊      | 37.1M/97.0M [00:01<00:01, 44.1MB/s]\n 43%|████▎     | 41.6M/97.0M [00:01<00:01, 41.4MB/s]\n 47%|████▋     | 45.8M/97.0M [00:01<00:01, 39.9MB/s]\n 51%|█████▏    | 49.9M/97.0M [00:01<00:01, 40.4MB/s]\n 56%|█████▌    | 53.9M/97.0M [00:01<00:01, 38.0MB/s]\n 60%|█████▉    | 58.1M/97.0M [00:01<00:01, 39.6MB/s]\n 65%|██████▍   | 62.6M/97.0M [00:01<00:00, 41.5MB/s]\n 69%|██████▉   | 66.8M/97.0M [00:02<00:00, 34.5MB/s]\n 73%|███████▎  | 70.8M/97.0M [00:02<00:00, 36.2MB/s]\n 78%|███████▊  | 75.5M/97.0M [00:02<00:00, 39.0MB/s]\n 82%|████████▏ | 79.4M/97.0M [00:02<00:00, 37.2MB/s]\n 87%|████████▋ | 84.4M/97.0M [00:02<00:00, 40.0MB/s]\n 91%|█████████▏| 88.6M/97.0M [00:02<00:00, 41.0MB/s]\n 96%|█████████▌| 92.6M/97.0M [00:02<00:00, 40.3MB/s]\n100%|█████████▉| 96.9M/97.0M [00:02<00:00, 41.0MB/s]\n100%|██████████| 97.0M/97.0M [00:02<00:00, 36.0MB/s]\n",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "sam_pt_mask_candidate",
+      "status": "disabled",
+      "required": false,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_sam_pt_mask_refine.py",
+        "--sample-dir",
+        "samples_known_object/14_pingpong_wall",
+        "--prompt-stride",
+        "24",
+        "--minimum-visible-points",
+        "16",
+        "--maximum-prompt-points",
+        "16"
+      ],
+      "cache_key": "disabled_by_ablation",
+      "input_hashes": {},
+      "output_paths": {
+        "sam_pt_candidate_masks": "samples_known_object/14_pingpong_wall/results/segmentation/sam_pt_candidate_masks",
+        "sam_pt_candidate_manifest": "samples_known_object/14_pingpong_wall/results/segmentation/sam_pt_candidate_manifest.json"
+      },
+      "output_kinds": {
+        "sam_pt_candidate_masks": "directory",
+        "sam_pt_candidate_manifest": "file"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:21:55.401877+00:00",
+      "completed_at": "2026-08-19T18:21:55.401883+00:00",
+      "return_code": 0,
+      "stdout_tail": "disabled by disable_audio_events",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "rigid_asset_mesh_export",
+      "status": "disabled",
+      "required": false,
+      "runtime_env": "megapose",
+      "command": [
+        "/home/yang/miniconda3/envs/megapose/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/export_rigid_asset_mesh.py",
+        "--asset-descriptor",
+        "scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json",
+        "--output",
+        "samples_known_object/14_pingpong_wall/articraft/megapose/fixed_rigid_asset_mm.ply"
+      ],
+      "cache_key": "disabled_by_ablation",
+      "input_hashes": {},
+      "output_paths": {
+        "rigid_provider_mesh": "samples_known_object/14_pingpong_wall/articraft/megapose/fixed_rigid_asset_mm.ply",
+        "rigid_provider_mesh_manifest": "samples_known_object/14_pingpong_wall/articraft/megapose/fixed_rigid_asset_mm.ply.json"
+      },
+      "output_kinds": {
+        "rigid_provider_mesh": "file",
+        "rigid_provider_mesh_manifest": "file"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:21:55.401891+00:00",
+      "completed_at": "2026-08-19T18:21:55.401893+00:00",
+      "return_code": 0,
+      "stdout_tail": "disabled by disable_audio_events",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "external_rigid_pose_provider",
+      "status": "disabled",
+      "required": false,
+      "runtime_env": "megapose",
+      "command": [
+        "/home/yang/miniconda3/envs/megapose/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_megapose_rigid_pose.py",
+        "--case-config",
+        "scripts/shared/generic_contact_pipeline/configs/cases/pingpong_wall.yaml",
+        "--sample-dir",
+        "samples_known_object/14_pingpong_wall",
+        "--asset-mesh",
+        "samples_known_object/14_pingpong_wall/articraft/megapose/fixed_rigid_asset_mm.ply",
+        "--mask-dir",
+        "samples_known_object/14_pingpong_wall/results/segmentation/masks",
+        "--track-artifact",
+        "samples_known_object/14_pingpong_wall/results/tracking/rigid_point_tracks.csv",
+        "--frames",
+        "auto",
+        "--auto-frame-count",
+        "10",
+        "--output",
+        "samples_known_object/14_pingpong_wall/results/megapose/rigid_pose_hypotheses.jsonl",
+        "--overlay-dir",
+        "samples_known_object/14_pingpong_wall/results/megapose/official_overlays",
+        "--megapose-data-dir",
+        "third-party/megapose6d/local_data",
+        "--display",
+        ":1",
+        "--renderer-workers",
+        "0",
+        "--batch-size",
+        "64"
+      ],
+      "cache_key": "disabled_by_ablation",
+      "input_hashes": {},
+      "output_paths": {
+        "external_rigid_pose_hypotheses": "samples_known_object/14_pingpong_wall/results/megapose/rigid_pose_hypotheses.jsonl",
+        "external_rigid_pose_manifest": "samples_known_object/14_pingpong_wall/results/megapose/rigid_pose_hypotheses.jsonl.manifest.json",
+        "external_rigid_pose_overlays": "samples_known_object/14_pingpong_wall/results/megapose/official_overlays"
+      },
+      "output_kinds": {
+        "external_rigid_pose_hypotheses": "file",
+        "external_rigid_pose_manifest": "file",
+        "external_rigid_pose_overlays": "directory"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:21:55.401899+00:00",
+      "completed_at": "2026-08-19T18:21:55.401904+00:00",
+      "return_code": 0,
+      "stdout_tail": "disabled by disable_audio_events",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "bind_rigid_feature_tracks",
+      "status": "disabled",
+      "required": false,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/bind_rigid_feature_tracks.py",
+        "--case",
+        "pingpong_wall",
+        "--result-name",
+        "final_full_4d_hoi",
+        "--track-artifact",
+        "samples_known_object/14_pingpong_wall/results/tracking/rigid_point_tracks.csv",
+        "--pose-hypotheses",
+        "samples_known_object/14_pingpong_wall/results/megapose/rigid_pose_hypotheses.jsonl",
+        "--output-csv",
+        "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/rigid_feature_measurements.csv",
+        "--output-manifest",
+        "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/rigid_feature_measurements_manifest.json",
+        "--maximum-anchor-error-px",
+        "18.0",
+        "--minimum-track-visibility",
+        "0.5",
+        "--minimum-pose-mask-iou",
+        "0.6"
+      ],
+      "cache_key": "disabled_by_ablation",
+      "input_hashes": {},
+      "output_paths": {
+        "rigid_feature_measurements": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/rigid_feature_measurements.csv",
+        "rigid_feature_measurements_manifest": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/rigid_feature_measurements_manifest.json"
+      },
+      "output_kinds": {
+        "rigid_feature_measurements": "file",
+        "rigid_feature_measurements_manifest": "file"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:21:55.401909+00:00",
+      "completed_at": "2026-08-19T18:21:55.401913+00:00",
+      "return_code": 0,
+      "stdout_tail": "disabled by disable_audio_events",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "da3",
+      "status": "failed",
+      "required": true,
+      "runtime_env": "da3",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_da3_scene_depth.py",
+        "--sample-dir",
+        "samples_known_object/14_pingpong_wall",
+        "--da3-root",
+        "third-party/Depth-Anything-3",
+        "--model-dir",
+        "depth-anything/DA3METRIC-LARGE",
+        "--chunk-size",
+        "16",
+        "--process-res",
+        "504"
+      ],
+      "cache_key": "unavailable",
+      "input_hashes": {},
+      "output_paths": {
+        "da3_scene_depth": "samples_known_object/14_pingpong_wall/results/da3/scene_depth"
+      },
+      "output_kinds": {
+        "da3_scene_depth": "directory"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:21:55.401918+00:00",
+      "completed_at": "2026-08-19T18:21:55.470380+00:00",
+      "return_code": 1,
+      "stdout_tail": "",
+      "stderr_tail": "",
+      "error": "third-party/Depth-Anything-3/src/depth_anything_3/cli.py",
+      "human_state_role": null
+    }
+  ],
+  "generated_tasks": 4,
+  "reused_tasks": 0,
+  "disabled_tasks": 4,
+  "failed_tasks": [
+    "da3"
+  ],
+  "object_only_boundary": true,
+  "human_state_optimized": false
+}

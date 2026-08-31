@@ -1,0 +1,175 @@
+{
+  "schema_version": 2,
+  "stage": "stage0_preprocess",
+  "case_name": "pingpong_wall",
+  "sample_dir": "samples_known_object/14_pingpong_wall",
+  "result_dir": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi",
+  "render_dir": "samples_known_object/14_pingpong_wall/results/renders/final_full_4d_hoi",
+  "prepared_inputs": {
+    "frame_extract": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "frames": "samples_known_object/14_pingpong_wall/frames"
+      },
+      "output_hashes": {
+        "frames": "e4c0ce627455946899137b692c611201a94337773dd040452404335ec39873fc"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "audio_extract": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "audio": "samples_known_object/14_pingpong_wall/audio.wav"
+      },
+      "output_hashes": {
+        "audio": "c6ca2ea28d534f6874e576557a586309dd7b1c6f0ce77aa5135d7fd2b3b292ca"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "sam2": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "sam2_masks": "samples_known_object/14_pingpong_wall/results/segmentation/masks",
+        "sam2_trajectory": "samples_known_object/14_pingpong_wall/results/tracking/object_trajectory.csv"
+      },
+      "output_hashes": {
+        "sam2_masks": "beff378b8db69bd9d73a080255e14affb2612a9ba78f836db3b676cf31739619",
+        "sam2_trajectory": "df3e61fdfa6e3ab7403ce32a0aa8d0195d1c7473ed531fe952577bb479421f8a"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "cotracker": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "cotracker_center": "samples_known_object/14_pingpong_wall/results/tracking/object_center_trajectory.csv",
+        "cotracker_points": "samples_known_object/14_pingpong_wall/results/tracking/object_points.csv",
+        "cotracker_mesh_tracks": "samples_known_object/14_pingpong_wall/results/tracking/object_mesh_tracks_test.csv",
+        "cotracker_rigid_tracks": "samples_known_object/14_pingpong_wall/results/tracking/rigid_point_tracks.csv",
+        "cotracker_rigid_tracks_manifest": "samples_known_object/14_pingpong_wall/results/tracking/rigid_point_tracks_manifest.json"
+      },
+      "output_hashes": {
+        "cotracker_center": "d654d52f986f5bf03766680bc1afa52246fbec3c7359c8a93280845954622231",
+        "cotracker_points": "9e90e4a3ad6b1cbfb60fdad2e8cc59ca796a4bb12717d7d256015477fd5574a3",
+        "cotracker_mesh_tracks": "52e9b357c1e7f34d84e9167821d6ad6f5fbee7416b7103b0bcf391b76d1708cd",
+        "cotracker_rigid_tracks": "81987a4870bed2b14fcde78dbcb17c9f173a80f66e7e6da8a0594cb5cf2b50a4",
+        "cotracker_rigid_tracks_manifest": "bdb5201998a818bd075bbf4efa3bc97c47a1066eaebc65b5bf27c319f715fe7c"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "sam_pt_mask_candidate": {
+      "status": "disabled",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "sam_pt_candidate_masks": "samples_known_object/14_pingpong_wall/results/segmentation/sam_pt_candidate_masks",
+        "sam_pt_candidate_manifest": "samples_known_object/14_pingpong_wall/results/segmentation/sam_pt_candidate_manifest.json"
+      },
+      "output_hashes": {},
+      "error": "",
+      "human_state_role": null
+    },
+    "rigid_asset_mesh_export": {
+      "status": "disabled",
+      "runtime_env": "megapose",
+      "outputs": {
+        "rigid_provider_mesh": "samples_known_object/14_pingpong_wall/articraft/megapose/fixed_rigid_asset_mm.ply",
+        "rigid_provider_mesh_manifest": "samples_known_object/14_pingpong_wall/articraft/megapose/fixed_rigid_asset_mm.ply.json"
+      },
+      "output_hashes": {},
+      "error": "",
+      "human_state_role": null
+    },
+    "external_rigid_pose_provider": {
+      "status": "disabled",
+      "runtime_env": "megapose",
+      "outputs": {
+        "external_rigid_pose_hypotheses": "samples_known_object/14_pingpong_wall/results/megapose/rigid_pose_hypotheses.jsonl",
+        "external_rigid_pose_manifest": "samples_known_object/14_pingpong_wall/results/megapose/rigid_pose_hypotheses.jsonl.manifest.json",
+        "external_rigid_pose_overlays": "samples_known_object/14_pingpong_wall/results/megapose/official_overlays"
+      },
+      "output_hashes": {},
+      "error": "",
+      "human_state_role": null
+    },
+    "bind_rigid_feature_tracks": {
+      "status": "disabled",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "rigid_feature_measurements": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/rigid_feature_measurements.csv",
+        "rigid_feature_measurements_manifest": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/rigid_feature_measurements_manifest.json"
+      },
+      "output_hashes": {},
+      "error": "",
+      "human_state_role": null
+    },
+    "da3": {
+      "status": "generated",
+      "runtime_env": "da3",
+      "outputs": {
+        "da3_scene_depth": "samples_known_object/14_pingpong_wall/results/da3/scene_depth"
+      },
+      "output_hashes": {
+        "da3_scene_depth": "b2e9c7c70723fe20d8149d3d4ec5730d3331096f75097a7d2bec561b09ce3b58"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "object_depth_prior": {
+      "status": "generated",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "object_depth_prior": "samples_known_object/14_pingpong_wall/results/da3/priors/object_depth_prior.csv"
+      },
+      "output_hashes": {
+        "object_depth_prior": "1242861e35a2cfafab3666cbe1e9a42807c6d27774532ad9399c8f86ddf763b8"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "gvhmr": {
+      "status": "generated",
+      "runtime_env": "gvhmr",
+      "outputs": {
+        "gvhmr_result": "samples_known_object/14_pingpong_wall/results/gvhmr/result.pkl"
+      },
+      "output_hashes": {
+        "gvhmr_result": "61365809f14c9afbbf9b5ccfad329dc61eee3715e5ec59b5d62d70900d82957c"
+      },
+      "error": "",
+      "human_state_role": "read_only_observed"
+    },
+    "audio_events": {
+      "status": "generated",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "audio_events": "samples_known_object/14_pingpong_wall/results/events/audio_events.csv",
+        "audio_envelope": "samples_known_object/14_pingpong_wall/results/events/audio_envelope.csv",
+        "audio_event_manifest": "samples_known_object/14_pingpong_wall/results/events/audio_event_manifest.json"
+      },
+      "output_hashes": {
+        "audio_events": "7377b1f70c0d9b049cbad04535def89d6f95ebaa27337500e4d43763ae893fcc",
+        "audio_envelope": "2c9465958a87d77a9c349d3d0a28d47499fe52605d7bb377b52134b32a8eb407",
+        "audio_event_manifest": "2b1a9b1613dc1fb5c2c5c0f08809a1353dc31d11f4bfb6db71e1440c7bc898dd"
+      },
+      "error": "",
+      "human_state_role": null
+    }
+  },
+  "checks": {
+    "case_ingestion_accepted": true,
+    "frame_count_positive": true,
+    "fps_positive": true,
+    "required_tasks_complete": true,
+    "gvhmr_read_only": true
+  },
+  "case_ingestion_manifest": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/case_ingestion_manifest.json",
+  "case_ingestion_manifest_sha256": "a71dfa310823d93a3a5b67bff49beb388000f694708ec36938fc83e49705903c",
+  "status": "accepted"
+}

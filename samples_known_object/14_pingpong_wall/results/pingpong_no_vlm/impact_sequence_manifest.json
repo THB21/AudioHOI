@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "impact_count": 10,
+  "impact_frames": [
+    11,
+    36,
+    84,
+    110,
+    143,
+    150,
+    177,
+    192,
+    220,
+    226
+  ],
+  "raw_audio_frames": [
+    12,
+    37,
+    85,
+    110,
+    145,
+    151,
+    178,
+    192,
+    220,
+    229
+  ],
+  "matched_motion_frames": [
+    11,
+    36,
+    84,
+    110,
+    143,
+    150,
+    177,
+    192,
+    220,
+    226
+  ],
+  "active_window_frames": [
+    11,
+    36,
+    84,
+    110,
+    143,
+    150,
+    177,
+    192,
+    220,
+    226
+  ],
+  "raw_audio_candidate_count": 26,
+  "expected_impact_count": 10,
+  "evidence_window_frames": 3,
+  "activation_radius_frames": 0,
+  "minimum_audio_score": 0.35,
+  "audio_enabled": true,
+  "metric_contact_constraints": 0,
+  "policy": "audio peak and visual direction-change jointly gate impact timing; audio never supplies 3D position"
+}

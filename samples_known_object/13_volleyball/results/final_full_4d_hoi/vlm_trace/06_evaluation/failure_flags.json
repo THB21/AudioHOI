@@ -1,0 +1,11 @@
+{
+  "overlay_fail": false,
+  "contact_fail": false,
+  "anchor_drift_fail": true,
+  "penetration_fail": true,
+  "floating_fail": true,
+  "jump_fail": false,
+  "static_tail_fail": false,
+  "geometry_fail": false,
+  "failure_count": 3
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 2,
+  "record_id": "rec_create-a-realistic-black-hard-shell-carry-on-rol_20260731_015156_616489_a9b2bd71",
+  "generation": {
+    "provider": "codex-cli",
+    "model_id": "gpt-5.5",
+    "thinking_level": "high",
+    "openai_transport": null,
+    "openai_reasoning_summary": null,
+    "max_turns": 100,
+    "max_cost_usd": null
+  },
+  "prompting": {
+    "system_prompt_file": "designer_system_prompt_codex_cli.txt",
+    "system_prompt_sha256": "046927fc83c1136a505d23273b85d9d7e9a100f70d00c176a4d89ae392624282"
+  },
+  "sdk": {
+    "sdk_package": "sdk",
+    "sdk_version": "workspace",
+    "sdk_fingerprint": null
+  },
+  "environment": {
+    "python_version": "3.12.3",
+    "platform": "linux-x86_64",
+    "git_commit": "959f1455091fc8f86a489ee8cab38f686916099f",
+    "uv_lock_sha256": "b58b12834c30a894ce4d7fdf6ae41e0fc2947fb3a10ff6acf653344223b9a0fc"
+  },
+  "run_summary": {
+    "turn_count": 12,
+    "tool_call_count": 25,
+    "compile_attempt_count": 7,
+    "final_status": "success"
+  }
+}

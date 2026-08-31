@@ -1,0 +1,21 @@
+frame,question_id,question,label,score,reason
+1,object_overlay_alignment,Does the rendered object align with the visible object?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+1,contact_visual_plausibility,Are contact points visually attached to the expected human/object parts?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+1,physical_artifacts,"Are floating, penetration, jumps, and object length changes absent?",pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+1,static_tail_stability,Does the static tail stay stable?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+2,object_overlay_alignment,Does the rendered object align with the visible object?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+2,contact_visual_plausibility,Are contact points visually attached to the expected human/object parts?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+2,physical_artifacts,"Are floating, penetration, jumps, and object length changes absent?",pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+2,static_tail_stability,Does the static tail stay stable?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+3,object_overlay_alignment,Does the rendered object align with the visible object?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+3,contact_visual_plausibility,Are contact points visually attached to the expected human/object parts?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+3,physical_artifacts,"Are floating, penetration, jumps, and object length changes absent?",pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+3,static_tail_stability,Does the static tail stay stable?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+4,object_overlay_alignment,Does the rendered object align with the visible object?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+4,contact_visual_plausibility,Are contact points visually attached to the expected human/object parts?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+4,physical_artifacts,"Are floating, penetration, jumps, and object length changes absent?",pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+4,static_tail_stability,Does the static tail stay stable?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+5,object_overlay_alignment,Does the rendered object align with the visible object?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+5,contact_visual_plausibility,Are contact points visually attached to the expected human/object parts?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+5,physical_artifacts,"Are floating, penetration, jumps, and object length changes absent?",pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode
+5,static_tail_stability,Does the static tail stay stable?,pass,1.0,dry-run evaluator derived from hard metrics; replace with Qwen visual judge in qwen mode

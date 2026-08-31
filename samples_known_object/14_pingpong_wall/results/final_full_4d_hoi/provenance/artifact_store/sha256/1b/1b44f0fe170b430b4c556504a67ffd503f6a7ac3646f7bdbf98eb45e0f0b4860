@@ -1,0 +1,78 @@
+{
+  "component": "generic_contact_anchor_mainline",
+  "case_name": "pingpong_wall",
+  "adapter": {
+    "component": "hand_floor_from_anchor_floor_candidates",
+    "rows": 240,
+    "contact_candidates": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates.csv",
+    "contact_state": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_state_frames.csv",
+    "contact_events": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_events.csv",
+    "human_sites": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/human_sites.csv",
+    "support_geometry": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/support_geometry.json",
+    "anchor_candidate_source": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates_internal/anchor_contact_candidates.csv",
+    "floor_candidate_source": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates_internal/floor_contact_candidates.csv",
+    "depth_offset_source": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/ball_proxy_depth.csv",
+    "policy": "generic fusion of anchor/floor gates with result-owned contact intervals and typed GVHMR human-site trajectories; ball_proxy_depth supplies mesh+DA3 contact-depth offsets",
+    "adapter_component": "hand_floor",
+    "capability_plugin": {
+      "kind": "contact",
+      "name": "hand_floor",
+      "module": "scripts.shared.generic_contact_pipeline.components.contact.policies.hand_floor",
+      "entrypoint": "build",
+      "requires": [
+        "observation.point_reference"
+      ],
+      "provides": [
+        "contact.candidates",
+        "anchor.support"
+      ],
+      "role": "compatibility_adapter",
+      "plugin_id": "contact:hand_floor"
+    }
+  },
+  "contact_candidates": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates.csv",
+  "anchor_state": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/anchor_state.csv",
+  "anchor_rows": 240,
+  "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only",
+  "interaction_conditioned_observation_refinement": {
+    "status": "not_enabled",
+    "changed_frames": []
+  },
+  "generic_contact_anchor_mainline": {
+    "component": "generic_contact_anchor_mainline",
+    "case_name": "pingpong_wall",
+    "adapter": {
+      "component": "hand_floor_from_anchor_floor_candidates",
+      "rows": 240,
+      "contact_candidates": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates.csv",
+      "contact_state": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_state_frames.csv",
+      "contact_events": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_events.csv",
+      "human_sites": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/human_sites.csv",
+      "support_geometry": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/support_geometry.json",
+      "anchor_candidate_source": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates_internal/anchor_contact_candidates.csv",
+      "floor_candidate_source": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates_internal/floor_contact_candidates.csv",
+      "depth_offset_source": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/ball_proxy_depth.csv",
+      "policy": "generic fusion of anchor/floor gates with result-owned contact intervals and typed GVHMR human-site trajectories; ball_proxy_depth supplies mesh+DA3 contact-depth offsets",
+      "adapter_component": "hand_floor",
+      "capability_plugin": {
+        "kind": "contact",
+        "name": "hand_floor",
+        "module": "scripts.shared.generic_contact_pipeline.components.contact.policies.hand_floor",
+        "entrypoint": "build",
+        "requires": [
+          "observation.point_reference"
+        ],
+        "provides": [
+          "contact.candidates",
+          "anchor.support"
+        ],
+        "role": "compatibility_adapter",
+        "plugin_id": "contact:hand_floor"
+      }
+    },
+    "contact_candidates": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates.csv",
+    "anchor_state": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/anchor_state.csv",
+    "anchor_rows": 240,
+    "policy": "fixed generic contact/anchor contract; case contact code is compatibility candidate builder only"
+  }
+}

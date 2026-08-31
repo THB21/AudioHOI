@@ -1,0 +1,85 @@
+{
+  "case_name": "pingpong",
+  "stage": "stage0",
+  "mode": "qwen_vl",
+  "decision": "blocked_by_vlm_reject",
+  "blocking": true,
+  "query_count": 3,
+  "gate_counts": {
+    "reject": 3
+  },
+  "query_counts": {
+    "target_mask_check": 3
+  },
+  "accepted_frames": [],
+  "blocked_frames": [
+    1,
+    121,
+    240
+  ],
+  "report_only_reject_frames": [],
+  "unclear_frames": [],
+  "repair_actions_by_frame": {
+    "1": [
+      "use_mask_fallback"
+    ],
+    "121": [
+      "use_mask_fallback"
+    ],
+    "240": [
+      "use_mask_fallback"
+    ]
+  },
+  "rejected_results": [
+    {
+      "case_name": "pingpong",
+      "stage": "stage0",
+      "frame": "1",
+      "query_type": "target_mask_check",
+      "normalized_label": "wrong_object",
+      "pass_gate": "reject",
+      "repair_action": "use_mask_fallback",
+      "used_for_anchor_update": "0",
+      "used_for_contact_residual": "0",
+      "used_for_report": "1"
+    },
+    {
+      "case_name": "pingpong",
+      "stage": "stage0",
+      "frame": "121",
+      "query_type": "target_mask_check",
+      "normalized_label": "wrong_object",
+      "pass_gate": "reject",
+      "repair_action": "use_mask_fallback",
+      "used_for_anchor_update": "0",
+      "used_for_contact_residual": "0",
+      "used_for_report": "1"
+    },
+    {
+      "case_name": "pingpong",
+      "stage": "stage0",
+      "frame": "240",
+      "query_type": "target_mask_check",
+      "normalized_label": "wrong_object",
+      "pass_gate": "reject",
+      "repair_action": "use_mask_fallback",
+      "used_for_anchor_update": "0",
+      "used_for_contact_residual": "0",
+      "used_for_report": "1"
+    }
+  ],
+  "allowed_repair_actions": [
+    "accept_candidate",
+    "reject_candidate",
+    "disable_contact_frame",
+    "keep_previous_anchor",
+    "downweight_correspondence",
+    "use_mask_fallback",
+    "retry_with_alternative_keypart",
+    "allow_small_se3_refine",
+    "freeze_before_after_contact",
+    "mark_for_report_only",
+    "unclear_no_update"
+  ],
+  "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+}

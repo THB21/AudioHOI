@@ -1,0 +1,564 @@
+{
+  "case_name": "volleyball",
+  "profile": {
+    "case_name": "volleyball",
+    "sample_dir": "/tmp/audiohoi-nine/samples_known_object/13_volleyball",
+    "object_family": "dynamic_ball",
+    "geometry_model": "sphere_proxy",
+    "observation_model": "mask_track_center",
+    "contact_policy": "hand_floor",
+    "pose_model": "translation3",
+    "refinement_policy": [
+      "anchor_depth",
+      "backproject_xy"
+    ],
+    "render_backend": "mesh_solid",
+    "object_mesh_metric": "fit_radius",
+    "result_name": "scientific_audio_ablation/visual_vlm_plus_audio",
+    "preprocess": {
+      "auto_run": false,
+      "fps": 24.0
+    },
+    "vlm": {
+      "target": "volleyball",
+      "parts": [
+        "ball_center",
+        "ball_boundary",
+        "ball_bottom",
+        "background",
+        "unclear"
+      ],
+      "contacts": [
+        "left_hand",
+        "right_hand",
+        "both_hands",
+        "floor",
+        "nothing_nearby",
+        "unclear"
+      ],
+      "stable_refs": [
+        "center",
+        "boundary_point",
+        "unclear"
+      ]
+    },
+    "camera": {
+      "fx": 1468.604736328125,
+      "fy": 1468.604736328125,
+      "cx": 640.0,
+      "cy": 360.0
+    },
+    "baseline": {
+      "final_pose_csv": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose.csv",
+      "init_pose_csv": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose_init.csv",
+      "object_observations_csv": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/final_full_4d_hoi/object_observations.csv",
+      "contact_candidates_csv": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_candidates.csv",
+      "contact_state_csv": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_state_frames.csv"
+    }
+  },
+  "result_dir": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio",
+  "render_dir": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/renders/scientific_audio_ablation/visual_vlm_plus_audio",
+  "from_stage": "stage5",
+  "to_stage": "stage5",
+  "vlm_mode": "none",
+  "llm_mode": "seed",
+  "vlm_blocking": false,
+  "stage_results": [
+    {
+      "stage": "stage5",
+      "result": {
+        "backend": "proxy_sphere",
+        "outputs": {
+          "object_only/overlay.mp4": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/object_only/overlay.mp4",
+          "object_only/camera3d.mp4": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/object_only/camera3d.mp4",
+          "object_only/side_yz.mp4": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/object_only/side_yz.mp4",
+          "with_human/overlay.mp4": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/with_human/overlay.mp4",
+          "with_human/camera3d.mp4": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/with_human/camera3d.mp4",
+          "with_human/side_yz.mp4": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/with_human/side_yz.mp4"
+        },
+        "required": [
+          "object_only/overlay.mp4",
+          "object_only/camera3d.mp4",
+          "object_only/side_yz.mp4",
+          "with_human/overlay.mp4",
+          "with_human/camera3d.mp4",
+          "with_human/side_yz.mp4"
+        ],
+        "policy": "rerendered with generic proxy_sphere_scene using generic object_pose.csv and automatic h264 finalize",
+        "renderer": {
+          "python": "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+          "script": "/home/hebestreit/AudioHOI/scripts/shared/generic_contact_pipeline/components/render/scenes/proxy_sphere_scene.py"
+        }
+      },
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "volleyball",
+        "stage": "stage5",
+        "decision": "unclear",
+        "llm_mode": "seed",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 4,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [
+          "no_effective_vlm_gate",
+          "report_unclear_csv_audit"
+        ],
+        "audit_csv": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/stage_audit/stage5/stage_audit_gates.csv",
+        "llm_audit_queries": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/stage_audit/stage5/llm_audit_queries.json",
+        "llm_audit_results": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/stage_audit/stage5/llm_audit_results.csv"
+      }
+    }
+  ],
+  "generic_se3_mainline": {
+    "enabled": true,
+    "contract": "fixed_preprocess_observation_contact_anchor_se3_init_sequence_optimizer",
+    "object_family": "dynamic_ball",
+    "legacy_yaml_selectors": {
+      "observation_model": "mask_track_center",
+      "contact_policy": "hand_floor",
+      "pose_model": "translation3",
+      "refinement_policy": [
+        "anchor_depth",
+        "backproject_xy"
+      ],
+      "role": "stage1-3 are normalized through generic contracts; refinement_policy is ignored by Stage4 except the generic sequence optimizer marker"
+    },
+    "artifacts": {
+      "stage0_inputs_manifest": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/stage0_inputs_manifest.json",
+        "exists": false,
+        "rows": 0
+      },
+      "object_observations": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_observations.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_correspondence": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_correspondence.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_surface_points": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_surface_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "object_semantic_points": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_semantic_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "line_correspondence": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/line_correspondence.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "line_observations": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/line_observations.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "contact_candidates": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/contact_candidates.csv",
+        "exists": true,
+        "rows": 165
+      },
+      "anchor_state": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/anchor_state.csv",
+        "exists": true,
+        "rows": 165
+      },
+      "object_pose_init": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_pose_init.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_pose_pre_smooth": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_pose_pre_smooth.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "motion_regime": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/motion_regime.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "physical_smooth_residuals": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/physical_smooth_residuals.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "pose_jump_audit": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/pose_jump_audit.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "optimizer_decisions": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/optimizer_decisions.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_pose": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_pose.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_contact_points": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_contact_points.csv",
+        "exists": true,
+        "rows": 165
+      },
+      "stage_audit_gates": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/stage_audit/stage_audit_gates.csv",
+        "exists": true,
+        "rows": 25
+      },
+      "stage_audit_latest": {
+        "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/stage_audit/stage_audit_latest.json",
+        "exists": true,
+        "rows": 17
+      }
+    },
+    "pose_jump_audit": {
+      "visual_spike_frames": [
+        15,
+        16,
+        17,
+        18,
+        41,
+        90,
+        91,
+        93,
+        102,
+        137,
+        138,
+        139,
+        142,
+        143,
+        144,
+        145,
+        182,
+        183
+      ],
+      "contact_spike_frames": [],
+      "smoothness_spike_frames": [
+        14,
+        18,
+        41,
+        102,
+        136,
+        137,
+        138,
+        139,
+        140,
+        142
+      ],
+      "propagated_frames": []
+    },
+    "residual_switches": {
+      "visual_enabled_rows": 0,
+      "contact_enabled_rows": 0,
+      "smooth_enabled_rows": 0,
+      "propagated_rows": 0
+    }
+  },
+  "post_run": {
+    "vlm_trace": {
+      "case_name": "volleyball",
+      "result_name": "scientific_audio_ablation/visual_vlm_plus_audio",
+      "trace_root": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace",
+      "directories": {
+        "00_input": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input",
+        "01_observation": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation",
+        "02_contact_candidates": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/02_contact_candidates",
+        "03_vlm_reasoning": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/03_vlm_reasoning",
+        "04_gating": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/04_gating",
+        "05_optimization": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/05_optimization",
+        "06_evaluation": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/06_evaluation"
+      },
+      "artifacts": {
+        "input_video": {
+          "stage": "",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/video.mp4",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input/video.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "sampled_frames": {
+          "stage": "00_input",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/segmentation/sam2_jpg_frames",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input/sampled_frames",
+          "exists": true,
+          "rows": 8,
+          "storage_mode": "relative_symlink_or_copy"
+        },
+        "object_mask_overlay": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/object_only/overlay.mp4",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/object_mask_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "human_pose_overlay": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/with_human/overlay.mp4",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/human_pose_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "depth_overlay": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/depth_overlay.mp4",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/depth_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "generated"
+        },
+        "contact_candidate_overlay": {
+          "stage": "02_contact_candidates",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/with_human/overlay.mp4",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "before_after_overlay": {
+          "stage": "05_optimization",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/renders/scientific_audio_ablation/visual_vlm_plus_audio/with_human/overlay.mp4",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/05_optimization/before_after_overlay.mp4",
+          "exists": true,
+          "rows": "",
+          "storage_mode": "relative_symlink"
+        },
+        "object_observations": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_observations.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/object_observations.csv",
+          "exists": true,
+          "rows": 240,
+          "storage_mode": "relative_symlink"
+        },
+        "object_correspondence": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_correspondence.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/object_correspondence.csv",
+          "exists": true,
+          "rows": 240,
+          "storage_mode": "relative_symlink"
+        },
+        "object_surface_points": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_surface_points.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/object_surface_points.csv",
+          "exists": true,
+          "rows": 0,
+          "storage_mode": "relative_symlink"
+        },
+        "object_semantic_points": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_semantic_points.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/object_semantic_points.csv",
+          "exists": true,
+          "rows": 0,
+          "storage_mode": "relative_symlink"
+        },
+        "line_correspondence": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/line_correspondence.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/line_correspondence.csv",
+          "exists": false,
+          "rows": "",
+          "storage_mode": "missing"
+        },
+        "line_observations": {
+          "stage": "01_observation",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/line_observations.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/line_observations.csv",
+          "exists": false,
+          "rows": "",
+          "storage_mode": "missing"
+        },
+        "contact_candidates": {
+          "stage": "02_contact_candidates",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/contact_candidates.csv",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/02_contact_candidates/contact_candidates.csv",
+          "exists": true,
+          "rows": 165,
+          "storage_mode": "relative_symlink"
+        },
+        "gate_timeline_png": {
+          "stage": "04_gating",
+          "source_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/04_gating/gate_timeline.png",
+          "target_path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/04_gating/gate_timeline.png",
+          "exists": true,
+          "rows": ""
+        }
+      },
+      "trace_completeness": {
+        "required_count": 13,
+        "present_count": 13,
+        "missing_required": [],
+        "items": {
+          "input_video": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input/video.mp4",
+            "stage": ""
+          },
+          "sampled_frames": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input/sampled_frames",
+            "stage": "00_input"
+          },
+          "object_observations": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/object_observations.csv",
+            "stage": "01_observation"
+          },
+          "object_correspondence": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/object_correspondence.csv",
+            "stage": "01_observation"
+          },
+          "object_surface_points": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/object_surface_points.csv",
+            "stage": "01_observation"
+          },
+          "object_semantic_points": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/object_semantic_points.csv",
+            "stage": "01_observation"
+          },
+          "contact_candidates": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/02_contact_candidates/contact_candidates.csv",
+            "stage": "02_contact_candidates"
+          },
+          "object_mask_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/object_mask_overlay.mp4",
+            "stage": "01_observation"
+          },
+          "human_pose_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/human_pose_overlay.mp4",
+            "stage": "01_observation"
+          },
+          "depth_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/01_observation/depth_overlay.mp4",
+            "stage": "01_observation"
+          },
+          "contact_candidate_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/02_contact_candidates/contact_candidate_overlay.mp4",
+            "stage": "02_contact_candidates"
+          },
+          "before_after_overlay": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/05_optimization/before_after_overlay.mp4",
+            "stage": "05_optimization"
+          },
+          "gate_timeline_png": {
+            "required": true,
+            "exists": true,
+            "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/04_gating/gate_timeline.png",
+            "stage": "04_gating"
+          }
+        }
+      }
+    },
+    "final_evaluator": {
+      "case": "volleyball",
+      "method": "vlm_gated",
+      "result_name": "scientific_audio_ablation/visual_vlm_plus_audio",
+      "method_status": "ok",
+      "final_pass": false,
+      "metrics": {
+        "overlay_error_px_mean": 0.0,
+        "mask_iou_mean": null,
+        "overlay_proxy_score": 1.0,
+        "contact_precision": null,
+        "contact_recall": null,
+        "contact_f1": null,
+        "contact_label_status": "needs_manual_labels",
+        "contact_proxy_score": 0.23086895151515158,
+        "anchor_drift_m_mean": 0.20161355757575763,
+        "anchor_drift_m_max": 3.324426,
+        "penetration_rate": 1.0,
+        "floating_rate": 0.9855072463768116,
+        "velocity_spike_count": 0,
+        "acceleration_spike_count": 0,
+        "jump_count": 21,
+        "static_tail_drift_m_max": 0.0,
+        "geometry_length_spread_m": null,
+        "gt_contact_available": false
+      },
+      "failure_flags": {
+        "overlay_fail": false,
+        "contact_fail": false,
+        "anchor_drift_fail": true,
+        "penetration_fail": true,
+        "floating_fail": true,
+        "jump_fail": true,
+        "static_tail_fail": false,
+        "geometry_fail": false,
+        "failure_count": 4
+      },
+      "vlm_score": {
+        "mode": "dry-run_metric_grounded",
+        "score": 0.75,
+        "checklist_count": 20,
+        "pipeline_vlm_gate_score": {},
+        "pipeline_vlm_gate_framewise_count": 0,
+        "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+      },
+      "llm_audit_summary": "review_required",
+      "failure_stage_hint": "stage2_contact",
+      "vlm_eval_summary": {
+        "mode": "dry-run_metric_grounded",
+        "query_count": 3,
+        "mean_overall_plausibility": 2.0,
+        "failure_stage_hint": "stage2_contact",
+        "scores": {
+          "visibility": 5,
+          "contact_correctness": 2,
+          "support_consistency": 1,
+          "penetration_absence": 1,
+          "temporal_plausibility": 1,
+          "overall_plausibility": 2,
+          "short_reason": "metric-grounded final evaluator checklist; replace source with Qwen final judge when available",
+          "failure_stage_hint": "stage2_contact"
+        },
+        "vlm_pipeline_score": {
+          "mode": "dry-run_metric_grounded",
+          "score": 0.75,
+          "checklist_count": 20,
+          "pipeline_vlm_gate_score": {},
+          "pipeline_vlm_gate_framewise_count": 0,
+          "note": "VLM visual judge artifact is separated from hard metrics; no pose coordinates are generated here."
+        },
+        "framewise_pipeline_judgment_count": 20
+      }
+    }
+  }
+}

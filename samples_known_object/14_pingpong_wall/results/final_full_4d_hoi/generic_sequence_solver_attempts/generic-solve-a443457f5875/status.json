@@ -1,0 +1,38 @@
+{
+  "accepted_outputs_written": false,
+  "active_bound_count": 0,
+  "artifacts": {
+    "factor_ledger.json": "b0cd0699fe4839023366ccf8ed1011fddd5c56b122971cb42676e65a715449e0",
+    "hard_metrics.json": "262fb5e254bf460711f4213346fcdccaae9a42e2c6fdc42eb1c0803987e300dd",
+    "residuals.csv": "8c3b3c7bdf11a8bd417136dbd5cff3963fc4719e473eaa6f616e43f101374834",
+    "state.csv": "f1a4bac544241b2d614fd2195bd82f191a9b6bfbb8e97a7ae5958b8685c8c1bc",
+    "vlm_gates.json": "25eeae0f8e6d68d1f5aaeb56f4d3ac2950365e4477ebcc7bf55fa346105be1db"
+  },
+  "case_dispatch_used": false,
+  "contract_attempt_id": "generic-attempt-37df7acf7350",
+  "factor_ids": [
+    "point_reprojection:measurement_ir",
+    "metric_depth:measurement_ir",
+    "temporal_acceleration:state_sequence"
+  ],
+  "final_squared_error": 251.89980581485875,
+  "frame_count": 240,
+  "function_evaluations": 600,
+  "hard_metrics_status": "evaluated",
+  "initial_squared_error": 7799.550733595832,
+  "message": "The maximum number of function evaluations is exceeded.",
+  "optimality": 0.5415762764506736,
+  "parent_solve_attempt_id": null,
+  "residual_program_sha256": "644c65610df2340d26d6b5bf5010045f5bf2154cca427f3099bff08f17c50230",
+  "result_sha256": "1beeffc624670e8ede9c4a37a528e89f3a79c2bd4bef242b152a6e6f2825c0cd",
+  "schema_version": 1,
+  "sequence_contract_sha256": "0b29f117fdd5ed75f6f24d07132acc28eb879285e2fc098d01e5e5af8bd6d3ac",
+  "solve_attempt_id": "generic-solve-a443457f5875",
+  "state_spec_id": "translation3:sphere",
+  "state_width": 3,
+  "success": false,
+  "termination_status": 0,
+  "vlm_factor_arbitration_blocking": false,
+  "vlm_factor_arbitration_sha256": "6572e7e8a51019ae495b7564c3495027139b3f01502a7b4c661901faa9f0d9d0",
+  "vlm_gates_status": "evaluated"
+}

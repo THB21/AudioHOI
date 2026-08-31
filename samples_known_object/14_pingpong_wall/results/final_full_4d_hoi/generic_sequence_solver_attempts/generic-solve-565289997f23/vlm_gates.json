@@ -1,0 +1,16 @@
+{
+  "continuous_pose_override": false,
+  "gates": {
+    "blocking": false,
+    "canonical_sha256": "f0be0df86398ae53a36cbce179d9eee107232ecfc29f92d51009cc03cd9dda2b",
+    "continuous_pose_override": false,
+    "decisions": [],
+    "model": "",
+    "provider": "",
+    "sample_id": "pingpong_wall",
+    "schema_version": 1,
+    "status": "not_evaluated"
+  },
+  "schema_version": 1,
+  "status": "evaluated"
+}

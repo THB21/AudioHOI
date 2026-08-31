@@ -1,0 +1,16 @@
+{
+  "rows": 48,
+  "labels": [
+    "aligned",
+    "ball_center",
+    "both_consistent",
+    "both_hands",
+    "detection_failure",
+    "left_hand",
+    "no_change",
+    "out_of_frame",
+    "stable",
+    "unclear",
+    "visible"
+  ]
+}

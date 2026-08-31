@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "mode": "generic_sphere_sequence_candidate",
+  "attempt_id": "sphere-5c3e2c4efc6a",
+  "solver_executed": true,
+  "accepted_outputs_written": false,
+  "baseline_pose_read": false,
+  "executor_scope": "isolated_candidate_dir",
+  "canonical_result_dir": "samples_known_object/01_basketball/results/basketball_audio_surface_fix",
+  "candidate_dir": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/sphere_audio_candidate",
+  "inputs": {
+    "object_measurements": {
+      "path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/object_observations.csv",
+      "sha256": "560287245011ece9a76687d4e3769c725b7a6f10631f7e9967ae73eccfd10bc0"
+    },
+    "contact_events": {
+      "path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/sphere_audio_inputs/contact_candidates_labeled.csv",
+      "sha256": "ca76eb6e222b508ae4c32605eeaf27023fd7ed040cd165ba9e419ba81eac7f9c"
+    },
+    "contact_timeline": {
+      "path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/contact_state_frames.csv",
+      "sha256": "9627461ee7e6230df8f64849e7bc3feea74321e54c7b52e60ea7990ba41695e1"
+    },
+    "human_sites": {
+      "path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/sphere_audio_inputs/human_sites.csv",
+      "sha256": "60192399539bef34df231e6e90832546555c6fc5f57d15fc451f9479a0a9a213"
+    },
+    "support_geometry": {
+      "path": "samples_known_object/01_basketball/results/pose6d_object_proxy_da3_init/support_geometry.json",
+      "sha256": "5063dbb3ccc65085174b5b17e8e8a323c70b832cd72000343df7066ca7488ec7"
+    },
+    "audio_events": {
+      "path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/contact_candidates_internal/audio_events.csv",
+      "sha256": "e491510504189af592b2d3386322e72d19894055a59e490d697a129ce33e8501"
+    }
+  },
+  "state_spec": "translation3:sphere",
+  "geometry_provider": "sphere_proxy",
+  "parameters": {
+    "minimum_depth_m": 0.2,
+    "maximum_contact_depth_offset_m": 1.0,
+    "reference_weight": 0.7,
+    "temporal_weight": 5.0,
+    "physical_xz_weight": 1.25,
+    "physical_y_weight": 1.5,
+    "gravity_mps2": 9.81,
+    "robust_loss": "soft_l1",
+    "robust_scale": 1.0,
+    "max_function_evaluations": 400,
+    "audio_anchor_weight": 3.0,
+    "audio_anchor_score_threshold": 0.5,
+    "audio_anchor_max_reprojection_px": 140.0,
+    "audio_event_window_frames": 2,
+    "floor_anchor_weight": 5.0,
+    "audio_jump_weight": 0.35,
+    "audio_jump_min_m": 0.006,
+    "sustained_contact_weight": 8.0
+  },
+  "frames": 192,
+  "human_contact_events": 56,
+  "support_events": 15,
+  "audio_enabled": true,
+  "audio_event_count": 16,
+  "audio_soft_hand_anchor_count": 0,
+  "audio_soft_floor_anchor_count": 15,
+  "audio_impact_count": 16,
+  "trusted_hard_hand_anchor_count": 0,
+  "sustained_contact_anchor_count": 0,
+  "global_depth_shift_m": 1.2541401515000001,
+  "candidate_artifact": "generic_sphere_sequence_candidate.csv",
+  "candidate_sha256": "072c09a3a9ff938d08292f87dcac25b19ea48b66e75c401601d4be3f4b19a57c",
+  "residual_artifact": "generic_sphere_sequence_residuals.csv",
+  "residual_sha256": "e44db75eb80a1ee4c7ca08ef1d94a1a249c9acb7336ba6b1b909a18c3cf8fb7b",
+  "accepted_output_policy": "sandbox_only_until_all_ball_regression_gates_pass",
+  "canonical_sha256": "5c3e2c4efc6a29f898f9966a8a833461b9d5d4bfc9da73fa0c0fdd77de4cfa8d"
+}

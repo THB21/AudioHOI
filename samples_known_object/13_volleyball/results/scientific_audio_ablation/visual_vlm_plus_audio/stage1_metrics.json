@@ -1,0 +1,25 @@
+{
+  "component": "generic_observation_mainline",
+  "case_name": "volleyball",
+  "adapter": {
+    "component": "mask_track_center",
+    "source": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/tracking/object_trajectory.csv",
+    "center_source": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/tracking/object_center_trajectory.csv",
+    "points_source": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/tracking/object_points.csv",
+    "depth_source": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/da3/priors/object_depth_prior.csv",
+    "object_observations": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_observations.csv",
+    "local_points": "none_for_center_proxy",
+    "rows": 240,
+    "policy": "generic mask/object center/radius + optional CoTracker/object bottom + DA3 depth only; contact fields are owned by Stage2",
+    "adapter_component": "mask_track_center"
+  },
+  "object_observations": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_observations.csv",
+  "object_correspondence": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_correspondence.csv",
+  "object_surface_points": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_surface_points.csv",
+  "object_semantic_points": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_semantic_points.csv",
+  "rows": 240,
+  "correspondence_rows": 240,
+  "surface_rows": 0,
+  "semantic_rows": 0,
+  "policy": "fixed generic observation contract; case-specific observation code is compatibility adapter only"
+}

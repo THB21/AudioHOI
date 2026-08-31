@@ -1,0 +1,26 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+volleyball,stage1,artifact:object_observations,pass,keep_outputs,0,1,0,object_observations exists
+volleyball,stage1,artifact:object_correspondence,pass,keep_outputs,0,1,0,object_correspondence exists
+volleyball,stage1,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+volleyball,stage1,llm_csv:observation_contract,pass,keep_outputs,0,1,0,object_observations=240 object_correspondence=240
+volleyball,stage2,artifact:contact_candidates,pass,keep_outputs,0,1,0,contact_candidates exists
+volleyball,stage2,artifact:anchor_state,pass,keep_outputs,0,1,0,anchor_state exists
+volleyball,stage2,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+volleyball,stage2,llm_csv:contact_anchor_contract,pass,keep_outputs,0,1,0,contact_candidates=165 anchor_state=165
+volleyball,stage3,artifact:object_pose_init,pass,keep_outputs,0,1,0,object_pose_init exists
+volleyball,stage3,se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+volleyball,stage3,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+volleyball,stage3,llm_csv:se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+volleyball,stage4,artifact:object_pose,pass,keep_outputs,0,1,0,object_pose exists
+volleyball,stage4,artifact:motion_regime,pass,keep_outputs,0,1,0,motion_regime exists
+volleyball,stage4,artifact:optimizer_decisions,pass,keep_outputs,0,1,0,optimizer_decisions exists
+volleyball,stage4,artifact:physical_smooth_residuals,pass,keep_outputs,0,1,0,physical_smooth_residuals exists
+volleyball,stage4,artifact:pose_jump_audit,pass,keep_outputs,0,1,0,pose_jump_audit exists
+volleyball,stage4,pose_jump_audit,unclear,reweight_and_rerun_optimizer,1,1,1,21 spike rows require optimizer reweight/recheck
+volleyball,stage4,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+volleyball,stage4,llm_csv:sequence_optimizer_contract,pass,keep_outputs,0,1,0,sequence optimizer decisions enabled
+volleyball,stage4,llm_csv:pose_jump_audit,unclear,reweight_and_rerun_optimizer,1,1,1,21 spike rows request feedback reweight
+volleyball,stage5,artifact:render_manifest,pass,keep_outputs,0,1,0,render_manifest exists
+volleyball,stage5,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+volleyball,stage5,llm_csv:render_manifest,pass,keep_outputs,0,1,0,render manifest exists
+volleyball,stage5,llm_csv:render_temporal_consistency,unclear,report_unclear_csv_audit,0,1,0,21 machine spike rows but no effective temporal VLM rows

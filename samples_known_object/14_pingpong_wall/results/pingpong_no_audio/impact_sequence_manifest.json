@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "impact_count": 0,
+  "impact_frames": [],
+  "raw_audio_frames": [],
+  "matched_motion_frames": [],
+  "active_window_frames": [],
+  "raw_audio_candidate_count": 0,
+  "expected_impact_count": 10,
+  "evidence_window_frames": 3,
+  "activation_radius_frames": 0,
+  "minimum_audio_score": 0.35,
+  "audio_enabled": false,
+  "metric_contact_constraints": 0,
+  "policy": "audio peak and visual direction-change jointly gate impact timing; audio never supplies 3D position"
+}

@@ -1,0 +1,8 @@
+{
+  "support_type": "floor",
+  "floor_v": 626.774,
+  "source": "generic_floor_candidates_from_read_only_human_sites",
+  "confidence": 0.0,
+  "case_dispatch_used": false,
+  "human_state_optimized": false
+}

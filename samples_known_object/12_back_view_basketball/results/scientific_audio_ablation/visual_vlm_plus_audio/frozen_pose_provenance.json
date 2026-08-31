@@ -1,0 +1,7 @@
+{
+  "case": "back_view_basketball",
+  "mode": "visual_vlm_plus_audio",
+  "source": "/home/hebestreit/AudioHOI/deliverables/backward_basketball_vlm_audio_increment_ablation/vlm_plus_audio/object_pose.csv",
+  "target": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_plus_audio/object_pose.csv",
+  "policy": "precomputed controlled trajectory materialized for identical Stage 5 rendering"
+}

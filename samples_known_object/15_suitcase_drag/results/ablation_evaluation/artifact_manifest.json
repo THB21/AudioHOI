@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "case_name": "suitcase_drag",
+  "variant": "full_audio_vlm",
+  "pose": {
+    "path": "frozen_poses/full_object_pose_6d.csv",
+    "sha256": "131383184d758046b0355568507645b18079baa3b8fab347911c77b2c42f0291"
+  },
+  "render_contract": {
+    "fps": 24,
+    "frame_count": 240,
+    "width": 1280,
+    "height": 720,
+    "pose_source_sha256": "131383184d758046b0355568507645b18079baa3b8fab347911c77b2c42f0291"
+  },
+  "videos": {
+    "object_overlay": {
+      "path": "final_full_6d/object_only/overlay.mp4",
+      "sha256": "399b3475b415c338c8bcc5921836da66e72eca0d0f1707f96f678d1c8c97b31e"
+    },
+    "object_camera_3d": {
+      "path": "final_full_6d/object_only/camera3d.mp4",
+      "sha256": "81c13e2c509b7c50fde84a960ce6110c9c5a0a1f9ed385724e16a76dcc1def0d"
+    },
+    "object_side_yz": {
+      "path": "final_full_6d/object_only/side_yz.mp4",
+      "sha256": "972e66724b1a061256bdb4a01280328561a7fcce21020da52451bcd0a33bd7b6"
+    },
+    "hoi_overlay": {
+      "path": "final_full_6d/with_human/overlay.mp4",
+      "sha256": "8edeb3e7dfd1231147989750f1317bc275e80cd624ab4e0f6101f342793bef02"
+    },
+    "hoi_overlay_vlm_masked": {
+      "path": "final_full_6d/with_human/overlay_vlm_masked.mp4",
+      "sha256": "8351b10c8b4dd7fbf17b21f2632408ebbee71fbf5c2654c12d40bca295cb8ff8"
+    },
+    "hoi_camera_3d": {
+      "path": "final_full_6d/with_human/camera3d.mp4",
+      "sha256": "fb57b32d45d11d9b6fabf2a25a7691ab0796420906be35995e3506226d0c0b9e"
+    },
+    "hoi_side_yz": {
+      "path": "final_full_6d/with_human/side_yz.mp4",
+      "sha256": "6a0a0e3a0be6469ec21fda0e7253412f3c661a5bbd477fe2ec021ffc82658b1b"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "frames": [
+    {
+      "stage": "",
+      "source_path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_only/vlm/stage0/evidence/frame00001_target_mask_check.png",
+      "target_path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_only/vlm_trace/00_input/sampled_frames/frame00001_target_mask_check.png",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    }
+  ]
+}

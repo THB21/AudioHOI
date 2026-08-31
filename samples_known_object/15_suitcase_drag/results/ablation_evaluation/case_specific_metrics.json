@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "case_name": "suitcase_drag",
+  "scope": "case_specific_semantic_orientation_and_motion_diagnostics",
+  "variants": {
+    "full": {
+      "source_pose_csv": "output/suitcase_vlm_tail_symmetry_full/generic_object_pose_candidate.csv",
+      "archived_pose_csv": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/frozen_poses/full_object_pose_6d.csv",
+      "pose_sha256": "131383184d758046b0355568507645b18079baa3b8fab347911c77b2c42f0291",
+      "vlm_provenance": "output/suitcase_vlm_tail_symmetry_full/vlm_orientation_projection.json"
+    },
+    "no_vlm": {
+      "source_pose_csv": "output/suitcase_strict_auto_no_vlm/generic_object_pose_candidate.csv",
+      "archived_pose_csv": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/frozen_poses/no_vlm_object_pose_6d.csv",
+      "pose_sha256": "67e056f921abafc52a5ea6399fb960db424c43320af41eb0b9aa0413ab76053c"
+    },
+    "no_audio": {
+      "source_pose_csv": "output/suitcase_strict_auto_no_audio/generic_object_pose_candidate.csv",
+      "archived_pose_csv": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/frozen_poses/no_audio_object_pose_6d.csv",
+      "pose_sha256": "260bf8dfad23b74a6affdca3057bb384d0f90769835ac471145f4d5ca298fee1"
+    }
+  },
+  "invariants": {
+    "full_matches_pre_vlm_full_through_frame": 164,
+    "maximum_numeric_difference_through_frame_164": 0.0,
+    "first_changed_frame": 165,
+    "continuous_translation_changed_by_vlm_projection": false
+  },
+  "vlm_gain": {
+    "terminal_upright_yaw_branch_correction_deg": 169.65,
+    "handle_broad_face_margin": {"no_vlm": -1.69, "full": 1.88},
+    "left_side_exposure_margin": {"no_vlm": -0.96, "full": 0.66},
+    "mean_broad_face_margin_frames_208_240": {"no_vlm": -1.85, "full": 1.91},
+    "interpretation": "VLM resolves the broad-face front/back symmetry and terminal left-side exposure that visual tracking alone cannot disambiguate."
+  },
+  "audio_gain": {
+    "interval_frames": [179, 240],
+    "translation_path_m": {"full": 0.2172489842, "no_audio": 0.2796699856},
+    "translation_path_reduction_percent": 22.3196,
+    "net_rotation_drift_deg": {"full": 29.25634285, "no_audio": 40.17533737},
+    "net_rotation_drift_reduction_percent": 27.1774,
+    "rotation_path_deg": {"full": 45.04482765, "no_audio": 40.67335909},
+    "interpretation": "Audio moderately reduces translation path and net rotational drift, but does not reduce total rotation path; it is not evidence that audio removes rotational jitter."
+  },
+  "final_render_root": "samples_known_object/15_suitcase_drag/results/ablation_evaluation/final_full_6d"
+}

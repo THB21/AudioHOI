@@ -1,0 +1,128 @@
+{
+  "schema_version": 2,
+  "stage": "stage0_preprocess",
+  "case_name": "basketball",
+  "status": "failed",
+  "frame_count": 192,
+  "fps": 24.0,
+  "checks": {
+    "case_ingestion_accepted": false,
+    "frame_count_positive": true,
+    "fps_positive": true,
+    "required_tasks_complete": false,
+    "gvhmr_read_only": true
+  },
+  "tasks": [
+    {
+      "task_id": "frame_extract",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_media_extract.py",
+        "--sample-dir",
+        "samples_known_object/01_basketball",
+        "--kind",
+        "frames"
+      ],
+      "cache_key": "409f2b63839baaaad7e98777d9a8e4b4f02250100f131001bb6f99739e1e14a8",
+      "input_hashes": {
+        "video": "6ba716b2264f07527655157c3932c9499c7eba06f2ff450a65071ff695d0522c"
+      },
+      "output_paths": {
+        "frames": "samples_known_object/01_basketball/frames"
+      },
+      "output_kinds": {
+        "frames": "directory"
+      },
+      "output_hashes": {
+        "frames": "4267bd3c37321c1bffed7058a4dad006ed280e8d6419d69e3d3f41ad1e70c04c"
+      },
+      "started_at": "2026-08-20T00:07:43.859243+00:00",
+      "completed_at": "2026-08-20T00:07:43.951831+00:00",
+      "return_code": 0,
+      "stdout_tail": "validated existing artifact bootstrap",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "audio_extract",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_media_extract.py",
+        "--sample-dir",
+        "samples_known_object/01_basketball",
+        "--kind",
+        "audio"
+      ],
+      "cache_key": "e89f341e64c6bfb3c6072b5ca0fbcda8c22b99076973242d19300a1871f72890",
+      "input_hashes": {
+        "video": "6ba716b2264f07527655157c3932c9499c7eba06f2ff450a65071ff695d0522c"
+      },
+      "output_paths": {
+        "audio": "samples_known_object/01_basketball/audio.wav"
+      },
+      "output_kinds": {
+        "audio": "file"
+      },
+      "output_hashes": {
+        "audio": "2c44967d05b59165826756bc5736b9d9fb2fc588f83f753f85b4667ae1a31e3a"
+      },
+      "started_at": "2026-08-20T00:07:43.951857+00:00",
+      "completed_at": "2026-08-20T00:07:43.961021+00:00",
+      "return_code": 0,
+      "stdout_tail": "validated existing artifact bootstrap",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "sam2",
+      "status": "failed",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py",
+        "--case-config",
+        "scripts/shared/generic_contact_pipeline/configs/cases/basketball.yaml",
+        "--sample-dir",
+        "samples_known_object/01_basketball"
+      ],
+      "cache_key": "7c79d436ab5f04bbad3f2834e8195db582fd76eaf975246f29d61834935ecc27",
+      "input_hashes": {
+        "frames": "4267bd3c37321c1bffed7058a4dad006ed280e8d6419d69e3d3f41ad1e70c04c",
+        "case_config": "150fb87d158558f0d7c77dc4e74356dd0d2556f21cb38d60b4556a54dfe090af"
+      },
+      "output_paths": {
+        "sam2_masks": "samples_known_object/01_basketball/results/segmentation/masks",
+        "sam2_trajectory": "samples_known_object/01_basketball/results/tracking/object_trajectory.csv"
+      },
+      "output_kinds": {
+        "sam2_masks": "directory",
+        "sam2_trajectory": "file"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-20T00:07:43.961037+00:00",
+      "completed_at": "2026-08-20T00:07:44.167370+00:00",
+      "return_code": 1,
+      "stdout_tail": "",
+      "stderr_tail": "",
+      "error": "Traceback (most recent call last):\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py\", line 281, in <module>\n    main()\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py\", line 254, in main\n    raise ValueError(\"--dino-text is required when --box is not provided\")\nValueError: --dino-text is required when --box is not provided\n",
+      "human_state_role": null
+    }
+  ],
+  "generated_tasks": 0,
+  "reused_tasks": 2,
+  "disabled_tasks": 0,
+  "failed_tasks": [
+    "sam2"
+  ],
+  "object_only_boundary": true,
+  "human_state_optimized": false
+}

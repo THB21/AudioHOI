@@ -1,0 +1,168 @@
+{
+  "sample_dir": "samples_known_object/12_back_view_basketball",
+  "trajectory_csv": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/derived_stage4/active_audio_visual_corrected/generic_sphere_sequence_candidate.csv",
+  "verdict": "FAIL",
+  "reason": "1 high-severity finding(s) covering 16 frames (6.7% of 240)",
+  "corrections": [
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        127
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 127
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        128
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 128
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        129
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 129
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        148
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 148
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        149
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 149
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        150
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 150
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        151
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 151
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        152
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 152
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        153
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 153
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        154
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 154
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        155
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 155
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        156
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 156
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        157
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 157
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        158
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 158
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        159
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 159
+      }
+    },
+    {
+      "issue": "contact_gap_violation",
+      "frames": [
+        160
+      ],
+      "recipe": {
+        "type": "demote_anchor",
+        "frame": 160
+      }
+    }
+  ]
+}

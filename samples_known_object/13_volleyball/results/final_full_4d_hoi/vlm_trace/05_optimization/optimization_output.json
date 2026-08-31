@@ -1,0 +1,86 @@
+{
+  "object_pose_pre_smooth": {
+    "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose_pre_smooth.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "object_pose": {
+    "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose.csv",
+    "exists": true,
+    "rows": 240,
+    "columns": [
+      "frame",
+      "time",
+      "tx",
+      "ty",
+      "tz",
+      "qw",
+      "qx",
+      "qy",
+      "qz",
+      "radius_m",
+      "source",
+      "generic_solve_attempt_id"
+    ],
+    "sample": [
+      {
+        "frame": "1",
+        "time": "0.0",
+        "tx": "-0.172911654",
+        "ty": "-0.871856745",
+        "tz": "4.667910594",
+        "qw": "1.0",
+        "qx": "0.0",
+        "qy": "0.0",
+        "qz": "0.0",
+        "radius_m": "0.105",
+        "source": "generic_sequence_executor",
+        "generic_solve_attempt_id": "generic-solve-cdcb0ce16742"
+      },
+      {
+        "frame": "2",
+        "time": "0.041667",
+        "tx": "-0.168726630",
+        "ty": "-0.866946373",
+        "tz": "4.659931069",
+        "qw": "1.0",
+        "qx": "0.0",
+        "qy": "0.0",
+        "qz": "0.0",
+        "radius_m": "0.105",
+        "source": "generic_sequence_executor",
+        "generic_solve_attempt_id": "generic-solve-cdcb0ce16742"
+      },
+      {
+        "frame": "3",
+        "time": "0.083333",
+        "tx": "-0.163770362",
+        "ty": "-0.854791961",
+        "tz": "4.642083619",
+        "qw": "1.0",
+        "qx": "0.0",
+        "qy": "0.0",
+        "qz": "0.0",
+        "radius_m": "0.105",
+        "source": "generic_sequence_executor",
+        "generic_solve_attempt_id": "generic-solve-cdcb0ce16742"
+      }
+    ]
+  },
+  "physical_smooth_residuals": {
+    "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/physical_smooth_residuals.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "pose_jump_audit": {
+    "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/pose_jump_audit.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  }
+}

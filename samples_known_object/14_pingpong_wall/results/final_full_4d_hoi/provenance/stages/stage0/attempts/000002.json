@@ -1,0 +1,127 @@
+{
+  "schema_version": 4,
+  "case_name": "pingpong_wall",
+  "result_name": "final_full_4d_hoi",
+  "stage": "stage0",
+  "attempt_id": "000002",
+  "status": "completed",
+  "trigger": "scheduled_pipeline_stage",
+  "parent_attempt_id": null,
+  "started_at": "2026-08-19T18:23:59.407259+00:00",
+  "finished_at": "2026-08-19T18:25:17.919185+00:00",
+  "metadata": {
+    "from_stage": "stage0",
+    "to_stage": "stage0"
+  },
+  "artifacts_before": {
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage0_inputs_manifest.json": {
+      "sha256": "3feffdff3870cf5374b26688900cdcb9ca50a0b8fe180f2a63d96acbeacaec52",
+      "size_bytes": 5682
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage0_metrics.json": {
+      "sha256": "ccce36329a5951e70d637eb0a6c3a9ba31da85d8d648daab7aaf17f3f585dc0a",
+      "size_bytes": 23378
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/case_ingestion_last_attempt.json": {
+      "sha256": "456cdc197cef797470756142e93d62d54aa7958c4281438d43826dcada042723",
+      "size_bytes": 24250
+    }
+  },
+  "artifacts_after": {
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage0_inputs_manifest.json": {
+      "sha256": "4eaedfec0583e790a1780530b91acb0d85710ab1917884d2e61278ae35f67ac2",
+      "size_bytes": 7320
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage0_metrics.json": {
+      "sha256": "e7311a077f85e5fd8c1fad90e3eb47c6ffa82ddd2290015dacd7b3c2a1317df2",
+      "size_bytes": 31441
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/case_ingestion_manifest.json": {
+      "sha256": "e3fa32dc6703355e89f84050596f9399060e64e33587453e8052e9c1d8b0f2ba",
+      "size_bytes": 32518
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/case_ingestion_last_attempt.json": {
+      "sha256": "e3fa32dc6703355e89f84050596f9399060e64e33587453e8052e9c1d8b0f2ba",
+      "size_bytes": 32518
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage0/stage_audit_gates.csv": {
+      "sha256": "ab4a824fdb84b28b007ce71bafef0db63cc4cde20e357c7ceef46213d08a640c",
+      "size_bytes": 313
+    }
+  },
+  "stored_artifacts": {
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/case_ingestion_last_attempt.json": {
+      "algorithm": "sha256",
+      "sha256": "e3fa32dc6703355e89f84050596f9399060e64e33587453e8052e9c1d8b0f2ba",
+      "size_bytes": 32518,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/case_ingestion_last_attempt.json",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/e3/e3fa32dc6703355e89f84050596f9399060e64e33587453e8052e9c1d8b0f2ba"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/case_ingestion_manifest.json": {
+      "algorithm": "sha256",
+      "sha256": "e3fa32dc6703355e89f84050596f9399060e64e33587453e8052e9c1d8b0f2ba",
+      "size_bytes": 32518,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/case_ingestion_manifest.json",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/e3/e3fa32dc6703355e89f84050596f9399060e64e33587453e8052e9c1d8b0f2ba"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage0_inputs_manifest.json": {
+      "algorithm": "sha256",
+      "sha256": "4eaedfec0583e790a1780530b91acb0d85710ab1917884d2e61278ae35f67ac2",
+      "size_bytes": 7320,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage0_inputs_manifest.json",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/4e/4eaedfec0583e790a1780530b91acb0d85710ab1917884d2e61278ae35f67ac2"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage0_metrics.json": {
+      "algorithm": "sha256",
+      "sha256": "e7311a077f85e5fd8c1fad90e3eb47c6ffa82ddd2290015dacd7b3c2a1317df2",
+      "size_bytes": 31441,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage0_metrics.json",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/e7/e7311a077f85e5fd8c1fad90e3eb47c6ffa82ddd2290015dacd7b3c2a1317df2"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage0/stage_audit_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "ab4a824fdb84b28b007ce71bafef0db63cc4cde20e357c7ceef46213d08a640c",
+      "size_bytes": 313,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage0/stage_audit_gates.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/ab/ab4a824fdb84b28b007ce71bafef0db63cc4cde20e357c7ceef46213d08a640c"
+    }
+  },
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "pingpong_wall",
+    "result_name": "final_full_4d_hoi",
+    "stage": "stage0",
+    "status": "pass",
+    "artifacts": [],
+    "errors": []
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage0",
+    "plugins": [],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/case_ingestion_last_attempt.json",
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/case_ingestion_manifest.json",
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage0_inputs_manifest.json",
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage0_metrics.json",
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage0/stage_audit_gates.csv"
+  ],
+  "result_summary": {
+    "stage_status": "accepted",
+    "vlm_decision": "not_run",
+    "stage_audit_decision": "pass",
+    "rerun_requested": false
+  }
+}

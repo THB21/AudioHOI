@@ -1,0 +1,493 @@
+{
+  "schema_version": 1,
+  "mode": "generic_object_sequence_problem_preparation",
+  "problem": {
+    "schema_version": 1,
+    "attempt_id": "generic-attempt-06678c34d57a",
+    "sequence_contract_sha256": "62526c75aea3fd7321bf4e5833864718b44c63b4136e893d95daa1e18070dcd4",
+    "state_spec_id": "translation3:sphere",
+    "selected_factor_ids": [
+      "point_reprojection:measurement_ir",
+      "metric_depth:measurement_ir",
+      "temporal_acceleration:state_sequence",
+      "contact_distance:interaction_state"
+    ],
+    "residual_dependency_count": 778,
+    "initialization_ledger": {
+      "schema_version": 1,
+      "state_spec_id": "translation3:sphere",
+      "input_state_frame_count": 240,
+      "eligible_contact_frame_count": 0,
+      "seeded_frame_count": 0,
+      "skipped_by_reason": {},
+      "hypotheses": [],
+      "site_match_policy": "exact_frame_part_side_with_palm_to_hand_schema_alias",
+      "case_dispatch_used": false,
+      "baseline_pose_read": false,
+      "human_state_optimized": false,
+      "accepted_outputs_written": false,
+      "canonical_sha256": "2735f193d34df4ad261ab523f40bb28948704fc3721eca189a40b4df9f385764"
+    },
+    "initial_residual_inputs_sha256": "3930da562bd56b535abe477bde49059f2cfaac610e3922ecbede780741779b33",
+    "case_dispatch_used": false,
+    "human_state_optimized": false,
+    "accepted_outputs_written": false,
+    "canonical_sha256": "3a1c6984f44b95c2e6cf9fed95683b0aa7d5045babec02082b748f36c329d85b"
+  },
+  "state_spec_id": "translation3:sphere",
+  "geometry": {
+    "kind": "sphere",
+    "descriptor_path": "scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json",
+    "descriptor_sha256": "b86eadf49a9e03904f02acfb12e3ff8e0185d673eede325dd0f0eac083620327"
+  },
+  "initializer_kind": "point_depth",
+  "initializer_input_sha256": "4ea1ef638e9bb22d44ed879ab5b1e8e9a8f1b58cddcf6910082d07b1bbfe451e",
+  "initializer_ledger": {
+    "initializer_kind": "point_depth",
+    "case_dispatch_used": false,
+    "baseline_pose_read": false,
+    "human_state_optimized": false,
+    "contact_semantic_arbitration": {
+      "mode": "vlm_bounded_event_intervals_authoritative",
+      "candidate_event_sample_count": 13,
+      "selected_sample_count": 60,
+      "case_dispatch_used": false,
+      "human_state_optimized": false
+    },
+    "contact_timeline_gate": {
+      "active_frame_count": 37,
+      "timeline_active_frame_count": 37,
+      "vlm_confirmed_active_frame_count": 30,
+      "removed_sample_frames": [],
+      "source": "typed_contact_continuity_with_occluded_hold+vlm_confirmed_discrete_relation",
+      "support_independent": true
+    }
+  },
+  "read_only_human_sites": {
+    "measurement_count": 960,
+    "source_artifact": "samples_known_object/13_volleyball/results/gvhmr/result.pkl",
+    "source_sha256": "28d0cdc6fac37ea90fe1bc16f68d9ebfac10776b75bf0f283cedac145f076742",
+    "read_only": true
+  },
+  "measurement_count": 960,
+  "contact_constraint_count": 60,
+  "bounded_gap_smoothing_frames": [],
+  "adjacent_translation_smoothing_passes": 0,
+  "adjacent_rotation_smoothing_passes": 0,
+  "maximum_rotation_step_deg": 0.0,
+  "bounded_gap_rotation_recovery_frames": 0,
+  "bounded_gap_project_rotation": true,
+  "vlm_factor_arbitration": {
+    "schema_version": 1,
+    "sample_id": "volleyball",
+    "status": "evaluated",
+    "decisions": [
+      {
+        "decision_id": "vlm-factor-0001",
+        "query_id": "stage4:constraint_reliability_check:00001-00016",
+        "start_frame": 1,
+        "end_frame": 16,
+        "normalized_label": "both_consistent",
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ],
+        "evidence_ids": [
+          "sha256:dfb5ebf4a038c01922525332e970ce82597459905778151ca8d69f05a89cca62"
+        ],
+        "provider": "qwen_vl_local",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "prompt_sha256": "5bb6e026aca7f0c6f2b22a331057c8d4c90b123b1dcee8cfbf204e886547d0ee",
+        "response_sha256": "bd8f336c11907e7096709a086480ba09d66a237c03fc96ae06b167db84a77ec3",
+        "provenance": [
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0002",
+        "query_id": "stage4:constraint_reliability_check:00031-00039",
+        "start_frame": 31,
+        "end_frame": 39,
+        "normalized_label": "both_consistent",
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ],
+        "evidence_ids": [
+          "sha256:0bf2d3691079b7de2d9853a7818b346e29fc0488bca6b382cc354b6af1132330"
+        ],
+        "provider": "qwen_vl_local",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "prompt_sha256": "29864f47634bd9ee87e6365988c3f898742e1772b0142c21d9c96bcb0c141eed",
+        "response_sha256": "c827edb55c0d08fc88268c49cb3a12cf7b0c6c07594cf9d95620b4d5d6c494e4",
+        "provenance": [
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0003",
+        "query_id": "stage4:constraint_reliability_check:00049-00052",
+        "start_frame": 49,
+        "end_frame": 52,
+        "normalized_label": "both_consistent",
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ],
+        "evidence_ids": [
+          "sha256:119ec2766cbc6bd9129ea7fc1790620943a0671f1011fbdee73dbd47c7374f72"
+        ],
+        "provider": "qwen_vl_local",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "prompt_sha256": "6caae7163955d5ba7cc92ae15b846a978afe5e22faad0a1805043f2b2e0c611e",
+        "response_sha256": "49ab8561faaaf60169bf20254b66bb3d9f1b4a06d935da682a70580a6831047d",
+        "provenance": [
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0004",
+        "query_id": "stage4:constraint_reliability_check:00063-00068",
+        "start_frame": 63,
+        "end_frame": 68,
+        "normalized_label": "both_consistent",
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ],
+        "evidence_ids": [
+          "sha256:9b6bcdab147c8ae07711cfbf59e80ed7dcc40c728fade80252e93ba365b3785e"
+        ],
+        "provider": "qwen_vl_local",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "prompt_sha256": "975624c4b60945b2e141112c37e3141b1644a9477f87c7de2855fa748e80a994",
+        "response_sha256": "84b968497febf87cf958e6e6375d1e59f6358cd167fa27371a281cd165b5b935",
+        "provenance": [
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0005",
+        "query_id": "stage4:constraint_reliability_check:00093-00097",
+        "start_frame": 93,
+        "end_frame": 97,
+        "normalized_label": "both_consistent",
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ],
+        "evidence_ids": [
+          "sha256:504e2d8769013308e78ae10a1984f371c311b0538a446df9a1b2d2f3bf390858"
+        ],
+        "provider": "qwen_vl_local",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "prompt_sha256": "0b633a7e2807ecbf53b9278b53a70f49164e5d0225439d47ee477228a99a7c15",
+        "response_sha256": "bac9cf3914776fe272d6ba10726fe09a95da565e0cc73f9890b21d2ec80b8648",
+        "provenance": [
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0006",
+        "query_id": "stage4:constraint_reliability_check:00114-00118",
+        "start_frame": 114,
+        "end_frame": 118,
+        "normalized_label": "both_consistent",
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ],
+        "evidence_ids": [
+          "sha256:7c3ecd610fc47a902df744fc6929150741f1dac8744f5f6eb7ac2dffac66b177"
+        ],
+        "provider": "qwen_vl_local",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "prompt_sha256": "7e37bd5a962d3f2b8d58a4c417f6ab3da1a873c14526c16784ad2fadf2cfbdc9",
+        "response_sha256": "1f81b83c41803121830749c352667b3e86457603ee38c0ac6ebb1ea6aeb6d351",
+        "provenance": [
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0007",
+        "query_id": "stage4:constraint_reliability_check:00130-00136",
+        "start_frame": 130,
+        "end_frame": 136,
+        "normalized_label": "both_consistent",
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ],
+        "evidence_ids": [
+          "sha256:e54cd2491f893477c80b8720efa901d011aafc0260ddf10230c3e8e36eb516f0"
+        ],
+        "provider": "qwen_vl_local",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "prompt_sha256": "060bdad662e1960d84d512cb01b18a387998ff45d56eb892d6cf51c2d338e169",
+        "response_sha256": "fc5cd28af542eda167121e0709f35c70e041c9255473dc23879a6ff1abac42b2",
+        "provenance": [
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0008",
+        "query_id": "stage4:constraint_reliability_check:00162-00162",
+        "start_frame": 162,
+        "end_frame": 162,
+        "normalized_label": "unclear",
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ],
+        "evidence_ids": [
+          "sha256:40af3dd225171aa72092f6cbd64b648ffeecc8da1209dec00983e9065582f0e8"
+        ],
+        "provider": "qwen_vl_local",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "prompt_sha256": "e6ec144a21fa5fba1fc4cbcf25c03317ac7bcbdd18a30b6ad61889b6a6aba1a0",
+        "response_sha256": "15ef16e8035e3c0fedeaec95c2c915a7144900113667c686dcdf1e58bf4997d4",
+        "provenance": [
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0009",
+        "query_id": "stage4:constraint_reliability_check:00184-00189",
+        "start_frame": 184,
+        "end_frame": 189,
+        "normalized_label": "both_consistent",
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ],
+        "evidence_ids": [
+          "sha256:d7529eec8efcfde6ba64fa2db1785c7bed8c59a5e3b21933ea827a148ec5f93a"
+        ],
+        "provider": "qwen_vl_local",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "prompt_sha256": "3168e53ad81cad3100989af365efd239deae98e79ee749dd82325a4e29b92484",
+        "response_sha256": "bffc306308a21df7dca0fb7d14f778be2df4a504f3573aa80046f53df62ff0ab",
+        "provenance": [
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0010",
+        "query_id": "stage4:constraint_reliability_check:00196-00202",
+        "start_frame": 196,
+        "end_frame": 202,
+        "normalized_label": "both_consistent",
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ],
+        "evidence_ids": [
+          "sha256:2b815f6e2ed3960ec51aaea4a080ae0aba157f2392efdfca84d821ee9f47ba57"
+        ],
+        "provider": "qwen_vl_local",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "prompt_sha256": "20d1e7b986d36dee7280cb99777410181f0011a9796ee84ff5ead40929d47bd7",
+        "response_sha256": "90f2938babaf25c535f1a8ed525f3e394ca6f0300f2d6d2be161f4a99418346a",
+        "provenance": [
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0011",
+        "query_id": "stage4:constraint_reliability_check:00222-00222",
+        "start_frame": 222,
+        "end_frame": 222,
+        "normalized_label": "both_consistent",
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ],
+        "evidence_ids": [
+          "sha256:03aa849385c24a6fdbade1fd4e73cbb27b7568c154b86f22b4e0bdcf939fa80c"
+        ],
+        "provider": "qwen_vl_local",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "prompt_sha256": "737ce672a608446b3093b94979a4665f0ca594842eb45d47f19fe58a268e67ab",
+        "response_sha256": "50956312217814dfecaf7b9de7ad1b6f90ec87d9fd0071ab76435c4a7f8c2483",
+        "provenance": [
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0012",
+        "query_id": "stage4:constraint_reliability_check:00227-00228",
+        "start_frame": 227,
+        "end_frame": 228,
+        "normalized_label": "both_consistent",
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:interaction_state",
+            "status": "active"
+          }
+        ],
+        "evidence_ids": [
+          "sha256:11959f2dec29db58a716070aa48cd8ca5079ab55813703870a7469a9196bf93c"
+        ],
+        "provider": "qwen_vl_local",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "prompt_sha256": "62a3580ca8c2875225b226ffd4226c300b0b49002d57f84d7e1907fb4c639fe3",
+        "response_sha256": "0ba5bd20f839f723bb72c3cff34029f6290902b1f7674fafe91a24ae5e9ade5e",
+        "provenance": [
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ]
+      }
+    ],
+    "blocking": false,
+    "provider": "qwen_vl_local",
+    "model": "Qwen/Qwen3-VL-8B-Instruct",
+    "continuous_pose_override": false,
+    "canonical_sha256": "14f51ceca7e76daa1646b6d266ecaf1d7ecffcc873638e7beb96ad75cc4ec73a"
+  },
+  "evidence_consumption": [],
+  "case_dispatch_used": false,
+  "baseline_pose_read": false,
+  "human_state_optimized": false,
+  "accepted_outputs_written": false
+}

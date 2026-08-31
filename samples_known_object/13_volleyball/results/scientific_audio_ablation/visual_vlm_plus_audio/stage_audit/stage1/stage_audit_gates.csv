@@ -1,0 +1,5 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+volleyball,stage1,artifact:object_observations,pass,keep_outputs,0,1,0,object_observations exists
+volleyball,stage1,artifact:object_correspondence,pass,keep_outputs,0,1,0,object_correspondence exists
+volleyball,stage1,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+volleyball,stage1,llm_csv:observation_contract,pass,keep_outputs,0,1,0,object_observations=240 object_correspondence=240

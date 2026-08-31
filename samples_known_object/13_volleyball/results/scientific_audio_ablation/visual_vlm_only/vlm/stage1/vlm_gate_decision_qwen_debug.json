@@ -1,0 +1,9 @@
+{
+  "case_name": "volleyball",
+  "stage": "stage1",
+  "gate_rows": 6,
+  "effective_rows": 6,
+  "gate_csv": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/vlm/stage1/vlm_gates_qwen_debug.csv",
+  "debug_limit": 10,
+  "note": "Debug Qwen gates are audit evidence only and do not overwrite full-stage vlm_gates.csv."
+}

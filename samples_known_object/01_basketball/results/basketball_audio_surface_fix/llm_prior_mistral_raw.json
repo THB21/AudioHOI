@@ -1,0 +1,135 @@
+{
+  "case_name": "basketball",
+  "provider": "mistral_api",
+  "provider_doctor": {
+    "name": "mistral_api",
+    "kind": "mistral_chat_completions",
+    "api_key_env": "MISTRAL_API_KEY",
+    "api_key_present": true,
+    "model_id": "mistral-small-latest",
+    "base_url": "https://api.mistral.ai/v1",
+    "temperature": 0.0,
+    "max_new_tokens": 900,
+    "timeout_seconds": 120
+  },
+  "raw_text": "{\n  \"case_name\": \"basketball\",\n  \"object_category\": \"basketball\",\n  \"object_family\": \"dynamic_ball\",\n  \"object_parts\": [\n    {\n      \"name\": \"ball_center\",\n      \"role\": \"2d_center_anchor\"\n    },\n    {\n      \"name\": \"ball_boundary\",\n      \"role\": \"mask_radius_anchor\"\n    },\n    {\n      \"name\": \"ball_bottom\",\n      \"role\": \"floor_support_anchor\"\n    }\n  ],\n  \"human_parts\": [\n    \"hand\",\n    \"floor\"\n  ],\n  \"interaction_edges\": [\n    {\n      \"human_part\": \"hand\",\n      \"object_part\": \"ball_boundary\",\n      \"relation\": \"touch\"\n    },\n    {\n      \"human_part\": \"floor\",\n      \"object_part\": \"ball_bottom\",\n      \"relation\": \"support\"\n    }\n  ],\n  \"support_priors\": [\n    \"floor_support\"\n  ],\n  \"motion_priors\": [\n    \"smooth_ball_translation\",\n    \"contact_depth_stabilization\",\n    \"bounce_impulse_model\"\n  ],\n  \"vlm_query_policy\": {\n    \"stage0\": [\n      \"target_mask_check\"\n    ],\n    \"stage1\": [\n      \"keypart_identity_check\",\n      \"track_stability_check\"\n    ],\n    \"stage2\": [\n      \"contact_relation_check\"\n    ],\n    \"stage3\": [\n      \"overlay_alignment_check\"\n    ],\n    \"stage4\": [\n      \"anchor_update_check\",\n      \"temporal_motion_check\"\n    ],\n    \"stage5\": [\n      \"post_render_sanity_check\"\n    ]\n  }\n}",
+  "parsed_json": {
+    "case_name": "basketball",
+    "object_category": "basketball",
+    "object_family": "dynamic_ball",
+    "object_parts": [
+      {
+        "name": "ball_center",
+        "role": "2d_center_anchor"
+      },
+      {
+        "name": "ball_boundary",
+        "role": "mask_radius_anchor"
+      },
+      {
+        "name": "ball_bottom",
+        "role": "floor_support_anchor"
+      }
+    ],
+    "human_parts": [
+      "hand",
+      "floor"
+    ],
+    "interaction_edges": [
+      {
+        "human_part": "hand",
+        "object_part": "ball_boundary",
+        "relation": "touch"
+      },
+      {
+        "human_part": "floor",
+        "object_part": "ball_bottom",
+        "relation": "support"
+      }
+    ],
+    "support_priors": [
+      "floor_support"
+    ],
+    "motion_priors": [
+      "smooth_ball_translation",
+      "contact_depth_stabilization",
+      "bounce_impulse_model"
+    ],
+    "vlm_query_policy": {
+      "stage0": [
+        "target_mask_check"
+      ],
+      "stage1": [
+        "keypart_identity_check",
+        "track_stability_check"
+      ],
+      "stage2": [
+        "contact_relation_check"
+      ],
+      "stage3": [
+        "overlay_alignment_check"
+      ],
+      "stage4": [
+        "anchor_update_check",
+        "temporal_motion_check"
+      ],
+      "stage5": [
+        "post_render_sanity_check"
+      ]
+    }
+  },
+  "parse_ok": true,
+  "prompt_context": {
+    "case_name": "basketball",
+    "result_name": "benchmark_vlm_qwen",
+    "prompt_entry_count": 5,
+    "entries": [
+      {
+        "kind": "sample_metadata.prompt",
+        "path": "samples_known_object/01_basketball/metadata.json",
+        "record_id": "",
+        "text_preview": "Generate a 10-second realistic video from this image. The person bounces the basketball repeatedly on the wooden gym floor. Use a static camera and keep the full body visible. The basketball should move clearly between the hand and the floor. Add realistic synchronized audio: a clear bouncing impact sound each time the ball hits the floor, no music, no speech. The first frame is given.",
+        "sha256": "b871f2b6b5eeed5dad2bd20845d8182e4d1406687ee9e0b996cac4e2d0abf827"
+      },
+      {
+        "kind": "sample_metadata.detection_text",
+        "path": "samples_known_object/01_basketball/metadata.json",
+        "record_id": "",
+        "text_preview": "basketball.",
+        "sha256": "2439a7d2b7404c6c1ab0c496d2322619ac84c98d8b50a6d19a45c684f16f050d"
+      },
+      {
+        "kind": "sample_metadata.name",
+        "path": "samples_known_object/01_basketball/metadata.json",
+        "record_id": "",
+        "text_preview": "basketball",
+        "sha256": "f02c96357481972443a2eb6d2861c803fa7790fb7d0225b2f54b6beba964f4ad"
+      },
+      {
+        "kind": "sample_metadata.video",
+        "path": "samples_known_object/01_basketball/metadata.json",
+        "record_id": "",
+        "text_preview": "video_sample/1_basketball_video.mp4",
+        "sha256": "749ea90300b2e1b0d46f83349cd62a19ddce12287a44769ea7695a3032fbd000"
+      },
+      {
+        "kind": "sample_metadata.image",
+        "path": "samples_known_object/01_basketball/metadata.json",
+        "record_id": "",
+        "text_preview": "video_sample/1_basketball.jpg",
+        "sha256": "346bd3b9db4e1924faa5319d19bd20eb89be8611b26b8c65540c532a866f6241"
+      }
+    ],
+    "missing_referenced_prompts": [],
+    "usage_rule": "Prompt context is semantic evidence for LLM/VLM query design only; it must not supply continuous pose, coordinates, or loss weights."
+  },
+  "usage": {
+    "prompt_tokens": 1839,
+    "total_tokens": 2198,
+    "completion_tokens": 359,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "response_id": "2ac01f1fb397442c8ddd6ff616b1418c"
+}

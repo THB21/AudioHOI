@@ -1,0 +1,23 @@
+{
+  "id": 12,
+  "name": "back_view_basketball",
+  "image": "video_sample/12_back_view_basketball.jpg",
+  "video": "video_sample/12_back_view_basketball_video.mp4",
+  "sample_video": "samples_known_object/12_back_view_basketball/video.mp4",
+  "frame_prompt": "Create a photorealistic 16:9 sports image for the first frame of a video. A single adult athlete is standing on a wooden indoor basketball court, seen from a rear three-quarter camera angle about 30 degrees behind the athlete's right side. Use a locked-off medium-wide camera and keep the athlete's full body, both hands, both legs, the orange basketball, and the floor contact area inside the frame. The athlete holds one orange basketball in the right hand at hip height, ready to begin a fast low crossover dribble. The ball and body must be sharply focused in this first frame. Use a simple uncluttered gym background, realistic anatomy and lighting, no other balls, no spectators, no text, no logo, and no watermark.",
+  "video_prompt": "Generate an 8-second photorealistic video with a completely static camera and no cuts, zooms, pans, or slow motion. The athlete performs six fast low crossover dribbles, alternating hands. During two crossovers the ball is briefly hidden by a leg or lower torso for only two to four frames, then reappears on a physically continuous path. Add exactly one clear bounce sound at every floor impact, synchronized to the impact frame, and no extra impact sounds. The ball must not float, teleport, duplicate, deform, or reverse direction without contact. Keep the full body and floor visible.",
+  "prompt": "Generate an 8-second photorealistic video with a completely static camera and no cuts, zooms, pans, or slow motion. The athlete performs six fast low crossover dribbles, alternating hands. During two crossovers the ball is briefly hidden by a leg or lower torso for only two to four frames, then reappears on a physically continuous path. Add exactly one clear bounce sound at every floor impact, synchronized to the impact frame, and no extra impact sounds. The ball must not float, teleport, duplicate, deform, or reverse direction without contact. Keep the full body and floor visible.",
+  "detection_text": "basketball. orange basketball. ball.",
+  "media": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24.0,
+    "frame_count": 240,
+    "duration_seconds": 10.005,
+    "has_audio": true,
+    "requested_duration_seconds": 8.0
+  },
+  "heldout_role": "back_view_basketball",
+  "scope": "object_only",
+  "human_evidence": "gvhmr_read_only"
+}

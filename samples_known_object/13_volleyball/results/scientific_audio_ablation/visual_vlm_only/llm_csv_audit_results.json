@@ -1,0 +1,85 @@
+{
+  "case_name": "volleyball",
+  "mode": "deterministic_csv_audit",
+  "llm_trace": {
+    "mode": "seed",
+    "used": false
+  },
+  "results": [
+    {
+      "query_id": "schema_completeness",
+      "label": "pass",
+      "blocking": false,
+      "evidence": {
+        "missing": []
+      },
+      "short_reason": "required schemas are present"
+    },
+    {
+      "query_id": "stage_consistency",
+      "label": "pass",
+      "blocking": false,
+      "evidence": {
+        "contact_candidates_rows": 165,
+        "object_contact_points_rows": 165,
+        "vlm_gates_rows": 27,
+        "optimizer_decision_rows": 240,
+        "motion_regime_rows": 240,
+        "ignored_rejected_frames": [],
+        "failures": []
+      },
+      "short_reason": "stage outputs are mutually consistent"
+    },
+    {
+      "query_id": "object_specific_rules",
+      "label": "depth_outlier",
+      "blocking": true,
+      "evidence": {
+        "failures": [
+          "large_depth_step:0.556m"
+        ],
+        "max_depth_step_m": 0.555688
+      },
+      "short_reason": "large_depth_step:0.556m"
+    },
+    {
+      "query_id": "failure_range_summary",
+      "label": "depth_outlier",
+      "blocking": false,
+      "evidence": {
+        "depth_jump_frames": [
+          135,
+          136,
+          137,
+          138,
+          139,
+          182,
+          183,
+          184
+        ],
+        "contact_frame_min": 1,
+        "contact_frame_max": 240,
+        "contact_frame_count": 165,
+        "pose_jump_audit_frames": [
+          18,
+          102,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          142,
+          182,
+          183,
+          184
+        ],
+        "trusted_solved_pose_lock": false,
+        "report_only_pose_jump_frames": [],
+        "low_trust_optimizer_frames": []
+      },
+      "short_reason": "inspect listed frames"
+    }
+  ]
+}

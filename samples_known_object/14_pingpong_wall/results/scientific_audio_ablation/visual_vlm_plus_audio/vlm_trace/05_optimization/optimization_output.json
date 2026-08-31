@@ -1,0 +1,86 @@
+{
+  "object_pose_pre_smooth": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_plus_audio/object_pose_pre_smooth.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "object_pose": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_plus_audio/object_pose.csv",
+    "exists": true,
+    "rows": 240,
+    "columns": [
+      "frame",
+      "time",
+      "tx",
+      "ty",
+      "tz",
+      "qw",
+      "qx",
+      "qy",
+      "qz",
+      "radius_m",
+      "source",
+      "generic_solve_attempt_id"
+    ],
+    "sample": [
+      {
+        "frame": "1",
+        "time": "0.0",
+        "tx": "0.15291686879665328",
+        "ty": "-0.1977070770249224",
+        "tz": "2.913533253497194",
+        "qw": "1.0",
+        "qx": "0.0",
+        "qy": "0.0",
+        "qz": "0.0",
+        "radius_m": "0.02",
+        "source": "generic_sequence_executor_with_rigid_impact_contact",
+        "generic_solve_attempt_id": "generic-solve-f1ccddc6cb39"
+      },
+      {
+        "frame": "2",
+        "time": "0.041667",
+        "tx": "0.15116194481938075",
+        "ty": "-0.20158400656676692",
+        "tz": "2.912189165386584",
+        "qw": "1.0",
+        "qx": "0.0",
+        "qy": "0.0",
+        "qz": "0.0",
+        "radius_m": "0.02",
+        "source": "generic_sequence_executor_with_rigid_impact_contact",
+        "generic_solve_attempt_id": "generic-solve-f1ccddc6cb39"
+      },
+      {
+        "frame": "3",
+        "time": "0.083333",
+        "tx": "0.14917070440933203",
+        "ty": "-0.19956935079063656",
+        "tz": "2.911079623651119",
+        "qw": "1.0",
+        "qx": "0.0",
+        "qy": "0.0",
+        "qz": "0.0",
+        "radius_m": "0.02",
+        "source": "generic_sequence_executor_with_rigid_impact_contact",
+        "generic_solve_attempt_id": "generic-solve-f1ccddc6cb39"
+      }
+    ]
+  },
+  "physical_smooth_residuals": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_plus_audio/physical_smooth_residuals.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "pose_jump_audit": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_plus_audio/pose_jump_audit.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  }
+}

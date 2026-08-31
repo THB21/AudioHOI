@@ -1,0 +1,18 @@
+{
+  "chunk_size": 16,
+  "da3_root": "/home/hebestreit/AudioHOI/scripts/third-party/depth-anything-3",
+  "depth_shape": [
+    240,
+    280,
+    504
+  ],
+  "device": "cuda",
+  "frame_count": 240,
+  "model_dir": "depth-anything/DA3METRIC-LARGE",
+  "normalized_depth_sha256": "ad4927afcf212e73bc6bddae60dc8e05efc42765460721d29829e5dca178fc97",
+  "output": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/da3/scene_depth",
+  "process_res": 504,
+  "sample_dir": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall",
+  "schema_version": 1,
+  "status": "generated"
+}

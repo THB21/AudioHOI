@@ -1,0 +1,56 @@
+{
+  "component": "generic_se3_pose_init",
+  "case_name": "pingpong_wall",
+  "adapter": {
+    "component": "translation3",
+    "source": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_observations.csv",
+    "object_pose_init": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_pose_init.csv",
+    "rows": 240,
+    "line_orientation_frames": 0,
+    "policy": "clean backprojection from Stage1 object observation using K_fullimg; optional tip_a/tip_b tracks define camera-plane object orientation",
+    "optimizer_style_residual_report": {
+      "rows": 0,
+      "path": "",
+      "stage_label": "stage3_translation3_init"
+    },
+    "adapter_component": "translation3",
+    "capability_plugin": {
+      "kind": "pose",
+      "name": "translation3",
+      "module": "scripts.shared.generic_contact_pipeline.components.pose.models.translation3",
+      "entrypoint": "build",
+      "requires": [
+        "observation.point_reference",
+        "contact.candidates"
+      ],
+      "provides": [
+        "pose.se3"
+      ],
+      "role": "compatibility_adapter",
+      "plugin_id": "pose:translation3"
+    }
+  },
+  "object_pose_init": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_pose_init.csv",
+  "rows": 240,
+  "se3_fields": [
+    "frame",
+    "time",
+    "tx",
+    "ty",
+    "tz",
+    "qw",
+    "qx",
+    "qy",
+    "qz"
+  ],
+  "missing_se3_fields": [],
+  "geometry_pose_prior": {
+    "enabled": false,
+    "reason": "no line geometry prior inputs"
+  },
+  "line_contact_pose_prior": {
+    "enabled": false,
+    "reason": "not a line object"
+  },
+  "policy": "fixed SE3 pose schema; weak or unobserved rotations remain identity/low-weight instead of dropping quaternion fields"
+}

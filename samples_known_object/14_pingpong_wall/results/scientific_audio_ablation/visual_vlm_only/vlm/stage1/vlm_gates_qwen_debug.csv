@@ -1,0 +1,7 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+pingpong,stage1,1,keypart_identity_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+pingpong,stage1,121,keypart_identity_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+pingpong,stage1,240,keypart_identity_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+pingpong,stage1,1,track_stability_check,stable,pass,accept_candidate,1,0,1,0,1
+pingpong,stage1,121,track_stability_check,stable,pass,accept_candidate,1,0,1,0,1
+pingpong,stage1,240,track_stability_check,stable,pass,accept_candidate,1,0,1,0,1

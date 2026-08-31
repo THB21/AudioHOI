@@ -1,0 +1,44 @@
+{
+  "case_name": "pingpong",
+  "result_name": "scientific_audio_ablation/visual_vlm_only",
+  "prompt_entry_count": 5,
+  "entries": [
+    {
+      "kind": "sample_metadata.prompt",
+      "path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/metadata.json",
+      "record_id": "",
+      "text_preview": "Generate an 8-second photorealistic video from the supplied first frame. Use one completely static camera with no cuts, zooms, pans, camera shake, or slow motion. The player performs a continuous solo rally using the same single white ping-pong ball, making exactly five fast forehand paddle contacts. After each paddle contact, the ball travels quickly to the flat wall, contacts the wall once, and returns to the paddle for the next hit. Preserve the strict alternating event order: paddle hit, wall rebound, paddle hit, wall rebound. During the fastest middle portion of each flight, render natural high-speed motion blur so the ball becomes a short faint streak and may be visually unresolvable as a distinct sphere for two to four consecutive video frames. At two paddle contacts, allow the ball to be completely hidden behind the paddle or forearm for one to two frames. The ball must become clearly visible again near each wall rebound and immediately before or after each paddle contact, so its identity and approximate trajectory remain recoverable. Add exactly one light hollow click at every paddle-ball contact and one slightly sharper tick at every ball-wall contact, each precisely synchronized to the physical contact frame. Add no sound during free flight and no extra impacts, music, or speech. The ball must not teleport, duplicate, merge, deform, change size, switch identity, or reverse direction without paddle or wall contact.",
+      "sha256": "d7c2d94919b9b0c57a1ab60ed02ba05fed29e95e0bd84609e0f5a45a70b58853"
+    },
+    {
+      "kind": "sample_metadata.detection_text",
+      "path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/metadata.json",
+      "record_id": "",
+      "text_preview": "white ping-pong ball. table-tennis ball. ping pong ball.",
+      "sha256": "24b4245a8c3b195094b091847db5899e25f3879b146fd8a5dad4eea165ffb6b3"
+    },
+    {
+      "kind": "sample_metadata.name",
+      "path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/metadata.json",
+      "record_id": "",
+      "text_preview": "pingpong_wall",
+      "sha256": "a61338cd091a9771deb91612c8008946f2509407ed139ccb1127a107b7f72587"
+    },
+    {
+      "kind": "sample_metadata.video",
+      "path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/metadata.json",
+      "record_id": "",
+      "text_preview": "video_sample/14_pingpong_wall_video.mp4",
+      "sha256": "0a13858460988314873618bf097a29868711e654cc52c69d0d16aa5d94fb5521"
+    },
+    {
+      "kind": "sample_metadata.image",
+      "path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/metadata.json",
+      "record_id": "",
+      "text_preview": "video_sample/14_pingpong_wall.jpg",
+      "sha256": "a351d8416dbbaa08255e1adab5ceea83a798f35204d5a0dbe10510f3954ec473"
+    }
+  ],
+  "missing_referenced_prompts": [],
+  "usage_rule": "Prompt context is semantic evidence for LLM/VLM query design only; it must not supply continuous pose, coordinates, or loss weights."
+}

@@ -1,0 +1,10 @@
+metric,unit,full,no_vlm,no_audio,better_direction,scope
+terminal_upright_yaw_branch_correction,deg,0.0,169.65,,lower,frame 240 VLM symmetry branch
+handle_broad_face_margin,score,1.88,-1.69,,higher,terminal semantic face relation
+left_side_exposure_margin,score,0.66,-0.96,,higher,terminal semantic side relation
+mean_broad_face_margin_208_240,score,1.91,-1.85,,higher,frames 208-240
+translation_path_179_240,m,0.217249,,0.279670,lower,audio motion interval
+translation_path_reduction_vs_no_audio,percent,22.32,,0.0,higher,audio motion interval
+net_rotation_drift_179_240,deg,29.2563,,40.1753,lower,audio motion interval
+net_rotation_drift_reduction_vs_no_audio,percent,27.18,,0.0,higher,audio motion interval
+rotation_path_179_240,deg,45.0448,,40.6734,lower,audio motion interval

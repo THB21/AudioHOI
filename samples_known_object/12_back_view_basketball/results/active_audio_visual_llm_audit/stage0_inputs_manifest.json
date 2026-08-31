@@ -1,0 +1,122 @@
+{
+  "schema_version": 2,
+  "stage": "stage0_preprocess",
+  "case_name": "back_view_basketball",
+  "sample_dir": "samples_known_object/12_back_view_basketball",
+  "result_dir": "samples_known_object/12_back_view_basketball/results/full_audio_vlm",
+  "render_dir": "samples_known_object/12_back_view_basketball/results/renders/full_audio_vlm",
+  "prepared_inputs": {
+    "frame_extract": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "frames": "samples_known_object/12_back_view_basketball/frames"
+      },
+      "output_hashes": {
+        "frames": "ac617c1161ea0e38f12a2100f3f2f88c20e3afab5efb67497c1087815f4ed20d"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "audio_extract": {
+      "status": "generated",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "audio": "samples_known_object/12_back_view_basketball/audio.wav"
+      },
+      "output_hashes": {
+        "audio": "e346de5d68a802a8d8ef687d5359cd3982633691cb1e6ac2abafe248d9e43606"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "sam2": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "sam2_masks": "samples_known_object/12_back_view_basketball/results/segmentation/masks",
+        "sam2_trajectory": "samples_known_object/12_back_view_basketball/results/tracking/object_trajectory.csv"
+      },
+      "output_hashes": {
+        "sam2_masks": "7be05e9593e91ab80d13b1d969b9851743754fd1fb42eb97ad2b2c170be6d37f",
+        "sam2_trajectory": "5f79864bbad9f3ce0cf4bc8320b3757d9d35ba86cedb211d9820d06a70af6250"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "cotracker": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "cotracker_center": "samples_known_object/12_back_view_basketball/results/tracking/object_center_trajectory.csv",
+        "cotracker_points": "samples_known_object/12_back_view_basketball/results/tracking/object_points.csv",
+        "cotracker_mesh_tracks": "samples_known_object/12_back_view_basketball/results/tracking/object_mesh_tracks_test.csv"
+      },
+      "output_hashes": {
+        "cotracker_center": "4db805f4eb9445462b3a46ba87c30b1a3e4582f51764ccc9afb140239545fe3f",
+        "cotracker_points": "4046d9b901b4c4f6eb02013ab5b58d3a022566f149e510faeefb109b0165b9ed",
+        "cotracker_mesh_tracks": "667d748298a836e7fbb9996b09bf94db15b936317df2164000256b540ab96d77"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "da3": {
+      "status": "reused",
+      "runtime_env": "da3",
+      "outputs": {
+        "da3_scene_depth": "samples_known_object/12_back_view_basketball/results/da3/scene_depth"
+      },
+      "output_hashes": {
+        "da3_scene_depth": "42572203a7256b24af57ba669f46e54bd4ba6b65d5c2a94e2e19acb7ea9794c2"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "object_depth_prior": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "object_depth_prior": "samples_known_object/12_back_view_basketball/results/da3/priors/object_depth_prior.csv"
+      },
+      "output_hashes": {
+        "object_depth_prior": "df23cbdcdac32b88a0688c3105881b5aaa167b98a6206c6fb0a06bac2343d2a0"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "gvhmr": {
+      "status": "reused",
+      "runtime_env": "gvhmr",
+      "outputs": {
+        "gvhmr_result": "samples_known_object/12_back_view_basketball/results/gvhmr/result.pkl"
+      },
+      "output_hashes": {
+        "gvhmr_result": "791f1d563a81c92be0f5853e1ac6c7d9cd46680d398929ea6bfb6b5231b18fb9"
+      },
+      "error": "",
+      "human_state_role": "read_only_observed"
+    },
+    "audio_events": {
+      "status": "generated",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "audio_events": "samples_known_object/12_back_view_basketball/results/events/audio_events.csv"
+      },
+      "output_hashes": {
+        "audio_events": "0fc40217b3d0609d1f3298729b5355c754a6d7748133047495c4d1eac68338ee"
+      },
+      "error": "",
+      "human_state_role": null
+    }
+  },
+  "checks": {
+    "case_ingestion_accepted": true,
+    "frame_count_positive": true,
+    "fps_positive": true,
+    "required_tasks_complete": true,
+    "gvhmr_read_only": true
+  },
+  "case_ingestion_manifest": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/case_ingestion_manifest.json",
+  "case_ingestion_manifest_sha256": "c08aff3880e06e7f8a7d593a87c36d915f0c6bc90662eb27d6b5d4a921670006",
+  "status": "accepted"
+}

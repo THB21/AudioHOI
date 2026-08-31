@@ -1,0 +1,44 @@
+{
+  "id": 15,
+  "name": "suitcase_drag",
+  "image": "video_sample/15_suitcase_drag.jpg",
+  "video": "video_sample/15_suitcase_drag_video.mp4",
+  "sample_video": "samples_known_object/15_suitcase_drag/video.mp4",
+  "frame_prompt": "Create a photorealistic 16:9 first frame in a quiet modern hallway. Use a locked side camera and show one adult person at full-body scale. Place one small hard-shell rolling suitcase on the far side of the person, away from the camera, so the person's body is between the camera and the suitcase. The suitcase should still be about seventy percent visible in the first frame: the extended handle, top edge, lower body, and both wheels can be inspected. The person's far hand holds the extended handle. Keep the hand, handle, suitcase, wheels, both legs, and floor visible enough to initialize tracking. Leave open hallway space in the direction of travel. Use realistic anatomy and lighting. No other luggage, people, mirrors, text, logos, or watermark.",
+  "video_prompt": "Generate an 8-second photorealistic video from the supplied first frame. Use one completely static side camera with no cuts, zooms, pans, camera shake, or slow motion. The suitcase remains on the far side of the person, away from the camera, throughout the sequence, and the far hand maintains a continuous grasp on the extended handle. Use this deliberately irregular motion schedule: first pull the suitcase steadily for about 0.8 seconds; stop completely for about 0.6 seconds; make one short sharper tug for about 0.4 seconds; stop again for about 0.7 seconds; make a longer uneven drag for about 1.5 seconds while the wheels cross two shallow floor seams; stop for about 0.4 seconds; then turn slightly and make a final diagonal drag so the suitcase moves farther behind the person's legs and lower torso. During the final drag, gradually reduce the visible suitcase area from about seventy percent to about thirty percent. For the final 1.5 seconds, both person and suitcase are completely stationary while the suitcase remains partially occluded; the top of the handle, one outer wheel, and one lower corner must remain visible as geometric anchors. Add a soft continuous wheel-rolling sound only while the suitcase is moving, with loudness roughly following speed. Add one small wheel click at each of the two floor seams. Use silence during every full stop, especially the final stationary interval. Keep footsteps very quiet and non-impulsive. Add no extra impacts, music, or speech. The suitcase must remain rigid, keep constant size and handle length, keep its wheels on the floor, and must not slide during stops, float, teleport, duplicate, deform, switch sides, or pass through the person or floor.",
+  "prompt": "Generate an 8-second photorealistic video from the supplied first frame. Use one completely static side camera with no cuts, zooms, pans, camera shake, or slow motion. The suitcase remains on the far side of the person, away from the camera, throughout the sequence, and the far hand maintains a continuous grasp on the extended handle. Use this deliberately irregular motion schedule: first pull the suitcase steadily for about 0.8 seconds; stop completely for about 0.6 seconds; make one short sharper tug for about 0.4 seconds; stop again for about 0.7 seconds; make a longer uneven drag for about 1.5 seconds while the wheels cross two shallow floor seams; stop for about 0.4 seconds; then turn slightly and make a final diagonal drag so the suitcase moves farther behind the person's legs and lower torso. During the final drag, gradually reduce the visible suitcase area from about seventy percent to about thirty percent. For the final 1.5 seconds, both person and suitcase are completely stationary while the suitcase remains partially occluded; the top of the handle, one outer wheel, and one lower corner must remain visible as geometric anchors. Add a soft continuous wheel-rolling sound only while the suitcase is moving, with loudness roughly following speed. Add one small wheel click at each of the two floor seams. Use silence during every full stop, especially the final stationary interval. Keep footsteps very quiet and non-impulsive. Add no extra impacts, music, or speech. The suitcase must remain rigid, keep constant size and handle length, keep its wheels on the floor, and must not slide during stops, float, teleport, duplicate, deform, switch sides, or pass through the person or floor.",
+  "detection_text": "small hard-shell rolling suitcase. rolling luggage. suitcase.",
+  "feature_detection_text": {
+    "handle": "extended suitcase handle. telescoping luggage handle.",
+    "wheels": "suitcase wheels. luggage wheel.",
+    "body": "hard-shell suitcase body. luggage body."
+  },
+  "media": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24.0,
+    "frame_count": 240,
+    "duration_seconds": 10.005,
+    "has_audio": true,
+    "requested_duration_seconds": 8.0
+  },
+  "provenance_warnings": [
+    "requested_duration_8_seconds_but_materialized_video_duration_is_10.005_seconds"
+  ],
+  "heldout_role": "suitcase_drag",
+  "scope": "object_only",
+  "state_family": "rigid_mesh",
+  "geometry_asset_status": "articraft_validated",
+  "geometry_asset_descriptor": "scripts/shared/generic_contact_pipeline/configs/assets/suitcase_fixed_rigid.json",
+  "geometry_asset_record_id": "rec_create-a-realistic-black-hard-shell-carry-on-rol_20260731_015156_616489_a9b2bd71",
+  "geometry_reference_sha256": "01bdf7c8ca598d3c942dd20b72260fcd21243e1a91f7677e2123d8ba1c377cea",
+  "geometry_resource_sha256": "20451d2218075319d0aa503b211e1598a102948617d8bb50ad9fdb4048092432",
+  "optimized_entity": "suitcase",
+  "observed_entities": [
+    "human_skeleton"
+  ],
+  "static_entities": [
+    "floor"
+  ],
+  "human_evidence": "gvhmr_read_only"
+}

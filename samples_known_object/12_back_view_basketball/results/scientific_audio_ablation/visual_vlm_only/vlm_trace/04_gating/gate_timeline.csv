@@ -1,0 +1,8 @@
+frame,stage,constraint,active,weight,source_gate,reason
+1,stage0,target_mask_check,0,,not_evaluated,dry_run_not_evaluated
+1,stage1,keypart_identity_check,0,,not_evaluated,dry_run_not_evaluated
+121,stage1,keypart_identity_check,0,,not_evaluated,dry_run_not_evaluated
+240,stage1,keypart_identity_check,0,,not_evaluated,dry_run_not_evaluated
+1,stage1,track_stability_check,0,,not_evaluated,dry_run_not_evaluated
+121,stage1,track_stability_check,0,,not_evaluated,dry_run_not_evaluated
+240,stage1,track_stability_check,0,,not_evaluated,dry_run_not_evaluated

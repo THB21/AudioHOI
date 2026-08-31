@@ -1,0 +1,3 @@
+query_id,label,blocking,short_reason,evidence
+object_specific_rules,depth_outlier,True,large_depth_step:0.556m,"{""failures"": [""large_depth_step:0.556m""], ""max_depth_step_m"": 0.555688}"
+failure_range_summary,depth_outlier,False,inspect listed frames,"{""contact_frame_count"": 165, ""contact_frame_max"": 240, ""contact_frame_min"": 1, ""depth_jump_frames"": [135, 136, 137, 138, 139, 182, 183, 184], ""low_trust_optimizer_frames"": [], ""pose_jump_audit_frames"": [18, 102, 134, 135, 136, 137, 138, 139, 140, 142, 182, 183, 184], ""report_only_pose_jump_frames"": [], ""trusted_solved_pose_lock"": false}"

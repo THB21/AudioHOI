@@ -1,0 +1,41 @@
+{
+  "schema_version": 2,
+  "stage": "stage4_contact_refine",
+  "component": "generic_sequence_executor",
+  "status": "accepted",
+  "solve_attempt_id": "generic-solve-766b9a5b5e0c",
+  "attempt_dir": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/generic_sequence_solver_attempts/generic-solve-766b9a5b5e0c",
+  "candidate_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/generic_stage4_candidate/generic_object_pose_candidate.csv",
+  "candidate_sha256": "4b0dae96d5fe7a57cef038254dc10ae478a3f2f9680ed201b4ff82ce767e9069",
+  "accepted_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_pose.csv",
+  "accepted_sha256": "4b0dae96d5fe7a57cef038254dc10ae478a3f2f9680ed201b4ff82ce767e9069",
+  "hard_gate": {
+    "passed": true,
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px",
+      "contact_distance_normalized_rmse",
+      "contact_gap_p95_m",
+      "contact_gap_max_m"
+    ],
+    "blocking_reasons": []
+  },
+  "initial_squared_error": 52.87670862559894,
+  "final_squared_error": 1.1059221437315003,
+  "function_evaluations": 12,
+  "factor_ids": [
+    "point_reprojection:measurement_ir",
+    "metric_depth:measurement_ir",
+    "temporal_acceleration:state_sequence",
+    "static_freeze:state_sequence",
+    "contact_distance:interaction_state"
+  ],
+  "measurement_count": 960,
+  "contact_constraint_count": 240,
+  "case_dispatch_used": false,
+  "baseline_pose_read": false,
+  "human_state_optimized": false,
+  "accepted_outputs_written": true
+}

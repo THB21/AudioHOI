@@ -1,0 +1,22 @@
+{
+  "case_name": "pingpong",
+  "stage": "stage1",
+  "llm_mode": "seed",
+  "note": "LLM audit operates on CSV/metrics evidence and may only emit discrete gates/actions.",
+  "queries": [
+    {
+      "case_name": "pingpong",
+      "stage": "stage1",
+      "object_family": "dynamic_ball",
+      "role": "CSV/metrics LLM audit gate; labels only, no coordinates or pose generation",
+      "query_id": "observation_contract",
+      "question": "Do object observations and correspondence rows exist with frame-aligned evidence?",
+      "allowed_labels": [
+        "pass",
+        "schema_missing",
+        "stage_inconsistent",
+        "unclear"
+      ]
+    }
+  ]
+}

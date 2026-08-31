@@ -1,0 +1,547 @@
+{
+  "case_name": "volleyball",
+  "profile": {
+    "case_name": "volleyball",
+    "sample_dir": "samples_known_object/13_volleyball",
+    "object_family": "dynamic_ball",
+    "geometry_model": "sphere_proxy",
+    "geometry_asset_descriptor": "scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json",
+    "sphere": {
+      "radius_m": 0.105
+    },
+    "observation_model": "mask_track_center",
+    "contact_policy": "hand_floor",
+    "pose_model": "translation3",
+    "generic_object_problem": {
+      "initializer": "point_depth",
+      "initializer_artifacts": [
+        "object_observations.csv",
+        "contact_state_frames.csv",
+        "contact_candidates_internal/contact_candidates_labeled.csv"
+      ],
+      "contact_artifact": "object_contact_points.csv",
+      "contact_state_artifact": "contact_state_frames.csv",
+      "contact_source": "event_directional",
+      "contact_event_artifact": "contact_candidates_internal/contact_candidates_labeled.csv",
+      "contact_target_feature": "object:surface",
+      "vlm_contact_interval_mode": "event_peak",
+      "vlm_contact_half_window_frames": 1,
+      "vlm_contact_requires_audio_timing": true,
+      "vlm_contact_site_mode": "all_hands_if_any_hand",
+      "vlm_contact_use_image_rays": false,
+      "vlm_contact_depth_mode": "shared_site_median",
+      "contact_residual_axes": [
+        0,
+        1,
+        2
+      ],
+      "maximum_contact_offset_m": 1.0,
+      "depth_reference": "directional_contact_interpolation",
+      "measurement_factors": [
+        "point_reprojection",
+        "metric_depth"
+      ],
+      "measurement_roles": {
+        "point_reprojection": [
+          "object_center"
+        ],
+        "metric_depth": [
+          "object_center_depth"
+        ]
+      },
+      "sequence_factors": [
+        "temporal_acceleration"
+      ],
+      "max_function_evaluations": 300
+    },
+    "factor_runtime": {
+      "point_reprojection": {
+        "weight": 1.0,
+        "sigma": 5.0,
+        "sigma_unit": "px",
+        "source": "measurement_ir:center_and_support_pixel_uncertainty",
+        "activation_weight_tiers": {
+          "active": 1.0,
+          "downweighted": 0.2,
+          "inactive": 0.0
+        }
+      },
+      "metric_depth": {
+        "weight": 0.245,
+        "sigma": 0.35,
+        "sigma_unit": "m",
+        "source": "measurement_ir:monocular_metric_depth_weak_prior",
+        "activation_weight_tiers": {
+          "active": 1.0,
+          "downweighted": 0.2,
+          "inactive": 0.0
+        }
+      },
+      "contact_distance": {
+        "weight": 4.0,
+        "sigma": 0.008,
+        "sigma_unit": "m",
+        "source": "interaction_state:vlm_confirmed_two_hand_to_sphere_surface",
+        "activation_weight_tiers": {
+          "active": 1.0,
+          "downweighted": 0.2,
+          "inactive": 0.0
+        }
+      },
+      "temporal_acceleration": {
+        "weight": 1.0,
+        "state_scales": [
+          0.8,
+          0.67,
+          0.2
+        ],
+        "source": "sequence_translation_optimizer:impact_gated_second_difference",
+        "activation_weight_tiers": {
+          "active": 1.0,
+          "downweighted": 0.05,
+          "inactive": 0.0
+        }
+      }
+    },
+    "refinement_policy": [
+      "generic_sphere_sequence",
+      "backproject_xy"
+    ],
+    "render_backend": "proxy_sphere",
+    "result_name": "final_full_4d_hoi",
+    "preprocess": {
+      "fps": 24.0,
+      "static_camera": true,
+      "detector_model": "IDEA-Research/grounding-dino-tiny",
+      "detector_text": "yellow and blue volleyball.",
+      "first_frame_box": "535,15,625,110",
+      "segmenter_model": "facebook/sam2.1-hiera-tiny",
+      "tracker": "cotracker3_offline",
+      "tracker_query_source": "sam2_mask_center",
+      "tracker_sequence_mode": "persistent_online",
+      "tracker_grid_size": 12,
+      "tracker_resize_width": 640,
+      "da3_chunk_size": 16,
+      "da3_process_res": 504
+    },
+    "vlm": {
+      "target": "single yellow and blue volleyball",
+      "parts": [
+        "ball_center",
+        "ball_boundary",
+        "ball_bottom",
+        "background",
+        "unclear"
+      ],
+      "contacts": [
+        "left_hand",
+        "right_hand",
+        "both_hands",
+        "no_contact",
+        "body",
+        "unclear"
+      ],
+      "stable_refs": [
+        "center",
+        "boundary_point",
+        "same_ball_from_previous_frame",
+        "unclear"
+      ],
+      "frame_policy": {
+        "stage1": "risk",
+        "stage2": "risk",
+        "stage4": "risk"
+      },
+      "single_identity": {
+        "enabled": true,
+        "entity_id": "volleyball",
+        "maximum_entities": 1,
+        "prefer_visible_mask": true,
+        "interpolate_missing_mask_max_frames": 16,
+        "offscreen_physics_enabled": true,
+        "offscreen_floor_impact_enabled": true,
+        "projected_ballistic_support_frames": 5
+      }
+    },
+    "audio": {
+      "expected_event_order": [
+        "hand_impact"
+      ],
+      "event_count": {
+        "hand_impact": 5
+      }
+    },
+    "camera": {
+      "fx": 1468.604736328125,
+      "fy": 1468.604736328125,
+      "cx": 640.0,
+      "cy": 360.0
+    }
+  },
+  "result_dir": "samples_known_object/13_volleyball/results/final_full_4d_hoi",
+  "render_dir": "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi",
+  "from_stage": "stage5",
+  "to_stage": "stage5",
+  "vlm_mode": "none",
+  "llm_mode": "none",
+  "vlm_blocking": false,
+  "capability_plugins": {
+    "observation": {
+      "kind": "observation",
+      "name": "mask_track_center",
+      "module": "scripts.shared.generic_contact_pipeline.components.observation.policies.mask_track_center",
+      "entrypoint": "build",
+      "requires": [],
+      "provides": [
+        "observation.point_reference"
+      ],
+      "role": "compatibility_adapter",
+      "plugin_id": "observation:mask_track_center"
+    },
+    "contact": {
+      "kind": "contact",
+      "name": "hand_floor",
+      "module": "scripts.shared.generic_contact_pipeline.components.contact.policies.hand_floor",
+      "entrypoint": "build",
+      "requires": [
+        "observation.point_reference"
+      ],
+      "provides": [
+        "contact.candidates",
+        "anchor.support"
+      ],
+      "role": "compatibility_adapter",
+      "plugin_id": "contact:hand_floor"
+    },
+    "pose": {
+      "kind": "pose",
+      "name": "translation3",
+      "module": "scripts.shared.generic_contact_pipeline.components.pose.models.translation3",
+      "entrypoint": "build",
+      "requires": [
+        "observation.point_reference",
+        "contact.candidates"
+      ],
+      "provides": [
+        "pose.se3"
+      ],
+      "role": "compatibility_adapter",
+      "plugin_id": "pose:translation3"
+    },
+    "refinement": [
+      {
+        "kind": "refinement",
+        "name": "generic_sphere_sequence",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.policies.generic_sphere_sequence",
+        "entrypoint": "apply",
+        "requires": [
+          "pose.se3",
+          "contact.candidates"
+        ],
+        "provides": [
+          "pose.seed_refined"
+        ],
+        "role": "mainline_implementation",
+        "plugin_id": "refinement:generic_sphere_sequence"
+      },
+      {
+        "kind": "refinement",
+        "name": "backproject_xy",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.policies.backproject_xy",
+        "entrypoint": "apply",
+        "requires": [
+          "pose.se3"
+        ],
+        "provides": [
+          "pose.seed_refined"
+        ],
+        "role": "compatibility_adapter",
+        "plugin_id": "refinement:backproject_xy"
+      }
+    ],
+    "implicit_mainline": [
+      {
+        "kind": "refinement",
+        "name": "sequence_se3_optimizer",
+        "module": "scripts.shared.generic_contact_pipeline.components.refinement.sequence_se3_optimizer",
+        "entrypoint": "smooth_quaternion_pose_sequence",
+        "requires": [
+          "pose.se3"
+        ],
+        "provides": [
+          "pose.sequence_refined"
+        ],
+        "role": "mainline_marker_and_implementation",
+        "plugin_id": "refinement:sequence_se3_optimizer"
+      }
+    ],
+    "intrinsic_capabilities": [
+      "input.audio",
+      "input.video"
+    ],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ]
+  },
+  "stage_results": [
+    {
+      "stage": "stage5",
+      "result": {
+        "backend": "proxy_sphere",
+        "outputs": {
+          "object_only/overlay.mp4": "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi/object_only/overlay.mp4",
+          "object_only/camera3d.mp4": "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi/object_only/camera3d.mp4",
+          "object_only/side_yz.mp4": "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi/object_only/side_yz.mp4",
+          "with_human/overlay.mp4": "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi/with_human/overlay.mp4",
+          "with_human/camera3d.mp4": "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi/with_human/camera3d.mp4",
+          "with_human/side_yz.mp4": "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi/with_human/side_yz.mp4"
+        },
+        "required": [
+          "object_only/overlay.mp4",
+          "object_only/camera3d.mp4",
+          "object_only/side_yz.mp4",
+          "with_human/overlay.mp4",
+          "with_human/camera3d.mp4",
+          "with_human/side_yz.mp4"
+        ],
+        "policy": "rerendered with generic proxy_sphere_scene using generic object_pose.csv and automatic h264 finalize",
+        "renderer": {
+          "python": "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+          "script": "scripts/shared/generic_contact_pipeline/components/render/scenes/proxy_sphere_scene.py"
+        }
+      },
+      "vlm_semantic_prepass": null,
+      "vlm_verification": null,
+      "vlm_gate": null,
+      "stage_audit": {
+        "case_name": "volleyball",
+        "stage": "stage5",
+        "decision": "pass",
+        "llm_mode": "none",
+        "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+        "gate_rows": 2,
+        "blocking_count": 0,
+        "rerun_stage": false,
+        "residual_reweight": false,
+        "repair_actions": [
+          "no_effective_vlm_gate"
+        ],
+        "audit_csv": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage5/stage_audit_gates.csv",
+        "llm_audit_queries": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage5/llm_audit_queries.json",
+        "llm_audit_results": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage5/llm_audit_results.csv"
+      }
+    }
+  ],
+  "generic_se3_mainline": {
+    "enabled": true,
+    "contract": "fixed_preprocess_observation_contact_anchor_se3_init_sequence_optimizer",
+    "object_family": "dynamic_ball",
+    "yaml_plugin_selectors": {
+      "observation_model": "mask_track_center",
+      "contact_policy": "hand_floor",
+      "pose_model": "translation3",
+      "refinement_policy": [
+        "generic_sphere_sequence",
+        "backproject_xy"
+      ],
+      "resolution": "explicit capability plugin registry",
+      "role": "Stage1-3 selectors invoke compatibility adapters; Stage4 refinement selectors run in declared order as compatibility seed/residual builders, except plugins explicitly marked as mainline markers or implementations"
+    },
+    "artifacts": {
+      "stage0_inputs_manifest": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_inputs_manifest.json",
+        "exists": true,
+        "rows": 174
+      },
+      "object_observations": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_observations.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_correspondence": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_correspondence.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_surface_points": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_surface_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "object_semantic_points": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_semantic_points.csv",
+        "exists": true,
+        "rows": 0
+      },
+      "line_correspondence": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/line_correspondence.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "line_observations": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/line_observations.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "contact_candidates": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/contact_candidates.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "anchor_state": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/anchor_state.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_pose_init": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose_init.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_pose_pre_smooth": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose_pre_smooth.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "motion_regime": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/motion_regime.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "physical_smooth_residuals": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/physical_smooth_residuals.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "pose_jump_audit": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/pose_jump_audit.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "optimizer_decisions": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/optimizer_decisions.csv",
+        "exists": false,
+        "rows": 0
+      },
+      "object_pose": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose.csv",
+        "exists": true,
+        "rows": 240
+      },
+      "object_contact_points": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/object_contact_points.csv",
+        "exists": true,
+        "rows": 60
+      },
+      "stage_audit_gates": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage_audit_gates.csv",
+        "exists": true,
+        "rows": 19
+      },
+      "stage_audit_latest": {
+        "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage_audit_latest.json",
+        "exists": true,
+        "rows": 16
+      }
+    },
+    "actual_vlm_artifacts": {
+      "exists": true,
+      "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/vlm",
+      "stage_count": 4,
+      "file_count": 73,
+      "csv_row_count": 144,
+      "stages": {
+        "stage1": {
+          "files": 16,
+          "csv_rows": {
+            "vlm_gates.csv": 10,
+            "vlm_queries.csv": 10,
+            "vlm_results.csv": 10
+          }
+        },
+        "stage2": {
+          "files": 16,
+          "csv_rows": {
+            "vlm_gates.csv": 10,
+            "vlm_queries.csv": 10,
+            "vlm_results.csv": 10
+          }
+        },
+        "stage3": {
+          "files": 9,
+          "csv_rows": {
+            "vlm_gates.csv": 3,
+            "vlm_queries.csv": 3,
+            "vlm_results.csv": 3
+          }
+        },
+        "stage4": {
+          "files": 32,
+          "csv_rows": {
+            "vlm_gates.csv": 25,
+            "vlm_queries.csv": 25,
+            "vlm_results.csv": 25
+          }
+        }
+      }
+    },
+    "actual_stage_audit_artifacts": {
+      "exists": true,
+      "path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit",
+      "stage_count": 6,
+      "file_count": 30,
+      "csv_row_count": 19,
+      "stages": {
+        "stage0": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 0,
+            "stage_audit_gates.csv": 2
+          }
+        },
+        "stage1": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 0,
+            "stage_audit_gates.csv": 3
+          }
+        },
+        "stage2": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 0,
+            "stage_audit_gates.csv": 3
+          }
+        },
+        "stage3": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 0,
+            "stage_audit_gates.csv": 3
+          }
+        },
+        "stage4": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 0,
+            "stage_audit_gates.csv": 6
+          }
+        },
+        "stage5": {
+          "files": 5,
+          "csv_rows": {
+            "llm_audit_results.csv": 0,
+            "stage_audit_gates.csv": 2
+          }
+        }
+      }
+    }
+  }
+}

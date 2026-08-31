@@ -1,0 +1,424 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "factor_id": "point_reprojection:measurement_ir",
+      "residual_fn_ref": "shadow_residual::point_reprojection",
+      "evaluator_ref": "FactorResidualEvaluator.point_reprojection",
+      "input_ids": [
+        "state:StateSpec:root",
+        "measurement:MeasurementIR:visual_observation"
+      ],
+      "gate_provenance": [
+        "activation_policy:visibility_state_controls_visual_observation+vlm_factor_arbitration",
+        "gate_axis:VisibilityState",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0001",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0002",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0003",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0004",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0005",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0006",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0007",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0008",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0009",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0010",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0011",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0012",
+        "legacy_gate_source:VisibilityState activation"
+      ],
+      "status": "ready_not_executed",
+      "runtime_config": {
+        "weight": 1.0,
+        "sigma": 5.0,
+        "sigma_unit": "px",
+        "source": "measurement_ir:center_and_support_pixel_uncertainty",
+        "state_scales": null,
+        "activation_weight_tiers": [
+          [
+            "active",
+            1.0
+          ],
+          [
+            "downweighted",
+            0.2
+          ],
+          [
+            "inactive",
+            0.0
+          ]
+        ]
+      },
+      "activation_intervals": [
+        {
+          "start_frame": 1,
+          "end_frame": 240,
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "factor_id": "metric_depth:measurement_ir",
+      "residual_fn_ref": "shadow_residual::metric_depth",
+      "evaluator_ref": "FactorResidualEvaluator.metric_depth",
+      "input_ids": [
+        "state:StateSpec:root",
+        "measurement:MeasurementIR:depth_observation"
+      ],
+      "gate_provenance": [
+        "activation_policy:visibility_state_controls_visual_observation+vlm_factor_arbitration",
+        "gate_axis:VisibilityState",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0001",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0002",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0003",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0004",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0005",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0006",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0007",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0008",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0009",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0010",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0011",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0012",
+        "legacy_gate_source:VisibilityState activation"
+      ],
+      "status": "ready_not_executed",
+      "runtime_config": {
+        "weight": 0.245,
+        "sigma": 0.35,
+        "sigma_unit": "m",
+        "source": "measurement_ir:monocular_metric_depth_weak_prior",
+        "state_scales": null,
+        "activation_weight_tiers": [
+          [
+            "active",
+            1.0
+          ],
+          [
+            "downweighted",
+            0.2
+          ],
+          [
+            "inactive",
+            0.0
+          ]
+        ]
+      },
+      "activation_intervals": [
+        {
+          "start_frame": 1,
+          "end_frame": 240,
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "factor_id": "temporal_acceleration:state_sequence",
+      "residual_fn_ref": "shadow_residual::temporal_acceleration",
+      "evaluator_ref": "FactorResidualEvaluator.temporal_delta",
+      "input_ids": [
+        "state:StateSpec:root"
+      ],
+      "gate_provenance": [
+        "activation_policy:interaction_state_controls_acceleration_smoothness",
+        "gate_axis:ContactMode",
+        "gate_axis:MotionMode",
+        "legacy_gate_source:InteractionState ContactMode/MotionMode activation"
+      ],
+      "status": "ready_not_executed",
+      "runtime_config": {
+        "weight": 1.0,
+        "sigma": null,
+        "sigma_unit": null,
+        "source": "sequence_translation_optimizer:impact_gated_second_difference",
+        "state_scales": [
+          0.8,
+          0.67,
+          0.2
+        ],
+        "activation_weight_tiers": [
+          [
+            "active",
+            1.0
+          ],
+          [
+            "downweighted",
+            0.05
+          ],
+          [
+            "inactive",
+            0.0
+          ]
+        ]
+      },
+      "activation_intervals": [
+        {
+          "start_frame": 1,
+          "end_frame": 240,
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "factor_id": "static_freeze:state_sequence",
+      "residual_fn_ref": "shadow_residual::static_freeze",
+      "evaluator_ref": "FactorResidualEvaluator.temporal_delta",
+      "input_ids": [
+        "state:StateSpec:root"
+      ],
+      "gate_provenance": [
+        "activation_policy:motion_mode_controls_static_freeze",
+        "gate_axis:MotionMode",
+        "legacy_gate_source:InteractionState ContactMode/MotionMode activation"
+      ],
+      "status": "ready_not_executed"
+    },
+    {
+      "factor_id": "contact_distance:interaction_state",
+      "residual_fn_ref": "shadow_residual::contact_distance",
+      "evaluator_ref": "FactorResidualEvaluator.contact_distance",
+      "input_ids": [
+        "state:StateSpec:root",
+        "constraint:ContactConstraintIR:contact_or_support"
+      ],
+      "gate_provenance": [
+        "activation_policy:contact_state_controls_contact_distance+vlm_factor_arbitration",
+        "gate_axis:ContactState",
+        "gate_axis:ContactMode",
+        "gate_axis:active_contact_ids",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0001",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0002",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0003",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0004",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0005",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0006",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0007",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0008",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0009",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0010",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0011",
+        "gate_axis:vlm_factor_arbitration:vlm-factor-0012",
+        "legacy_gate_source:InteractionState human_active"
+      ],
+      "status": "ready_not_executed",
+      "runtime_config": {
+        "weight": 4.0,
+        "sigma": 0.008,
+        "sigma_unit": "m",
+        "source": "interaction_state:vlm_confirmed_two_hand_to_sphere_surface",
+        "state_scales": null,
+        "activation_weight_tiers": [
+          [
+            "active",
+            1.0
+          ],
+          [
+            "downweighted",
+            0.2
+          ],
+          [
+            "inactive",
+            0.0
+          ]
+        ]
+      },
+      "activation_intervals": [
+        {
+          "start_frame": 1,
+          "end_frame": 3,
+          "status": "active"
+        },
+        {
+          "start_frame": 4,
+          "end_frame": 4,
+          "status": "downweighted"
+        },
+        {
+          "start_frame": 5,
+          "end_frame": 8,
+          "status": "inactive"
+        },
+        {
+          "start_frame": 9,
+          "end_frame": 15,
+          "status": "active"
+        },
+        {
+          "start_frame": 16,
+          "end_frame": 16,
+          "status": "downweighted"
+        },
+        {
+          "start_frame": 17,
+          "end_frame": 32,
+          "status": "inactive"
+        },
+        {
+          "start_frame": 33,
+          "end_frame": 35,
+          "status": "active"
+        },
+        {
+          "start_frame": 36,
+          "end_frame": 36,
+          "status": "downweighted"
+        },
+        {
+          "start_frame": 37,
+          "end_frame": 48,
+          "status": "inactive"
+        },
+        {
+          "start_frame": 49,
+          "end_frame": 51,
+          "status": "active"
+        },
+        {
+          "start_frame": 52,
+          "end_frame": 52,
+          "status": "downweighted"
+        },
+        {
+          "start_frame": 53,
+          "end_frame": 64,
+          "status": "inactive"
+        },
+        {
+          "start_frame": 65,
+          "end_frame": 67,
+          "status": "active"
+        },
+        {
+          "start_frame": 68,
+          "end_frame": 68,
+          "status": "downweighted"
+        },
+        {
+          "start_frame": 69,
+          "end_frame": 93,
+          "status": "inactive"
+        },
+        {
+          "start_frame": 94,
+          "end_frame": 96,
+          "status": "active"
+        },
+        {
+          "start_frame": 97,
+          "end_frame": 97,
+          "status": "downweighted"
+        },
+        {
+          "start_frame": 98,
+          "end_frame": 113,
+          "status": "inactive"
+        },
+        {
+          "start_frame": 114,
+          "end_frame": 116,
+          "status": "active"
+        },
+        {
+          "start_frame": 117,
+          "end_frame": 117,
+          "status": "downweighted"
+        },
+        {
+          "start_frame": 118,
+          "end_frame": 129,
+          "status": "inactive"
+        },
+        {
+          "start_frame": 130,
+          "end_frame": 132,
+          "status": "active"
+        },
+        {
+          "start_frame": 133,
+          "end_frame": 133,
+          "status": "downweighted"
+        },
+        {
+          "start_frame": 134,
+          "end_frame": 161,
+          "status": "inactive"
+        },
+        {
+          "start_frame": 162,
+          "end_frame": 162,
+          "status": "active"
+        },
+        {
+          "start_frame": 163,
+          "end_frame": 183,
+          "status": "inactive"
+        },
+        {
+          "start_frame": 184,
+          "end_frame": 189,
+          "status": "active"
+        },
+        {
+          "start_frame": 190,
+          "end_frame": 190,
+          "status": "downweighted"
+        },
+        {
+          "start_frame": 191,
+          "end_frame": 197,
+          "status": "inactive"
+        },
+        {
+          "start_frame": 198,
+          "end_frame": 199,
+          "status": "active"
+        },
+        {
+          "start_frame": 200,
+          "end_frame": 221,
+          "status": "inactive"
+        },
+        {
+          "start_frame": 222,
+          "end_frame": 222,
+          "status": "active"
+        },
+        {
+          "start_frame": 223,
+          "end_frame": 226,
+          "status": "inactive"
+        },
+        {
+          "start_frame": 227,
+          "end_frame": 228,
+          "status": "active"
+        },
+        {
+          "start_frame": 229,
+          "end_frame": 229,
+          "status": "downweighted"
+        },
+        {
+          "start_frame": 230,
+          "end_frame": 240,
+          "status": "inactive"
+        }
+      ]
+    },
+    {
+      "factor_id": "pose_prior:state_initializer",
+      "residual_fn_ref": "shadow_residual::pose_prior",
+      "evaluator_ref": "FactorResidualEvaluator.pose_prior",
+      "input_ids": [
+        "state:StateSpec:root"
+      ],
+      "gate_provenance": [
+        "activation_policy:always_on_state_or_geometry_regularizer",
+        "gate_axis:StateSpec"
+      ],
+      "status": "ready_not_executed"
+    }
+  ],
+  "case_dispatch_used": false,
+  "baseline_pose_read": false,
+  "human_state_optimized": false
+}

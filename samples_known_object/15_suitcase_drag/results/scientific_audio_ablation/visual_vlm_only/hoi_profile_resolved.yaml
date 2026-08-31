@@ -1,0 +1,89 @@
+case_name: suitcase
+object_category: rolling suitcase
+object_family: rigid_mesh
+object_parts:
+- name: handle
+  role: semantic_or_contact_candidate
+- name: body
+  role: semantic_or_contact_candidate
+- name: wheels
+  role: semantic_or_contact_candidate
+human_parts:
+- left_hand
+- right_hand
+interaction_edges:
+- human_part: left_hand
+  object_part: handle
+  relation: candidate_contact
+- human_part: right_hand
+  object_part: handle
+  relation: candidate_contact
+support_priors:
+- floor_support
+motion_priors:
+- smooth_temporal_motion
+vlm_query_policy:
+  stage0:
+  - target_mask_check
+  stage1:
+  - keypart_identity_check
+  - track_stability_check
+  stage2:
+  - contact_relation_check
+  stage3:
+  - overlay_alignment_check
+  stage4:
+  - anchor_update_check
+  - temporal_motion_check
+  stage5:
+  - post_render_sanity_check
+source: case_config_default
+schema_version: 1
+rules:
+  llm_outputs_pose: false
+  vlm_outputs_pose: false
+  vlm_outputs_loss_weights: false
+  optimizer_is_only_continuous_solver: true
+source_prompt_count: 5
+source_prompts:
+- kind: sample_metadata.prompt
+  path: /tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/metadata.json
+  record_id: ''
+  text_preview: 'Generate an 8-second photorealistic video from the supplied first
+    frame. Use one completely static side camera with no cuts, zooms, pans, camera
+    shake, or slow motion. The suitcase remains on the far side of the person, away
+    from the camera, throughout the sequence, and the far hand maintains a continuous
+    grasp on the extended handle. Use this deliberately irregular motion schedule:
+    first pull the suitcase steadily for about 0.8 seconds; stop completely for about
+    0.6 seconds; make one short sharper tug for about 0.4 seconds; stop again for
+    about 0.7 seconds; make a longer uneven drag for about 1.5 seconds while the wheels
+    cross two shallow floor seams; stop for about 0.4 seconds; then turn slightly
+    and make a final diagonal drag so the suitcase moves farther behind the person''s
+    legs and lower torso. During the final drag, gradually reduce the visible suitcase
+    area from about seventy percent to about thirty percent. For the final 1.5 seconds,
+    both person and suitcase are completely stationary while the suitcase remains
+    partially occluded; the top of the handle, one outer wheel, and one lower corner
+    must remain visible as geometric anchors. Add a soft continuous wheel-rolling
+    sound only while the suitcase is moving, with loudness roughly following speed.
+    Add one small wheel click at each of the two floor seams. Use silence during every
+    full stop, especially the final stationary interval. Keep footsteps very quiet
+    and non-impulsive. Add no extra impacts, music, or speech. The suitcase must remain
+    rigid, keep constant size and handle length, keep its wheels on the floor, and
+    must not slide during stops, float, teleport, duplicate, deform, switch sides,
+    or pass through the person or floor.'
+- kind: sample_metadata.detection_text
+  path: /tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/metadata.json
+  record_id: ''
+  text_preview: small hard-shell rolling suitcase. rolling luggage. suitcase.
+- kind: sample_metadata.name
+  path: /tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/metadata.json
+  record_id: ''
+  text_preview: suitcase_drag
+- kind: sample_metadata.video
+  path: /tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/metadata.json
+  record_id: ''
+  text_preview: video_sample/15_suitcase_drag_video.mp4
+- kind: sample_metadata.image
+  path: /tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/metadata.json
+  record_id: ''
+  text_preview: video_sample/15_suitcase_drag.jpg

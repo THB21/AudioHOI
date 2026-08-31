@@ -1,0 +1,11 @@
+{
+  "case_name": "volleyball",
+  "stage": "stage4",
+  "gate_rows": 10,
+  "effective_rows": 0,
+  "blocked_frames": [],
+  "unclear_frames": [],
+  "accepted_contact_frames": [],
+  "accepted_anchor_frames": [],
+  "gate_csv": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/vlm/stage4/vlm_gates.csv"
+}

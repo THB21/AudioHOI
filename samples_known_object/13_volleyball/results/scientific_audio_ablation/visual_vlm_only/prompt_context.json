@@ -1,0 +1,44 @@
+{
+  "case_name": "volleyball",
+  "result_name": "scientific_audio_ablation/visual_vlm_only",
+  "prompt_entry_count": 5,
+  "entries": [
+    {
+      "kind": "sample_metadata.prompt",
+      "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/metadata.json",
+      "record_id": "",
+      "text_preview": "Use the picture I gave as first frame strictly to start the video. Generate an 8-second photorealistic video with a completely static camera and no cuts, zooms, or slow motion. The athlete performs five rapid controlled overhead volleyball sets, contacting the ball briefly with both hands each time and allowing a clear short flight between contacts. Add one soft but distinct hand-ball impact sound at each set, precisely synchronized, with no sound during flight. Preserve a continuous ballistic trajectory between contacts. The ball must not float, teleport, duplicate, deform, or change direction without hand contact.",
+      "sha256": "9cadf6886a8540f182107e3e0aec80237bb6f93ad853b2660574deeed88fa277"
+    },
+    {
+      "kind": "sample_metadata.detection_text",
+      "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/metadata.json",
+      "record_id": "",
+      "text_preview": "volleyball. yellow and blue volleyball. ball.",
+      "sha256": "64931e29a79ea0f4d5876d8d16eebe2067fcf181570389b4f5fa67547b0b4b77"
+    },
+    {
+      "kind": "sample_metadata.name",
+      "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/metadata.json",
+      "record_id": "",
+      "text_preview": "volleyball",
+      "sha256": "3580c9267518807d14803ab6821fa067b4dba1210a4148a243b9e9383bae6a1e"
+    },
+    {
+      "kind": "sample_metadata.video",
+      "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/metadata.json",
+      "record_id": "",
+      "text_preview": "video_sample/13_volleyball_video.mp4",
+      "sha256": "d9a7ca8c6da977003a6678365e878c5138cc3bd06676226319e71e0fcc1f9154"
+    },
+    {
+      "kind": "sample_metadata.image",
+      "path": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/metadata.json",
+      "record_id": "",
+      "text_preview": "video_sample/13_volleyball.jpg",
+      "sha256": "2bdd6a80dd1ff1abfc0f2029e73e38692480960443047c7ad4f5a2c6d19e4641"
+    }
+  ],
+  "missing_referenced_prompts": [],
+  "usage_rule": "Prompt context is semantic evidence for LLM/VLM query design only; it must not supply continuous pose, coordinates, or loss weights."
+}

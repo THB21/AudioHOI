@@ -1,0 +1,33 @@
+{
+  "accepted_outputs_written": false,
+  "metrics": {
+    "active_bound_count": 0,
+    "contact_distance_normalized_rmse": 0.7090483741633719,
+    "contact_distance_normalized_rmse_limit": 2.0,
+    "contact_gap_all_rows_max_m": 0.0883814850610263,
+    "contact_gap_all_rows_p95_m": 0.06557093920790383,
+    "contact_gap_max_m": 0.0883814850610263,
+    "contact_gap_max_m_limit": 0.2,
+    "contact_gap_p95_m": 0.06557093920790383,
+    "contact_gap_p95_m_limit": 0.08,
+    "final_squared_error": 173.31574995468972,
+    "initial_squared_error": 265.832369556208,
+    "objective_nonincrease": true,
+    "optimality": 0.005007512036278812,
+    "point_projection_all_rows_p95_px": 3.5048229855790565,
+    "point_projection_max_px": 22.1406112736215,
+    "point_projection_p95_px": 3.5048229855790565,
+    "point_projection_p95_px_limit": 24.0,
+    "projection_normalized_rmse": 0.4110964380363602,
+    "projection_normalized_rmse_limit": 2.0,
+    "solver_stationary": false,
+    "solver_success": true,
+    "solver_termination_accepted": true,
+    "stationarity_limit": 0.1,
+    "termination_status": 2,
+    "trusted_contact_confidence_min": 0.5
+  },
+  "schema_version": 1,
+  "scope": "object_only",
+  "status": "evaluated"
+}

@@ -1,0 +1,90 @@
+{
+  "schema_version": 4,
+  "case_name": "volleyball",
+  "result_name": "final_full_4d_hoi",
+  "stage": "stage5",
+  "attempt_id": "000001",
+  "status": "completed",
+  "trigger": "scheduled_pipeline_stage",
+  "parent_attempt_id": null,
+  "started_at": "2026-08-19T18:40:49.540812+00:00",
+  "finished_at": "2026-08-19T18:42:05.990564+00:00",
+  "metadata": {
+    "from_stage": "stage5",
+    "to_stage": "stage5"
+  },
+  "artifacts_before": {},
+  "artifacts_after": {
+    "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi/outputs.json": {
+      "sha256": "b23a90f5b0e15f8befbc5a33c31d5dd850ff8bb16c71673fa2199551abe050b8",
+      "size_bytes": 1323
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage5_metrics.json": {
+      "sha256": "b23a90f5b0e15f8befbc5a33c31d5dd850ff8bb16c71673fa2199551abe050b8",
+      "size_bytes": 1323
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage5/stage_audit_gates.csv": {
+      "sha256": "87b71277e8d21cf0b2b7e2c4828eacbbf4a09d80ff5ba845fa32e32b9e38e7dd",
+      "size_bytes": 293
+    }
+  },
+  "stored_artifacts": {
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage5_metrics.json": {
+      "algorithm": "sha256",
+      "sha256": "b23a90f5b0e15f8befbc5a33c31d5dd850ff8bb16c71673fa2199551abe050b8",
+      "size_bytes": 1323,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage5_metrics.json",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/b2/b23a90f5b0e15f8befbc5a33c31d5dd850ff8bb16c71673fa2199551abe050b8"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage5/stage_audit_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "87b71277e8d21cf0b2b7e2c4828eacbbf4a09d80ff5ba845fa32e32b9e38e7dd",
+      "size_bytes": 293,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage5/stage_audit_gates.csv",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/87/87b71277e8d21cf0b2b7e2c4828eacbbf4a09d80ff5ba845fa32e32b9e38e7dd"
+    },
+    "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi/outputs.json": {
+      "algorithm": "sha256",
+      "sha256": "b23a90f5b0e15f8befbc5a33c31d5dd850ff8bb16c71673fa2199551abe050b8",
+      "size_bytes": 1323,
+      "canonical_path": "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi/outputs.json",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/b2/b23a90f5b0e15f8befbc5a33c31d5dd850ff8bb16c71673fa2199551abe050b8"
+    }
+  },
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "volleyball",
+    "result_name": "final_full_4d_hoi",
+    "stage": "stage5",
+    "status": "pass",
+    "artifacts": [],
+    "errors": []
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage5",
+    "plugins": [],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage5_metrics.json",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage5/stage_audit_gates.csv",
+    "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi/outputs.json"
+  ],
+  "result_summary": {
+    "stage_status": "",
+    "vlm_decision": "not_run",
+    "stage_audit_decision": "pass",
+    "rerun_requested": false
+  }
+}

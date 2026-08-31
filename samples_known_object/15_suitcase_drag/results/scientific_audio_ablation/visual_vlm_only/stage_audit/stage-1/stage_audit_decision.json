@@ -1,0 +1,17 @@
+{
+  "case_name": "suitcase",
+  "stage": "stage-1",
+  "decision": "pass",
+  "llm_mode": "seed",
+  "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+  "gate_rows": 2,
+  "blocking_count": 0,
+  "rerun_stage": false,
+  "residual_reweight": false,
+  "repair_actions": [
+    "no_effective_vlm_gate"
+  ],
+  "audit_csv": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_only/stage_audit/stage-1/stage_audit_gates.csv",
+  "llm_audit_queries": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_only/stage_audit/stage-1/llm_audit_queries.json",
+  "llm_audit_results": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_only/stage_audit/stage-1/llm_audit_results.csv"
+}

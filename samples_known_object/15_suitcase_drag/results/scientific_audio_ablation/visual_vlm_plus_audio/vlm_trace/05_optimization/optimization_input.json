@@ -1,0 +1,23 @@
+{
+  "object_pose_init": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/object_pose_init.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "anchor_state": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/anchor_state.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "optimizer_decisions": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_plus_audio/optimizer_decisions.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  }
+}

@@ -1,0 +1,22 @@
+case_name: suitcase
+sample_dir: samples_known_object/15_suitcase_drag
+object_family: rigid_mesh
+geometry_model: articraft_urdf
+observation_model: rigid_body_parts
+contact_policy: palm_handle
+pose_model: rigid6
+refinement_policy: [stable_grasp_anchor, sequence_se3_optimizer]
+render_backend: urdf_solid
+render_scene: generic_urdf
+result_name: generic_pipeline_v1
+preprocess: {auto_run: false, fps: 24.0}
+articraft_urdf: samples_known_object/15_suitcase_drag/articraft/materialized_suitcase/model.urdf
+vlm:
+  target: rolling suitcase
+  parts: [handle, body, wheels, background, unclear]
+  contacts: [left_hand, right_hand, floor, nothing_nearby, unclear]
+  stable_refs: [handle, body_corner, wheel, unclear]
+camera: {fx: 1468.604736328125, fy: 1468.604736328125, cx: 640.0, cy: 360.0}
+baseline:
+  final_pose_csv: samples_known_object/15_suitcase_drag/results/ablation_evaluation/frozen_poses/full_object_pose_6d.csv
+  init_pose_csv: samples_known_object/15_suitcase_drag/results/ablation_evaluation/frozen_poses/no_audio_object_pose_6d.csv

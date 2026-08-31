@@ -1,0 +1,11 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+volleyball,stage2,1,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+volleyball,stage2,62,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+volleyball,stage2,222,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+volleyball,stage2,119,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+volleyball,stage2,240,contact_relation_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+volleyball,stage2,1,keypart_visibility_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+volleyball,stage2,62,keypart_visibility_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+volleyball,stage2,222,keypart_visibility_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+volleyball,stage2,119,keypart_visibility_check,dry_run_not_evaluated,not_evaluated,none,0,0,1
+volleyball,stage2,240,keypart_visibility_check,dry_run_not_evaluated,not_evaluated,none,0,0,1

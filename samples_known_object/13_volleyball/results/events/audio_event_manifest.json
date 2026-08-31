@@ -1,0 +1,25 @@
+{
+  "audio_sha256": "312a7368c29267f9ecea29c39bfd84df6f778c1f092e6f28b3c4e865d580b33a",
+  "classifier": "rule",
+  "detector": "combined",
+  "empty_event_stream_valid": false,
+  "envelope_config": {
+    "hop_ms": 41.666666666666664,
+    "impulse_z": 3.0,
+    "min_motion_ms": 150.0,
+    "min_silence_ms": 250.0,
+    "motion_off_z": -0.1,
+    "motion_on_z": 0.55,
+    "window_ms": 80.0
+  },
+  "envelope_output": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/events/audio_envelope.csv",
+  "envelope_row_count": 240,
+  "envelope_sha256": "211ec2b08c25eebdfb133e69bc301150412be0cfc3e38150f92d49504a8ed3ba",
+  "event_count": 50,
+  "events_sha256": "ef561f0417aa22a3d29762ab0113e983993455f2500c9c4b7b90db2db7cef383",
+  "fps": 24.0,
+  "output": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/events/audio_events.csv",
+  "sample_dir": "/tmp/audiohoi-nine/samples_known_object/13_volleyball",
+  "schema_version": 2,
+  "status": "generated"
+}

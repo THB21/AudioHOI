@@ -1,0 +1,3 @@
+query_id,label,blocking,rerun_stage,residual_reweight,short_reason,llm_reviewed
+render_manifest,pass,0,0,0,render manifest exists,
+render_temporal_consistency,unclear,0,0,0,21 machine spike rows but no effective temporal VLM rows,

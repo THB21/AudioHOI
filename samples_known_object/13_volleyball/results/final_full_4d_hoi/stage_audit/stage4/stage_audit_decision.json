@@ -1,0 +1,18 @@
+{
+  "case_name": "volleyball",
+  "stage": "stage4",
+  "decision": "reject",
+  "llm_mode": "none",
+  "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+  "gate_rows": 6,
+  "blocking_count": 4,
+  "rerun_stage": true,
+  "residual_reweight": true,
+  "repair_actions": [
+    "rerun_stage_or_block",
+    "rerun_stage_with_lower_trust"
+  ],
+  "audit_csv": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage4/stage_audit_gates.csv",
+  "llm_audit_queries": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage4/llm_audit_queries.json",
+  "llm_audit_results": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage4/llm_audit_results.csv"
+}

@@ -1,0 +1,12 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+pingpong_wall,stage0,artifact:stage0_inputs_manifest,pass,keep_outputs,0,1,0,stage0_inputs_manifest exists
+pingpong_wall,stage0,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+pingpong_wall,stage1,artifact:object_observations,pass,keep_outputs,0,1,0,object_observations exists
+pingpong_wall,stage1,artifact:object_correspondence,pass,keep_outputs,0,1,0,object_correspondence exists
+pingpong_wall,stage1,vlm_gate,pass,keep_outputs,0,1,0,all effective VLM gates pass
+pingpong_wall,stage2,artifact:contact_candidates,pass,keep_outputs,0,1,0,contact_candidates exists
+pingpong_wall,stage2,artifact:anchor_state,pass,keep_outputs,0,1,0,anchor_state exists
+pingpong_wall,stage2,vlm_gate,reject,rerun_stage_with_gate,1,0,0,VLM rejected 4 frame/query rows
+pingpong_wall,stage3,artifact:object_pose_init,pass,keep_outputs,0,1,0,object_pose_init exists
+pingpong_wall,stage3,se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+pingpong_wall,stage3,vlm_gate,unclear,rerun_stage_with_lower_trust,1,1,0,VLM marked 3 frame/query rows unclear

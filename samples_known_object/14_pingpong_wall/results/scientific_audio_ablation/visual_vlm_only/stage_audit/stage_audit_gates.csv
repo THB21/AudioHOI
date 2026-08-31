@@ -1,0 +1,31 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+pingpong,stage-1,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+pingpong,stage-1,llm_csv:stage_contract,pass,keep_outputs,0,1,0,no stage-specific CSV audit rule
+pingpong,stage0,artifact:stage0_inputs_manifest,pass,keep_outputs,0,1,0,stage0_inputs_manifest exists
+pingpong,stage0,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+pingpong,stage0,llm_csv:stage0_inputs,pass,keep_outputs,0,1,0,stage0 input manifest exists
+pingpong,stage1,artifact:object_observations,pass,keep_outputs,0,1,0,object_observations exists
+pingpong,stage1,artifact:object_correspondence,pass,keep_outputs,0,1,0,object_correspondence exists
+pingpong,stage1,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+pingpong,stage1,llm_csv:observation_contract,pass,keep_outputs,0,1,0,object_observations=240 object_correspondence=240
+pingpong,stage2,artifact:contact_candidates,pass,keep_outputs,0,1,0,contact_candidates exists
+pingpong,stage2,artifact:anchor_state,pass,keep_outputs,0,1,0,anchor_state exists
+pingpong,stage2,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+pingpong,stage2,llm_csv:contact_anchor_contract,pass,keep_outputs,0,1,0,contact_candidates=239 anchor_state=239
+pingpong,stage3,artifact:object_pose_init,pass,keep_outputs,0,1,0,object_pose_init exists
+pingpong,stage3,se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+pingpong,stage3,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+pingpong,stage3,llm_csv:se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+pingpong,stage4,artifact:object_pose,pass,keep_outputs,0,1,0,object_pose exists
+pingpong,stage4,artifact:motion_regime,pass,keep_outputs,0,1,0,motion_regime exists
+pingpong,stage4,artifact:optimizer_decisions,pass,keep_outputs,0,1,0,optimizer_decisions exists
+pingpong,stage4,artifact:physical_smooth_residuals,pass,keep_outputs,0,1,0,physical_smooth_residuals exists
+pingpong,stage4,artifact:pose_jump_audit,pass,keep_outputs,0,1,0,pose_jump_audit exists
+pingpong,stage4,pose_jump_audit,pass,keep_outputs,0,1,0,no pose/contact/smoothness spike rows
+pingpong,stage4,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+pingpong,stage4,llm_csv:sequence_optimizer_contract,pass,keep_outputs,0,1,0,sequence optimizer decisions enabled
+pingpong,stage4,llm_csv:pose_jump_audit,pass,keep_outputs,0,1,0,no pose/contact/smoothness spikes
+pingpong,stage5,artifact:render_manifest,pass,keep_outputs,0,1,0,render_manifest exists
+pingpong,stage5,vlm_gate,pass,no_effective_vlm_gate,0,1,0,no effective VLM rejection/unclear gate
+pingpong,stage5,llm_csv:render_manifest,pass,keep_outputs,0,1,0,render manifest exists
+pingpong,stage5,llm_csv:render_temporal_consistency,pass,keep_outputs,0,1,0,temporal VLM/machine audit has no mismatch

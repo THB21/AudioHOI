@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "stage": "stage5",
+  "attempt_id": "000002",
+  "status": "completed",
+  "record": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/stages/stage5/attempts/000002.json",
+  "finished_at": "2026-08-19T18:46:56.732987+00:00"
+}

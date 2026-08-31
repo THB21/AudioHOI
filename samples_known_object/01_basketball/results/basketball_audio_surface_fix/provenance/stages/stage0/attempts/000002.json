@@ -1,0 +1,114 @@
+{
+  "schema_version": 4,
+  "case_name": "basketball",
+  "result_name": "basketball_audio_surface_fix",
+  "stage": "stage0",
+  "attempt_id": "000002",
+  "status": "failed",
+  "trigger": "scheduled_pipeline_stage",
+  "parent_attempt_id": null,
+  "started_at": "2026-08-20T00:07:43.755982+00:00",
+  "finished_at": "2026-08-20T00:07:44.170013+00:00",
+  "metadata": {
+    "from_stage": "stage0",
+    "to_stage": "stage5"
+  },
+  "artifacts_before": {
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/stage0_inputs_manifest.json": {
+      "sha256": "fe9c31d87e87d9f16953b559f1ad7da59f391b6d606d3a8bb7704e27e9269523",
+      "size_bytes": 3293
+    },
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/stage0_metrics.json": {
+      "sha256": "39d876c449648a08980880dfd2cc68bf5bc2f1f70cf5223755a09d6bc7977b32",
+      "size_bytes": 3074
+    },
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/vlm/stage0/vlm_gates.csv": {
+      "sha256": "e3d4cbe9730a4b2571340f4258aa50b123b0e985f92a8e9c912e088e883c7132",
+      "size_bytes": 236
+    }
+  },
+  "artifacts_after": {
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/stage0_inputs_manifest.json": {
+      "sha256": "edff2400b2cfd3cf5b9bfe770c5e186545089467f12381cc63dff3fe859a0cd4",
+      "size_bytes": 2300
+    },
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/stage0_metrics.json": {
+      "sha256": "d3e9093b2cef5e49f252cc7b5e2b160dae29be42205e8eca15043e2386090047",
+      "size_bytes": 4597
+    },
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/case_ingestion_last_attempt.json": {
+      "sha256": "3fa3d10d98b859abcdc1ebac91beeed1bd0822c895b7c49d6102703bc703d9ad",
+      "size_bytes": 4694
+    },
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/vlm/stage0/vlm_gates.csv": {
+      "sha256": "e3d4cbe9730a4b2571340f4258aa50b123b0e985f92a8e9c912e088e883c7132",
+      "size_bytes": 236
+    }
+  },
+  "stored_artifacts": {
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/case_ingestion_last_attempt.json": {
+      "algorithm": "sha256",
+      "sha256": "3fa3d10d98b859abcdc1ebac91beeed1bd0822c895b7c49d6102703bc703d9ad",
+      "size_bytes": 4694,
+      "canonical_path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/case_ingestion_last_attempt.json",
+      "blob_path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/provenance/artifact_store/sha256/3f/3fa3d10d98b859abcdc1ebac91beeed1bd0822c895b7c49d6102703bc703d9ad"
+    },
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/stage0_inputs_manifest.json": {
+      "algorithm": "sha256",
+      "sha256": "edff2400b2cfd3cf5b9bfe770c5e186545089467f12381cc63dff3fe859a0cd4",
+      "size_bytes": 2300,
+      "canonical_path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/stage0_inputs_manifest.json",
+      "blob_path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/provenance/artifact_store/sha256/ed/edff2400b2cfd3cf5b9bfe770c5e186545089467f12381cc63dff3fe859a0cd4"
+    },
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/stage0_metrics.json": {
+      "algorithm": "sha256",
+      "sha256": "d3e9093b2cef5e49f252cc7b5e2b160dae29be42205e8eca15043e2386090047",
+      "size_bytes": 4597,
+      "canonical_path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/stage0_metrics.json",
+      "blob_path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/provenance/artifact_store/sha256/d3/d3e9093b2cef5e49f252cc7b5e2b160dae29be42205e8eca15043e2386090047"
+    },
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/vlm/stage0/vlm_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "e3d4cbe9730a4b2571340f4258aa50b123b0e985f92a8e9c912e088e883c7132",
+      "size_bytes": 236,
+      "canonical_path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/vlm/stage0/vlm_gates.csv",
+      "blob_path": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/provenance/artifact_store/sha256/e3/e3d4cbe9730a4b2571340f4258aa50b123b0e985f92a8e9c912e088e883c7132"
+    }
+  },
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "basketball",
+    "result_name": "basketball_audio_surface_fix",
+    "stage": "stage0",
+    "status": "pass",
+    "artifacts": [],
+    "errors": []
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage0",
+    "plugins": [],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/case_ingestion_last_attempt.json",
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/stage0_inputs_manifest.json",
+    "samples_known_object/01_basketball/results/basketball_audio_surface_fix/stage0_metrics.json"
+  ],
+  "result_summary": {},
+  "error": {
+    "type": "RuntimeError",
+    "message": "case ingestion failed for basketball: sam2: Traceback (most recent call last):\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py\", line 281, in <module>\n    main()\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py\", line 254, in main\n    raise ValueError(\"--dino-text is required when --box is not provided\")\nValueError: --dino-text is required when --box is not provided\n",
+    "traceback": "Traceback (most recent call last):\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/run_pipeline.py\", line 354, in run_case\n    result = fn(profile)\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/stages/main/stage0_preprocess.py\", line 77, in run\n    raise RuntimeError(f\"case ingestion failed for {profile.case_name}: {detail}\")\nRuntimeError: case ingestion failed for basketball: sam2: Traceback (most recent call last):\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py\", line 281, in <module>\n    main()\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py\", line 254, in main\n    raise ValueError(\"--dino-text is required when --box is not provided\")\nValueError: --dino-text is required when --box is not provided\n\n"
+  }
+}

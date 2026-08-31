@@ -1,0 +1,30 @@
+{
+  "factor_count": 3,
+  "factors": [
+    {
+      "factor_id": "point_reprojection:measurement_ir",
+      "residual_count": 480,
+      "residual_sha256": "664f80bb1c29cfab2bb56f1922fe1d17efd5629bdcaf94c3daa7109fdbd04204",
+      "squared_error": 3.544084122354709
+    },
+    {
+      "factor_id": "metric_depth:measurement_ir",
+      "residual_count": 240,
+      "residual_sha256": "91ef490cbc9206322120235bac3859c8881ba0b932fa7f8596f469a750ddadd9",
+      "squared_error": 96.31642593355386
+    },
+    {
+      "factor_id": "temporal_acceleration:state_sequence",
+      "residual_count": 714,
+      "residual_sha256": "805240df07b4144aca84d7f4fbe0f098b87671e7c1596f8b45ccf236a58f78e1",
+      "squared_error": 152.88915498325193
+    }
+  ],
+  "jacobian_density": 0.008315899581589958,
+  "jacobian_nonzero_count": 8586,
+  "jacobian_sparsity_used": true,
+  "residual_count": 1434,
+  "schema_version": 1,
+  "sequence_contract_sha256": "0b29f117fdd5ed75f6f24d07132acc28eb879285e2fc098d01e5e5af8bd6d3ac",
+  "solve_attempt_id": "generic-solve-59c13df02db6"
+}

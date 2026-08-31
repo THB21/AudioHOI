@@ -1,0 +1,68 @@
+{
+  "frames": [
+    {
+      "stage": "",
+      "source_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/segmentation/sam2_jpg_frames/00000.jpg",
+      "target_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input/sampled_frames/00000.jpg",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/segmentation/sam2_jpg_frames/00001.jpg",
+      "target_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input/sampled_frames/00001.jpg",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/segmentation/sam2_jpg_frames/00002.jpg",
+      "target_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input/sampled_frames/00002.jpg",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/segmentation/sam2_jpg_frames/00003.jpg",
+      "target_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input/sampled_frames/00003.jpg",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/segmentation/sam2_jpg_frames/00004.jpg",
+      "target_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input/sampled_frames/00004.jpg",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/segmentation/sam2_jpg_frames/00005.jpg",
+      "target_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input/sampled_frames/00005.jpg",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/segmentation/sam2_jpg_frames/00006.jpg",
+      "target_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input/sampled_frames/00006.jpg",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    },
+    {
+      "stage": "",
+      "source_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/segmentation/sam2_jpg_frames/00007.jpg",
+      "target_path": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_plus_audio/vlm_trace/00_input/sampled_frames/00007.jpg",
+      "exists": true,
+      "rows": "",
+      "storage_mode": "relative_symlink"
+    }
+  ]
+}

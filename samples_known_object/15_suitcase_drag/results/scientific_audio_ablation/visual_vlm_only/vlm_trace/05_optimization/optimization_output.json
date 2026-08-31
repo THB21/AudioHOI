@@ -1,0 +1,86 @@
+{
+  "object_pose_pre_smooth": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_only/object_pose_pre_smooth.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "object_pose": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_only/object_pose.csv",
+    "exists": true,
+    "rows": 240,
+    "columns": [
+      "frame",
+      "time",
+      "source",
+      "initializer_heading_rad",
+      "tx",
+      "ty",
+      "tz",
+      "qw",
+      "qx",
+      "qy",
+      "qz",
+      "generic_solve_attempt_id"
+    ],
+    "sample": [
+      {
+        "frame": "1",
+        "time": "0.0",
+        "source": "generic_sequence_executor",
+        "initializer_heading_rad": "-0.4339216372361592",
+        "tx": "-0.359136848",
+        "ty": "0.843571335",
+        "tz": "4.499798272",
+        "qw": "0.681155683",
+        "qx": "0.731095533",
+        "qy": "0.029428053",
+        "qz": "-0.025695266",
+        "generic_solve_attempt_id": "generic-solve-a0076da401a1"
+      },
+      {
+        "frame": "2",
+        "time": "0.041667",
+        "source": "generic_sequence_executor",
+        "initializer_heading_rad": "-0.4339216372361592",
+        "tx": "-0.356401891",
+        "ty": "0.843696232",
+        "tz": "4.502482011",
+        "qw": "0.681448932",
+        "qx": "0.730842425",
+        "qy": "0.029477294",
+        "qz": "-0.025055777",
+        "generic_solve_attempt_id": "generic-solve-a0076da401a1"
+      },
+      {
+        "frame": "3",
+        "time": "0.083333",
+        "source": "generic_sequence_executor",
+        "initializer_heading_rad": "-0.4339216372361592",
+        "tx": "-0.355060866",
+        "ty": "0.843366482",
+        "tz": "4.507748972",
+        "qw": "0.682024996",
+        "qx": "0.730360722",
+        "qy": "0.029090657",
+        "qz": "-0.023850659",
+        "generic_solve_attempt_id": "generic-solve-a0076da401a1"
+      }
+    ]
+  },
+  "physical_smooth_residuals": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_only/physical_smooth_residuals.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  },
+  "pose_jump_audit": {
+    "path": "/tmp/audiohoi-nine/samples_known_object/15_suitcase_drag/results/scientific_audio_ablation/visual_vlm_only/pose_jump_audit.csv",
+    "exists": false,
+    "rows": 0,
+    "columns": [],
+    "sample": []
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "schema_version": 4,
+  "case_name": "volleyball",
+  "result_name": "final_full_4d_hoi",
+  "stage": "stage0",
+  "attempt_id": "000003",
+  "status": "completed",
+  "trigger": "scheduled_pipeline_stage",
+  "parent_attempt_id": null,
+  "started_at": "2026-08-19T18:36:12.446786+00:00",
+  "finished_at": "2026-08-19T18:37:15.957564+00:00",
+  "metadata": {
+    "from_stage": "stage0",
+    "to_stage": "stage0"
+  },
+  "artifacts_before": {
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_inputs_manifest.json": {
+      "sha256": "790057453cc164ba90369827561243de80de501e175a93fa2e13023a2c9a2b4a",
+      "size_bytes": 4282
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_metrics.json": {
+      "sha256": "02cad88ccc78b2539125b9e5da8f11def45835abc08089657653460970bbe268",
+      "size_bytes": 9873
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_last_attempt.json": {
+      "sha256": "140b2464c8c2d4ffe87a40a77daa39383286c4c9a4543621b4d210501c3caf6d",
+      "size_bytes": 10263
+    }
+  },
+  "artifacts_after": {
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_inputs_manifest.json": {
+      "sha256": "03bc3d23b4ac76317126bf1579df68e5e0d0ccb2b94b7a71ccab114f55cebb35",
+      "size_bytes": 7233
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_metrics.json": {
+      "sha256": "67f7872f3a4f718e5002d9911e50be84e382252c24c737102c2c03ed7c4ab476",
+      "size_bytes": 31389
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_manifest.json": {
+      "sha256": "1ff225915d0602f65208bacf1843320886bba169a1260bcfc8153c5c6b768a93",
+      "size_bytes": 32460
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_last_attempt.json": {
+      "sha256": "1ff225915d0602f65208bacf1843320886bba169a1260bcfc8153c5c6b768a93",
+      "size_bytes": 32460
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage0/stage_audit_gates.csv": {
+      "sha256": "f263810542badd0daba60709221045f6a3896b1408d400dcf51fa83afc0b22aa",
+      "size_bytes": 307
+    }
+  },
+  "stored_artifacts": {
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_last_attempt.json": {
+      "algorithm": "sha256",
+      "sha256": "1ff225915d0602f65208bacf1843320886bba169a1260bcfc8153c5c6b768a93",
+      "size_bytes": 32460,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_last_attempt.json",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/1f/1ff225915d0602f65208bacf1843320886bba169a1260bcfc8153c5c6b768a93"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_manifest.json": {
+      "algorithm": "sha256",
+      "sha256": "1ff225915d0602f65208bacf1843320886bba169a1260bcfc8153c5c6b768a93",
+      "size_bytes": 32460,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_manifest.json",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/1f/1ff225915d0602f65208bacf1843320886bba169a1260bcfc8153c5c6b768a93"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_inputs_manifest.json": {
+      "algorithm": "sha256",
+      "sha256": "03bc3d23b4ac76317126bf1579df68e5e0d0ccb2b94b7a71ccab114f55cebb35",
+      "size_bytes": 7233,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_inputs_manifest.json",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/03/03bc3d23b4ac76317126bf1579df68e5e0d0ccb2b94b7a71ccab114f55cebb35"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_metrics.json": {
+      "algorithm": "sha256",
+      "sha256": "67f7872f3a4f718e5002d9911e50be84e382252c24c737102c2c03ed7c4ab476",
+      "size_bytes": 31389,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_metrics.json",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/67/67f7872f3a4f718e5002d9911e50be84e382252c24c737102c2c03ed7c4ab476"
+    },
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage0/stage_audit_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "f263810542badd0daba60709221045f6a3896b1408d400dcf51fa83afc0b22aa",
+      "size_bytes": 307,
+      "canonical_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage0/stage_audit_gates.csv",
+      "blob_path": "samples_known_object/13_volleyball/results/final_full_4d_hoi/provenance/artifact_store/sha256/f2/f263810542badd0daba60709221045f6a3896b1408d400dcf51fa83afc0b22aa"
+    }
+  },
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "volleyball",
+    "result_name": "final_full_4d_hoi",
+    "stage": "stage0",
+    "status": "pass",
+    "artifacts": [],
+    "errors": []
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage0",
+    "plugins": [],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_last_attempt.json",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_manifest.json",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_inputs_manifest.json",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage0_metrics.json",
+    "samples_known_object/13_volleyball/results/final_full_4d_hoi/stage_audit/stage0/stage_audit_gates.csv"
+  ],
+  "result_summary": {
+    "stage_status": "accepted",
+    "vlm_decision": "not_run",
+    "stage_audit_decision": "pass",
+    "rerun_requested": false
+  }
+}

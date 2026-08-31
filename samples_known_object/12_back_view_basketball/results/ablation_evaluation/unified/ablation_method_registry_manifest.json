@@ -1,0 +1,6 @@
+{
+  "rows": 3,
+  "table": "samples_known_object/12_back_view_basketball/results/ablation_evaluation/unified/ablation_method_registry.csv",
+  "allow_same_result_debug": false,
+  "require_existing": true
+}

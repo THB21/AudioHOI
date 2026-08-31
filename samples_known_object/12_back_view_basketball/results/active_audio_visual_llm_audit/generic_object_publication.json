@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "status": "accepted",
+  "candidate_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/generic_stage4_candidate/generic_object_pose_candidate.csv",
+  "candidate_sha256": "4b0dae96d5fe7a57cef038254dc10ae478a3f2f9680ed201b4ff82ce767e9069",
+  "accepted_path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_pose.csv",
+  "accepted_sha256": "4b0dae96d5fe7a57cef038254dc10ae478a3f2f9680ed201b4ff82ce767e9069",
+  "solve_attempt_id": "generic-solve-766b9a5b5e0c",
+  "hard_gate": {
+    "passed": true,
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px",
+      "contact_distance_normalized_rmse",
+      "contact_gap_p95_m",
+      "contact_gap_max_m"
+    ],
+    "blocking_reasons": []
+  },
+  "case_dispatch_used": false,
+  "human_state_optimized": false,
+  "attempt_dir": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/generic_sequence_solver_attempts/generic-solve-766b9a5b5e0c",
+  "automatic_hard_gate": {
+    "passed": true,
+    "gate_ids": [
+      "solver_converged_or_stationary",
+      "objective_nonincrease",
+      "projection_normalized_rmse",
+      "point_projection_p95_px",
+      "contact_distance_normalized_rmse",
+      "contact_gap_p95_m",
+      "contact_gap_max_m"
+    ],
+    "blocking_reasons": []
+  },
+  "object_only_boundary": true
+}

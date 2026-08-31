@@ -1,0 +1,15 @@
+{
+  "case_name": "pingpong_wall",
+  "stage": "stage3",
+  "gate_rows": 3,
+  "effective_rows": 3,
+  "blocked_frames": [],
+  "unclear_frames": [
+    1,
+    121,
+    240
+  ],
+  "accepted_contact_frames": [],
+  "accepted_anchor_frames": [],
+  "gate_csv": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage3/vlm_gates.csv"
+}

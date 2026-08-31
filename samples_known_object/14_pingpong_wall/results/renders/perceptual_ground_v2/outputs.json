@@ -1,0 +1,25 @@
+{
+  "pose_csv": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/ablation_evaluation/frozen_poses/no_audio_object_pose.csv",
+  "urdf": "assets/object_meshes/basketball.glb",
+  "object_only": {
+    "overlay": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/object_only/overlay.mp4",
+    "overlay_preview": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/object_only/overlay_preview.png",
+    "overlay_quality": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/object_only/overlay_quality.csv",
+    "camera3d": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/object_only/camera3d.mp4",
+    "camera3d_preview": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/object_only/camera3d_preview.png",
+    "side_yz": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/object_only/side_yz.mp4",
+    "side_yz_preview": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/object_only/side_yz_preview.png"
+  },
+  "with_human": {
+    "overlay": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/with_human/overlay.mp4",
+    "overlay_preview": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/with_human/overlay_preview.png",
+    "overlay_quality": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/with_human/overlay_quality.csv",
+    "overlay_vlm_masked": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/with_human/overlay_vlm_masked.mp4",
+    "overlay_vlm_masked_preview": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/with_human/overlay_vlm_masked_preview.png",
+    "overlay_vlm_masked_quality": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/with_human/overlay_vlm_masked_quality.csv",
+    "camera3d": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/with_human/camera3d.mp4",
+    "camera3d_preview": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/with_human/camera3d_preview.png",
+    "side_yz": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/with_human/side_yz.mp4",
+    "side_yz_preview": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/renders/perceptual_ground_v2/with_human/side_yz_preview.png"
+  }
+}

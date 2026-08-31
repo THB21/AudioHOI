@@ -1,0 +1,367 @@
+{
+  "schema_version": 4,
+  "case_name": "pingpong_wall",
+  "result_name": "final_full_4d_hoi",
+  "stage": "stage1",
+  "attempt_id": "000003",
+  "status": "failed",
+  "trigger": "scheduled_pipeline_stage",
+  "parent_attempt_id": null,
+  "started_at": "2026-08-19T18:27:37.589711+00:00",
+  "finished_at": "2026-08-19T18:27:59.597775+00:00",
+  "metadata": {
+    "from_stage": "stage1",
+    "to_stage": "stage4"
+  },
+  "artifacts_before": {
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_observations.csv": {
+      "sha256": "35ee9507ec29aa32cbea22b74983b820d2688dcbc22cd4ab705a0d6b0d72c5cc",
+      "size_bytes": 88886
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_correspondence.csv": {
+      "sha256": "980ed6dd6ffe0fd492add2ecdebb3c2a24fa65042893cd73617f8cc3ccb72f7c",
+      "size_bytes": 21342
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_surface_points.csv": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size_bytes": 1
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_semantic_points.csv": {
+      "sha256": "a59aa60f616eaf05fe86d77c41d547b1b0e6edfe68b1064be0a59bac1adfbfad",
+      "size_bytes": 50
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_local_points.csv": {
+      "sha256": "a59aa60f616eaf05fe86d77c41d547b1b0e6edfe68b1064be0a59bac1adfbfad",
+      "size_bytes": 50
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage1_metrics.json": {
+      "sha256": "975e63fe46b09644f5bac71a4c5d5491463983fb7499edf753a9f427faea3eb1",
+      "size_bytes": 2200
+    }
+  },
+  "artifacts_after": {
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_observations.csv": {
+      "sha256": "35ee9507ec29aa32cbea22b74983b820d2688dcbc22cd4ab705a0d6b0d72c5cc",
+      "size_bytes": 88886
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_correspondence.csv": {
+      "sha256": "980ed6dd6ffe0fd492add2ecdebb3c2a24fa65042893cd73617f8cc3ccb72f7c",
+      "size_bytes": 21342
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_surface_points.csv": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size_bytes": 1
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_semantic_points.csv": {
+      "sha256": "a59aa60f616eaf05fe86d77c41d547b1b0e6edfe68b1064be0a59bac1adfbfad",
+      "size_bytes": 50
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_local_points.csv": {
+      "sha256": "a59aa60f616eaf05fe86d77c41d547b1b0e6edfe68b1064be0a59bac1adfbfad",
+      "size_bytes": 50
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage1_metrics.json": {
+      "sha256": "975e63fe46b09644f5bac71a4c5d5491463983fb7499edf753a9f427faea3eb1",
+      "size_bytes": 2200
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage1/vlm_gates.csv": {
+      "sha256": "15b227141fd0a01b52429cf97dfc8df9846c4b3294996c26206f4ea206396956",
+      "size_bytes": 763
+    }
+  },
+  "stored_artifacts": {
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_correspondence.csv": {
+      "algorithm": "sha256",
+      "sha256": "980ed6dd6ffe0fd492add2ecdebb3c2a24fa65042893cd73617f8cc3ccb72f7c",
+      "size_bytes": 21342,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_correspondence.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/98/980ed6dd6ffe0fd492add2ecdebb3c2a24fa65042893cd73617f8cc3ccb72f7c"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_local_points.csv": {
+      "algorithm": "sha256",
+      "sha256": "a59aa60f616eaf05fe86d77c41d547b1b0e6edfe68b1064be0a59bac1adfbfad",
+      "size_bytes": 50,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_local_points.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/a5/a59aa60f616eaf05fe86d77c41d547b1b0e6edfe68b1064be0a59bac1adfbfad"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_observations.csv": {
+      "algorithm": "sha256",
+      "sha256": "35ee9507ec29aa32cbea22b74983b820d2688dcbc22cd4ab705a0d6b0d72c5cc",
+      "size_bytes": 88886,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_observations.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/35/35ee9507ec29aa32cbea22b74983b820d2688dcbc22cd4ab705a0d6b0d72c5cc"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_semantic_points.csv": {
+      "algorithm": "sha256",
+      "sha256": "a59aa60f616eaf05fe86d77c41d547b1b0e6edfe68b1064be0a59bac1adfbfad",
+      "size_bytes": 50,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_semantic_points.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/a5/a59aa60f616eaf05fe86d77c41d547b1b0e6edfe68b1064be0a59bac1adfbfad"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_surface_points.csv": {
+      "algorithm": "sha256",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size_bytes": 1,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_surface_points.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/01/01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage1_metrics.json": {
+      "algorithm": "sha256",
+      "sha256": "975e63fe46b09644f5bac71a4c5d5491463983fb7499edf753a9f427faea3eb1",
+      "size_bytes": 2200,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage1_metrics.json",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/97/975e63fe46b09644f5bac71a4c5d5491463983fb7499edf753a9f427faea3eb1"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage1/vlm_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "15b227141fd0a01b52429cf97dfc8df9846c4b3294996c26206f4ea206396956",
+      "size_bytes": 763,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage1/vlm_gates.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/15/15b227141fd0a01b52429cf97dfc8df9846c4b3294996c26206f4ea206396956"
+    }
+  },
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "pingpong_wall",
+    "result_name": "final_full_4d_hoi",
+    "stage": "stage1",
+    "status": "pass",
+    "artifacts": [
+      {
+        "artifact_key": "object_observations",
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_observations.csv",
+        "adapter": "point_reference_observation_v1",
+        "required": true,
+        "columns": [
+          "frame",
+          "time",
+          "ref_u",
+          "ref_v",
+          "ref_u_smooth",
+          "ref_v_smooth",
+          "ref_u_fit",
+          "ref_v_fit",
+          "ref_source",
+          "ref_type",
+          "support_u",
+          "support_v",
+          "support_v_raw",
+          "support_dv",
+          "support_dv_smooth",
+          "support_source",
+          "contact_u",
+          "contact_v",
+          "contact_source",
+          "object_ref_depth_m",
+          "contact_proxy_depth_m",
+          "contact_depth_offset_m",
+          "ref_conf",
+          "support_conf",
+          "contact_conf",
+          "depth_conf",
+          "observation_conf",
+          "visible_fraction",
+          "occlusion_state",
+          "vlm_visibility",
+          "proxy_conf",
+          "proxy_jitter_px",
+          "support_jitter_px",
+          "proxy_sigma_px",
+          "support_sigma_px",
+          "active_label",
+          "active_label_conf",
+          "active_part_u",
+          "active_part_v",
+          "active_part_z",
+          "contact_proxy_name",
+          "da3_depth_raw",
+          "da3_depth_smooth",
+          "object_depth_raw",
+          "object_depth_smooth",
+          "object_depth_confidence",
+          "support_gap_px",
+          "object_motion_score",
+          "audio_score",
+          "radius_px"
+        ],
+        "required_columns": [
+          "frame",
+          "time",
+          "ref_u",
+          "ref_v",
+          "support_u",
+          "support_v",
+          "observation_conf"
+        ],
+        "extension_columns": [
+          "ref_u_smooth",
+          "ref_v_smooth",
+          "ref_u_fit",
+          "ref_v_fit",
+          "ref_source",
+          "ref_type",
+          "support_v_raw",
+          "support_dv",
+          "support_dv_smooth",
+          "support_source",
+          "contact_u",
+          "contact_v",
+          "contact_source",
+          "object_ref_depth_m",
+          "contact_proxy_depth_m",
+          "contact_depth_offset_m",
+          "ref_conf",
+          "support_conf",
+          "contact_conf",
+          "depth_conf",
+          "visible_fraction",
+          "occlusion_state",
+          "vlm_visibility",
+          "proxy_conf",
+          "proxy_jitter_px",
+          "support_jitter_px",
+          "proxy_sigma_px",
+          "support_sigma_px",
+          "active_label",
+          "active_label_conf",
+          "active_part_u",
+          "active_part_v",
+          "active_part_z",
+          "contact_proxy_name",
+          "da3_depth_raw",
+          "da3_depth_smooth",
+          "object_depth_raw",
+          "object_depth_smooth",
+          "object_depth_confidence",
+          "support_gap_px",
+          "object_motion_score",
+          "audio_score",
+          "radius_px"
+        ],
+        "row_count": 240,
+        "adapted_examples": [
+          {
+            "frame": 1,
+            "time": 0.0
+          },
+          {
+            "frame": 2,
+            "time": 0.041667
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      },
+      {
+        "artifact_key": "object_correspondence",
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_correspondence.csv",
+        "adapter": "tracked_point_correspondence_v1",
+        "required": true,
+        "columns": [
+          "frame",
+          "time",
+          "correspondence_id",
+          "u",
+          "v",
+          "track_confidence",
+          "visible_fraction",
+          "occlusion_state",
+          "source"
+        ],
+        "required_columns": [
+          "frame",
+          "time",
+          "correspondence_id",
+          "u",
+          "v",
+          "track_confidence",
+          "visible_fraction",
+          "occlusion_state",
+          "source"
+        ],
+        "extension_columns": [],
+        "row_count": 240,
+        "adapted_examples": [
+          {
+            "frame": 1,
+            "time": 0.0
+          },
+          {
+            "frame": 2,
+            "time": 0.041667
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      },
+      {
+        "artifact_key": "object_semantic_points",
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/object_semantic_points.csv",
+        "adapter": "semantic_point_v1",
+        "required": false,
+        "columns": [
+          "point_id",
+          "part",
+          "role",
+          "local_x",
+          "local_y",
+          "local_z",
+          "source"
+        ],
+        "required_columns": [
+          "point_id",
+          "part",
+          "role",
+          "local_x",
+          "local_y",
+          "local_z",
+          "source"
+        ],
+        "extension_columns": [],
+        "row_count": 0,
+        "adapted_examples": [],
+        "status": "pass",
+        "errors": []
+      }
+    ],
+    "errors": []
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage1",
+    "plugins": [
+      {
+        "kind": "observation",
+        "name": "mask_track_center",
+        "module": "scripts.shared.generic_contact_pipeline.components.observation.policies.mask_track_center",
+        "entrypoint": "build",
+        "requires": [],
+        "provides": [
+          "observation.point_reference"
+        ],
+        "role": "compatibility_adapter",
+        "plugin_id": "observation:mask_track_center"
+      }
+    ],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage1/vlm_gates.csv"
+  ],
+  "result_summary": {},
+  "error": {
+    "type": "NameError",
+    "message": "name 'observation' is not defined",
+    "traceback": "Traceback (most recent call last):\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/run_pipeline.py\", line 361, in run_case\n    result = _refresh_generic_mainline_after_vlm(profile, stage_name, result)\n  File \"/tmp/audiohoi-nine/scripts/shared/generic_contact_pipeline/run_pipeline.py\", line 261, in _refresh_generic_mainline_after_vlm\n    refreshed = observation.build(profile)\nNameError: name 'observation' is not defined\n"
+  }
+}

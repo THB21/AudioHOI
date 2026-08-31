@@ -1,0 +1,4 @@
+case,method,result_name,result_dir,result_exists,audio,vlm,llm,ablation_flags,actual_vlm_mode,actual_llm_mode,actual_ablation_flags,method_manifest_valid,method_manifest_mismatch_reason
+back_view_basketball,full,full_audio_vlm,samples_known_object/12_back_view_basketball/results/full_audio_vlm,True,True,qwen,none,,qwen,none,,True,
+back_view_basketball,no_vlm,no_vlm,samples_known_object/12_back_view_basketball/results/no_vlm,True,True,none,none,disable_vlm_semantic_evidence,none,none,disable_vlm_semantic_evidence,True,
+back_view_basketball,no_audio,no_audio,samples_known_object/12_back_view_basketball/results/no_audio,True,False,qwen,none,disable_audio_events,qwen,none,disable_audio_events,True,

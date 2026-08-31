@@ -1,0 +1,121 @@
+{
+  "case_name": "pingpong_wall",
+  "stage": "stage2",
+  "mode": "qwen_vl",
+  "decision": "blocked_by_vlm_reject",
+  "blocking": true,
+  "query_count": 10,
+  "gate_counts": {
+    "pass": 6,
+    "reject": 4
+  },
+  "query_counts": {
+    "contact_relation_check": 5,
+    "keypart_visibility_check": 5
+  },
+  "accepted_frames": [
+    1,
+    11,
+    121,
+    177,
+    229
+  ],
+  "blocked_frames": [
+    1,
+    11,
+    121,
+    229
+  ],
+  "report_only_reject_frames": [],
+  "unclear_frames": [],
+  "repair_actions_by_frame": {
+    "11": [
+      "accept_candidate",
+      "keep_previous_anchor"
+    ],
+    "177": [
+      "accept_candidate",
+      "propagate_projected_ballistic_trajectory"
+    ],
+    "229": [
+      "accept_candidate",
+      "keep_previous_anchor"
+    ],
+    "1": [
+      "accept_candidate",
+      "keep_previous_anchor"
+    ],
+    "121": [
+      "accept_candidate",
+      "keep_previous_anchor"
+    ]
+  },
+  "rejected_results": [
+    {
+      "case_name": "pingpong_wall",
+      "stage": "stage2",
+      "frame": "11",
+      "query_type": "keypart_visibility_check",
+      "normalized_label": "detection_failure",
+      "pass_gate": "reject",
+      "repair_action": "keep_previous_anchor",
+      "used_for_anchor_update": "0",
+      "used_for_contact_residual": "0",
+      "used_for_report": "1"
+    },
+    {
+      "case_name": "pingpong_wall",
+      "stage": "stage2",
+      "frame": "229",
+      "query_type": "keypart_visibility_check",
+      "normalized_label": "detection_failure",
+      "pass_gate": "reject",
+      "repair_action": "keep_previous_anchor",
+      "used_for_anchor_update": "0",
+      "used_for_contact_residual": "0",
+      "used_for_report": "1"
+    },
+    {
+      "case_name": "pingpong_wall",
+      "stage": "stage2",
+      "frame": "1",
+      "query_type": "keypart_visibility_check",
+      "normalized_label": "detection_failure",
+      "pass_gate": "reject",
+      "repair_action": "keep_previous_anchor",
+      "used_for_anchor_update": "0",
+      "used_for_contact_residual": "0",
+      "used_for_report": "1"
+    },
+    {
+      "case_name": "pingpong_wall",
+      "stage": "stage2",
+      "frame": "121",
+      "query_type": "keypart_visibility_check",
+      "normalized_label": "detection_failure",
+      "pass_gate": "reject",
+      "repair_action": "keep_previous_anchor",
+      "used_for_anchor_update": "0",
+      "used_for_contact_residual": "0",
+      "used_for_report": "1"
+    }
+  ],
+  "allowed_repair_actions": [
+    "accept_candidate",
+    "reject_candidate",
+    "disable_contact_frame",
+    "keep_previous_anchor",
+    "downweight_correspondence",
+    "use_mask_fallback",
+    "retry_with_alternative_keypart",
+    "allow_small_se3_refine",
+    "freeze_before_after_contact",
+    "mark_for_report_only",
+    "unclear_no_update",
+    "keep_stable_candidate",
+    "select_occlusion_challenger",
+    "reject_candidate_pair",
+    "propagate_projected_ballistic_trajectory"
+  ],
+  "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+}

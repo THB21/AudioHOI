@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "mode": "generic_object_sequence_problem_preparation",
+  "problem": {
+    "schema_version": 1,
+    "attempt_id": "generic-attempt-4602434376bf",
+    "sequence_contract_sha256": "630b55fd1bd6bcff79ff1639f12687e6505a1596bec94629c96c05b4218edee2",
+    "state_spec_id": "translation3:sphere",
+    "selected_factor_ids": [
+      "point_reprojection:measurement_ir",
+      "metric_depth:measurement_ir",
+      "temporal_acceleration:state_sequence",
+      "static_freeze:state_sequence",
+      "contact_distance:interaction_state"
+    ],
+    "residual_dependency_count": 780,
+    "initialization_ledger": {
+      "schema_version": 1,
+      "state_spec_id": "translation3:sphere",
+      "input_state_frame_count": 192,
+      "eligible_contact_frame_count": 0,
+      "seeded_frame_count": 0,
+      "skipped_by_reason": {},
+      "hypotheses": [],
+      "site_match_policy": "exact_frame_part_side_with_palm_to_hand_schema_alias",
+      "case_dispatch_used": false,
+      "baseline_pose_read": false,
+      "human_state_optimized": false,
+      "accepted_outputs_written": false,
+      "canonical_sha256": "dd4f7d29ae0246e175888549b808d76a6e829e7d604e2e6b43768d67c3720144"
+    },
+    "initial_residual_inputs_sha256": "076b9c1b50ebd0141ce0e7d30a9e4f9a40eedcc4cad5341e4ff414c3cec96ab9",
+    "case_dispatch_used": false,
+    "human_state_optimized": false,
+    "accepted_outputs_written": false,
+    "canonical_sha256": "12ca534d5d611dd774b1008b0441a0a3cc7a3c9190d5ca7091e58c7de8d00339"
+  },
+  "state_spec_id": "translation3:sphere",
+  "geometry": {
+    "kind": "sphere",
+    "descriptor_path": "scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json",
+    "descriptor_sha256": "b86eadf49a9e03904f02acfb12e3ff8e0185d673eede325dd0f0eac083620327"
+  },
+  "initializer_kind": "point_depth",
+  "initializer_input_sha256": "9358a62590c12a94023f3a789de98cb3f725e714912e5ca727c4ee597b94fb1f",
+  "initializer_ledger": {
+    "initializer_kind": "point_depth",
+    "case_dispatch_used": false,
+    "baseline_pose_read": false,
+    "human_state_optimized": false,
+    "contact_timeline_gate": {
+      "active_frame_count": 38,
+      "timeline_active_frame_count": 38,
+      "vlm_confirmed_active_frame_count": 0,
+      "removed_sample_frames": [],
+      "source": "typed_contact_continuity_with_occluded_hold+vlm_confirmed_discrete_relation",
+      "support_independent": true
+    }
+  },
+  "read_only_human_sites": {
+    "measurement_count": 768,
+    "source_artifact": "samples_known_object/01_basketball/results/gvhmr/result.pkl",
+    "source_sha256": "ee74a1d8e6daab786adaeb19fadc0e5df685e5d041e1101240aaef48ec8545c2",
+    "read_only": true
+  },
+  "measurement_count": 768,
+  "contact_constraint_count": 192,
+  "bounded_gap_smoothing_frames": [],
+  "adjacent_translation_smoothing_passes": 0,
+  "adjacent_rotation_smoothing_passes": 0,
+  "maximum_rotation_step_deg": 0.0,
+  "bounded_gap_rotation_recovery_frames": 0,
+  "bounded_gap_project_rotation": true,
+  "vlm_factor_arbitration": {
+    "schema_version": 1,
+    "sample_id": "basketball",
+    "status": "not_evaluated",
+    "decisions": [],
+    "blocking": false,
+    "provider": "",
+    "model": "",
+    "continuous_pose_override": false,
+    "canonical_sha256": "ef116b0a7d1be56de1b79d54a601e6ddb028623176e7579d3ca234efca02a097"
+  },
+  "evidence_consumption": [],
+  "case_dispatch_used": false,
+  "baseline_pose_read": false,
+  "human_state_optimized": false,
+  "accepted_outputs_written": false
+}

@@ -1,0 +1,248 @@
+{
+  "continuous_pose_override": false,
+  "gates": {
+    "blocking": false,
+    "canonical_sha256": "6572e7e8a51019ae495b7564c3495027139b3f01502a7b4c661901faa9f0d9d0",
+    "continuous_pose_override": false,
+    "decisions": [
+      {
+        "decision_id": "vlm-factor-0001",
+        "end_frame": 11,
+        "evidence_ids": [
+          "sha256:c7ef19100340b7e4ef0c97e40e08793418a828782f5aaa9e443a00fc17a46b70"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "unclear",
+        "prompt_sha256": "f5ca4169d0987c48921dce02c93cfcb1a12fdd327c1c0d26c14dbeecb76b3bfe",
+        "provenance": [
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00011-00011",
+        "response_sha256": "0563e224e91a1f53c3e9882642cf83bf0d869cf6a4b3b6fd8623f1990ae190ba",
+        "start_frame": 11,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:contact_constraint_shadow",
+            "status": "active"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0002",
+        "end_frame": 38,
+        "evidence_ids": [
+          "sha256:b9692579b039d26f0328ee56c43e8e9c837b6977ba1537bcee084a2322af48f0"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "unclear",
+        "prompt_sha256": "b2cc09d25c7a66500bca9a1a5617fe2d622fb845eaa5dd90c4382b793b7e63a9",
+        "provenance": [
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00038-00038",
+        "response_sha256": "4bb2b34f68d83ebbaa9331de7876dcebf1ad62407a82c9faac381714df591242",
+        "start_frame": 38,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:contact_constraint_shadow",
+            "status": "active"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0003",
+        "end_frame": 110,
+        "evidence_ids": [
+          "sha256:93538ed2c29fc718708387fcfead028c5d7745b94e8659b97db1ba8c304ace76"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "unclear",
+        "prompt_sha256": "7c62667d58684747c9678188d7d96c952c969508166a6cdde348b71a044e6423",
+        "provenance": [
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00110-00110",
+        "response_sha256": "61f54ca8702e5b12e57db02a4dc42617c1bb301b34f943b438575176fb28b157",
+        "start_frame": 110,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:contact_constraint_shadow",
+            "status": "active"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0004",
+        "end_frame": 177,
+        "evidence_ids": [
+          "sha256:763fe3ec689d929ff57b4bf0f1d39d05f3860361a0bbcb7649fea3f03d20b77a"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "contact_relation_reliable",
+        "prompt_sha256": "c5c86f1bef77a4544849710415c3195c7ab1f70c8517a93808476abaecbeb5ff",
+        "provenance": [
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00177-00177",
+        "response_sha256": "f7eca65aff70a676db9b689eb77d4c04745854ff0145c40468af8634657345a0",
+        "start_frame": 177,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "downweighted"
+          },
+          {
+            "factor_id": "contact_distance:contact_constraint_shadow",
+            "status": "active"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0005",
+        "end_frame": 192,
+        "evidence_ids": [
+          "sha256:8217dc46f5004193c1a62b37a0609bf8496d551d6af722ff59202ef16317d4fb"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "both_consistent",
+        "prompt_sha256": "81f35299cc6b1a0b52efc8d51ad35234ffc946b0d86ebfa1cb00aaa357dab375",
+        "provenance": [
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00192-00192",
+        "response_sha256": "852c57ae2fb03ef518e98339b674773b8bbfdf5848cf1cfd7111c6a5328860de",
+        "start_frame": 192,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:contact_constraint_shadow",
+            "status": "active"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0006",
+        "end_frame": 220,
+        "evidence_ids": [
+          "sha256:f44e96131d01bedaa7f6a99e628d7e2824c673e8d942b730aa291b10d109b727"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "unclear",
+        "prompt_sha256": "f9688d228f577ce7f398fc0c9b9e375dec04024767bc6a194d996007f8652a7b",
+        "provenance": [
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00220-00220",
+        "response_sha256": "6e8a11c82fdb7467c329a6f1f473b80835764daec6d3d73292be037163a121d6",
+        "start_frame": 220,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:contact_constraint_shadow",
+            "status": "active"
+          }
+        ]
+      },
+      {
+        "decision_id": "vlm-factor-0007",
+        "end_frame": 229,
+        "evidence_ids": [
+          "sha256:a9b51cea177fa185fff031c89fc4c5fed87be54111695ad93ee0819c4089f4a7"
+        ],
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "normalized_label": "unclear",
+        "prompt_sha256": "770791b2541055a0ea281a501800e78b5682663046efb5cf3a81d1d4285d34a8",
+        "provenance": [
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/vlm_queries.csv",
+          "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage4/qwen_raw_results.json",
+          "evidence_verified:true"
+        ],
+        "provider": "qwen_vl_local",
+        "query_id": "stage4:constraint_reliability_check:00229-00229",
+        "response_sha256": "c6535c12c4e9e733794361eb61647ee0fd445ae77e9ba515cbb2eab4905af5d0",
+        "start_frame": 229,
+        "status_by_factor": [
+          {
+            "factor_id": "point_reprojection:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "metric_depth:measurement_ir",
+            "status": "active"
+          },
+          {
+            "factor_id": "contact_distance:contact_constraint_shadow",
+            "status": "active"
+          }
+        ]
+      }
+    ],
+    "model": "Qwen/Qwen3-VL-8B-Instruct",
+    "provider": "qwen_vl_local",
+    "sample_id": "pingpong_wall",
+    "schema_version": 1,
+    "status": "evaluated"
+  },
+  "schema_version": 1,
+  "status": "evaluated"
+}

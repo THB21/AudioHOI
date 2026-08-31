@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "attempt_id": "cotracker-persistent_online-9e30493f29d2",
+  "tracker": "facebookresearch/co-tracker:cotracker3_online",
+  "sequence_mode": "persistent_online",
+  "query_policy": "sam2_mask_interior_grid_plus_legacy_anchors",
+  "query_frame": 1,
+  "query_mask": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/segmentation/masks/00001_mask.png",
+  "query_mask_sha256": "9e30493f29d2c0896e9c8c91da75b4ece015e81892fb2e64057f6bdbb6fa7b48",
+  "query_count": 26,
+  "frame_count": 240,
+  "resize_scale_xy": [
+    0.4,
+    0.4
+  ],
+  "grid_size": 6,
+  "reinitialization_frames": [],
+  "local_3d_coordinates_assigned": false
+}

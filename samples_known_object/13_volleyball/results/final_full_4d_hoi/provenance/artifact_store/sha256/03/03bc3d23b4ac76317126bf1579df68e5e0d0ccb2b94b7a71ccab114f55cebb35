@@ -1,0 +1,175 @@
+{
+  "schema_version": 2,
+  "stage": "stage0_preprocess",
+  "case_name": "volleyball",
+  "sample_dir": "samples_known_object/13_volleyball",
+  "result_dir": "samples_known_object/13_volleyball/results/final_full_4d_hoi",
+  "render_dir": "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi",
+  "prepared_inputs": {
+    "frame_extract": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "frames": "samples_known_object/13_volleyball/frames"
+      },
+      "output_hashes": {
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "audio_extract": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "audio": "samples_known_object/13_volleyball/audio.wav"
+      },
+      "output_hashes": {
+        "audio": "312a7368c29267f9ecea29c39bfd84df6f778c1f092e6f28b3c4e865d580b33a"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "sam2": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "sam2_masks": "samples_known_object/13_volleyball/results/segmentation/masks",
+        "sam2_trajectory": "samples_known_object/13_volleyball/results/tracking/object_trajectory.csv"
+      },
+      "output_hashes": {
+        "sam2_masks": "54a0b530b95ec4a806f17646da7ff94cd125710e980274fb43d24a9a3a22f43b",
+        "sam2_trajectory": "7d45aadd88766d2a2e4eab02689e0a92138b4d9a391f12a22c0c768bbb02af31"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "cotracker": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "cotracker_center": "samples_known_object/13_volleyball/results/tracking/object_center_trajectory.csv",
+        "cotracker_points": "samples_known_object/13_volleyball/results/tracking/object_points.csv",
+        "cotracker_mesh_tracks": "samples_known_object/13_volleyball/results/tracking/object_mesh_tracks_test.csv",
+        "cotracker_rigid_tracks": "samples_known_object/13_volleyball/results/tracking/rigid_point_tracks.csv",
+        "cotracker_rigid_tracks_manifest": "samples_known_object/13_volleyball/results/tracking/rigid_point_tracks_manifest.json"
+      },
+      "output_hashes": {
+        "cotracker_center": "f88cb1ac6369d1bb1b69e31bfc448656860d38ca4602e8d16fc3b7b11651dfe6",
+        "cotracker_points": "3d047b9c9e5383d02b6b1b8848fbfd9ec7adcea5da1d5697885ffeec361062de",
+        "cotracker_mesh_tracks": "6528f0ecb9f965825bde133392810c7e670beb1dfcc229e5c82c2034de18c432",
+        "cotracker_rigid_tracks": "f23aaf7c3056612556440a7b09f5ee48c9478b7c7440476255c38ea82f175daf",
+        "cotracker_rigid_tracks_manifest": "2b8cc073571762ffdc94f092d317ea4e44ee68e4a384dc851a9e090e56aa6d8f"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "sam_pt_mask_candidate": {
+      "status": "disabled",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "sam_pt_candidate_masks": "samples_known_object/13_volleyball/results/segmentation/sam_pt_candidate_masks",
+        "sam_pt_candidate_manifest": "samples_known_object/13_volleyball/results/segmentation/sam_pt_candidate_manifest.json"
+      },
+      "output_hashes": {},
+      "error": "",
+      "human_state_role": null
+    },
+    "rigid_asset_mesh_export": {
+      "status": "disabled",
+      "runtime_env": "megapose",
+      "outputs": {
+        "rigid_provider_mesh": "samples_known_object/13_volleyball/articraft/megapose/fixed_rigid_asset_mm.ply",
+        "rigid_provider_mesh_manifest": "samples_known_object/13_volleyball/articraft/megapose/fixed_rigid_asset_mm.ply.json"
+      },
+      "output_hashes": {},
+      "error": "",
+      "human_state_role": null
+    },
+    "external_rigid_pose_provider": {
+      "status": "disabled",
+      "runtime_env": "megapose",
+      "outputs": {
+        "external_rigid_pose_hypotheses": "samples_known_object/13_volleyball/results/megapose/rigid_pose_hypotheses.jsonl",
+        "external_rigid_pose_manifest": "samples_known_object/13_volleyball/results/megapose/rigid_pose_hypotheses.jsonl.manifest.json",
+        "external_rigid_pose_overlays": "samples_known_object/13_volleyball/results/megapose/official_overlays"
+      },
+      "output_hashes": {},
+      "error": "",
+      "human_state_role": null
+    },
+    "bind_rigid_feature_tracks": {
+      "status": "disabled",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "rigid_feature_measurements": "samples_known_object/13_volleyball/results/final_full_4d_hoi/rigid_feature_measurements.csv",
+        "rigid_feature_measurements_manifest": "samples_known_object/13_volleyball/results/final_full_4d_hoi/rigid_feature_measurements_manifest.json"
+      },
+      "output_hashes": {},
+      "error": "",
+      "human_state_role": null
+    },
+    "da3": {
+      "status": "generated",
+      "runtime_env": "da3",
+      "outputs": {
+        "da3_scene_depth": "samples_known_object/13_volleyball/results/da3/scene_depth"
+      },
+      "output_hashes": {
+        "da3_scene_depth": "ba7b955da28d55872ffc14b7943e1baddd99845faf7b978a446ca29b4e49c7f8"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "object_depth_prior": {
+      "status": "generated",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "object_depth_prior": "samples_known_object/13_volleyball/results/da3/priors/object_depth_prior.csv"
+      },
+      "output_hashes": {
+        "object_depth_prior": "be3664882fcc127cd2c8bc70c3d3c30d89a85c93a8fbb2a6bf72d87c97365d35"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "gvhmr": {
+      "status": "generated",
+      "runtime_env": "gvhmr",
+      "outputs": {
+        "gvhmr_result": "samples_known_object/13_volleyball/results/gvhmr/result.pkl"
+      },
+      "output_hashes": {
+        "gvhmr_result": "28d0cdc6fac37ea90fe1bc16f68d9ebfac10776b75bf0f283cedac145f076742"
+      },
+      "error": "",
+      "human_state_role": "read_only_observed"
+    },
+    "audio_events": {
+      "status": "generated",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "audio_events": "samples_known_object/13_volleyball/results/events/audio_events.csv",
+        "audio_envelope": "samples_known_object/13_volleyball/results/events/audio_envelope.csv",
+        "audio_event_manifest": "samples_known_object/13_volleyball/results/events/audio_event_manifest.json"
+      },
+      "output_hashes": {
+        "audio_events": "ef561f0417aa22a3d29762ab0113e983993455f2500c9c4b7b90db2db7cef383",
+        "audio_envelope": "211ec2b08c25eebdfb133e69bc301150412be0cfc3e38150f92d49504a8ed3ba",
+        "audio_event_manifest": "fc53ae2654a5f886f8c609dabf65e4773725e4a6a6f6d617a5c118d17d548098"
+      },
+      "error": "",
+      "human_state_role": null
+    }
+  },
+  "checks": {
+    "case_ingestion_accepted": true,
+    "frame_count_positive": true,
+    "fps_positive": true,
+    "required_tasks_complete": true,
+    "gvhmr_read_only": true
+  },
+  "case_ingestion_manifest": "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_manifest.json",
+  "case_ingestion_manifest_sha256": "1d678700da6f8b3287d990227ea9ae633b33cf8c6c3406f39c86fe46e80a9ff5",
+  "status": "accepted"
+}

@@ -1,0 +1,514 @@
+{
+  "schema_version": 2,
+  "stage": "stage0_preprocess",
+  "case_name": "volleyball",
+  "status": "accepted",
+  "frame_count": 240,
+  "fps": 24.0,
+  "checks": {
+    "case_ingestion_accepted": true,
+    "frame_count_positive": true,
+    "fps_positive": true,
+    "required_tasks_complete": true,
+    "gvhmr_read_only": true
+  },
+  "tasks": [
+    {
+      "task_id": "frame_extract",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_media_extract.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--kind",
+        "frames"
+      ],
+      "cache_key": "f2d792371b7892003b128ee1bb42c1e06b32c4fbe782e70e79d29b4b8327a02f",
+      "input_hashes": {
+        "video": "b6a80fbaba744f294c5311639b44ff1e924a40e6d5b5ae67ca18fcf41d6575c8"
+      },
+      "output_paths": {
+        "frames": "samples_known_object/13_volleyball/frames"
+      },
+      "output_kinds": {
+        "frames": "directory"
+      },
+      "output_hashes": {
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1"
+      },
+      "started_at": "2026-08-19T18:43:54.927347+00:00",
+      "completed_at": "2026-08-19T18:43:55.018447+00:00",
+      "return_code": 0,
+      "stdout_tail": "hash-valid cache hit",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "audio_extract",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_media_extract.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--kind",
+        "audio"
+      ],
+      "cache_key": "4d595bc661451a7ddc293346383e8fc1ef3a702c311ee0828802bff30bb31921",
+      "input_hashes": {
+        "video": "b6a80fbaba744f294c5311639b44ff1e924a40e6d5b5ae67ca18fcf41d6575c8"
+      },
+      "output_paths": {
+        "audio": "samples_known_object/13_volleyball/audio.wav"
+      },
+      "output_kinds": {
+        "audio": "file"
+      },
+      "output_hashes": {
+        "audio": "312a7368c29267f9ecea29c39bfd84df6f778c1f092e6f28b3c4e865d580b33a"
+      },
+      "started_at": "2026-08-19T18:43:55.018474+00:00",
+      "completed_at": "2026-08-19T18:43:55.027979+00:00",
+      "return_code": 0,
+      "stdout_tail": "hash-valid cache hit",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "sam2",
+      "status": "generated",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_sam2_object.py",
+        "--case-config",
+        "scripts/shared/generic_contact_pipeline/configs/cases/volleyball.yaml",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--fps",
+        "24.0",
+        "--box",
+        "535,15,625,110"
+      ],
+      "cache_key": "8a7e31a3aa646f7143da33c8c3761b1ef3de2dad53f0608e3ac57b914f5fe8e8",
+      "input_hashes": {
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1",
+        "case_config": "37899cb7939d84b8510fd87bca9b053b9affacd1aaf8aec08440e2d113c9cff6"
+      },
+      "output_paths": {
+        "sam2_masks": "samples_known_object/13_volleyball/results/segmentation/masks",
+        "sam2_trajectory": "samples_known_object/13_volleyball/results/tracking/object_trajectory.csv"
+      },
+      "output_kinds": {
+        "sam2_masks": "directory",
+        "sam2_trajectory": "file"
+      },
+      "output_hashes": {
+        "sam2_masks": "54a0b530b95ec4a806f17646da7ff94cd125710e980274fb43d24a9a3a22f43b",
+        "sam2_trajectory": "7d45aadd88766d2a2e4eab02689e0a92138b4d9a391f12a22c0c768bbb02af31"
+      },
+      "started_at": "2026-08-19T18:43:55.027999+00:00",
+      "completed_at": "2026-08-19T18:44:14.391856+00:00",
+      "return_code": 0,
+      "stdout_tail": "{\n  \"init_detection\": {\n    \"text\": \"yellow and blue volleyball.\",\n    \"model_id\": \"manual_box\",\n    \"score\": 1.0,\n    \"box\": [\n      535.0,\n      15.0,\n      625.0,\n      110.0\n    ],\n    \"label\": \"yellow and blue volleyball.\"\n  },\n  \"sam2_model\": \"facebook/sam2.1-hiera-tiny\",\n  \"frames\": 240,\n  \"masks\": 240,\n  \"masks_dir\": \"/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/segmentation/masks\",\n  \"trajectory\": \"/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/tracking/object_trajectory.csv\"\n}\n",
+      "stderr_tail": "<00:08, 20.25it/s]\npropagate in video:  31%|███       | 74/240 [00:03<00:08, 20.24it/s]\npropagate in video:  32%|███▏      | 77/240 [00:03<00:08, 20.22it/s]\npropagate in video:  33%|███▎      | 80/240 [00:03<00:07, 20.20it/s]\npropagate in video:  35%|███▍      | 83/240 [00:04<00:07, 20.18it/s]\npropagate in video:  36%|███▌      | 86/240 [00:04<00:07, 20.17it/s]\npropagate in video:  37%|███▋      | 89/240 [00:04<00:07, 20.19it/s]\npropagate in video:  38%|███▊      | 92/240 [00:04<00:07, 20.21it/s]\npropagate in video:  40%|███▉      | 95/240 [00:04<00:07, 20.12it/s]\npropagate in video:  41%|████      | 98/240 [00:04<00:07, 20.09it/s]\npropagate in video:  42%|████▏     | 101/240 [00:04<00:06, 20.12it/s]\npropagate in video:  43%|████▎     | 104/240 [00:05<00:06, 20.16it/s]\npropagate in video:  45%|████▍     | 107/240 [00:05<00:06, 20.19it/s]\npropagate in video:  46%|████▌     | 110/240 [00:05<00:06, 20.19it/s]\npropagate in video:  47%|████▋     | 113/240 [00:05<00:06, 20.20it/s]\npropagate in video:  48%|████▊     | 116/240 [00:05<00:06, 20.20it/s]\npropagate in video:  50%|████▉     | 119/240 [00:05<00:05, 20.21it/s]\npropagate in video:  51%|█████     | 122/240 [00:05<00:05, 20.23it/s]\npropagate in video:  52%|█████▏    | 125/240 [00:06<00:05, 20.23it/s]\npropagate in video:  53%|█████▎    | 128/240 [00:06<00:05, 20.23it/s]\npropagate in video:  55%|█████▍    | 131/240 [00:06<00:05, 20.23it/s]\npropagate in video:  56%|█████▌    | 134/240 [00:06<00:05, 20.23it/s]\npropagate in video:  57%|█████▋    | 137/240 [00:06<00:05, 20.24it/s]\npropagate in video:  58%|█████▊    | 140/240 [00:06<00:04, 20.24it/s]\npropagate in video:  60%|█████▉    | 143/240 [00:06<00:04, 20.21it/s]\npropagate in video:  61%|██████    | 146/240 [00:07<00:04, 20.20it/s]\npropagate in video:  62%|██████▏   | 149/240 [00:07<00:04, 20.21it/s]\npropagate in video:  63%|██████▎   | 152/240 [00:07<00:04, 20.22it/s]\npropagate in video:  65%|██████▍   | 155/240 [00:07<00:04, 20.21it/s]\npropagate in video:  66%|██████▌   | 158/240 [00:07<00:04, 20.21it/s]\npropagate in video:  67%|██████▋   | 161/240 [00:07<00:03, 20.19it/s]\npropagate in video:  68%|██████▊   | 164/240 [00:08<00:03, 20.19it/s]\npropagate in video:  70%|██████▉   | 167/240 [00:08<00:03, 20.20it/s]\npropagate in video:  71%|███████   | 170/240 [00:08<00:03, 20.21it/s]\npropagate in video:  72%|███████▏  | 173/240 [00:08<00:03, 20.21it/s]\npropagate in video:  73%|███████▎  | 176/240 [00:08<00:03, 20.21it/s]\npropagate in video:  75%|███████▍  | 179/240 [00:08<00:03, 20.22it/s]\npropagate in video:  76%|███████▌  | 182/240 [00:08<00:02, 20.22it/s]\npropagate in video:  77%|███████▋  | 185/240 [00:09<00:02, 20.22it/s]\npropagate in video:  78%|███████▊  | 188/240 [00:09<00:02, 20.21it/s]\npropagate in video:  80%|███████▉  | 191/240 [00:09<00:02, 20.21it/s]\npropagate in video:  81%|████████  | 194/240 [00:09<00:02, 20.22it/s]\npropagate in video:  82%|████████▏ | 197/240 [00:09<00:02, 20.22it/s]\npropagate in video:  83%|████████▎ | 200/240 [00:09<00:01, 20.23it/s]\npropagate in video:  85%|████████▍ | 203/240 [00:09<00:01, 20.23it/s]\npropagate in video:  86%|████████▌ | 206/240 [00:10<00:01, 20.21it/s]\npropagate in video:  87%|████████▋ | 209/240 [00:10<00:01, 20.21it/s]\npropagate in video:  88%|████████▊ | 212/240 [00:10<00:01, 20.21it/s]\npropagate in video:  90%|████████▉ | 215/240 [00:10<00:01, 20.21it/s]\npropagate in video:  91%|█████████ | 218/240 [00:10<00:01, 20.22it/s]\npropagate in video:  92%|█████████▏| 221/240 [00:10<00:00, 20.23it/s]\npropagate in video:  93%|█████████▎| 224/240 [00:10<00:00, 20.23it/s]\npropagate in video:  95%|█████████▍| 227/240 [00:11<00:00, 20.23it/s]\npropagate in video:  96%|█████████▌| 230/240 [00:11<00:00, 20.22it/s]\npropagate in video:  97%|█████████▋| 233/240 [00:11<00:00, 20.23it/s]\npropagate in video:  98%|█████████▊| 236/240 [00:11<00:00, 20.24it/s]\npropagate in video: 100%|█████████▉| 239/240 [00:11<00:00, 20.24it/s]\npropagate in video: 100%|██████████| 240/240 [00:11<00:00, 20.37it/s]\n",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "cotracker",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_cotracker_object_points.py",
+        "--case-config",
+        "scripts/shared/generic_contact_pipeline/configs/cases/volleyball.yaml",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--object-family",
+        "dynamic_ball",
+        "--fps",
+        "24.0",
+        "--resize-width",
+        "640",
+        "--sequence-mode",
+        "persistent_online",
+        "--grid-size",
+        "12"
+      ],
+      "cache_key": "2072d145c436795a05e5a1a31520c037701f987f3464768338069146a219b9c2",
+      "input_hashes": {
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1",
+        "sam2_masks": "54a0b530b95ec4a806f17646da7ff94cd125710e980274fb43d24a9a3a22f43b"
+      },
+      "output_paths": {
+        "cotracker_center": "samples_known_object/13_volleyball/results/tracking/object_center_trajectory.csv",
+        "cotracker_points": "samples_known_object/13_volleyball/results/tracking/object_points.csv",
+        "cotracker_mesh_tracks": "samples_known_object/13_volleyball/results/tracking/object_mesh_tracks_test.csv",
+        "cotracker_rigid_tracks": "samples_known_object/13_volleyball/results/tracking/rigid_point_tracks.csv",
+        "cotracker_rigid_tracks_manifest": "samples_known_object/13_volleyball/results/tracking/rigid_point_tracks_manifest.json"
+      },
+      "output_kinds": {
+        "cotracker_center": "file",
+        "cotracker_points": "file",
+        "cotracker_mesh_tracks": "file",
+        "cotracker_rigid_tracks": "file",
+        "cotracker_rigid_tracks_manifest": "file"
+      },
+      "output_hashes": {
+        "cotracker_center": "f88cb1ac6369d1bb1b69e31bfc448656860d38ca4602e8d16fc3b7b11651dfe6",
+        "cotracker_points": "3d047b9c9e5383d02b6b1b8848fbfd9ec7adcea5da1d5697885ffeec361062de",
+        "cotracker_mesh_tracks": "6528f0ecb9f965825bde133392810c7e670beb1dfcc229e5c82c2034de18c432",
+        "cotracker_rigid_tracks": "f23aaf7c3056612556440a7b09f5ee48c9478b7c7440476255c38ea82f175daf",
+        "cotracker_rigid_tracks_manifest": "2b8cc073571762ffdc94f092d317ea4e44ee68e4a384dc851a9e090e56aa6d8f"
+      },
+      "started_at": "2026-08-19T18:44:14.391886+00:00",
+      "completed_at": "2026-08-19T18:44:14.595385+00:00",
+      "return_code": 0,
+      "stdout_tail": "hash-valid cache hit",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "sam_pt_mask_candidate",
+      "status": "disabled",
+      "required": false,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_sam_pt_mask_refine.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--prompt-stride",
+        "24",
+        "--minimum-visible-points",
+        "16",
+        "--maximum-prompt-points",
+        "16"
+      ],
+      "cache_key": "disabled_by_ablation",
+      "input_hashes": {},
+      "output_paths": {
+        "sam_pt_candidate_masks": "samples_known_object/13_volleyball/results/segmentation/sam_pt_candidate_masks",
+        "sam_pt_candidate_manifest": "samples_known_object/13_volleyball/results/segmentation/sam_pt_candidate_manifest.json"
+      },
+      "output_kinds": {
+        "sam_pt_candidate_masks": "directory",
+        "sam_pt_candidate_manifest": "file"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:44:14.595417+00:00",
+      "completed_at": "2026-08-19T18:44:14.595424+00:00",
+      "return_code": 0,
+      "stdout_tail": "disabled by disable_audio_events",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "rigid_asset_mesh_export",
+      "status": "disabled",
+      "required": false,
+      "runtime_env": "megapose",
+      "command": [
+        "/home/yang/miniconda3/envs/megapose/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/export_rigid_asset_mesh.py",
+        "--asset-descriptor",
+        "scripts/shared/generic_contact_pipeline/configs/assets/sphere_proxy.json",
+        "--output",
+        "samples_known_object/13_volleyball/articraft/megapose/fixed_rigid_asset_mm.ply"
+      ],
+      "cache_key": "disabled_by_ablation",
+      "input_hashes": {},
+      "output_paths": {
+        "rigid_provider_mesh": "samples_known_object/13_volleyball/articraft/megapose/fixed_rigid_asset_mm.ply",
+        "rigid_provider_mesh_manifest": "samples_known_object/13_volleyball/articraft/megapose/fixed_rigid_asset_mm.ply.json"
+      },
+      "output_kinds": {
+        "rigid_provider_mesh": "file",
+        "rigid_provider_mesh_manifest": "file"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:44:14.595432+00:00",
+      "completed_at": "2026-08-19T18:44:14.595436+00:00",
+      "return_code": 0,
+      "stdout_tail": "disabled by disable_audio_events",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "external_rigid_pose_provider",
+      "status": "disabled",
+      "required": false,
+      "runtime_env": "megapose",
+      "command": [
+        "/home/yang/miniconda3/envs/megapose/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_megapose_rigid_pose.py",
+        "--case-config",
+        "scripts/shared/generic_contact_pipeline/configs/cases/volleyball.yaml",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--asset-mesh",
+        "samples_known_object/13_volleyball/articraft/megapose/fixed_rigid_asset_mm.ply",
+        "--mask-dir",
+        "samples_known_object/13_volleyball/results/segmentation/masks",
+        "--track-artifact",
+        "samples_known_object/13_volleyball/results/tracking/rigid_point_tracks.csv",
+        "--frames",
+        "auto",
+        "--auto-frame-count",
+        "10",
+        "--output",
+        "samples_known_object/13_volleyball/results/megapose/rigid_pose_hypotheses.jsonl",
+        "--overlay-dir",
+        "samples_known_object/13_volleyball/results/megapose/official_overlays",
+        "--megapose-data-dir",
+        "third-party/megapose6d/local_data",
+        "--display",
+        ":1",
+        "--renderer-workers",
+        "0",
+        "--batch-size",
+        "64"
+      ],
+      "cache_key": "disabled_by_ablation",
+      "input_hashes": {},
+      "output_paths": {
+        "external_rigid_pose_hypotheses": "samples_known_object/13_volleyball/results/megapose/rigid_pose_hypotheses.jsonl",
+        "external_rigid_pose_manifest": "samples_known_object/13_volleyball/results/megapose/rigid_pose_hypotheses.jsonl.manifest.json",
+        "external_rigid_pose_overlays": "samples_known_object/13_volleyball/results/megapose/official_overlays"
+      },
+      "output_kinds": {
+        "external_rigid_pose_hypotheses": "file",
+        "external_rigid_pose_manifest": "file",
+        "external_rigid_pose_overlays": "directory"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:44:14.595442+00:00",
+      "completed_at": "2026-08-19T18:44:14.595447+00:00",
+      "return_code": 0,
+      "stdout_tail": "disabled by disable_audio_events",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "bind_rigid_feature_tracks",
+      "status": "disabled",
+      "required": false,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/bind_rigid_feature_tracks.py",
+        "--case",
+        "volleyball",
+        "--result-name",
+        "final_full_4d_hoi",
+        "--track-artifact",
+        "samples_known_object/13_volleyball/results/tracking/rigid_point_tracks.csv",
+        "--pose-hypotheses",
+        "samples_known_object/13_volleyball/results/megapose/rigid_pose_hypotheses.jsonl",
+        "--output-csv",
+        "samples_known_object/13_volleyball/results/final_full_4d_hoi/rigid_feature_measurements.csv",
+        "--output-manifest",
+        "samples_known_object/13_volleyball/results/final_full_4d_hoi/rigid_feature_measurements_manifest.json",
+        "--maximum-anchor-error-px",
+        "18.0",
+        "--minimum-track-visibility",
+        "0.5",
+        "--minimum-pose-mask-iou",
+        "0.6"
+      ],
+      "cache_key": "disabled_by_ablation",
+      "input_hashes": {},
+      "output_paths": {
+        "rigid_feature_measurements": "samples_known_object/13_volleyball/results/final_full_4d_hoi/rigid_feature_measurements.csv",
+        "rigid_feature_measurements_manifest": "samples_known_object/13_volleyball/results/final_full_4d_hoi/rigid_feature_measurements_manifest.json"
+      },
+      "output_kinds": {
+        "rigid_feature_measurements": "file",
+        "rigid_feature_measurements_manifest": "file"
+      },
+      "output_hashes": {},
+      "started_at": "2026-08-19T18:44:14.595454+00:00",
+      "completed_at": "2026-08-19T18:44:14.595457+00:00",
+      "return_code": 0,
+      "stdout_tail": "disabled by disable_audio_events",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "da3",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "da3",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_da3_scene_depth.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--da3-root",
+        "third-party/depth-anything-3",
+        "--model-dir",
+        "depth-anything/DA3METRIC-LARGE",
+        "--chunk-size",
+        "16",
+        "--process-res",
+        "504"
+      ],
+      "cache_key": "74b9f63d4a5e1fd15fb0ca564c631eb22507b70a20d76d9a3ffbf64288b12f67",
+      "input_hashes": {
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1",
+        "da3_cli": "4ff3c2a9305eb9ff18132b139daa1cc2ea421f94e9e3c245cd1b1173437ed799"
+      },
+      "output_paths": {
+        "da3_scene_depth": "samples_known_object/13_volleyball/results/da3/scene_depth"
+      },
+      "output_kinds": {
+        "da3_scene_depth": "directory"
+      },
+      "output_hashes": {
+        "da3_scene_depth": "ba7b955da28d55872ffc14b7943e1baddd99845faf7b978a446ca29b4e49c7f8"
+      },
+      "started_at": "2026-08-19T18:44:14.595463+00:00",
+      "completed_at": "2026-08-19T18:44:14.795955+00:00",
+      "return_code": 0,
+      "stdout_tail": "hash-valid cache hit",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "object_depth_prior",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_object_depth_prior.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball"
+      ],
+      "cache_key": "1827391e67f27e6dfd61219e4016dfeabfde52022e4ddf389b9d4e9f65c6e04f",
+      "input_hashes": {
+        "da3_scene_depth": "ba7b955da28d55872ffc14b7943e1baddd99845faf7b978a446ca29b4e49c7f8",
+        "sam2_masks": "54a0b530b95ec4a806f17646da7ff94cd125710e980274fb43d24a9a3a22f43b",
+        "sam2_trajectory": "7d45aadd88766d2a2e4eab02689e0a92138b4d9a391f12a22c0c768bbb02af31",
+        "cotracker_center": "f88cb1ac6369d1bb1b69e31bfc448656860d38ca4602e8d16fc3b7b11651dfe6"
+      },
+      "output_paths": {
+        "object_depth_prior": "samples_known_object/13_volleyball/results/da3/priors/object_depth_prior.csv"
+      },
+      "output_kinds": {
+        "object_depth_prior": "file"
+      },
+      "output_hashes": {
+        "object_depth_prior": "be3664882fcc127cd2c8bc70c3d3c30d89a85c93a8fbb2a6bf72d87c97365d35"
+      },
+      "started_at": "2026-08-19T18:44:14.795982+00:00",
+      "completed_at": "2026-08-19T18:44:14.893902+00:00",
+      "return_code": 0,
+      "stdout_tail": "hash-valid cache hit",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    },
+    {
+      "task_id": "gvhmr",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "gvhmr",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/human/gvhmr/run_gvhmr.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball",
+        "--fps",
+        "24",
+        "--static-cam"
+      ],
+      "cache_key": "7670adade68fca89cdd33ad750f90c381233397581050698e9d3bd963ac2b635",
+      "input_hashes": {
+        "video": "b6a80fbaba744f294c5311639b44ff1e924a40e6d5b5ae67ca18fcf41d6575c8",
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1",
+        "gvhmr_checkpoint": "4fae7da2de388d5da3514cb27a2d003f364dacb280e9cf88972b710e589c6b91"
+      },
+      "output_paths": {
+        "gvhmr_result": "samples_known_object/13_volleyball/results/gvhmr/result.pkl"
+      },
+      "output_kinds": {
+        "gvhmr_result": "file"
+      },
+      "output_hashes": {
+        "gvhmr_result": "28d0cdc6fac37ea90fe1bc16f68d9ebfac10776b75bf0f283cedac145f076742"
+      },
+      "started_at": "2026-08-19T18:44:14.893935+00:00",
+      "completed_at": "2026-08-19T18:44:15.081974+00:00",
+      "return_code": 0,
+      "stdout_tail": "hash-valid cache hit",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": "read_only_observed"
+    },
+    {
+      "task_id": "audio_events",
+      "status": "reused",
+      "required": true,
+      "runtime_env": "audiohoi",
+      "command": [
+        "/home/hebestreit/miniforge3/envs/gvhmr/bin/python",
+        "scripts/shared/generic_contact_pipeline/tools/run_audio_event_extract.py",
+        "--sample-dir",
+        "samples_known_object/13_volleyball"
+      ],
+      "cache_key": "996108c1fedd7043040d89d36e163a2c0cef41c9aa3a43bbd1f93bba995b3e2e",
+      "input_hashes": {
+        "audio": "312a7368c29267f9ecea29c39bfd84df6f778c1f092e6f28b3c4e865d580b33a",
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1",
+        "gvhmr_result": "28d0cdc6fac37ea90fe1bc16f68d9ebfac10776b75bf0f283cedac145f076742",
+        "cotracker_center": "f88cb1ac6369d1bb1b69e31bfc448656860d38ca4602e8d16fc3b7b11651dfe6"
+      },
+      "output_paths": {
+        "audio_events": "samples_known_object/13_volleyball/results/events/audio_events.csv",
+        "audio_envelope": "samples_known_object/13_volleyball/results/events/audio_envelope.csv",
+        "audio_event_manifest": "samples_known_object/13_volleyball/results/events/audio_event_manifest.json"
+      },
+      "output_kinds": {
+        "audio_events": "file",
+        "audio_envelope": "file",
+        "audio_event_manifest": "file"
+      },
+      "output_hashes": {
+        "audio_events": "ef561f0417aa22a3d29762ab0113e983993455f2500c9c4b7b90db2db7cef383",
+        "audio_envelope": "211ec2b08c25eebdfb133e69bc301150412be0cfc3e38150f92d49504a8ed3ba",
+        "audio_event_manifest": "fc53ae2654a5f886f8c609dabf65e4773725e4a6a6f6d617a5c118d17d548098"
+      },
+      "started_at": "2026-08-19T18:44:15.081997+00:00",
+      "completed_at": "2026-08-19T18:44:15.172780+00:00",
+      "return_code": 0,
+      "stdout_tail": "hash-valid cache hit",
+      "stderr_tail": "",
+      "error": "",
+      "human_state_role": null
+    }
+  ],
+  "generated_tasks": 1,
+  "reused_tasks": 7,
+  "disabled_tasks": 4,
+  "failed_tasks": [],
+  "object_only_boundary": true,
+  "human_state_optimized": false
+}

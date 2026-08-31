@@ -1,0 +1,6 @@
+metric,unit,full,no_vlm,no_audio,better_direction,scope
+free_flight_turn_p95,deg,21.92,93.50,96.15,lower,non-contact free-flight frames
+non_contact_turns_gt_35deg,count,6,23,21,lower,non-contact frame transitions
+interior_turn_max_157_200,deg,4.45,176.12,176.12,lower,frames 157-200 excluding contact boundaries
+paddle_contact_mean_gap,mm,0.0,0.0,264.3,lower,recomputed paddle-ball contacts
+valid_collision_normal_reversals,count,7/7,7/7,1/7,higher,seven accepted impact windows

@@ -1,0 +1,8 @@
+n_frames: 240
+n_detected_left: 240  (100.0%)
+n_detected_right: 240  (100.0%)
+crop_scale: 0.28
+rescale_factor: 2.0
+smooth_sigma: 1.5
+device: cuda
+hamer_checkpoint: /tmp/audiohoi-nine/scripts/shared/third-party/hamer/_DATA/hamer_ckpts/checkpoints/hamer.ckpt

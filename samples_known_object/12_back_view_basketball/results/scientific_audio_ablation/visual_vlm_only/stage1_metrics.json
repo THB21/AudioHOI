@@ -1,0 +1,24 @@
+{
+  "component": "generic_observation_mainline",
+  "case_name": "back_view_basketball",
+  "adapter": {
+    "component": "mask_track_center",
+    "source": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_observations.csv",
+    "source_kind": "configured_visual_observation_fallback",
+    "audio_columns_zeroed": true,
+    "object_observations": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_observations.csv",
+    "local_points": "none_for_center_proxy",
+    "rows": 240,
+    "policy": "reuse materialized visual Stage-1 observations only; solved object pose is not read",
+    "adapter_component": "mask_track_center"
+  },
+  "object_observations": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_observations.csv",
+  "object_correspondence": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_correspondence.csv",
+  "object_surface_points": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_surface_points.csv",
+  "object_semantic_points": "/tmp/audiohoi-nine/samples_known_object/12_back_view_basketball/results/scientific_audio_ablation/visual_vlm_only/object_semantic_points.csv",
+  "rows": 240,
+  "correspondence_rows": 240,
+  "surface_rows": 0,
+  "semantic_rows": 0,
+  "policy": "fixed generic observation contract; case-specific observation code is compatibility adapter only"
+}

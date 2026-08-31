@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "case": "back_view_basketball",
+  "status": "reproducible_not_promotion_ready",
+  "primary_variants": ["full", "no_vlm", "no_audio"],
+  "fixed_vlm_query_count": 12,
+  "artifacts": [
+    {
+      "path": "frozen_poses/full_object_pose.csv",
+      "sha256": "4b0dae96d5fe7a57cef038254dc10ae478a3f2f9680ed201b4ff82ce767e9069"
+    },
+    {
+      "path": "frozen_poses/no_vlm_object_pose.csv",
+      "sha256": "baa9b8de490d1307067cf80eb9cd2f0a16cd18cc69088834c00b6db246e0cc1e"
+    },
+    {
+      "path": "frozen_poses/no_audio_object_pose.csv",
+      "sha256": "52748476cf0bcbfaddb994e3b79aef3468f58efe86574d24ac58dd6f87a4714d"
+    },
+    {
+      "path": "frozen_poses/pure_solver_no_audio_no_vlm_object_pose.csv",
+      "sha256": "946a367cc20bfbeaf2a5a5ce3b5b2aae316eff3b58705624e85696fa0a3740f8"
+    },
+    {
+      "path": "final_full/object_only/camera3d.mp4",
+      "sha256": "ba86ccf7b89c16162f431e94cec16b18796aa29d82fa969a14a33986f630a9d7"
+    },
+    {
+      "path": "final_full/object_only/overlay.mp4",
+      "sha256": "00cd00a6554c136b6aa52c5872c7d229907d45e0815a48591558dad23c4377be"
+    },
+    {
+      "path": "final_full/object_only/side_yz.mp4",
+      "sha256": "a33f47fbcf6f74d0c2905193cbb75bd8456c7cb34e9899cefc0eb7b0076068a7"
+    },
+    {
+      "path": "final_full/with_human/camera3d.mp4",
+      "sha256": "ab7f21ddb818aac3762eaf6fa43a723af0becb04d4c62beee70a69779e031ce3"
+    },
+    {
+      "path": "final_full/with_human/overlay.mp4",
+      "sha256": "75af4c9b163591c317c88760726433cd063142fcf7156efe4a3cc78d93ef0c97"
+    },
+    {
+      "path": "final_full/with_human/side_yz.mp4",
+      "sha256": "159dc7f01920c92b046369cef198d27676202497e843d3a94c0d2a748c339a7e"
+    }
+  ]
+}

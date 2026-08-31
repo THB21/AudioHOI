@@ -1,0 +1,12 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,used_for_anchor_update,used_for_contact_residual,used_for_report
+pingpong_wall,stage4,1,anchor_update_check,unclear,unclear,unclear_no_update,0,0,1
+pingpong_wall,stage4,1,contact_relation_check,paddle_face,pass,accept_candidate,0,1,1
+pingpong_wall,stage4,1,overlay_alignment_check,unclear,unclear,unclear_no_update,0,0,1
+pingpong_wall,stage4,1,temporal_motion_check,unclear,unclear,unclear_no_update,0,0,1
+pingpong_wall,stage4,11,constraint_reliability_check,unclear,unclear,unclear_no_update,0,0,1
+pingpong_wall,stage4,38,constraint_reliability_check,unclear,unclear,unclear_no_update,0,0,1
+pingpong_wall,stage4,110,constraint_reliability_check,unclear,unclear,unclear_no_update,0,0,1
+pingpong_wall,stage4,177,constraint_reliability_check,contact_relation_reliable,pass,downweight_correspondence,0,0,1
+pingpong_wall,stage4,192,constraint_reliability_check,both_consistent,pass,accept_candidate,0,0,1
+pingpong_wall,stage4,220,constraint_reliability_check,unclear,unclear,unclear_no_update,0,0,1
+pingpong_wall,stage4,229,constraint_reliability_check,unclear,unclear,unclear_no_update,0,0,1

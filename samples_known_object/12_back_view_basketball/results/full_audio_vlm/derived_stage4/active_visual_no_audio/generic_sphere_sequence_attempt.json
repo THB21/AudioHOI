@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "mode": "generic_sphere_sequence_candidate",
+  "attempt_id": "sphere-f2a93a6a9130",
+  "solver_executed": true,
+  "accepted_outputs_written": false,
+  "baseline_pose_read": false,
+  "executor_scope": "isolated_candidate_dir",
+  "canonical_result_dir": "samples_known_object/12_back_view_basketball/results/full_audio_vlm",
+  "candidate_dir": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/derived_stage4/active_visual_no_audio",
+  "inputs": {
+    "object_measurements": {
+      "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_observations.csv",
+      "sha256": "faf717da87f50de10ef5e6836d62591dbf252e5b3aaa5a70a640b021b8805092"
+    },
+    "contact_events": {
+      "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_events.csv",
+      "sha256": "a73a6d419b255d054e52b54a2c56c8eaea93e8601e8f8350f8f39dd51592dd7b"
+    },
+    "contact_timeline": {
+      "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_state_frames.csv",
+      "sha256": "a833d915eb00b169137f5e3bc06e555cc984355d0fc741ad5d4cf9867909fbe0"
+    },
+    "human_sites": {
+      "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/human_sites.csv",
+      "sha256": "32da58bf88a3c95b089e75da047d5a4e17b55bc2d2452c214170309f6afbb254"
+    },
+    "support_geometry": {
+      "path": "samples_known_object/12_back_view_basketball/results/full_audio_vlm/support_geometry.json",
+      "sha256": "f04e95805f56ef4d591a4f9d6fa6edb0ef2c50ccdc615677c4ff6d9e7bb93e53"
+    },
+    "trusted_audio_contact_ledger": {
+      "path": "samples_known_object/12_back_view_basketball/results/audio_contact_analysis/trusted_event_ledger.csv",
+      "sha256": "0554b46c34703d9e86d6f3cad42ec6c1059542c9b4374e144229e831e7f920b7"
+    }
+  },
+  "state_spec": "translation3:sphere",
+  "geometry_provider": "sphere_proxy",
+  "parameters": {
+    "minimum_depth_m": 0.2,
+    "maximum_contact_depth_offset_m": 1.0,
+    "reference_weight": 0.7,
+    "temporal_weight": 5.0,
+    "physical_xz_weight": 1.25,
+    "physical_y_weight": 1.5,
+    "gravity_mps2": 9.81,
+    "robust_loss": "soft_l1",
+    "robust_scale": 1.0,
+    "max_function_evaluations": 400,
+    "audio_anchor_weight": 3.0,
+    "audio_anchor_score_threshold": 0.5,
+    "audio_anchor_max_reprojection_px": 140.0,
+    "audio_event_window_frames": 2,
+    "floor_anchor_weight": 5.0,
+    "audio_jump_weight": 0.35,
+    "audio_jump_min_m": 0.006,
+    "sustained_contact_weight": 8.0
+  },
+  "frames": 240,
+  "human_contact_events": 5,
+  "support_events": 5,
+  "audio_enabled": false,
+  "audio_event_count": 0,
+  "audio_soft_hand_anchor_count": 130,
+  "audio_soft_floor_anchor_count": 0,
+  "audio_impact_count": 0,
+  "trusted_hard_hand_anchor_count": 3,
+  "sustained_contact_anchor_count": 130,
+  "global_depth_shift_m": 1.0652983437218224,
+  "candidate_artifact": "generic_sphere_sequence_candidate.csv",
+  "candidate_sha256": "0076db97004548c161448ef5fccb974476993e292db2b04adcdbb959ca41bb83",
+  "residual_artifact": "generic_sphere_sequence_residuals.csv",
+  "residual_sha256": "d2b957ceab43c8d711364828bb22e4c039aa0dbcbf9e541e24378fa31b4a66b1",
+  "accepted_output_policy": "sandbox_only_until_all_ball_regression_gates_pass",
+  "canonical_sha256": "f2a93a6a9130bdab47e957bbb2bad365cb1eae459da0c1a047053fc8b6d4f554"
+}

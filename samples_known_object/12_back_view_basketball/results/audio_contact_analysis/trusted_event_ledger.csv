@@ -1,0 +1,12 @@
+start_frame,end_frame,peak_frame,event_type,target,confidence,audio_score,visual_evidence,optimizer_action
+1,3,2,hand_contact,right_hand,0.95,0.289675,ball overlaps projected right hand across three-frame window,hard_surface_anchor
+22,26,24,floor_bounce,floor,0.99,1.000000,ball reaches floor then reverses upward,soft_floor_anchor
+41,45,43,floor_bounce,floor,0.99,0.975367,ball reaches floor then reverses upward,soft_floor_anchor
+57,61,59,floor_bounce,floor,0.99,1.000000,ball reaches floor then reverses upward,soft_floor_anchor
+77,81,79,floor_bounce,floor,0.99,1.000000,ball reaches floor then reverses upward,soft_floor_anchor
+95,99,97,floor_bounce,floor,0.98,0.919473,ball reaches floor then reverses upward,soft_floor_anchor
+109,240,115,sustained_hand_contact,both_hands,0.95,0.188349,ball is gathered and remains held despite weak later audio,soft_sustained_surface_anchor
+145,149,147,sustained_hand_contact,both_hands,0.99,0.069929,both projected hands overlap the visible ball,covered_by_sustained_interval
+172,176,174,sustained_hand_contact,both_hands,0.99,0.000000,player visibly holds ball with both hands,covered_by_sustained_interval
+181,185,183,sustained_hand_contact,both_hands,0.99,0.000534,player visibly holds ball with both hands,covered_by_sustained_interval
+232,236,234,sustained_hand_contact,both_hands,0.99,0.123588,player visibly holds ball with both hands,covered_by_sustained_interval

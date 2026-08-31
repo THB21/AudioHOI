@@ -1,0 +1,16 @@
+frame,time,contact_active,expected_contact,human_part,human_side,object_part,object_local_id,contact_u,contact_v,contact_depth_offset_m,contact_conf,anchor_score,source
+2,0.033333,1,1,hand,right,surface,object:surface,505.3444039270448,337.941275846988,6.686632390715445e-05,0.606828,0.5,human:hand:right->object:object:surface
+26,0.833333,1,1,hand,right,surface,object:surface,514.1459657761443,424.4840372827091,0.006254120012129716,0.569777,0.5,human:hand:right->object:object:surface
+38,1.233333,1,1,hand,right,surface,object:surface,524.8529423606568,470.5356807891543,0.025293205298129416,0.4711,0.5,human:hand:right->object:object:surface
+53,1.733333,1,1,hand,right,surface,object:surface,554.7796872416784,452.3240734162138,0.015961506332639954,0.480515,0.5,human:hand:right->object:object:surface
+66,2.166667,1,1,hand,right,surface,object:surface,593.9739693355942,454.105841062514,0.01010216363663752,0.628425,0.5,human:hand:right->object:object:surface
+79,2.600000,1,1,hand,right,surface,object:surface,503.5345242334006,446.7799356646939,0.004471104027300936,0.585158,0.5,human:hand:right->object:object:surface
+90,2.966667,1,1,hand,right,surface,object:surface,491.8602717616851,462.19952978393184,0.011510974028536061,0.562871,0.5,human:hand:right->object:object:surface
+103,3.400000,1,1,hand,right,surface,object:surface,536.4782809317836,447.3977216476323,0.028886777409010602,0.585237,0.5,human:hand:right->object:object:surface
+115,3.800000,1,1,hand,right,surface,object:surface,580.9798341248691,456.0700964391323,0.022731407682057052,0.448067,0.5,human:hand:right->object:object:surface
+128,4.233333,1,1,hand,right,surface,object:surface,552.327545118855,451.5028926878332,0.03044332188520877,0.596577,0.5,human:hand:right->object:object:surface
+139,4.600000,1,1,hand,right,surface,object:surface,498.3513982831689,465.1054787375401,0.021959539550996703,0.535869,0.5,human:hand:right->object:object:surface
+151,5.000000,1,1,hand,right,surface,object:surface,579.2537101389394,456.4586989096387,0.03717761700896508,0.43777,0.5,human:hand:right->object:object:surface
+163,5.400000,1,1,hand,right,surface,object:surface,531.1018964775225,463.65562245188414,0.017057385567894788,0.549698,0.5,human:hand:right->object:object:surface
+176,5.833333,1,1,hand,right,surface,object:surface,504.2275651711733,463.94445000546284,0.012681626817610675,0.553844,0.5,human:hand:right->object:object:surface
+189,6.266667,1,1,hand,right,surface,object:surface,566.396840571344,472.3466099562921,0.017068956201419582,0.493563,0.5,human:hand:right->object:object:surface

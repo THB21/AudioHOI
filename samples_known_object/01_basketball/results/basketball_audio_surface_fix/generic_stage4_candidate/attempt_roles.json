@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "stable_attempt_id": "generic-solve-d951035bbe0a",
+  "stable_attempt_dir": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/generic_sequence_solver_attempts/generic-solve-d951035bbe0a",
+  "stable_evidence": {
+    "status": "not_applicable",
+    "reason": "candidate evidence requires generic_urdf"
+  },
+  "challenger_attempt_id": null,
+  "challenger_attempt_dir": null,
+  "challenger_evidence": {
+    "status": "not_applicable"
+  },
+  "completion_frames": [],
+  "baseline_pose_read": false,
+  "accepted_outputs_written": false
+}

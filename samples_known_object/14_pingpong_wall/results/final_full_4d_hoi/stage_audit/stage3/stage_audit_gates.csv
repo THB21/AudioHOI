@@ -1,0 +1,4 @@
+case_name,stage,check_type,pass_gate,repair_action,rerun_stage,allow_continue,residual_reweight,reason
+pingpong_wall,stage3,artifact:object_pose_init,pass,keep_outputs,0,1,0,object_pose_init exists
+pingpong_wall,stage3,se3_schema,pass,keep_outputs,0,1,0,object_pose_init has SE3 schema
+pingpong_wall,stage3,vlm_gate,unclear,rerun_stage_with_lower_trust,1,1,0,VLM marked 3 frame/query rows unclear

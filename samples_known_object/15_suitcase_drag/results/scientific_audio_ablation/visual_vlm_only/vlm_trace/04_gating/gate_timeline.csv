@@ -1,0 +1,2 @@
+frame,stage,constraint,active,weight,source_gate,reason
+1,stage0,target_mask_check,0,,not_evaluated,dry_run_not_evaluated

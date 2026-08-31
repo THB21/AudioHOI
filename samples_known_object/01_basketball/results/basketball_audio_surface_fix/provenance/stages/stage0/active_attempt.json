@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "stage": "stage0",
+  "attempt_id": "000002",
+  "status": "failed",
+  "record": "samples_known_object/01_basketball/results/basketball_audio_surface_fix/provenance/stages/stage0/attempts/000002.json",
+  "finished_at": "2026-08-20T00:07:44.170013+00:00"
+}

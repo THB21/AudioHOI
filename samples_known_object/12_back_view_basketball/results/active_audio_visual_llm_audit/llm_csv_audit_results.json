@@ -1,0 +1,104 @@
+{
+  "case_name": "back_view_basketball",
+  "mode": "mistral_csv_audit",
+  "llm_trace": {
+    "provider": {
+      "name": "mistral_api",
+      "kind": "mistral_chat_completions",
+      "api_key_env": "MISTRAL_API_KEY",
+      "api_key_present": true,
+      "model_id": "mistral-small-latest",
+      "base_url": "https://api.mistral.ai/v1",
+      "temperature": 0.0,
+      "max_new_tokens": 900,
+      "timeout_seconds": 120
+    },
+    "used": true,
+    "error": "",
+    "response_id": "38eda56d503e432dbcad1fafa0ebd368",
+    "usage": {
+      "prompt_tokens": 11628,
+      "total_tokens": 12145,
+      "completion_tokens": 517,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "service_tier": "standard"
+    },
+    "raw_text": "{\n  \"results\": [\n    {\n      \"query_id\": \"schema_completeness\",\n      \"label\": \"schema_missing\",\n      \"blocking\": true,\n      \"short_reason\": \"missing required schema fields/files\",\n      \"evidence\": {\n        \"missing\": [\n          \"physical_smooth_residuals\",\n          \"motion_regime\",\n          \"pose_jump_audit\",\n          \"optimizer_decisions\",\n          \"optimizer_decisions:motion_regime\",\n          \"optimizer_decisions:sequence_se3_optimizer_enabled\",\n          \"optimizer_decisions:velocity_residual_enabled\",\n          \"optimizer_decisions:acceleration_residual_enabled\",\n          \"optimizer_decisions:smooth_weight\",\n          \"optimizer_decisions:accel_weight\",\n          \"optimizer_decisions:feedback_reoptimized\"\n        ]\n      }\n    },\n    {\n      \"query_id\": \"stage_consistency\",\n      \"label\": \"stage_inconsistent\",\n      \"blocking\": true,\n      \"short_reason\": \"missing_optimizer_decisions\",\n      \"evidence\": {\n        \"contact_candidates_rows\": 240,\n        \"object_contact_points_rows\": 0,\n        \"vlm_gates_rows\": 12,\n        \"optimizer_decision_rows\": 0,\n        \"motion_regime_rows\": 0,\n        \"ignored_rejected_frames\": [],\n        \"failures\": [\"missing_optimizer_decisions\"]\n      }\n    },\n    {\n      \"query_id\": \"object_specific_rules\",\n      \"label\": \"pass\",\n      \"blocking\": false,\n      \"short_reason\": \"case-specific rules pass\",\n      \"evidence\": {\n        \"failures\": [],\n        \"max_depth_step_m\": 0.257866\n      }\n    },\n    {\n      \"query_id\": \"failure_range_summary\",\n      \"label\": \"depth_outlier\",\n      \"blocking\": false,\n      \"short_reason\": \"inspect listed frames\",\n      \"evidence\": {\n        \"depth_jump_frames\": [21, 22, 27],\n        \"contact_frame_min\": \"\",\n        \"contact_frame_max\": \"\",\n        \"contact_frame_count\": 0,\n        \"pose_jump_audit_frames\": [],\n        \"trusted_solved_pose_lock\": false,\n        \"report_only_pose_jump_frames\": [],\n        \"low_trust_optimizer_frames\": []\n      }\n    }\n  ]\n}"
+  },
+  "results": [
+    {
+      "query_id": "schema_completeness",
+      "label": "schema_missing",
+      "blocking": true,
+      "evidence": {
+        "missing": [
+          "physical_smooth_residuals",
+          "motion_regime",
+          "pose_jump_audit",
+          "optimizer_decisions",
+          "optimizer_decisions:motion_regime",
+          "optimizer_decisions:sequence_se3_optimizer_enabled",
+          "optimizer_decisions:velocity_residual_enabled",
+          "optimizer_decisions:acceleration_residual_enabled",
+          "optimizer_decisions:smooth_weight",
+          "optimizer_decisions:accel_weight",
+          "optimizer_decisions:feedback_reoptimized"
+        ]
+      },
+      "short_reason": "missing required schema fields/files",
+      "llm_reviewed": true
+    },
+    {
+      "query_id": "stage_consistency",
+      "label": "stage_inconsistent",
+      "blocking": true,
+      "evidence": {
+        "contact_candidates_rows": 240,
+        "object_contact_points_rows": 0,
+        "vlm_gates_rows": 12,
+        "optimizer_decision_rows": 0,
+        "motion_regime_rows": 0,
+        "ignored_rejected_frames": [],
+        "failures": [
+          "missing_optimizer_decisions"
+        ]
+      },
+      "short_reason": "missing_optimizer_decisions",
+      "llm_reviewed": true
+    },
+    {
+      "query_id": "object_specific_rules",
+      "label": "pass",
+      "blocking": false,
+      "evidence": {
+        "failures": [],
+        "max_depth_step_m": 0.257866
+      },
+      "short_reason": "case-specific rules pass",
+      "llm_reviewed": true
+    },
+    {
+      "query_id": "failure_range_summary",
+      "label": "depth_outlier",
+      "blocking": false,
+      "evidence": {
+        "depth_jump_frames": [
+          21,
+          22,
+          27
+        ],
+        "contact_frame_min": "",
+        "contact_frame_max": "",
+        "contact_frame_count": 0,
+        "pose_jump_audit_frames": [],
+        "trusted_solved_pose_lock": false,
+        "report_only_pose_jump_frames": [],
+        "low_trust_optimizer_frames": []
+      },
+      "short_reason": "inspect listed frames",
+      "llm_reviewed": true
+    }
+  ]
+}

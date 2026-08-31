@@ -1,0 +1,11 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+pingpong,stage4,11,anchor_update_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+pingpong,stage4,177,anchor_update_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+pingpong,stage4,229,anchor_update_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+pingpong,stage4,1,anchor_update_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+pingpong,stage4,121,anchor_update_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+pingpong,stage4,11,temporal_motion_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+pingpong,stage4,177,temporal_motion_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+pingpong,stage4,229,temporal_motion_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+pingpong,stage4,1,temporal_motion_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0
+pingpong,stage4,121,temporal_motion_check,dry_run_not_evaluated,not_evaluated,none,0,0,0,0,0

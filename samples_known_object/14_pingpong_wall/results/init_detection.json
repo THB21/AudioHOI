@@ -1,0 +1,12 @@
+{
+  "text": "white ping-pong ball.",
+  "model_id": "manual_box",
+  "score": 1.0,
+  "box": [
+    700.0,
+    245.0,
+    735.0,
+    278.0
+  ],
+  "label": "white ping-pong ball."
+}

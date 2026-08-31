@@ -1,0 +1,100 @@
+{
+  "schema_version": 2,
+  "stage": "stage0_preprocess",
+  "case_name": "volleyball",
+  "sample_dir": "samples_known_object/13_volleyball",
+  "result_dir": "samples_known_object/13_volleyball/results/final_full_4d_hoi",
+  "render_dir": "samples_known_object/13_volleyball/results/renders/final_full_4d_hoi",
+  "prepared_inputs": {
+    "frame_extract": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "frames": "samples_known_object/13_volleyball/frames"
+      },
+      "output_hashes": {
+        "frames": "b34850960d86ffc0538631863eeab5c54754a31ca4762e391e73976636579ae1"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "audio_extract": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "audio": "samples_known_object/13_volleyball/audio.wav"
+      },
+      "output_hashes": {
+        "audio": "312a7368c29267f9ecea29c39bfd84df6f778c1f092e6f28b3c4e865d580b33a"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "sam2": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "sam2_masks": "samples_known_object/13_volleyball/results/segmentation/masks",
+        "sam2_trajectory": "samples_known_object/13_volleyball/results/tracking/object_trajectory.csv"
+      },
+      "output_hashes": {
+        "sam2_masks": "54a0b530b95ec4a806f17646da7ff94cd125710e980274fb43d24a9a3a22f43b",
+        "sam2_trajectory": "7d45aadd88766d2a2e4eab02689e0a92138b4d9a391f12a22c0c768bbb02af31"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "cotracker": {
+      "status": "reused",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "cotracker_center": "samples_known_object/13_volleyball/results/tracking/object_center_trajectory.csv",
+        "cotracker_points": "samples_known_object/13_volleyball/results/tracking/object_points.csv",
+        "cotracker_mesh_tracks": "samples_known_object/13_volleyball/results/tracking/object_mesh_tracks_test.csv",
+        "cotracker_rigid_tracks": "samples_known_object/13_volleyball/results/tracking/rigid_point_tracks.csv",
+        "cotracker_rigid_tracks_manifest": "samples_known_object/13_volleyball/results/tracking/rigid_point_tracks_manifest.json"
+      },
+      "output_hashes": {
+        "cotracker_center": "f88cb1ac6369d1bb1b69e31bfc448656860d38ca4602e8d16fc3b7b11651dfe6",
+        "cotracker_points": "3d047b9c9e5383d02b6b1b8848fbfd9ec7adcea5da1d5697885ffeec361062de",
+        "cotracker_mesh_tracks": "6528f0ecb9f965825bde133392810c7e670beb1dfcc229e5c82c2034de18c432",
+        "cotracker_rigid_tracks": "f23aaf7c3056612556440a7b09f5ee48c9478b7c7440476255c38ea82f175daf",
+        "cotracker_rigid_tracks_manifest": "2b8cc073571762ffdc94f092d317ea4e44ee68e4a384dc851a9e090e56aa6d8f"
+      },
+      "error": "",
+      "human_state_role": null
+    },
+    "sam_pt_mask_candidate": {
+      "status": "disabled",
+      "runtime_env": "audiohoi",
+      "outputs": {
+        "sam_pt_candidate_masks": "samples_known_object/13_volleyball/results/segmentation/sam_pt_candidate_masks",
+        "sam_pt_candidate_manifest": "samples_known_object/13_volleyball/results/segmentation/sam_pt_candidate_manifest.json"
+      },
+      "output_hashes": {},
+      "error": "",
+      "human_state_role": null
+    },
+    "rigid_asset_mesh_export": {
+      "status": "failed",
+      "runtime_env": "megapose",
+      "outputs": {
+        "rigid_provider_mesh": "samples_known_object/13_volleyball/articraft/megapose/fixed_rigid_asset_mm.ply",
+        "rigid_provider_mesh_manifest": "samples_known_object/13_volleyball/articraft/megapose/fixed_rigid_asset_mm.ply.json"
+      },
+      "output_hashes": {},
+      "error": "runtime Python is missing for megapose: /home/yang/miniconda3/envs/megapose/bin/python",
+      "human_state_role": null
+    }
+  },
+  "checks": {
+    "case_ingestion_accepted": false,
+    "frame_count_positive": true,
+    "fps_positive": true,
+    "required_tasks_complete": false,
+    "gvhmr_read_only": true
+  },
+  "case_ingestion_manifest": "samples_known_object/13_volleyball/results/final_full_4d_hoi/case_ingestion_last_attempt.json",
+  "case_ingestion_manifest_sha256": "d597f743b6f2bd18779d47fdf3621c8d4232bc96dbebab4799e30586bb3bf3d7",
+  "status": "failed"
+}

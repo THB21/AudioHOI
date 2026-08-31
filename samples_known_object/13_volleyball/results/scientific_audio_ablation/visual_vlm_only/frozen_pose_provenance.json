@@ -1,0 +1,7 @@
+{
+  "case": "volleyball",
+  "mode": "visual_vlm_only",
+  "source": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/final_full_4d_hoi/object_pose_init.csv",
+  "target": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/object_pose.csv",
+  "policy": "precomputed controlled trajectory materialized for identical Stage 5 rendering"
+}

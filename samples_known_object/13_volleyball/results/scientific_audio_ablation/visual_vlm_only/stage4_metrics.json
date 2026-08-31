@@ -1,0 +1,148 @@
+{
+  "component": "generic_sequence_se3_mainline",
+  "case_name": "volleyball",
+  "compatibility_adapters": [
+    {
+      "component": "anchor_depth",
+      "enabled": true,
+      "report": {
+        "component": "anchor_depth",
+        "object_pose": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/object_pose.csv",
+        "object_contact_points": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/object_contact_points.csv",
+        "anchor_frames": 0,
+        "vlm_contact_gate": {
+          "vlm_contact_gate": "no_effective_disabled_frames",
+          "disabled_frames": []
+        },
+        "policy": "no verified visual human-contact anchors; preserve Stage3 visual pose without inventing contact",
+        "ablation_flags": [
+          "disable_audio_events"
+        ]
+      }
+    },
+    {
+      "component": "backproject_xy",
+      "enabled": true,
+      "report": {
+        "component": "backproject_xy",
+        "case_name": "volleyball",
+        "object_pose": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/object_pose.csv",
+        "object_contact_points": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/object_contact_points.csv",
+        "policy": "generic pass-through from Stage3 backprojected pose when no stronger refinement has produced object_pose"
+      }
+    }
+  ],
+  "legacy_refinement_policies_ignored": [],
+  "legacy_refinement_policies_as_seed_builders": [
+    "anchor_depth",
+    "backproject_xy"
+  ],
+  "line_object_special_refinement": false,
+  "line_object_seed_builder": {
+    "enabled": false,
+    "reason": "not_line_object"
+  },
+  "object_pose_pre_smooth": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/object_pose_pre_smooth.csv",
+  "object_pose": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/object_pose.csv",
+  "object_contact_points": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/object_contact_points.csv",
+  "motion_regime": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/motion_regime.csv",
+  "physical_smooth_residuals": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/physical_smooth_residuals.csv",
+  "pose_jump_audit": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/pose_jump_audit.csv",
+  "optimizer_decisions": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/optimizer_decisions.csv",
+  "rows": 240,
+  "smoothed_rows": 240,
+  "pose_lock_reason": "",
+  "residuals": {
+    "visual": true,
+    "contact_anchor": true,
+    "depth": true,
+    "geometry": true,
+    "velocity": true,
+    "acceleration": true,
+    "static_freeze": true,
+    "boundary_freeze_interpolation": true,
+    "static_tail_freeze": true,
+    "motion_regime_reweighting": true,
+    "feedback_reoptimization": true
+  },
+  "anchor_residual": {
+    "enabled": false,
+    "constraints": 0,
+    "skipped_rows": 20,
+    "source": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/scientific_audio_ablation/visual_vlm_only/anchor_state.csv",
+    "policy": "generic SE3 anchor residual from anchor_state local coordinate to observed 3D/UVZ anchor"
+  },
+  "anchor_pose_prior": {
+    "enabled": false,
+    "adjusted_rows": 0,
+    "median_before_m": "0.000000",
+    "median_after_m": "0.000000",
+    "policy": "generic per-frame rigid anchor pose prior before sequence smoothing"
+  },
+  "line_overlay_depth_stabilizer": {
+    "enabled": false,
+    "reason": "replaced_by_generic_line_physical_smooth_seed_builder"
+  },
+  "feedback_reweight_sources": [],
+  "requested_feedback_reweight_sources": [
+    "llm",
+    "machine"
+  ],
+  "rejected_feedback_sources": [
+    "llm",
+    "machine"
+  ],
+  "feedback_candidate_selection": {
+    "policy": "choose the candidate with the fewest hard pose_jump_audit spikes; ties prefer more accepted audit sources",
+    "candidates": [
+      {
+        "sources": [],
+        "feedback_reweight_reason": "",
+        "score": {
+          "spike_count": 13,
+          "smoothness_spike_count": 8,
+          "max_translation_jump_m": "0.555698",
+          "max_delta_rotation_rad": "0.000000"
+        },
+        "trust_first": "0.800000",
+        "smooth_first": "1.450000",
+        "accel_first": "1.616667"
+      },
+      {
+        "sources": [
+          "machine"
+        ],
+        "feedback_reweight_reason": "stage_audit_residual_reweight:machine",
+        "score": {
+          "spike_count": 20,
+          "smoothness_spike_count": 11,
+          "max_translation_jump_m": "0.956901",
+          "max_delta_rotation_rad": "0.000000"
+        },
+        "trust_first": "0.656000",
+        "smooth_first": "2.102500",
+        "accel_first": "2.667500"
+      },
+      {
+        "sources": [
+          "llm",
+          "machine"
+        ],
+        "feedback_reweight_reason": "stage_audit_residual_reweight:llm+machine",
+        "score": {
+          "spike_count": 27,
+          "smoothness_spike_count": 12,
+          "max_translation_jump_m": "1.051529",
+          "max_delta_rotation_rad": "0.000000"
+        },
+        "trust_first": "0.590400",
+        "smooth_first": "2.312750",
+        "accel_first": "3.067625"
+      }
+    ]
+  },
+  "feedback_reweight_reason": "",
+  "visual_prior_reason": "",
+  "overlay_prior_reason": "",
+  "policy": "compatibility refinement policies run as seed/residual builders; line objects run generic_line_physical_smooth as seed/visual prior; final output is unified through smooth_quaternion_pose_sequence"
+}

@@ -1,0 +1,12 @@
+{
+  "text": "yellow and blue volleyball.",
+  "model_id": "manual_box",
+  "score": 1.0,
+  "box": [
+    535.0,
+    15.0,
+    625.0,
+    110.0
+  ],
+  "label": "yellow and blue volleyball."
+}

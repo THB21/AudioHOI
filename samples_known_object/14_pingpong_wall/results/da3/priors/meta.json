@@ -1,0 +1,14 @@
+{
+  "frame_count": 240,
+  "mask_dir": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/segmentation/masks",
+  "missing_mask_interpolated_frames": [
+    47,
+    117
+  ],
+  "object_prior_source": "da3_metric_sam2_mask_median",
+  "sample_dir": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall",
+  "scene_depth_dir": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/da3/scene_depth",
+  "schema_version": 1,
+  "smooth_window": 7,
+  "status": "generated"
+}

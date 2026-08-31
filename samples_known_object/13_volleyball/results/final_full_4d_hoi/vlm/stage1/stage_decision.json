@@ -1,0 +1,85 @@
+{
+  "case_name": "volleyball",
+  "stage": "stage1",
+  "mode": "qwen_vl",
+  "decision": "blocked_by_vlm_reject",
+  "blocking": true,
+  "query_count": 10,
+  "gate_counts": {
+    "pass": 9,
+    "reject": 1
+  },
+  "query_counts": {
+    "keypart_identity_check": 3,
+    "track_stability_check": 3,
+    "keypart_visibility_check": 4
+  },
+  "accepted_frames": [
+    1,
+    22,
+    79,
+    121,
+    161,
+    240
+  ],
+  "blocked_frames": [
+    142
+  ],
+  "report_only_reject_frames": [],
+  "unclear_frames": [],
+  "repair_actions_by_frame": {
+    "1": [
+      "accept_candidate"
+    ],
+    "121": [
+      "accept_candidate"
+    ],
+    "240": [
+      "accept_candidate"
+    ],
+    "22": [
+      "propagate_projected_ballistic_trajectory"
+    ],
+    "79": [
+      "propagate_projected_ballistic_trajectory"
+    ],
+    "142": [
+      "keep_previous_anchor"
+    ],
+    "161": [
+      "propagate_projected_ballistic_trajectory"
+    ]
+  },
+  "rejected_results": [
+    {
+      "case_name": "volleyball",
+      "stage": "stage1",
+      "frame": "142",
+      "query_type": "keypart_visibility_check",
+      "normalized_label": "detection_failure",
+      "pass_gate": "reject",
+      "repair_action": "keep_previous_anchor",
+      "used_for_anchor_update": "0",
+      "used_for_contact_residual": "0",
+      "used_for_report": "1"
+    }
+  ],
+  "allowed_repair_actions": [
+    "accept_candidate",
+    "reject_candidate",
+    "disable_contact_frame",
+    "keep_previous_anchor",
+    "downweight_correspondence",
+    "use_mask_fallback",
+    "retry_with_alternative_keypart",
+    "allow_small_se3_refine",
+    "freeze_before_after_contact",
+    "mark_for_report_only",
+    "unclear_no_update",
+    "keep_stable_candidate",
+    "select_occlusion_challenger",
+    "reject_candidate_pair",
+    "propagate_projected_ballistic_trajectory"
+  ],
+  "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+}

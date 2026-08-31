@@ -1,0 +1,11 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,report_only,is_effective
+volleyball,stage4,1,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+volleyball,stage4,62,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+volleyball,stage4,222,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+volleyball,stage4,119,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+volleyball,stage4,240,anchor_update_check,unclear,unclear,unclear_no_update,0,0,0,0,1
+volleyball,stage4,1,contact_relation_check,left_hand,pass,accept_candidate,0,1,1,0,1
+volleyball,stage4,62,contact_relation_check,left_hand,pass,accept_candidate,0,1,1,0,1
+volleyball,stage4,222,contact_relation_check,left_hand,pass,accept_candidate,0,1,1,0,1
+volleyball,stage4,119,contact_relation_check,left_hand,pass,accept_candidate,0,1,1,0,1
+volleyball,stage4,240,contact_relation_check,left_hand,pass,accept_candidate,0,1,1,0,1

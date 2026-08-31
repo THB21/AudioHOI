@@ -1,0 +1,63 @@
+{
+  "case_name": "volleyball",
+  "stage": "stage2",
+  "mode": "qwen_vl",
+  "decision": "pass",
+  "blocking": false,
+  "query_count": 10,
+  "gate_counts": {
+    "pass": 10
+  },
+  "query_counts": {
+    "contact_relation_check": 5,
+    "keypart_visibility_check": 5
+  },
+  "accepted_frames": [
+    1,
+    68,
+    121,
+    228,
+    240
+  ],
+  "blocked_frames": [],
+  "report_only_reject_frames": [],
+  "unclear_frames": [],
+  "repair_actions_by_frame": {
+    "1": [
+      "accept_candidate",
+      "propagate_projected_ballistic_trajectory"
+    ],
+    "68": [
+      "accept_candidate",
+      "propagate_projected_ballistic_trajectory"
+    ],
+    "228": [
+      "accept_candidate"
+    ],
+    "121": [
+      "accept_candidate"
+    ],
+    "240": [
+      "accept_candidate"
+    ]
+  },
+  "rejected_results": [],
+  "allowed_repair_actions": [
+    "accept_candidate",
+    "reject_candidate",
+    "disable_contact_frame",
+    "keep_previous_anchor",
+    "downweight_correspondence",
+    "use_mask_fallback",
+    "retry_with_alternative_keypart",
+    "allow_small_se3_refine",
+    "freeze_before_after_contact",
+    "mark_for_report_only",
+    "unclear_no_update",
+    "keep_stable_candidate",
+    "select_occlusion_challenger",
+    "reject_candidate_pair",
+    "propagate_projected_ballistic_trajectory"
+  ],
+  "note": "Qwen-VL forced-choice labels gate only predefined update/report actions; they do not directly optimize pose."
+}

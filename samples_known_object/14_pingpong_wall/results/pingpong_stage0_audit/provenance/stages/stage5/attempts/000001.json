@@ -1,0 +1,95 @@
+{
+  "schema_version": 4,
+  "case_name": "pingpong_wall",
+  "result_name": "pingpong_stage0_audit",
+  "stage": "stage5",
+  "attempt_id": "000001",
+  "status": "completed",
+  "trigger": "scheduled_pipeline_stage",
+  "parent_attempt_id": null,
+  "started_at": "2026-08-19T18:41:37.102767+00:00",
+  "finished_at": "2026-08-19T18:42:52.260749+00:00",
+  "metadata": {
+    "from_stage": "stage5",
+    "to_stage": "stage5"
+  },
+  "artifacts_before": {
+    "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/stage5_metrics.json": {
+      "sha256": "829a2dbb580fa9daf8f9fd3f7b418059d1f192d91b8f4e06f55329b3a177f9a3",
+      "size_bytes": 1362
+    }
+  },
+  "artifacts_after": {
+    "samples_known_object/14_pingpong_wall/results/renders/pingpong_stage0_audit/outputs.json": {
+      "sha256": "8af675383f13b74bae0e8ca56ed63954cdb3e58dc7cb25a39c423dedb9a61883",
+      "size_bytes": 1365
+    },
+    "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/stage5_metrics.json": {
+      "sha256": "8af675383f13b74bae0e8ca56ed63954cdb3e58dc7cb25a39c423dedb9a61883",
+      "size_bytes": 1365
+    },
+    "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/stage_audit/stage5/stage_audit_gates.csv": {
+      "sha256": "0a1d8db346f568ad22c753b58c5d3aaa8335f91dee7a0d91b1915a2c1d13e877",
+      "size_bytes": 299
+    }
+  },
+  "stored_artifacts": {
+    "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/stage5_metrics.json": {
+      "algorithm": "sha256",
+      "sha256": "8af675383f13b74bae0e8ca56ed63954cdb3e58dc7cb25a39c423dedb9a61883",
+      "size_bytes": 1365,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/stage5_metrics.json",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/provenance/artifact_store/sha256/8a/8af675383f13b74bae0e8ca56ed63954cdb3e58dc7cb25a39c423dedb9a61883"
+    },
+    "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/stage_audit/stage5/stage_audit_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "0a1d8db346f568ad22c753b58c5d3aaa8335f91dee7a0d91b1915a2c1d13e877",
+      "size_bytes": 299,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/stage_audit/stage5/stage_audit_gates.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/provenance/artifact_store/sha256/0a/0a1d8db346f568ad22c753b58c5d3aaa8335f91dee7a0d91b1915a2c1d13e877"
+    },
+    "samples_known_object/14_pingpong_wall/results/renders/pingpong_stage0_audit/outputs.json": {
+      "algorithm": "sha256",
+      "sha256": "8af675383f13b74bae0e8ca56ed63954cdb3e58dc7cb25a39c423dedb9a61883",
+      "size_bytes": 1365,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/renders/pingpong_stage0_audit/outputs.json",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/provenance/artifact_store/sha256/8a/8af675383f13b74bae0e8ca56ed63954cdb3e58dc7cb25a39c423dedb9a61883"
+    }
+  },
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "pingpong_wall",
+    "result_name": "pingpong_stage0_audit",
+    "stage": "stage5",
+    "status": "pass",
+    "artifacts": [],
+    "errors": []
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage5",
+    "plugins": [],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [
+    "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/stage5_metrics.json",
+    "samples_known_object/14_pingpong_wall/results/pingpong_stage0_audit/stage_audit/stage5/stage_audit_gates.csv",
+    "samples_known_object/14_pingpong_wall/results/renders/pingpong_stage0_audit/outputs.json"
+  ],
+  "result_summary": {
+    "stage_status": "",
+    "vlm_decision": "not_run",
+    "stage_audit_decision": "pass",
+    "rerun_requested": false
+  }
+}

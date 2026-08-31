@@ -1,0 +1,7 @@
+{
+  "case": "pingpong",
+  "mode": "visual_vlm_only",
+  "source": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/ablation_evaluation/frozen_poses/no_audio_object_pose.csv",
+  "target": "/tmp/audiohoi-nine/samples_known_object/14_pingpong_wall/results/scientific_audio_ablation/visual_vlm_only/object_pose.csv",
+  "policy": "precomputed controlled trajectory materialized for identical Stage 5 rendering"
+}

@@ -1,0 +1,14 @@
+case_name,stage,frame,query_type,normalized_label,pass_gate,repair_action,allow_anchor_update,allow_contact_residual,allow_pose_refine,allow_factor_arbitration,report_only,is_effective
+pingpong_wall,stage1,34,single_entity_identity_check,candidate_a,pass,select_identity_candidate,1,0,1,0,0,1
+pingpong_wall,stage1,36,single_entity_identity_check,candidate_b,pass,select_identity_candidate,1,0,1,0,0,1
+pingpong_wall,stage1,139,single_entity_identity_check,candidate_a,pass,select_identity_candidate,1,0,1,0,0,1
+pingpong_wall,stage1,140,single_entity_identity_check,candidate_b,pass,select_identity_candidate,1,0,1,0,0,1
+pingpong_wall,stage1,141,single_entity_identity_check,candidate_a,pass,select_identity_candidate,1,0,1,0,0,1
+pingpong_wall,stage1,142,single_entity_identity_check,candidate_b,pass,select_identity_candidate,1,0,1,0,0,1
+pingpong_wall,stage1,144,single_entity_identity_check,candidate_a,pass,select_identity_candidate,1,0,1,0,0,1
+pingpong_wall,stage1,145,single_entity_identity_check,candidate_a,pass,select_identity_candidate,1,0,1,0,0,1
+pingpong_wall,stage1,146,single_entity_identity_check,candidate_a,pass,select_identity_candidate,1,0,1,0,0,1
+pingpong_wall,stage1,147,single_entity_identity_check,candidate_a,pass,select_identity_candidate,1,0,1,0,0,1
+pingpong_wall,stage1,225,single_entity_identity_check,candidate_b,pass,select_identity_candidate,1,0,1,0,0,1
+pingpong_wall,stage1,226,single_entity_identity_check,candidate_b,pass,select_identity_candidate,1,0,1,0,0,1
+pingpong_wall,stage1,228,single_entity_identity_check,candidate_b,pass,select_identity_candidate,1,0,1,0,0,1

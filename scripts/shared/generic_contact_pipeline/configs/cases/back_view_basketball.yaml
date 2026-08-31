@@ -1,0 +1,27 @@
+case_name: back_view_basketball
+sample_dir: samples_known_object/12_back_view_basketball
+object_family: dynamic_ball
+geometry_model: sphere_proxy
+observation_model: mask_track_center
+contact_policy: hand_floor
+pose_model: translation3
+refinement_policy: [anchor_depth, backproject_xy]
+render_backend: mesh_solid
+object_mesh: assets/object_meshes/basketball.glb
+object_mesh_metric: fit_radius
+result_name: generic_pipeline_v1
+preprocess:
+  auto_run: false
+  fps: 24.0
+vlm:
+  target: basketball
+  parts: [ball_center, ball_boundary, ball_bottom, background, unclear]
+  contacts: [left_hand, right_hand, floor, body, nothing_nearby, unclear]
+  stable_refs: [center, bottom_support, boundary_point, unclear]
+camera: {fx: 1468.604736328125, fy: 1468.604736328125, cx: 640.0, cy: 360.0}
+baseline:
+  final_pose_csv: samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_pose.csv
+  init_pose_csv: samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_pose_init.csv
+  object_observations_csv: samples_known_object/12_back_view_basketball/results/full_audio_vlm/object_observations.csv
+  contact_candidates_csv: samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_candidates.csv
+  contact_state_csv: samples_known_object/12_back_view_basketball/results/full_audio_vlm/contact_state_frames.csv

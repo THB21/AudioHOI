@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "attempt_id": "cotracker-persistent_online-94b9e8aa2e81",
+  "tracker": "facebookresearch/co-tracker:cotracker3_online",
+  "sequence_mode": "persistent_online",
+  "query_policy": "sam2_mask_interior_grid_plus_legacy_anchors",
+  "query_frame": 1,
+  "query_mask": "/tmp/audiohoi-nine/samples_known_object/13_volleyball/results/segmentation/masks/00001_mask.png",
+  "query_mask_sha256": "94b9e8aa2e81092fa89d2e48a9bd49808f9f48be3dd18f0b583180c9f0265f07",
+  "query_count": 96,
+  "frame_count": 240,
+  "resize_scale_xy": [
+    0.5,
+    0.5
+  ],
+  "grid_size": 12,
+  "reinitialization_frames": [],
+  "local_3d_coordinates_assigned": false
+}

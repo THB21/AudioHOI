@@ -1,0 +1,10 @@
+{
+  "penetration_frame_ratio": null,
+  "penetration_depth_mean_mm": null,
+  "penetration_depth_max_mm": null,
+  "non_collision_ratio": null,
+  "floating_rate": null,
+  "floating_gap_mean_mm": null,
+  "tradeoff_score": null,
+  "source": "missing_hoi_eval"
+}

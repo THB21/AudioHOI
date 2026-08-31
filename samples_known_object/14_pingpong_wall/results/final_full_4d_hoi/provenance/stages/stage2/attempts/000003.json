@@ -1,0 +1,369 @@
+{
+  "schema_version": 4,
+  "case_name": "pingpong_wall",
+  "result_name": "final_full_4d_hoi",
+  "stage": "stage2",
+  "attempt_id": "000003",
+  "status": "completed",
+  "trigger": "stage_audit_rerun",
+  "parent_attempt_id": "000002",
+  "started_at": "2026-08-19T18:29:36.606728+00:00",
+  "finished_at": "2026-08-19T18:29:40.047961+00:00",
+  "metadata": {
+    "audit_decision": {
+      "case_name": "pingpong_wall",
+      "stage": "stage2",
+      "decision": "reject",
+      "llm_mode": "none",
+      "llm_role": "CSV/metrics audit gate; deterministic fallback is used when no live LLM stage auditor is configured",
+      "gate_rows": 3,
+      "blocking_count": 1,
+      "rerun_stage": true,
+      "residual_reweight": false,
+      "repair_actions": [
+        "rerun_stage_with_gate"
+      ],
+      "audit_csv": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage2/stage_audit_gates.csv",
+      "llm_audit_queries": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage2/llm_audit_queries.json",
+      "llm_audit_results": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage2/llm_audit_results.csv"
+    }
+  },
+  "artifacts_before": {
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates.csv": {
+      "sha256": "5dc97f699df11826659215f5c9480126d01d44ebff5e7134dce0d6af78ee5f44",
+      "size_bytes": 28746
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_events.csv": {
+      "sha256": "fae5a1fab07c3d40b40f25e62e7588f104ac16859553330b3500732913ae0cc6",
+      "size_bytes": 1043
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/human_sites.csv": {
+      "sha256": "b4076348787e15c9c801c947fa3c22c4c4d9c30508b64c7aeda89a69db66841e",
+      "size_bytes": 121673
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/support_geometry.json": {
+      "sha256": "2a8c4d8a3ed41c42dc28c3f8d2e5b2726477a7a025960a4bf21c97999f391b30",
+      "size_bytes": 205
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/anchor_state.csv": {
+      "sha256": "b0114c7e1600af467f8b7cbfb41dbd3431c53de1c04fc8f13e0d24a48d0866cd",
+      "size_bytes": 28801
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_state_frames.csv": {
+      "sha256": "b947ab4d5a02314aac2bb53a3472b6e62940daa7d7fd06e99525e6942ee026f5",
+      "size_bytes": 49203
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage2_metrics.json": {
+      "sha256": "1b44f0fe170b430b4c556504a67ffd503f6a7ac3646f7bdbf98eb45e0f0b4860",
+      "size_bytes": 4581
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage2/vlm_gates.csv": {
+      "sha256": "a9b6d275f5a1787e240a72e32b61a43d052a94dbc3024d009cf391f86fb55482",
+      "size_bytes": 1202
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage2/stage_audit_gates.csv": {
+      "sha256": "3f2fa1c75c63deffad506c21617f4bba24bdc155506e5acf3187dbb0b355dc78",
+      "size_bytes": 386
+    }
+  },
+  "artifacts_after": {
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates.csv": {
+      "sha256": "5dc97f699df11826659215f5c9480126d01d44ebff5e7134dce0d6af78ee5f44",
+      "size_bytes": 28746
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_events.csv": {
+      "sha256": "fae5a1fab07c3d40b40f25e62e7588f104ac16859553330b3500732913ae0cc6",
+      "size_bytes": 1043
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/human_sites.csv": {
+      "sha256": "b4076348787e15c9c801c947fa3c22c4c4d9c30508b64c7aeda89a69db66841e",
+      "size_bytes": 121673
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/support_geometry.json": {
+      "sha256": "2a8c4d8a3ed41c42dc28c3f8d2e5b2726477a7a025960a4bf21c97999f391b30",
+      "size_bytes": 205
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/anchor_state.csv": {
+      "sha256": "b0114c7e1600af467f8b7cbfb41dbd3431c53de1c04fc8f13e0d24a48d0866cd",
+      "size_bytes": 28801
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_state_frames.csv": {
+      "sha256": "b947ab4d5a02314aac2bb53a3472b6e62940daa7d7fd06e99525e6942ee026f5",
+      "size_bytes": 49203
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage2_metrics.json": {
+      "sha256": "5b2c4050944fdd2f37a6a106969aa03261bf6d131b209cbf692b122325db3243",
+      "size_bytes": 2179
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage2/vlm_gates.csv": {
+      "sha256": "a9b6d275f5a1787e240a72e32b61a43d052a94dbc3024d009cf391f86fb55482",
+      "size_bytes": 1202
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage2/stage_audit_gates.csv": {
+      "sha256": "3f2fa1c75c63deffad506c21617f4bba24bdc155506e5acf3187dbb0b355dc78",
+      "size_bytes": 386
+    }
+  },
+  "stored_artifacts": {
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/anchor_state.csv": {
+      "algorithm": "sha256",
+      "sha256": "b0114c7e1600af467f8b7cbfb41dbd3431c53de1c04fc8f13e0d24a48d0866cd",
+      "size_bytes": 28801,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/anchor_state.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/b0/b0114c7e1600af467f8b7cbfb41dbd3431c53de1c04fc8f13e0d24a48d0866cd"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates.csv": {
+      "algorithm": "sha256",
+      "sha256": "5dc97f699df11826659215f5c9480126d01d44ebff5e7134dce0d6af78ee5f44",
+      "size_bytes": 28746,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/5d/5dc97f699df11826659215f5c9480126d01d44ebff5e7134dce0d6af78ee5f44"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_events.csv": {
+      "algorithm": "sha256",
+      "sha256": "fae5a1fab07c3d40b40f25e62e7588f104ac16859553330b3500732913ae0cc6",
+      "size_bytes": 1043,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_events.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/fa/fae5a1fab07c3d40b40f25e62e7588f104ac16859553330b3500732913ae0cc6"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_state_frames.csv": {
+      "algorithm": "sha256",
+      "sha256": "b947ab4d5a02314aac2bb53a3472b6e62940daa7d7fd06e99525e6942ee026f5",
+      "size_bytes": 49203,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_state_frames.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/b9/b947ab4d5a02314aac2bb53a3472b6e62940daa7d7fd06e99525e6942ee026f5"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/human_sites.csv": {
+      "algorithm": "sha256",
+      "sha256": "b4076348787e15c9c801c947fa3c22c4c4d9c30508b64c7aeda89a69db66841e",
+      "size_bytes": 121673,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/human_sites.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/b4/b4076348787e15c9c801c947fa3c22c4c4d9c30508b64c7aeda89a69db66841e"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage2_metrics.json": {
+      "algorithm": "sha256",
+      "sha256": "5b2c4050944fdd2f37a6a106969aa03261bf6d131b209cbf692b122325db3243",
+      "size_bytes": 2179,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage2_metrics.json",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/5b/5b2c4050944fdd2f37a6a106969aa03261bf6d131b209cbf692b122325db3243"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage2/stage_audit_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "3f2fa1c75c63deffad506c21617f4bba24bdc155506e5acf3187dbb0b355dc78",
+      "size_bytes": 386,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage_audit/stage2/stage_audit_gates.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/3f/3f2fa1c75c63deffad506c21617f4bba24bdc155506e5acf3187dbb0b355dc78"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/support_geometry.json": {
+      "algorithm": "sha256",
+      "sha256": "2a8c4d8a3ed41c42dc28c3f8d2e5b2726477a7a025960a4bf21c97999f391b30",
+      "size_bytes": 205,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/support_geometry.json",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/2a/2a8c4d8a3ed41c42dc28c3f8d2e5b2726477a7a025960a4bf21c97999f391b30"
+    },
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage2/vlm_gates.csv": {
+      "algorithm": "sha256",
+      "sha256": "a9b6d275f5a1787e240a72e32b61a43d052a94dbc3024d009cf391f86fb55482",
+      "size_bytes": 1202,
+      "canonical_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/vlm/stage2/vlm_gates.csv",
+      "blob_path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/provenance/artifact_store/sha256/a9/a9b6d275f5a1787e240a72e32b61a43d052a94dbc3024d009cf391f86fb55482"
+    }
+  },
+  "contract_audit": {
+    "schema_version": 1,
+    "case_name": "pingpong_wall",
+    "result_name": "final_full_4d_hoi",
+    "stage": "stage2",
+    "status": "pass",
+    "artifacts": [
+      {
+        "artifact_key": "contact_candidates",
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/contact_candidates.csv",
+        "adapter": "contact_candidate_v1",
+        "required": true,
+        "columns": [
+          "frame",
+          "time",
+          "contact_active",
+          "human_part",
+          "human_side",
+          "object_part",
+          "object_local_id",
+          "contact_u",
+          "contact_v",
+          "contact_depth_offset_m",
+          "contact_conf",
+          "anchor_score",
+          "source"
+        ],
+        "required_columns": [
+          "frame",
+          "time",
+          "contact_active",
+          "human_part",
+          "human_side",
+          "object_part",
+          "object_local_id",
+          "contact_u",
+          "contact_v",
+          "contact_depth_offset_m",
+          "anchor_score",
+          "source"
+        ],
+        "extension_columns": [
+          "contact_conf"
+        ],
+        "row_count": 240,
+        "adapted_examples": [
+          {
+            "frame": 1,
+            "time": 0.0,
+            "contact_active": false,
+            "human_part": "none",
+            "human_side": "right",
+            "object_part": "none",
+            "local_coordinate": null
+          },
+          {
+            "frame": 2,
+            "time": 0.041667,
+            "contact_active": false,
+            "human_part": "none",
+            "human_side": "right",
+            "object_part": "none",
+            "local_coordinate": null
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      },
+      {
+        "artifact_key": "anchor_state",
+        "path": "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/anchor_state.csv",
+        "adapter": "point_anchor_state_v1",
+        "required": true,
+        "columns": [
+          "frame",
+          "time",
+          "contact_id",
+          "human_part",
+          "human_side",
+          "object_part",
+          "contact_observed",
+          "contact_persistent",
+          "anchor_update_allowed",
+          "pose_anchor_allowed",
+          "stable_local_x",
+          "stable_local_y",
+          "stable_local_z",
+          "stable_local_s",
+          "observed_local_x",
+          "observed_local_y",
+          "observed_local_z",
+          "observed_local_s",
+          "contact_confidence",
+          "anchor_action",
+          "source"
+        ],
+        "required_columns": [
+          "frame",
+          "time",
+          "contact_id",
+          "human_part",
+          "human_side",
+          "object_part",
+          "contact_observed",
+          "contact_persistent",
+          "anchor_update_allowed",
+          "pose_anchor_allowed",
+          "stable_local_x",
+          "stable_local_y",
+          "stable_local_z",
+          "anchor_action",
+          "source"
+        ],
+        "extension_columns": [
+          "stable_local_s",
+          "observed_local_x",
+          "observed_local_y",
+          "observed_local_z",
+          "observed_local_s",
+          "contact_confidence"
+        ],
+        "row_count": 240,
+        "adapted_examples": [
+          {
+            "frame": 1,
+            "time": 0.0,
+            "contact_id": "right_none_none",
+            "human_part": "none",
+            "human_side": "right",
+            "object_part": "none",
+            "stable_local": {
+              "x": null,
+              "y": null,
+              "z": null
+            }
+          },
+          {
+            "frame": 2,
+            "time": 0.041667,
+            "contact_id": "right_none_none",
+            "human_part": "none",
+            "human_side": "right",
+            "object_part": "none",
+            "stable_local": {
+              "x": null,
+              "y": null,
+              "z": null
+            }
+          }
+        ],
+        "status": "pass",
+        "errors": []
+      }
+    ],
+    "errors": []
+  },
+  "plugin_audit": {
+    "schema_version": 1,
+    "stage": "stage2",
+    "plugins": [
+      {
+        "kind": "contact",
+        "name": "hand_floor",
+        "module": "scripts.shared.generic_contact_pipeline.components.contact.policies.hand_floor",
+        "entrypoint": "build",
+        "requires": [
+          "observation.point_reference"
+        ],
+        "provides": [
+          "contact.candidates",
+          "anchor.support"
+        ],
+        "role": "compatibility_adapter",
+        "plugin_id": "contact:hand_floor"
+      }
+    ],
+    "final_capabilities": [
+      "anchor.support",
+      "contact.candidates",
+      "input.audio",
+      "input.video",
+      "observation.point_reference",
+      "pose.se3",
+      "pose.seed_refined",
+      "pose.sequence_refined"
+    ],
+    "status": "resolved"
+  },
+  "changed_artifacts": [
+    "samples_known_object/14_pingpong_wall/results/final_full_4d_hoi/stage2_metrics.json"
+  ],
+  "result_summary": {
+    "stage_status": "",
+    "vlm_decision": "blocked_by_vlm_reject",
+    "stage_audit_decision": "reject",
+    "rerun_requested": true
+  }
+}

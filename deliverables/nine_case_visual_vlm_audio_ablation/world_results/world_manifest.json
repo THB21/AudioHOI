@@ -1,0 +1,47 @@
+{
+  "basketball": {
+    "vlm": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/basketball/vlm/world.mp4",
+    "vlm_audio": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/basketball/vlm_audio/world.mp4",
+    "comparison": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/basketball/comparison/world_vlm_vs_vlm_audio.mp4"
+  },
+  "football": {
+    "vlm": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/football/vlm/world.mp4",
+    "vlm_audio": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/football/vlm_audio/world.mp4",
+    "comparison": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/football/comparison/world_vlm_vs_vlm_audio.mp4"
+  },
+  "mug": {
+    "vlm": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/mug/vlm/world.mp4",
+    "vlm_audio": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/mug/vlm_audio/world.mp4",
+    "comparison": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/mug/comparison/world_vlm_vs_vlm_audio.mp4"
+  },
+  "chair": {
+    "vlm": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/chair/vlm/world.mp4",
+    "vlm_audio": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/chair/vlm_audio/world.mp4",
+    "comparison": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/chair/comparison/world_vlm_vs_vlm_audio.mp4"
+  },
+  "stick": {
+    "vlm": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/stick/vlm/world.mp4",
+    "vlm_audio": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/stick/vlm_audio/world.mp4",
+    "comparison": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/stick/comparison/world_vlm_vs_vlm_audio.mp4"
+  },
+  "back_view_basketball": {
+    "vlm": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/back_view_basketball/vlm/world.mp4",
+    "vlm_audio": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/back_view_basketball/vlm_audio/world.mp4",
+    "comparison": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/back_view_basketball/comparison/world_vlm_vs_vlm_audio.mp4"
+  },
+  "volleyball": {
+    "vlm": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/volleyball/vlm/world.mp4",
+    "vlm_audio": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/volleyball/vlm_audio/world.mp4",
+    "comparison": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/volleyball/comparison/world_vlm_vs_vlm_audio.mp4"
+  },
+  "pingpong": {
+    "vlm": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/pingpong/vlm/world.mp4",
+    "vlm_audio": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/pingpong/vlm_audio/world.mp4",
+    "comparison": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/pingpong/comparison/world_vlm_vs_vlm_audio.mp4"
+  },
+  "suitcase": {
+    "vlm": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/suitcase/vlm/world.mp4",
+    "vlm_audio": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/suitcase/vlm_audio/world.mp4",
+    "comparison": "deliverables/nine_case_visual_vlm_audio_ablation/world_results/suitcase/comparison/world_vlm_vs_vlm_audio.mp4"
+  }
+}

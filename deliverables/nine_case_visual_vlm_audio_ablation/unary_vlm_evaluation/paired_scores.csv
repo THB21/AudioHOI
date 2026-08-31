@@ -1,0 +1,10 @@
+case,vlm_contact_timing,vlm_audio_contact_timing,audio_delta_contact_timing,vlm_contact_location,vlm_audio_contact_location,audio_delta_contact_location,vlm_object_motion,vlm_audio_object_motion,audio_delta_object_motion,vlm_physical_plausibility,vlm_audio_physical_plausibility,audio_delta_physical_plausibility,vlm_temporal_smoothness,vlm_audio_temporal_smoothness,audio_delta_temporal_smoothness,vlm_interaction_realism,vlm_audio_interaction_realism,audio_delta_interaction_realism,vlm_overall_quality,vlm_audio_overall_quality,audio_delta_overall_quality
+basketball,2,3,1,2,2,0,2,4,2,2,2,0,4,4,0,2,3,1,2,3,1
+football,1,1,0,2,1,-1,1,1,0,1,1,0,2,2,0,1,1,0,1,1,0
+mug,3,2,-1,2,2,0,3,2,-1,2,2,0,4,2,-2,2,2,0,2,2,0
+chair,5,5,0,4,4,0,4,5,1,4,5,1,5,5,0,4,5,1,4,5,1
+stick,4,5,1,4,5,1,4,5,1,4,5,1,5,5,0,4,5,1,4,5,1
+back_view_basketball,2,2,0,2,2,0,2,2,0,2,2,0,3,3,0,2,2,0,2,2,0
+volleyball,1,3,2,1,4,3,1,3,2,1,3,2,2,3,1,1,3,2,1,3,2
+pingpong,2,2,0,2,2,0,2,2,0,2,1,-1,3,2,-1,2,1,-1,2,1,-1
+suitcase,3,3,0,3,3,0,3,3,0,2,2,0,4,3,-1,3,2,-1,3,2,-1

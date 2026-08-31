@@ -1,0 +1,20 @@
+{
+  "vlm": {
+    "contact_timing": 2.5555555555555554,
+    "contact_location": 2.4444444444444446,
+    "object_motion": 2.4444444444444446,
+    "physical_plausibility": 2.2222222222222223,
+    "temporal_smoothness": 3.5555555555555554,
+    "interaction_realism": 2.3333333333333335,
+    "overall_quality": 2.3333333333333335
+  },
+  "vlm_audio": {
+    "contact_timing": 2.888888888888889,
+    "contact_location": 2.7777777777777777,
+    "object_motion": 3.0,
+    "physical_plausibility": 2.5555555555555554,
+    "temporal_smoothness": 3.2222222222222223,
+    "interaction_realism": 2.6666666666666665,
+    "overall_quality": 2.6666666666666665
+  }
+}

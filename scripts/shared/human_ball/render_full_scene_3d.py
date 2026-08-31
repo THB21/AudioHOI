@@ -109,6 +109,10 @@ def make_object_mesh(radius: float, object_mesh: Path | None, object_scale: floa
             mesh.apply_translation(-mesh.bounding_box.centroid)
         if object_scale > 0:
             mesh.apply_scale(object_scale)
+        elif keep_origin:
+            # Model-frame SE3 meshes are already metric. Radius fitting would
+            # incorrectly shrink large objects such as chairs and suitcases.
+            pass
         else:
             half = float(np.max(mesh.bounding_box.extents)) / 2.0
             if half > 1e-6:
@@ -127,6 +131,8 @@ def to_pyrender_mesh(tri, color=None, smooth=True, roughness=0.55):
             metallicFactor=0.0, roughnessFactor=roughness, baseColorFactor=(*color, 1.0)
         )
         return pyrender.Mesh.from_trimesh(tri, material=mat, smooth=smooth)
+    if getattr(getattr(tri, "visual", None), "kind", None) == "face":
+        smooth = False
     return pyrender.Mesh.from_trimesh(tri, smooth=smooth)
 
 
@@ -182,7 +188,7 @@ def _contact_marker(point, flip):
 
 
 def render_overlay(renderer, verts, faces, ball_tri, ball_center, K, body_color, ball_color,
-                   contact_point=None):
+                   contact_point=None, secondary_meshes=()):
     scene = pyrender.Scene(ambient_light=np.array([0.3, 0.3, 0.3, 1.0]))
     scene.add(make_camera(K), pose=np.eye(4))
     body = trimesh.Trimesh(vertices=verts @ _CAM_FLIP.T, faces=faces, process=False)
@@ -191,6 +197,10 @@ def render_overlay(renderer, verts, faces, ball_tri, ball_center, K, body_color,
     bt.apply_translation(ball_center)
     bt.vertices = bt.vertices @ _CAM_FLIP.T
     scene.add(to_pyrender_mesh(bt, color=ball_color, roughness=0.45))
+    for secondary, color in secondary_meshes:
+        transformed = secondary.copy()
+        transformed.vertices = transformed.vertices @ _CAM_FLIP.T
+        scene.add(to_pyrender_mesh(transformed, color=color, smooth=False, roughness=0.5))
     if contact_point is not None:
         scene.add(to_pyrender_mesh(_contact_marker(contact_point, _CAM_FLIP), color=(1.0, 0.1, 0.1)))
     add_lights(scene)
@@ -199,7 +209,8 @@ def render_overlay(renderer, verts, faces, ball_tri, ball_center, K, body_color,
 
 
 def render_world(renderer, verts, faces, ball_tri, ball_center, cam_pose, yfov,
-                 body_color, ball_color, ground, center, radius, contact_point=None):
+                 body_color, ball_color, ground, center, radius, contact_point=None,
+                 secondary_meshes=()):
     scene = pyrender.Scene(ambient_light=np.array([0.5, 0.5, 0.53, 1.0]), bg_color=BG_COLOR)
     cam = pyrender.PerspectiveCamera(yfov=yfov, znear=0.05, zfar=100.0)
     scene.add(cam, pose=cam_pose)
@@ -213,6 +224,11 @@ def render_world(renderer, verts, faces, ball_tri, ball_center, cam_pose, yfov,
     bt.vertices = bt.vertices @ _CV_TO_WORLD.T
     bt.faces = bt.faces[:, ::-1]
     scene.add(to_pyrender_mesh(bt, color=ball_color, roughness=0.45))
+    for secondary, color in secondary_meshes:
+        transformed = secondary.copy()
+        transformed.vertices = transformed.vertices @ _CV_TO_WORLD.T
+        transformed.faces = transformed.faces[:, ::-1]
+        scene.add(to_pyrender_mesh(transformed, color=color, smooth=False, roughness=0.5))
     if contact_point is not None:
         m = _contact_marker(contact_point, _CV_TO_WORLD)
         m.faces = m.faces[:, ::-1]
@@ -247,6 +263,40 @@ def pick_trajectory(results_dir: Path, override: Path | None) -> Path:
     raise RuntimeError("No object trajectory found; run the lifting stage first.")
 
 
+def read_human_site(path: Path, site_id: str) -> dict[int, np.ndarray]:
+    with path.open() as stream:
+        return {
+            int(row["frame"]): np.asarray(
+                [float(row["x_m"]), float(row["y_m"]), float(row["z_m"])],
+                dtype=float,
+            )
+            for row in csv.DictReader(stream)
+            if row.get("site_id") == site_id
+        }
+
+
+def make_paddle_mesh(hand: np.ndarray, ball: np.ndarray) -> trimesh.Trimesh:
+    """Create a metric table-tennis paddle attached to a tracked palm."""
+    direction = ball - hand
+    distance = float(np.linalg.norm(direction))
+    direction = direction / max(distance, 1e-8)
+    face_center = hand + direction * min(max(distance - 0.02, 0.12), 0.20)
+    handle_center = 0.5 * (hand + face_center)
+    handle = trimesh.creation.cylinder(
+        radius=0.014, height=float(np.linalg.norm(face_center - hand))
+    )
+    handle.apply_transform(trimesh.geometry.align_vectors((0.0, 0.0, 1.0), direction))
+    handle.apply_translation(handle_center)
+    face = trimesh.creation.cylinder(radius=0.078, height=0.012, sections=40)
+    face_normal = np.cross(direction, np.asarray((0.0, 1.0, 0.0)))
+    if np.linalg.norm(face_normal) < 1e-6:
+        face_normal = np.asarray((1.0, 0.0, 0.0))
+    face_normal /= np.linalg.norm(face_normal)
+    face.apply_transform(trimesh.geometry.align_vectors((0.0, 0.0, 1.0), face_normal))
+    face.apply_translation(face_center)
+    return trimesh.util.concatenate((handle, face))
+
+
 def main():
     ap = argparse.ArgumentParser(description="Body + hands + object in one 3D scene.")
     ap.add_argument("--sample-dir", type=Path, default=Path("samples/basketball_01"))
@@ -270,6 +320,10 @@ def main():
     ap.add_argument("--object-scale", type=float, default=0.0,
                     help="metric scale for --object-mesh (0 = fit to the trajectory radius)")
     ap.add_argument("--fps", type=float, default=24.0)
+    ap.add_argument("--output-width", type=int, default=0,
+                    help="render width override; 0 uses the input width or 1280")
+    ap.add_argument("--output-height", type=int, default=0,
+                    help="render height override; 0 uses the input height or 720")
     ap.add_argument("--body-color", choices=tuple(BODY_PALETTE), default="tan")
     ap.add_argument("--alpha", type=float, default=0.5,
                     help="overlay mesh opacity over the video; low so you can see the real "
@@ -281,6 +335,13 @@ def main():
                     help="override output directory (default results/renders/full_scene_3d)")
     ap.add_argument("--tag", type=str, default="",
                     help="filename prefix so renders are saved under distinct names (e.g. L1, L2)")
+    ap.add_argument("--body-params-pkl", type=Path, default=None,
+                    help="complete stitched SMPL-X parameter file; permits world rendering "
+                         "without generated GVHMR caches")
+    ap.add_argument("--paddle-human-sites-csv", type=Path, default=None,
+                    help="add a procedural table-tennis paddle attached to a tracked hand")
+    ap.add_argument("--paddle-hand", choices=("left_hand", "right_hand"),
+                    default="right_hand")
     args = ap.parse_args()
 
     body_color = BODY_PALETTE[args.body_color]
@@ -293,7 +354,25 @@ def main():
     print(f"object trajectory: {traj_path}")
     obj = read_object_trajectory(traj_path)
 
-    gvhmr, stitched = load_smplx_params(results_dir)
+    if args.body_params_pkl is not None:
+        import pickle
+        with args.body_params_pkl.open("rb") as stream:
+            loaded = pickle.load(stream)
+        complete = {
+            key: np.asarray(value)
+            for key, value in loaded.items()
+            if isinstance(value, np.ndarray)
+        }
+        required = {"transl", "global_orient", "body_pose", "betas", "K_fullimg"}
+        missing = sorted(required - complete.keys())
+        if missing:
+            raise RuntimeError(
+                f"{args.body_params_pkl} is not a complete stitched body file; missing {missing}"
+            )
+        gvhmr, stitched = complete, complete
+        print(f"body parameters: {args.body_params_pkl}")
+    else:
+        gvhmr, stitched = load_smplx_params(results_dir)
     n_frames = gvhmr["transl"].shape[0]
     K = gvhmr["K_fullimg"]
     if K.ndim == 2:
@@ -312,14 +391,27 @@ def main():
     print(f"object: {'mesh ' + args.object_mesh.name if args.object_mesh else 'sphere proxy'} "
           f"(radius ~{median_r:.3f} m)")
 
-    frame_paths = sorted((args.sample_dir / "frames").glob("*.png"))
-    if not frame_paths:
-        raise RuntimeError(f"No frames in {args.sample_dir / 'frames'}")
-    H, W = cv2.imread(str(frame_paths[0])).shape[:2]
+    source_frames = sorted((args.sample_dir / "frames").glob("*.png"))
+    if source_frames:
+        source_h, source_w = cv2.imread(str(source_frames[0])).shape[:2]
+        frame_paths: list[Path | None] = list(source_frames)
+        frame_nums = [
+            int(path.stem) if path.stem.isdigit() else index + 1
+            for index, path in enumerate(source_frames)
+        ]
+    elif args.mode == "world":
+        source_h, source_w = 720, 1280
+        frame_nums = list(range(1, n_frames + 1))
+        frame_paths = [None] * len(frame_nums)
+    else:
+        raise RuntimeError(
+            f"No frames in {args.sample_dir / 'frames'}; frame-free operation supports --mode world only"
+        )
+    W = args.output_width or source_w
+    H = args.output_height or source_h
     renderer = pyrender.OffscreenRenderer(viewport_width=W, viewport_height=H)
 
     # line everything up by frame number
-    frame_nums = [int(p.stem) if p.stem.isdigit() else i + 1 for i, p in enumerate(frame_paths)]
     body_idx = [min(max(fn - 1, 0), n_frames - 1) for fn in frame_nums]
 
     # ball position + rotation per displayed frame; hold the last one if a frame is missing
@@ -405,6 +497,10 @@ def main():
                     contact_pts[int(r["frame"])] = np.array(
                         [float(r["surface_x"]), float(r["surface_y"]), float(r["surface_z"])])
         print(f"contact markers: {len(contact_pts)} contact frames")
+    paddle_hands = (
+        read_human_site(args.paddle_human_sites_csv, args.paddle_hand)
+        if args.paddle_human_sites_csv is not None else {}
+    )
 
     do_overlay = args.mode in ("both", "overlay")
     do_world = args.mode in ("both", "world")
@@ -433,9 +529,19 @@ def main():
         else:
             obj_mesh, obj_center = ball_tri, bc
         cpt = contact_pts.get(frame_nums[i])
+        secondary_meshes = ()
+        if frame_nums[i] in paddle_hands:
+            secondary_meshes = (
+                (make_paddle_mesh(paddle_hands[frame_nums[i]], bc), (0.55, 0.08, 0.05)),
+            )
         if do_overlay:
+            assert fp is not None
             img = cv2.imread(str(fp))
-            rgba = render_overlay(renderer, verts_all[bi], faces, obj_mesh, obj_center, K[bi], body_color, ball_color, contact_point=cpt)
+            rgba = render_overlay(
+                renderer, verts_all[bi], faces, obj_mesh, obj_center, K[bi],
+                body_color, ball_color, contact_point=cpt,
+                secondary_meshes=secondary_meshes,
+            )
             frame = composite(img, rgba, args.alpha)
             w_over.write(frame)
             if i == 0:
@@ -447,7 +553,8 @@ def main():
             ])
             cam_pose = look_at(eye, center_w, up)
             rgba = render_world(renderer, verts_all[bi], faces, obj_mesh, obj_center, cam_pose, yfov,
-                                body_color, ball_color, ground, center_w, scene_radius, contact_point=cpt)
+                                body_color, ball_color, ground, center_w, scene_radius,
+                                contact_point=cpt, secondary_meshes=secondary_meshes)
             frame = cv2.cvtColor(rgba[:, :, :3], cv2.COLOR_RGB2BGR)
             w_world.write(frame)
             if i == 0:

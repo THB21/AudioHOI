@@ -17,9 +17,9 @@ video + case config
 The object pipeline produces the object trajectory. The human layer reads that
 trajectory as input; it does not replace the object solver.
 
-## Current Branch
+## Integrated Repository
 
-- Branch: `integrate/tom-hoi-human-layer`
+- Canonical branch: `main`
 - Base object pipeline: `vlm-gated-mainline`
 - Integrated layer: Tom's `origin/tom` human modeling, audio events, body-side
   contact refinement, HOI metrics, and final full-scene renders.
@@ -484,15 +484,118 @@ docs/hoi_interaction_evaluation_method_en.md
 docs/research_hoi_eval_metrics_sota.md
 ```
 
-## Current Five Cases
+## Current Nine Cases
 
-| Case | Result Dir | Object SE3 | Human Layer | HOI Metrics |
+| Public case | Pipeline case | Sample directory | Frozen audio ablation | World comparison |
 | --- | --- | --- | --- | --- |
-| basketball | `samples_known_object/01_basketball/results/benchmark_vlm_qwen` | yes | yes | yes |
-| football | `samples_known_object/10_football/results/benchmark_vlm_qwen` | yes | yes | yes |
-| mug | `samples_known_object/02_mug/results/benchmark_vlm_qwen` | yes | yes | yes |
-| chair | `samples_known_object/05_chair/results/benchmark_vlm_qwen` | yes | yes | yes |
-| stick | `samples_known_object/11_stick/results/benchmark_vlm_qwen` | yes | yes | yes |
+| basketball | `basketball` | `01_basketball` | yes | yes |
+| football | `football` | `10_football` | yes | yes |
+| mug | `mug` | `02_mug` | yes | yes |
+| chair | `chair` | `05_chair` | yes | yes |
+| stick | `stick` | `11_stick` | yes | yes |
+| back-view basketball | `back_view_basketball` | `12_back_view_basketball` | yes | yes |
+| volleyball | `volleyball` | `13_volleyball` | yes | yes |
+| ping-pong | `pingpong_wall` | `14_pingpong_wall` | yes | yes |
+| suitcase | `suitcase_drag` | `15_suitcase_drag` | yes | yes |
+
+## Nine-Case Audio Ablation
+
+The controlled comparison tests whether audio improves a visual and VLM-guided
+4D HOI reconstruction. Both arms use the same video, VLM configuration, human
+parameters, object model, renderer, and camera. The `vlm` arm disables audio
+events before contact extraction. The `vlm_audio` arm additionally permits
+VLM-verified audio events to influence contact timing and the reconstructed
+object trajectory.
+
+The compact, frame-aligned trajectories used for the released renders are in:
+
+```text
+final_result/nine_case_audio_ablation_inputs/<case>/vlm.csv
+final_result/nine_case_audio_ablation_inputs/<case>/vlm_audio.csv
+```
+
+These frozen inputs make the released result videos reproducible without
+committing extracted frame caches or model checkpoints. A case may have
+identical accepted trajectories in both arms. Such a zero delta is retained as
+a valid ablation result.
+
+After activating a Python environment with the GVHMR rendering dependencies,
+generate all nine world-view pairs with:
+
+```bash
+python scripts/shared/evaluation/run_nine_visual_vlm_audio_ablation.py \
+  --mode both \
+  --world-only
+```
+
+Use `--python /path/to/python` when the subprocess environment differs from the
+active interpreter. The required licensed SMPL-X body model can be installed
+with:
+
+```bash
+bash scripts/setup_body_models.sh
+```
+
+To render selected cases only:
+
+```bash
+python scripts/shared/evaluation/run_nine_visual_vlm_audio_ablation.py \
+  --mode both \
+  --world-only \
+  --cases basketball,mug,pingpong
+```
+
+To rebuild the comparison videos and manifest from existing renders:
+
+```bash
+python scripts/shared/evaluation/run_nine_visual_vlm_audio_ablation.py \
+  --mode both \
+  --world-only \
+  --resume
+```
+
+The release contains three videos per case:
+
+```text
+deliverables/nine_case_visual_vlm_audio_ablation/world_results/<case>/vlm/world.mp4
+deliverables/nine_case_visual_vlm_audio_ablation/world_results/<case>/vlm_audio/world.mp4
+deliverables/nine_case_visual_vlm_audio_ablation/world_results/<case>/comparison/world_vlm_vs_vlm_audio.mp4
+```
+
+This gives 18 unary method renders and 9 labelled comparisons. The clean world
+renderer uses the stitched SMPL-X and HaMeR parameters, reconstructed object
+trajectory, object geometry, a ground plane, and an orbiting camera. It does
+not add contact markers, colored hands, camera overlays, or an audio HUD.
+
+### Unary VLM Study
+
+The supplemental perceptual evaluation scores each of the 18 method renders
+independently from 1 to 5. The judge is blind to the method and receives no
+audio label. It scores contact timing, contact location, object motion,
+physical plausibility, temporal smoothness, interaction realism, and overall
+quality from the complete orbiting video.
+
+Install the Gemini client and run the evaluation with:
+
+```bash
+python -m pip install google-genai
+GEMINI_API_KEY=<key> \
+python scripts/shared/evaluation/run_nine_world_gemini_unary.py --resume
+```
+
+The committed scores and paired audio deltas are under:
+
+```text
+deliverables/nine_case_visual_vlm_audio_ablation/unary_vlm_evaluation/
+```
+
+Across the nine scenes, the mean unary overall-quality score is 2.33 for VLM
+and 2.67 for VLM with audio. This is a descriptive result from the committed
+Gemini 3.6 Flash run rather than a statistical significance claim.
+
+This VLM study is supplemental. The canonical geometric, contact, temporal,
+penetration, and audio-window metrics remain those produced by the official
+evaluation code under `scripts/shared/generic_contact_pipeline/core/evaluation/final_hoi/`.
 
 ## Verification
 

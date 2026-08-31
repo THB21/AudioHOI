@@ -227,6 +227,11 @@ samples_known_object/*/results/segmentation/
 samples_known_object/*/results/da3/
 samples_known_object/*/results/gvhmr/
 samples_known_object/*/results/hands/
+# The compact stitched body parameters are required to reproduce the released
+# nine-case world renders. Keep other generated hand artifacts ignored.
+!samples_known_object/*/results/hands/
+samples_known_object/*/results/hands/*
+!samples_known_object/*/results/hands/stitched_smplx_params.pkl
 samples_known_object/*/results/human_hands/
 samples_known_object/*/results/human_audio_semantics/
 samples_known_object/*/results/tracking/
